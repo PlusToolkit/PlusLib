@@ -23,11 +23,13 @@ vtkStandardNewMacro(vtkPlusTelemedVideoSource); // Corresponds to the implementa
 
 //----------------------------------------------------------------------------
 vtkPlusTelemedVideoSource::vtkPlusTelemedVideoSource()
-  : FrequencyMhz(-1)
+  : ProbeId(0)
+  , FrequencyMhz(-1)
   , DepthMm(-1)
   , GainPercent(-1)
   , DynRangeDb(-1)
   , PowerDb(-1)
+  , FocusDepth(-1)
   , ConnectedToDevice(false)
 {
   this->FrameSize[0] = 512;
@@ -59,11 +61,13 @@ PlusStatus vtkPlusTelemedVideoSource::ReadConfiguration(vtkXMLDataElement* rootC
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
   XML_READ_STD_ARRAY_ATTRIBUTE_OPTIONAL(int, 3, FrameSize, deviceConfig);
 
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ProbeId, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DepthMm, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FrequencyMhz, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DynRangeDb, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, GainPercent, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, PowerDb, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FocusDepth, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -76,11 +80,13 @@ PlusStatus vtkPlusTelemedVideoSource::WriteConfiguration(vtkXMLDataElement* root
   int frameSize[3] = { this->FrameSize[0], this->FrameSize[1], this->FrameSize[2] };
   deviceConfig->SetVectorAttribute("FrameSize", 3, frameSize);
 
+  deviceConfig->SetIntAttribute("ProbeId", this->ProbeId);
   deviceConfig->SetDoubleAttribute("DepthMm", this->DepthMm);
   deviceConfig->SetDoubleAttribute("FrequencyMhz", this->FrequencyMhz);
   deviceConfig->SetDoubleAttribute("DynRangeDb", this->DynRangeDb);
   deviceConfig->SetDoubleAttribute("GainPercent", this->GainPercent);
   deviceConfig->SetDoubleAttribute("PowerDb", this->PowerDb);
+  deviceConfig->SetDoubleAttribute("FocusDepth", this->FocusDepth);
   return PLUS_SUCCESS;
 }
 
@@ -99,7 +105,7 @@ PlusStatus vtkPlusTelemedVideoSource::InternalConnect()
     this->Device = new TelemedUltrasound();
   }
   this->Device->SetMaximumFrameSize(this->FrameSize);
-  if (this->Device->Connect() != PLUS_SUCCESS)
+  if (this->Device->Connect(this->ProbeId) != PLUS_SUCCESS)
   {
     LOG_ERROR("vtkPlusTelemedVideoSource device initialization failed");
     this->ConnectedToDevice = false;
@@ -112,6 +118,7 @@ PlusStatus vtkPlusTelemedVideoSource::InternalConnect()
   if (this->GainPercent >= 0) {SetGainPercent(this->GainPercent); }
   if (this->DynRangeDb > 0) {SetDynRangeDb(this->DynRangeDb); }
   if (this->PowerDb >= 0) {SetPowerDb(this->PowerDb); }
+  if (this->FocusDepth >= 0 && this->FocusDepth <= 1) { SetFocusDepth(this->FocusDepth); }
 
   return PLUS_SUCCESS;
 }
@@ -268,12 +275,14 @@ IMAGING_PARAMETER_GET(DepthMm);
 IMAGING_PARAMETER_GET(GainPercent);
 IMAGING_PARAMETER_GET(DynRangeDb);
 IMAGING_PARAMETER_GET(PowerDb);
+IMAGING_PARAMETER_GET(FocusDepth);
 
 IMAGING_PARAMETER_SET(FrequencyMhz);
 IMAGING_PARAMETER_SET(DepthMm);
 IMAGING_PARAMETER_SET(GainPercent);
 IMAGING_PARAMETER_SET(DynRangeDb);
 IMAGING_PARAMETER_SET(PowerDb);
+IMAGING_PARAMETER_SET(FocusDepth);
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusTelemedVideoSource::NotifyConfigured()
@@ -367,5 +376,17 @@ PlusStatus vtkPlusTelemedVideoSource::InternalApplyImagingParameterChange()
       status = PLUS_FAIL;
     }
   }
+
+  // FOCUS DEPTH
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_FOCUS_DEPTH)
+    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_FOCUS_DEPTH))
+  {
+    if (this->SetFocusDepth(this->ImagingParameters->GetFocusDepth()) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to set focus depth imaging parameter");
+      status = PLUS_FAIL;
+    }
+  }
+
   return status;
 }

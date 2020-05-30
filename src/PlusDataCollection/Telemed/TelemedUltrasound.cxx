@@ -37,6 +37,7 @@ TelemedUltrasound::TelemedUltrasound()
   m_b_gain_ctrl = NULL;
   m_b_dynrange_ctrl = NULL;
   m_b_frequency_ctrl = NULL;
+  m_b_focus_ctrl = NULL;
   m_usg_control_change_cpnt = NULL;
   m_usg_control_change_cpnt_cookie = 0;
   m_usg_device_change_cpnt = NULL;
@@ -66,7 +67,7 @@ void TelemedUltrasound::SetMaximumFrameSize(const FrameSizeType& maxFrameSize)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus TelemedUltrasound::Connect()
+PlusStatus TelemedUltrasound::Connect(int probeId /* = 0 */)
 {
   HINSTANCE hInst = GetModuleHandle(NULL);
 
@@ -111,7 +112,7 @@ PlusStatus TelemedUltrasound::Connect()
   size_t toAllocate = (this->Bitmap.bmWidth + 16) * (this->Bitmap.bmHeight + 4);
   this->MemoryBitmapBuffer.resize(toAllocate, 0);
 
-  CreateUsgControls();
+  CreateUsgControls(probeId);
 
   return PLUS_SUCCESS;
 }
@@ -341,9 +342,9 @@ void TelemedUltrasound::CreateUsgControl(IUsgDataView* data_view, const IID& typ
 }
 
 //----------------------------------------------------------------------------
-void TelemedUltrasound::CreateUsgControls()
+void TelemedUltrasound::CreateUsgControls(int probeId /* = 0 */)
 {
-  HRESULT hr = S_OK;
+  HRESULT hr = S_OK; 
   IUnknown* tmp_obj = NULL;
 
   do
@@ -416,9 +417,15 @@ void TelemedUltrasound::CreateUsgControls()
       break;
     }
 
-    // get first available probe
+    // get probe
     tmp_obj = NULL;
-    probes_collection->Item(0, &tmp_obj);
+    if (probeId >= probes_count || probeId < 0)
+    {
+      // invalid probe id provided, connect to first probe
+      LOG_WARNING("Attempted to connect to non-existant US probe with ID " << probeId << ". There are only " << probes_count << " probes connected. Connecting to default probe with ID 0.");
+      probeId = 0;
+    }
+    probes_collection->Item(probeId, &tmp_obj);
     probes_collection->Release();
     probes_collection = NULL;
     if (tmp_obj == NULL)
@@ -536,6 +543,18 @@ void TelemedUltrasound::CreateUsgControls()
     else
     {
       m_b_frequency_ctrl = NULL;
+    }
+
+    // create focus depth control
+    tmp_obj = NULL;
+    CreateUsgControl(m_data_view, IID_IUsgFocus, SCAN_MODE_B, 0, (void**)&tmp_obj);
+    if (tmp_obj != NULL)
+    {
+      m_b_focus_ctrl = (IUsgFocus*)tmp_obj;
+    }
+    else
+    {
+      m_b_focus_ctrl = NULL;
     }
 
     // attach to control value change connection point in order to be informed about changed values
@@ -912,6 +931,7 @@ void TelemedUltrasound::ReleaseUsgControls(bool release_usgfw2)
   SAFE_RELEASE(m_b_gain_ctrl);
   SAFE_RELEASE(m_b_dynrange_ctrl);
   SAFE_RELEASE(m_b_frequency_ctrl);
+  SAFE_RELEASE(m_b_focus_ctrl);
   SAFE_RELEASE(m_mixer_control);
   SAFE_RELEASE(m_data_view);
   SAFE_RELEASE(m_probe);
@@ -1131,6 +1151,64 @@ PlusStatus TelemedUltrasound::GetPowerDb(double& powerDb)
     return PLUS_FAIL;
   }
   powerDb = currentPowerDb;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::SetFocusDepth(double focusDepth)
+{
+  if (m_b_focus_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::SetFocusDepth failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  int focus_mode = FOCUS_MODE_MULTI;
+  int focus_set = 0;
+  LONG focal_zones_count;
+  m_b_focus_ctrl->put_CurrentMode(focus_mode);
+  m_b_focus_ctrl->put_FocusSet(focus_mode, focus_set);
+  m_b_focus_ctrl->GetFocalZonesCount(focus_mode, focus_set, &focal_zones_count);
+
+  LONG* arr;
+  arr = new LONG[focal_zones_count];
+  for (int i = 0; i < focal_zones_count; i++)
+  {
+    arr[i] = 0;
+  }
+  float zone_width = 1.0 / focal_zones_count;
+  int enabled_zone = focusDepth / zone_width;
+  arr[enabled_zone] = 1;
+  m_b_focus_ctrl->SetFocusState(focus_mode, focus_set, focal_zones_count, arr);
+  delete[] arr;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::GetFocusDepth(double& focusDepth)
+{
+  if (m_b_focus_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::GetFocusDepth failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  LONG focus_mode;
+  m_b_focus_ctrl->get_CurrentMode(&focus_mode);
+  LONG focus_set;
+  m_b_focus_ctrl->get_FocusSet(focus_mode, &focus_set);
+  LONG focal_zones_count;
+  m_b_focus_ctrl->GetFocalZonesCount(focus_mode, focus_set, &focal_zones_count);
+
+  LONG* arr;
+  arr = new LONG[focal_zones_count];
+  m_b_focus_ctrl->GetFocusState(focus_mode, focus_set, focal_zones_count, arr);
+  for (int i = 0; i < focal_zones_count; i++)
+  {
+    if (arr[i] != 0)
+    {
+      focusDepth = ((float)i) / focal_zones_count;
+      break;
+    }
+  }
   return PLUS_SUCCESS;
 }
 

@@ -46,6 +46,10 @@ public:
   /*! Get an update from the tracking system and push the new transforms to the tools. This function is called by the tracker thread.*/
   PlusStatus InternalUpdate();
 
+  /*! Get / set ultrasound probe ID */
+  vtkSetMacro(ProbeId, int);
+  vtkGetMacro(ProbeId, int);
+
   /*! Set ultrasound transmitter frequency (MHz) */
   PlusStatus SetFrequencyMhz(double aFrequencyMhz);
   /*! Get ultrasound transmitter frequency (MHz) */
@@ -70,6 +74,11 @@ public:
   PlusStatus SetPowerDb(double aPowerDb);
   /*! Get the imaging power of B-mode ultrasound as percentage of maximum power (valid range: -20 to 0) */
   PlusStatus GetPowerDb(double& aPowerDb);
+
+  /*! Set the focus depth of B-mode ultrasound normalized to [0,1] */
+  PlusStatus SetFocusDepth(double aFocusDepth);
+  /*! Get the focus depth of B-mode ultrasound normalized to [0,1] */
+  PlusStatus GetFocusDepth(double& aFocusDepth);
 
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
@@ -102,11 +111,13 @@ protected:
 
   FrameSizeType FrameSize;
 
+  int ProbeId;
   double FrequencyMhz;
   double DepthMm;
   double GainPercent;
   double DynRangeDb;
   double PowerDb;
+  double FocusDepth;
 
 private:
   vtkImageImport* importer;

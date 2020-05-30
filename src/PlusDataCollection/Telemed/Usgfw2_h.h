@@ -3,25 +3,25 @@
 /* this ALWAYS GENERATED file contains the definitions for the interfaces */
 
 
- /* File created by MIDL compiler version 6.00.0366 */
-/* at Thu Apr 19 15:36:15 2012
+ /* File created by MIDL compiler version 8.01.0622 */
+/* at Tue Jan 19 04:14:07 2038
  */
-/* Compiler settings for ..\..\..\include\USGFWSDK\include\Usgfw2.idl:
-    Oicf, W1, Zp8, env=Win32 (32b run)
-    protocol : dce , ms_ext, c_ext
+/* Compiler settings for Usgfw2.idl:
+    Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 8.01.0622 
+    protocol : dce , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 
     VC __declspec() decoration level: 
          __declspec(uuid()), __declspec(selectany), __declspec(novtable)
          DECLSPEC_UUID(), MIDL_INTERFACE()
 */
-//@@MIDL_FILE_HEADING(  )
+/* @@MIDL_FILE_HEADING(  ) */
 
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
 
 
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
-#define __REQUIRED_RPCNDR_H_VERSION__ 440
+#define __REQUIRED_RPCNDR_H_VERSION__ 475
 #endif
 
 #include "rpc.h"
@@ -29,15 +29,15 @@
 
 #ifndef __RPCNDR_H_VERSION__
 #error this stub requires an updated version of <rpcndr.h>
-#endif // __RPCNDR_H_VERSION__
+#endif /* __RPCNDR_H_VERSION__ */
 
 #ifndef COM_NO_WINDOWS_H
 #include "windows.h"
 #include "ole2.h"
 #endif /*COM_NO_WINDOWS_H*/
 
-#ifndef __Usgfw2_h_h__
-#define __Usgfw2_h_h__
+#ifndef __Usgfw2_h__
+#define __Usgfw2_h__
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
 #pragma once
@@ -48,883 +48,1107 @@
 #ifndef __IUsgDataView_FWD_DEFINED__
 #define __IUsgDataView_FWD_DEFINED__
 typedef interface IUsgDataView IUsgDataView;
+
 #endif 	/* __IUsgDataView_FWD_DEFINED__ */
 
 
 #ifndef __IUsgScanMode_FWD_DEFINED__
 #define __IUsgScanMode_FWD_DEFINED__
 typedef interface IUsgScanMode IUsgScanMode;
+
 #endif 	/* __IUsgScanMode_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDataStream_FWD_DEFINED__
 #define __IUsgDataStream_FWD_DEFINED__
 typedef interface IUsgDataStream IUsgDataStream;
+
 #endif 	/* __IUsgDataStream_FWD_DEFINED__ */
 
 
 #ifndef __IUsgMixerControl_FWD_DEFINED__
 #define __IUsgMixerControl_FWD_DEFINED__
 typedef interface IUsgMixerControl IUsgMixerControl;
+
 #endif 	/* __IUsgMixerControl_FWD_DEFINED__ */
 
 
 #ifndef __IUsgData_FWD_DEFINED__
 #define __IUsgData_FWD_DEFINED__
 typedef interface IUsgData IUsgData;
+
 #endif 	/* __IUsgData_FWD_DEFINED__ */
 
 
 #ifndef __IUsgGraph_FWD_DEFINED__
 #define __IUsgGraph_FWD_DEFINED__
 typedef interface IUsgGraph IUsgGraph;
+
 #endif 	/* __IUsgGraph_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDeviceChangeSink_FWD_DEFINED__
 #define __IUsgDeviceChangeSink_FWD_DEFINED__
 typedef interface IUsgDeviceChangeSink IUsgDeviceChangeSink;
+
 #endif 	/* __IUsgDeviceChangeSink_FWD_DEFINED__ */
 
 
 #ifndef __IScanDepth_FWD_DEFINED__
 #define __IScanDepth_FWD_DEFINED__
 typedef interface IScanDepth IScanDepth;
+
 #endif 	/* __IScanDepth_FWD_DEFINED__ */
 
 
 #ifndef __IUsgfw2_FWD_DEFINED__
 #define __IUsgfw2_FWD_DEFINED__
 typedef interface IUsgfw2 IUsgfw2;
+
 #endif 	/* __IUsgfw2_FWD_DEFINED__ */
 
 
 #ifndef __IProbesCollection_FWD_DEFINED__
 #define __IProbesCollection_FWD_DEFINED__
 typedef interface IProbesCollection IProbesCollection;
+
 #endif 	/* __IProbesCollection_FWD_DEFINED__ */
 
 
 #ifndef __IUsgCollection_FWD_DEFINED__
 #define __IUsgCollection_FWD_DEFINED__
 typedef interface IUsgCollection IUsgCollection;
+
 #endif 	/* __IUsgCollection_FWD_DEFINED__ */
 
 
 #ifndef __IProbe_FWD_DEFINED__
 #define __IProbe_FWD_DEFINED__
 typedef interface IProbe IProbe;
+
 #endif 	/* __IProbe_FWD_DEFINED__ */
 
 
 #ifndef __IProbe2_FWD_DEFINED__
 #define __IProbe2_FWD_DEFINED__
 typedef interface IProbe2 IProbe2;
+
 #endif 	/* __IProbe2_FWD_DEFINED__ */
 
 
 #ifndef __IBeamformer_FWD_DEFINED__
 #define __IBeamformer_FWD_DEFINED__
 typedef interface IBeamformer IBeamformer;
+
 #endif 	/* __IBeamformer_FWD_DEFINED__ */
 
 
 #ifndef __IScanModes_FWD_DEFINED__
 #define __IScanModes_FWD_DEFINED__
 typedef interface IScanModes IScanModes;
+
 #endif 	/* __IScanModes_FWD_DEFINED__ */
 
 
 #ifndef __IUsgControl_FWD_DEFINED__
 #define __IUsgControl_FWD_DEFINED__
 typedef interface IUsgControl IUsgControl;
+
 #endif 	/* __IUsgControl_FWD_DEFINED__ */
 
 
 #ifndef __IUsgGain_FWD_DEFINED__
 #define __IUsgGain_FWD_DEFINED__
 typedef interface IUsgGain IUsgGain;
+
 #endif 	/* __IUsgGain_FWD_DEFINED__ */
 
 
 #ifndef __IUsgValues_FWD_DEFINED__
 #define __IUsgValues_FWD_DEFINED__
 typedef interface IUsgValues IUsgValues;
+
 #endif 	/* __IUsgValues_FWD_DEFINED__ */
 
 
 #ifndef __IUsgPower_FWD_DEFINED__
 #define __IUsgPower_FWD_DEFINED__
 typedef interface IUsgPower IUsgPower;
+
 #endif 	/* __IUsgPower_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDynamicRange_FWD_DEFINED__
 #define __IUsgDynamicRange_FWD_DEFINED__
 typedef interface IUsgDynamicRange IUsgDynamicRange;
+
 #endif 	/* __IUsgDynamicRange_FWD_DEFINED__ */
 
 
 #ifndef __IUsgFrameAvg_FWD_DEFINED__
 #define __IUsgFrameAvg_FWD_DEFINED__
 typedef interface IUsgFrameAvg IUsgFrameAvg;
+
 #endif 	/* __IUsgFrameAvg_FWD_DEFINED__ */
 
 
 #ifndef __IUsgRejection2_FWD_DEFINED__
 #define __IUsgRejection2_FWD_DEFINED__
 typedef interface IUsgRejection2 IUsgRejection2;
+
 #endif 	/* __IUsgRejection2_FWD_DEFINED__ */
 
 
 #ifndef __IUsgProbeFrequency2_FWD_DEFINED__
 #define __IUsgProbeFrequency2_FWD_DEFINED__
 typedef interface IUsgProbeFrequency2 IUsgProbeFrequency2;
+
 #endif 	/* __IUsgProbeFrequency2_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDepth_FWD_DEFINED__
 #define __IUsgDepth_FWD_DEFINED__
 typedef interface IUsgDepth IUsgDepth;
+
 #endif 	/* __IUsgDepth_FWD_DEFINED__ */
 
 
 #ifndef __IUsgImageOrientation_FWD_DEFINED__
 #define __IUsgImageOrientation_FWD_DEFINED__
 typedef interface IUsgImageOrientation IUsgImageOrientation;
+
 #endif 	/* __IUsgImageOrientation_FWD_DEFINED__ */
 
 
 #ifndef __IUsgImageEnhancement_FWD_DEFINED__
 #define __IUsgImageEnhancement_FWD_DEFINED__
 typedef interface IUsgImageEnhancement IUsgImageEnhancement;
+
 #endif 	/* __IUsgImageEnhancement_FWD_DEFINED__ */
 
 
 #ifndef __IUsgViewArea_FWD_DEFINED__
 #define __IUsgViewArea_FWD_DEFINED__
 typedef interface IUsgViewArea IUsgViewArea;
+
 #endif 	/* __IUsgViewArea_FWD_DEFINED__ */
 
 
 #ifndef __IUsgLineDensity_FWD_DEFINED__
 #define __IUsgLineDensity_FWD_DEFINED__
 typedef interface IUsgLineDensity IUsgLineDensity;
+
 #endif 	/* __IUsgLineDensity_FWD_DEFINED__ */
 
 
 #ifndef __IUsgFocus_FWD_DEFINED__
 #define __IUsgFocus_FWD_DEFINED__
 typedef interface IUsgFocus IUsgFocus;
+
 #endif 	/* __IUsgFocus_FWD_DEFINED__ */
 
 
 #ifndef __IUsgTgc_FWD_DEFINED__
 #define __IUsgTgc_FWD_DEFINED__
 typedef interface IUsgTgc IUsgTgc;
+
 #endif 	/* __IUsgTgc_FWD_DEFINED__ */
 
 
 #ifndef __IUsgClearView_FWD_DEFINED__
 #define __IUsgClearView_FWD_DEFINED__
 typedef interface IUsgClearView IUsgClearView;
+
 #endif 	/* __IUsgClearView_FWD_DEFINED__ */
 
 
 #ifndef __IUsgPaletteCalculator_FWD_DEFINED__
 #define __IUsgPaletteCalculator_FWD_DEFINED__
 typedef interface IUsgPaletteCalculator IUsgPaletteCalculator;
+
 #endif 	/* __IUsgPaletteCalculator_FWD_DEFINED__ */
 
 
 #ifndef __IUsgPalette_FWD_DEFINED__
 #define __IUsgPalette_FWD_DEFINED__
 typedef interface IUsgPalette IUsgPalette;
+
 #endif 	/* __IUsgPalette_FWD_DEFINED__ */
 
 
 #ifndef __IUsgImageProperties_FWD_DEFINED__
 #define __IUsgImageProperties_FWD_DEFINED__
 typedef interface IUsgImageProperties IUsgImageProperties;
+
 #endif 	/* __IUsgImageProperties_FWD_DEFINED__ */
 
 
 #ifndef __IUsgControlChangeSink_FWD_DEFINED__
 #define __IUsgControlChangeSink_FWD_DEFINED__
 typedef interface IUsgControlChangeSink IUsgControlChangeSink;
+
 #endif 	/* __IUsgControlChangeSink_FWD_DEFINED__ */
 
 
 #ifndef __IUsgCtrlChangeCommon_FWD_DEFINED__
 #define __IUsgCtrlChangeCommon_FWD_DEFINED__
 typedef interface IUsgCtrlChangeCommon IUsgCtrlChangeCommon;
+
 #endif 	/* __IUsgCtrlChangeCommon_FWD_DEFINED__ */
 
 
 #ifndef __IUsgScanLine_FWD_DEFINED__
 #define __IUsgScanLine_FWD_DEFINED__
 typedef interface IUsgScanLine IUsgScanLine;
+
 #endif 	/* __IUsgScanLine_FWD_DEFINED__ */
 
 
 #ifndef __IUsgScanLineProperties_FWD_DEFINED__
 #define __IUsgScanLineProperties_FWD_DEFINED__
 typedef interface IUsgScanLineProperties IUsgScanLineProperties;
+
 #endif 	/* __IUsgScanLineProperties_FWD_DEFINED__ */
 
 
 #ifndef __IUsgScanLineSelector_FWD_DEFINED__
 #define __IUsgScanLineSelector_FWD_DEFINED__
 typedef interface IUsgScanLineSelector IUsgScanLineSelector;
+
 #endif 	/* __IUsgScanLineSelector_FWD_DEFINED__ */
 
 
 #ifndef __IUsgSweepMode_FWD_DEFINED__
 #define __IUsgSweepMode_FWD_DEFINED__
 typedef interface IUsgSweepMode IUsgSweepMode;
+
 #endif 	/* __IUsgSweepMode_FWD_DEFINED__ */
 
 
 #ifndef __IUsgQualProp_FWD_DEFINED__
 #define __IUsgQualProp_FWD_DEFINED__
 typedef interface IUsgQualProp IUsgQualProp;
+
 #endif 	/* __IUsgQualProp_FWD_DEFINED__ */
 
 
 #ifndef __IUsgSweepSpeed_FWD_DEFINED__
 #define __IUsgSweepSpeed_FWD_DEFINED__
 typedef interface IUsgSweepSpeed IUsgSweepSpeed;
+
 #endif 	/* __IUsgSweepSpeed_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerColorMap_FWD_DEFINED__
 #define __IUsgDopplerColorMap_FWD_DEFINED__
 typedef interface IUsgDopplerColorMap IUsgDopplerColorMap;
+
 #endif 	/* __IUsgDopplerColorMap_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerColorPriority_FWD_DEFINED__
 #define __IUsgDopplerColorPriority_FWD_DEFINED__
 typedef interface IUsgDopplerColorPriority IUsgDopplerColorPriority;
+
 #endif 	/* __IUsgDopplerColorPriority_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerSteerAngle_FWD_DEFINED__
 #define __IUsgDopplerSteerAngle_FWD_DEFINED__
 typedef interface IUsgDopplerSteerAngle IUsgDopplerSteerAngle;
+
 #endif 	/* __IUsgDopplerSteerAngle_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerColorThreshold_FWD_DEFINED__
 #define __IUsgDopplerColorThreshold_FWD_DEFINED__
 typedef interface IUsgDopplerColorThreshold IUsgDopplerColorThreshold;
+
 #endif 	/* __IUsgDopplerColorThreshold_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerBaseLine_FWD_DEFINED__
 #define __IUsgDopplerBaseLine_FWD_DEFINED__
 typedef interface IUsgDopplerBaseLine IUsgDopplerBaseLine;
+
 #endif 	/* __IUsgDopplerBaseLine_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerPRF_FWD_DEFINED__
 #define __IUsgDopplerPRF_FWD_DEFINED__
 typedef interface IUsgDopplerPRF IUsgDopplerPRF;
+
 #endif 	/* __IUsgDopplerPRF_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerWindow_FWD_DEFINED__
 #define __IUsgDopplerWindow_FWD_DEFINED__
 typedef interface IUsgDopplerWindow IUsgDopplerWindow;
+
 #endif 	/* __IUsgDopplerWindow_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerWallFilter_FWD_DEFINED__
 #define __IUsgDopplerWallFilter_FWD_DEFINED__
 typedef interface IUsgDopplerWallFilter IUsgDopplerWallFilter;
+
 #endif 	/* __IUsgDopplerWallFilter_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerSignalScale_FWD_DEFINED__
 #define __IUsgDopplerSignalScale_FWD_DEFINED__
 typedef interface IUsgDopplerSignalScale IUsgDopplerSignalScale;
+
 #endif 	/* __IUsgDopplerSignalScale_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerPacketSize_FWD_DEFINED__
 #define __IUsgDopplerPacketSize_FWD_DEFINED__
 typedef interface IUsgDopplerPacketSize IUsgDopplerPacketSize;
+
 #endif 	/* __IUsgDopplerPacketSize_FWD_DEFINED__ */
 
 
 #ifndef __IUsgPulsesNumber_FWD_DEFINED__
 #define __IUsgPulsesNumber_FWD_DEFINED__
 typedef interface IUsgPulsesNumber IUsgPulsesNumber;
+
 #endif 	/* __IUsgPulsesNumber_FWD_DEFINED__ */
 
 
 #ifndef __IUsgCineloop_FWD_DEFINED__
 #define __IUsgCineloop_FWD_DEFINED__
 typedef interface IUsgCineloop IUsgCineloop;
+
 #endif 	/* __IUsgCineloop_FWD_DEFINED__ */
 
 
 #ifndef __IUsgCineStream_FWD_DEFINED__
 #define __IUsgCineStream_FWD_DEFINED__
 typedef interface IUsgCineStream IUsgCineStream;
+
 #endif 	/* __IUsgCineStream_FWD_DEFINED__ */
 
 
 #ifndef __IUsgCineSink_FWD_DEFINED__
 #define __IUsgCineSink_FWD_DEFINED__
 typedef interface IUsgCineSink IUsgCineSink;
+
 #endif 	/* __IUsgCineSink_FWD_DEFINED__ */
 
 
 #ifndef __IUsgSpatialFilter_FWD_DEFINED__
 #define __IUsgSpatialFilter_FWD_DEFINED__
 typedef interface IUsgSpatialFilter IUsgSpatialFilter;
+
 #endif 	/* __IUsgSpatialFilter_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerSampleVolume_FWD_DEFINED__
 #define __IUsgDopplerSampleVolume_FWD_DEFINED__
 typedef interface IUsgDopplerSampleVolume IUsgDopplerSampleVolume;
+
 #endif 	/* __IUsgDopplerSampleVolume_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerCorrectionAngle_FWD_DEFINED__
 #define __IUsgDopplerCorrectionAngle_FWD_DEFINED__
 typedef interface IUsgDopplerCorrectionAngle IUsgDopplerCorrectionAngle;
+
 #endif 	/* __IUsgDopplerCorrectionAngle_FWD_DEFINED__ */
 
 
 #ifndef __IUsgScanConverterPlugin_FWD_DEFINED__
 #define __IUsgScanConverterPlugin_FWD_DEFINED__
 typedef interface IUsgScanConverterPlugin IUsgScanConverterPlugin;
+
 #endif 	/* __IUsgScanConverterPlugin_FWD_DEFINED__ */
 
 
 #ifndef __IUsgScanConverterPlugin2_FWD_DEFINED__
 #define __IUsgScanConverterPlugin2_FWD_DEFINED__
 typedef interface IUsgScanConverterPlugin2 IUsgScanConverterPlugin2;
+
 #endif 	/* __IUsgScanConverterPlugin2_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerSignalSmooth_FWD_DEFINED__
 #define __IUsgDopplerSignalSmooth_FWD_DEFINED__
 typedef interface IUsgDopplerSignalSmooth IUsgDopplerSignalSmooth;
+
 #endif 	/* __IUsgDopplerSignalSmooth_FWD_DEFINED__ */
 
 
 #ifndef __IUsgAudioVolume_FWD_DEFINED__
 #define __IUsgAudioVolume_FWD_DEFINED__
 typedef interface IUsgAudioVolume IUsgAudioVolume;
+
 #endif 	/* __IUsgAudioVolume_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerSpectralAvg_FWD_DEFINED__
 #define __IUsgDopplerSpectralAvg_FWD_DEFINED__
 typedef interface IUsgDopplerSpectralAvg IUsgDopplerSpectralAvg;
+
 #endif 	/* __IUsgDopplerSpectralAvg_FWD_DEFINED__ */
 
 
 #ifndef __IUsgBioeffectsIndices_FWD_DEFINED__
 #define __IUsgBioeffectsIndices_FWD_DEFINED__
 typedef interface IUsgBioeffectsIndices IUsgBioeffectsIndices;
+
 #endif 	/* __IUsgBioeffectsIndices_FWD_DEFINED__ */
 
 
 #ifndef __IUsgProbeFrequency3_FWD_DEFINED__
 #define __IUsgProbeFrequency3_FWD_DEFINED__
 typedef interface IUsgProbeFrequency3 IUsgProbeFrequency3;
+
 #endif 	/* __IUsgProbeFrequency3_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerColorTransparency_FWD_DEFINED__
 #define __IUsgDopplerColorTransparency_FWD_DEFINED__
 typedef interface IUsgDopplerColorTransparency IUsgDopplerColorTransparency;
+
 #endif 	/* __IUsgDopplerColorTransparency_FWD_DEFINED__ */
 
 
 #ifndef __IUsg3dVolumeSize_FWD_DEFINED__
 #define __IUsg3dVolumeSize_FWD_DEFINED__
 typedef interface IUsg3dVolumeSize IUsg3dVolumeSize;
+
 #endif 	/* __IUsg3dVolumeSize_FWD_DEFINED__ */
 
 
 #ifndef __IUsg3dVolumeDensity_FWD_DEFINED__
 #define __IUsg3dVolumeDensity_FWD_DEFINED__
 typedef interface IUsg3dVolumeDensity IUsg3dVolumeDensity;
+
 #endif 	/* __IUsg3dVolumeDensity_FWD_DEFINED__ */
 
 
 #ifndef __IUsgFileStorage_FWD_DEFINED__
 #define __IUsgFileStorage_FWD_DEFINED__
 typedef interface IUsgFileStorage IUsgFileStorage;
+
 #endif 	/* __IUsgFileStorage_FWD_DEFINED__ */
 
 
 #ifndef __IUsgfw2Debug_FWD_DEFINED__
 #define __IUsgfw2Debug_FWD_DEFINED__
 typedef interface IUsgfw2Debug IUsgfw2Debug;
+
 #endif 	/* __IUsgfw2Debug_FWD_DEFINED__ */
 
 
 #ifndef __IUsgPlugin_FWD_DEFINED__
 #define __IUsgPlugin_FWD_DEFINED__
 typedef interface IUsgPlugin IUsgPlugin;
+
 #endif 	/* __IUsgPlugin_FWD_DEFINED__ */
 
 
 #ifndef __IBeamformerPowerState_FWD_DEFINED__
 #define __IBeamformerPowerState_FWD_DEFINED__
 typedef interface IBeamformerPowerState IBeamformerPowerState;
+
 #endif 	/* __IBeamformerPowerState_FWD_DEFINED__ */
 
 
 #ifndef __IUsgScanType_FWD_DEFINED__
 #define __IUsgScanType_FWD_DEFINED__
 typedef interface IUsgScanType IUsgScanType;
+
 #endif 	/* __IUsgScanType_FWD_DEFINED__ */
 
 
 #ifndef __IUsgSteeringAngle_FWD_DEFINED__
 #define __IUsgSteeringAngle_FWD_DEFINED__
 typedef interface IUsgSteeringAngle IUsgSteeringAngle;
+
 #endif 	/* __IUsgSteeringAngle_FWD_DEFINED__ */
 
 
 #ifndef __IUsgViewAngle_FWD_DEFINED__
 #define __IUsgViewAngle_FWD_DEFINED__
 typedef interface IUsgViewAngle IUsgViewAngle;
+
 #endif 	/* __IUsgViewAngle_FWD_DEFINED__ */
 
 
 #ifndef __IUsgCompoundFrames_FWD_DEFINED__
 #define __IUsgCompoundFrames_FWD_DEFINED__
 typedef interface IUsgCompoundFrames IUsgCompoundFrames;
+
 #endif 	/* __IUsgCompoundFrames_FWD_DEFINED__ */
 
 
 #ifndef __IUsgCompoundAngle_FWD_DEFINED__
 #define __IUsgCompoundAngle_FWD_DEFINED__
 typedef interface IUsgCompoundAngle IUsgCompoundAngle;
+
 #endif 	/* __IUsgCompoundAngle_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDeviceCapabilities_FWD_DEFINED__
 #define __IUsgDeviceCapabilities_FWD_DEFINED__
 typedef interface IUsgDeviceCapabilities IUsgDeviceCapabilities;
+
 #endif 	/* __IUsgDeviceCapabilities_FWD_DEFINED__ */
 
 
 #ifndef __IUsgUnits_FWD_DEFINED__
 #define __IUsgUnits_FWD_DEFINED__
 typedef interface IUsgUnits IUsgUnits;
+
 #endif 	/* __IUsgUnits_FWD_DEFINED__ */
+
+
+#ifndef __ISampleGrabberFilter_FWD_DEFINED__
+#define __ISampleGrabberFilter_FWD_DEFINED__
+typedef interface ISampleGrabberFilter ISampleGrabberFilter;
+
+#endif 	/* __ISampleGrabberFilter_FWD_DEFINED__ */
+
+
+#ifndef __IUsgWindowRF_FWD_DEFINED__
+#define __IUsgWindowRF_FWD_DEFINED__
+typedef interface IUsgWindowRF IUsgWindowRF;
+
+#endif 	/* __IUsgWindowRF_FWD_DEFINED__ */
+
+
+#ifndef __IUsgStreamEnable_FWD_DEFINED__
+#define __IUsgStreamEnable_FWD_DEFINED__
+typedef interface IUsgStreamEnable IUsgStreamEnable;
+
+#endif 	/* __IUsgStreamEnable_FWD_DEFINED__ */
+
+
+#ifndef __IUsgDataSourceRF_FWD_DEFINED__
+#define __IUsgDataSourceRF_FWD_DEFINED__
+typedef interface IUsgDataSourceRF IUsgDataSourceRF;
+
+#endif 	/* __IUsgDataSourceRF_FWD_DEFINED__ */
+
+
+#ifndef __IUsgMultiBeam_FWD_DEFINED__
+#define __IUsgMultiBeam_FWD_DEFINED__
+typedef interface IUsgMultiBeam IUsgMultiBeam;
+
+#endif 	/* __IUsgMultiBeam_FWD_DEFINED__ */
 
 
 #ifndef __IUsgFocus_FWD_DEFINED__
 #define __IUsgFocus_FWD_DEFINED__
 typedef interface IUsgFocus IUsgFocus;
+
 #endif 	/* __IUsgFocus_FWD_DEFINED__ */
 
 
 #ifndef __IScanModes_FWD_DEFINED__
 #define __IScanModes_FWD_DEFINED__
 typedef interface IScanModes IScanModes;
+
 #endif 	/* __IScanModes_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDataView_FWD_DEFINED__
 #define __IUsgDataView_FWD_DEFINED__
 typedef interface IUsgDataView IUsgDataView;
+
 #endif 	/* __IUsgDataView_FWD_DEFINED__ */
 
 
 #ifndef __IUsgScanMode_FWD_DEFINED__
 #define __IUsgScanMode_FWD_DEFINED__
 typedef interface IUsgScanMode IUsgScanMode;
+
 #endif 	/* __IUsgScanMode_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDataStream_FWD_DEFINED__
 #define __IUsgDataStream_FWD_DEFINED__
 typedef interface IUsgDataStream IUsgDataStream;
+
 #endif 	/* __IUsgDataStream_FWD_DEFINED__ */
 
 
 #ifndef __IProbe_FWD_DEFINED__
 #define __IProbe_FWD_DEFINED__
 typedef interface IProbe IProbe;
+
 #endif 	/* __IProbe_FWD_DEFINED__ */
 
 
 #ifndef __IProbe2_FWD_DEFINED__
 #define __IProbe2_FWD_DEFINED__
 typedef interface IProbe2 IProbe2;
+
 #endif 	/* __IProbe2_FWD_DEFINED__ */
 
 
 #ifndef __IBeamformer_FWD_DEFINED__
 #define __IBeamformer_FWD_DEFINED__
 typedef interface IBeamformer IBeamformer;
+
 #endif 	/* __IBeamformer_FWD_DEFINED__ */
 
 
 #ifndef __IUsgCollection_FWD_DEFINED__
 #define __IUsgCollection_FWD_DEFINED__
 typedef interface IUsgCollection IUsgCollection;
+
 #endif 	/* __IUsgCollection_FWD_DEFINED__ */
 
 
 #ifndef __IUsgControl_FWD_DEFINED__
 #define __IUsgControl_FWD_DEFINED__
 typedef interface IUsgControl IUsgControl;
+
 #endif 	/* __IUsgControl_FWD_DEFINED__ */
+
+
+#ifndef __IUsgMixerControl_FWD_DEFINED__
+#define __IUsgMixerControl_FWD_DEFINED__
+typedef interface IUsgMixerControl IUsgMixerControl;
+
+#endif 	/* __IUsgMixerControl_FWD_DEFINED__ */
 
 
 #ifndef __IUsgGain_FWD_DEFINED__
 #define __IUsgGain_FWD_DEFINED__
 typedef interface IUsgGain IUsgGain;
+
 #endif 	/* __IUsgGain_FWD_DEFINED__ */
 
 
 #ifndef __IUsgValues_FWD_DEFINED__
 #define __IUsgValues_FWD_DEFINED__
 typedef interface IUsgValues IUsgValues;
+
 #endif 	/* __IUsgValues_FWD_DEFINED__ */
 
 
 #ifndef __IUsgPower_FWD_DEFINED__
 #define __IUsgPower_FWD_DEFINED__
 typedef interface IUsgPower IUsgPower;
+
 #endif 	/* __IUsgPower_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDynamicRange_FWD_DEFINED__
 #define __IUsgDynamicRange_FWD_DEFINED__
 typedef interface IUsgDynamicRange IUsgDynamicRange;
+
 #endif 	/* __IUsgDynamicRange_FWD_DEFINED__ */
 
 
 #ifndef __IUsgFrameAvg_FWD_DEFINED__
 #define __IUsgFrameAvg_FWD_DEFINED__
 typedef interface IUsgFrameAvg IUsgFrameAvg;
+
 #endif 	/* __IUsgFrameAvg_FWD_DEFINED__ */
 
 
 #ifndef __IUsgRejection2_FWD_DEFINED__
 #define __IUsgRejection2_FWD_DEFINED__
 typedef interface IUsgRejection2 IUsgRejection2;
+
 #endif 	/* __IUsgRejection2_FWD_DEFINED__ */
 
 
 #ifndef __IUsgProbeFrequency2_FWD_DEFINED__
 #define __IUsgProbeFrequency2_FWD_DEFINED__
 typedef interface IUsgProbeFrequency2 IUsgProbeFrequency2;
+
 #endif 	/* __IUsgProbeFrequency2_FWD_DEFINED__ */
 
 
 #ifndef __IUsgProbeFrequency3_FWD_DEFINED__
 #define __IUsgProbeFrequency3_FWD_DEFINED__
 typedef interface IUsgProbeFrequency3 IUsgProbeFrequency3;
+
 #endif 	/* __IUsgProbeFrequency3_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDepth_FWD_DEFINED__
 #define __IUsgDepth_FWD_DEFINED__
 typedef interface IUsgDepth IUsgDepth;
+
 #endif 	/* __IUsgDepth_FWD_DEFINED__ */
 
 
 #ifndef __IUsgImageOrientation_FWD_DEFINED__
 #define __IUsgImageOrientation_FWD_DEFINED__
 typedef interface IUsgImageOrientation IUsgImageOrientation;
+
 #endif 	/* __IUsgImageOrientation_FWD_DEFINED__ */
 
 
 #ifndef __IUsgImageEnhancement_FWD_DEFINED__
 #define __IUsgImageEnhancement_FWD_DEFINED__
 typedef interface IUsgImageEnhancement IUsgImageEnhancement;
+
 #endif 	/* __IUsgImageEnhancement_FWD_DEFINED__ */
 
 
 #ifndef __IUsgViewArea_FWD_DEFINED__
 #define __IUsgViewArea_FWD_DEFINED__
 typedef interface IUsgViewArea IUsgViewArea;
+
 #endif 	/* __IUsgViewArea_FWD_DEFINED__ */
 
 
 #ifndef __IUsgLineDensity_FWD_DEFINED__
 #define __IUsgLineDensity_FWD_DEFINED__
 typedef interface IUsgLineDensity IUsgLineDensity;
+
 #endif 	/* __IUsgLineDensity_FWD_DEFINED__ */
 
 
 #ifndef __IUsgTgc_FWD_DEFINED__
 #define __IUsgTgc_FWD_DEFINED__
 typedef interface IUsgTgc IUsgTgc;
+
 #endif 	/* __IUsgTgc_FWD_DEFINED__ */
 
 
 #ifndef __IUsgClearView_FWD_DEFINED__
 #define __IUsgClearView_FWD_DEFINED__
 typedef interface IUsgClearView IUsgClearView;
+
 #endif 	/* __IUsgClearView_FWD_DEFINED__ */
 
 
 #ifndef __IUsgPalette_FWD_DEFINED__
 #define __IUsgPalette_FWD_DEFINED__
 typedef interface IUsgPalette IUsgPalette;
+
 #endif 	/* __IUsgPalette_FWD_DEFINED__ */
 
 
 #ifndef __IUsgImageProperties_FWD_DEFINED__
 #define __IUsgImageProperties_FWD_DEFINED__
 typedef interface IUsgImageProperties IUsgImageProperties;
+
 #endif 	/* __IUsgImageProperties_FWD_DEFINED__ */
 
 
 #ifndef __IUsgScanLine_FWD_DEFINED__
 #define __IUsgScanLine_FWD_DEFINED__
 typedef interface IUsgScanLine IUsgScanLine;
+
 #endif 	/* __IUsgScanLine_FWD_DEFINED__ */
 
 
 #ifndef __IUsgScanLineProperties_FWD_DEFINED__
 #define __IUsgScanLineProperties_FWD_DEFINED__
 typedef interface IUsgScanLineProperties IUsgScanLineProperties;
+
 #endif 	/* __IUsgScanLineProperties_FWD_DEFINED__ */
 
 
 #ifndef __IUsgScanLineSelector_FWD_DEFINED__
 #define __IUsgScanLineSelector_FWD_DEFINED__
 typedef interface IUsgScanLineSelector IUsgScanLineSelector;
+
 #endif 	/* __IUsgScanLineSelector_FWD_DEFINED__ */
 
 
 #ifndef __IUsgSweepMode_FWD_DEFINED__
 #define __IUsgSweepMode_FWD_DEFINED__
 typedef interface IUsgSweepMode IUsgSweepMode;
+
 #endif 	/* __IUsgSweepMode_FWD_DEFINED__ */
 
 
 #ifndef __IUsgQualProp_FWD_DEFINED__
 #define __IUsgQualProp_FWD_DEFINED__
 typedef interface IUsgQualProp IUsgQualProp;
+
 #endif 	/* __IUsgQualProp_FWD_DEFINED__ */
 
 
 #ifndef __IUsgSweepSpeed_FWD_DEFINED__
 #define __IUsgSweepSpeed_FWD_DEFINED__
 typedef interface IUsgSweepSpeed IUsgSweepSpeed;
+
 #endif 	/* __IUsgSweepSpeed_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerColorMap_FWD_DEFINED__
 #define __IUsgDopplerColorMap_FWD_DEFINED__
 typedef interface IUsgDopplerColorMap IUsgDopplerColorMap;
+
 #endif 	/* __IUsgDopplerColorMap_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerColorPriority_FWD_DEFINED__
 #define __IUsgDopplerColorPriority_FWD_DEFINED__
 typedef interface IUsgDopplerColorPriority IUsgDopplerColorPriority;
+
 #endif 	/* __IUsgDopplerColorPriority_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerSteerAngle_FWD_DEFINED__
 #define __IUsgDopplerSteerAngle_FWD_DEFINED__
 typedef interface IUsgDopplerSteerAngle IUsgDopplerSteerAngle;
+
 #endif 	/* __IUsgDopplerSteerAngle_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerColorThreshold_FWD_DEFINED__
 #define __IUsgDopplerColorThreshold_FWD_DEFINED__
 typedef interface IUsgDopplerColorThreshold IUsgDopplerColorThreshold;
+
 #endif 	/* __IUsgDopplerColorThreshold_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerBaseLine_FWD_DEFINED__
 #define __IUsgDopplerBaseLine_FWD_DEFINED__
 typedef interface IUsgDopplerBaseLine IUsgDopplerBaseLine;
+
 #endif 	/* __IUsgDopplerBaseLine_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerPRF_FWD_DEFINED__
 #define __IUsgDopplerPRF_FWD_DEFINED__
 typedef interface IUsgDopplerPRF IUsgDopplerPRF;
+
 #endif 	/* __IUsgDopplerPRF_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerWindow_FWD_DEFINED__
 #define __IUsgDopplerWindow_FWD_DEFINED__
 typedef interface IUsgDopplerWindow IUsgDopplerWindow;
+
 #endif 	/* __IUsgDopplerWindow_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerWallFilter_FWD_DEFINED__
 #define __IUsgDopplerWallFilter_FWD_DEFINED__
 typedef interface IUsgDopplerWallFilter IUsgDopplerWallFilter;
+
 #endif 	/* __IUsgDopplerWallFilter_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerSignalScale_FWD_DEFINED__
 #define __IUsgDopplerSignalScale_FWD_DEFINED__
 typedef interface IUsgDopplerSignalScale IUsgDopplerSignalScale;
+
 #endif 	/* __IUsgDopplerSignalScale_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerSignalSmooth_FWD_DEFINED__
 #define __IUsgDopplerSignalSmooth_FWD_DEFINED__
 typedef interface IUsgDopplerSignalSmooth IUsgDopplerSignalSmooth;
+
 #endif 	/* __IUsgDopplerSignalSmooth_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerPacketSize_FWD_DEFINED__
 #define __IUsgDopplerPacketSize_FWD_DEFINED__
 typedef interface IUsgDopplerPacketSize IUsgDopplerPacketSize;
+
 #endif 	/* __IUsgDopplerPacketSize_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerSpectralAvg_FWD_DEFINED__
 #define __IUsgDopplerSpectralAvg_FWD_DEFINED__
 typedef interface IUsgDopplerSpectralAvg IUsgDopplerSpectralAvg;
+
 #endif 	/* __IUsgDopplerSpectralAvg_FWD_DEFINED__ */
 
 
 #ifndef __IUsgPulsesNumber_FWD_DEFINED__
 #define __IUsgPulsesNumber_FWD_DEFINED__
 typedef interface IUsgPulsesNumber IUsgPulsesNumber;
+
 #endif 	/* __IUsgPulsesNumber_FWD_DEFINED__ */
 
 
 #ifndef __IUsgCineStream_FWD_DEFINED__
 #define __IUsgCineStream_FWD_DEFINED__
 typedef interface IUsgCineStream IUsgCineStream;
+
 #endif 	/* __IUsgCineStream_FWD_DEFINED__ */
 
 
 #ifndef __IUsgCineSink_FWD_DEFINED__
 #define __IUsgCineSink_FWD_DEFINED__
 typedef interface IUsgCineSink IUsgCineSink;
+
 #endif 	/* __IUsgCineSink_FWD_DEFINED__ */
 
 
 #ifndef __IUsgSpatialFilter_FWD_DEFINED__
 #define __IUsgSpatialFilter_FWD_DEFINED__
 typedef interface IUsgSpatialFilter IUsgSpatialFilter;
+
 #endif 	/* __IUsgSpatialFilter_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerSampleVolume_FWD_DEFINED__
 #define __IUsgDopplerSampleVolume_FWD_DEFINED__
 typedef interface IUsgDopplerSampleVolume IUsgDopplerSampleVolume;
+
 #endif 	/* __IUsgDopplerSampleVolume_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerCorrectionAngle_FWD_DEFINED__
 #define __IUsgDopplerCorrectionAngle_FWD_DEFINED__
 typedef interface IUsgDopplerCorrectionAngle IUsgDopplerCorrectionAngle;
+
 #endif 	/* __IUsgDopplerCorrectionAngle_FWD_DEFINED__ */
 
 
 #ifndef __IUsgScanConverterPlugin_FWD_DEFINED__
 #define __IUsgScanConverterPlugin_FWD_DEFINED__
 typedef interface IUsgScanConverterPlugin IUsgScanConverterPlugin;
+
 #endif 	/* __IUsgScanConverterPlugin_FWD_DEFINED__ */
 
 
 #ifndef __IUsgAudioVolume_FWD_DEFINED__
 #define __IUsgAudioVolume_FWD_DEFINED__
 typedef interface IUsgAudioVolume IUsgAudioVolume;
+
 #endif 	/* __IUsgAudioVolume_FWD_DEFINED__ */
 
 
 #ifndef __IUsgBioeffectsIndices_FWD_DEFINED__
 #define __IUsgBioeffectsIndices_FWD_DEFINED__
 typedef interface IUsgBioeffectsIndices IUsgBioeffectsIndices;
+
 #endif 	/* __IUsgBioeffectsIndices_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDopplerColorTransparency_FWD_DEFINED__
 #define __IUsgDopplerColorTransparency_FWD_DEFINED__
 typedef interface IUsgDopplerColorTransparency IUsgDopplerColorTransparency;
+
 #endif 	/* __IUsgDopplerColorTransparency_FWD_DEFINED__ */
 
 
 #ifndef __IUsg3dVolumeSize_FWD_DEFINED__
 #define __IUsg3dVolumeSize_FWD_DEFINED__
 typedef interface IUsg3dVolumeSize IUsg3dVolumeSize;
+
 #endif 	/* __IUsg3dVolumeSize_FWD_DEFINED__ */
 
 
 #ifndef __IUsg3dVolumeDensity_FWD_DEFINED__
 #define __IUsg3dVolumeDensity_FWD_DEFINED__
 typedef interface IUsg3dVolumeDensity IUsg3dVolumeDensity;
+
 #endif 	/* __IUsg3dVolumeDensity_FWD_DEFINED__ */
 
 
 #ifndef __IUsgFileStorage_FWD_DEFINED__
 #define __IUsgFileStorage_FWD_DEFINED__
 typedef interface IUsgFileStorage IUsgFileStorage;
+
 #endif 	/* __IUsgFileStorage_FWD_DEFINED__ */
 
 
 #ifndef __IUsgPlugin_FWD_DEFINED__
 #define __IUsgPlugin_FWD_DEFINED__
 typedef interface IUsgPlugin IUsgPlugin;
+
 #endif 	/* __IUsgPlugin_FWD_DEFINED__ */
 
 
 #ifndef __IBeamformerPowerState_FWD_DEFINED__
 #define __IBeamformerPowerState_FWD_DEFINED__
 typedef interface IBeamformerPowerState IBeamformerPowerState;
+
 #endif 	/* __IBeamformerPowerState_FWD_DEFINED__ */
 
 
 #ifndef __IUsgScanType_FWD_DEFINED__
 #define __IUsgScanType_FWD_DEFINED__
 typedef interface IUsgScanType IUsgScanType;
+
 #endif 	/* __IUsgScanType_FWD_DEFINED__ */
 
 
 #ifndef __IUsgSteeringAngle_FWD_DEFINED__
 #define __IUsgSteeringAngle_FWD_DEFINED__
 typedef interface IUsgSteeringAngle IUsgSteeringAngle;
+
 #endif 	/* __IUsgSteeringAngle_FWD_DEFINED__ */
 
 
 #ifndef __IUsgViewAngle_FWD_DEFINED__
 #define __IUsgViewAngle_FWD_DEFINED__
 typedef interface IUsgViewAngle IUsgViewAngle;
+
 #endif 	/* __IUsgViewAngle_FWD_DEFINED__ */
 
 
 #ifndef __IUsgCompoundFrames_FWD_DEFINED__
 #define __IUsgCompoundFrames_FWD_DEFINED__
 typedef interface IUsgCompoundFrames IUsgCompoundFrames;
+
 #endif 	/* __IUsgCompoundFrames_FWD_DEFINED__ */
 
 
 #ifndef __IUsgCompoundAngle_FWD_DEFINED__
 #define __IUsgCompoundAngle_FWD_DEFINED__
 typedef interface IUsgCompoundAngle IUsgCompoundAngle;
+
 #endif 	/* __IUsgCompoundAngle_FWD_DEFINED__ */
 
 
 #ifndef __IUsgDeviceCapabilities_FWD_DEFINED__
 #define __IUsgDeviceCapabilities_FWD_DEFINED__
 typedef interface IUsgDeviceCapabilities IUsgDeviceCapabilities;
+
 #endif 	/* __IUsgDeviceCapabilities_FWD_DEFINED__ */
 
 
 #ifndef __IUsgUnits_FWD_DEFINED__
 #define __IUsgUnits_FWD_DEFINED__
 typedef interface IUsgUnits IUsgUnits;
+
 #endif 	/* __IUsgUnits_FWD_DEFINED__ */
+
+
+#ifndef __ISampleGrabberFilter_FWD_DEFINED__
+#define __ISampleGrabberFilter_FWD_DEFINED__
+typedef interface ISampleGrabberFilter ISampleGrabberFilter;
+
+#endif 	/* __ISampleGrabberFilter_FWD_DEFINED__ */
+
+
+#ifndef __IUsgDataSourceRF_FWD_DEFINED__
+#define __IUsgDataSourceRF_FWD_DEFINED__
+typedef interface IUsgDataSourceRF IUsgDataSourceRF;
+
+#endif 	/* __IUsgDataSourceRF_FWD_DEFINED__ */
+
+
+#ifndef __IUsgStreamEnable_FWD_DEFINED__
+#define __IUsgStreamEnable_FWD_DEFINED__
+typedef interface IUsgStreamEnable IUsgStreamEnable;
+
+#endif 	/* __IUsgStreamEnable_FWD_DEFINED__ */
+
+
+#ifndef __IUsgWindowRF_FWD_DEFINED__
+#define __IUsgWindowRF_FWD_DEFINED__
+typedef interface IUsgWindowRF IUsgWindowRF;
+
+#endif 	/* __IUsgWindowRF_FWD_DEFINED__ */
+
+
+#ifndef __IUsgMultiBeam_FWD_DEFINED__
+#define __IUsgMultiBeam_FWD_DEFINED__
+typedef interface IUsgMultiBeam IUsgMultiBeam;
+
+#endif 	/* __IUsgMultiBeam_FWD_DEFINED__ */
 
 
 #ifndef __Usgfw2_FWD_DEFINED__
@@ -988,8 +1212,11 @@ typedef struct Usgfw2Debug Usgfw2Debug;
 
 
 /* header files for imported files */
+#include "objidl.h"
+#include "oleidl.h"
 #include "oaidl.h"
 #include "ocidl.h"
+#include "shtypes.h"
 #include "strmif.h"
 #include "control.h"
 
@@ -997,13 +1224,10 @@ typedef struct Usgfw2Debug Usgfw2Debug;
 extern "C"{
 #endif 
 
-void * __RPC_USER MIDL_user_allocate(size_t);
-void __RPC_USER MIDL_user_free( void * ); 
 
-/* interface __MIDL_itf_Usgfw2_0000 */
+/* interface __MIDL_itf_Usgfw2_0000_0000 */
 /* [local] */ 
 
-#include <dshow.h>
 #ifndef VIDEO_SOURCE_TAG
 #define VIDEO_SOURCE_TAG 0x12345
 #endif
@@ -1052,8 +1276,10 @@ typedef struct tagUsgMixingBitmap *PUSG_MIXING_BITMAP;
 
 typedef /* [v1_enum] */ 
 enum tagThiMode
-    {	THI_MODE1	= 1,
-	THI_MODE2	= 2
+    {
+        THI_MODE1	= 1,
+        THI_MODE2	= 2,
+        THI_MODE2_ITHI	= 0x102
     } 	THI_MODE;
 
 /* [uuid] */ struct  DECLSPEC_UUID("C07ED72B-4EA2-4cb1-9AF2-798B6192D2CC") FREQUENCY3
@@ -1063,104 +1289,119 @@ enum tagThiMode
     } ;
 typedef /* [v1_enum] */ 
 enum tagScanState
-    {	SCAN_STATE_STOP	= 0,
-	SCAN_STATE_ACQUIRE	= 1,
-	SCAN_STATE_FREEZE	= 2,
-	SCAN_STATE_RUN	= 3
+    {
+        SCAN_STATE_STOP	= 0,
+        SCAN_STATE_ACQUIRE	= 1,
+        SCAN_STATE_FREEZE	= 2,
+        SCAN_STATE_RUN	= 3
     } 	SCAN_STATE;
 
 typedef /* [v1_enum] */ 
 enum tagCineState
-    {	CINE_STATE_STOP	= 0,
-	CINE_STATE_PLAY	= 1
+    {
+        CINE_STATE_STOP	= 0,
+        CINE_STATE_PLAY	= 1
     } 	CINE_STATE;
 
 typedef /* [v1_enum] */ 
 enum tagCineTimeFormat
-    {	CINE_FORMAT_REFERENCE_TIME	= 0,
-	CINE_FORMAT_FRAME	= 1,
-	CINE_FORMAT_SAMPLE	= 2
+    {
+        CINE_FORMAT_REFERENCE_TIME	= 0,
+        CINE_FORMAT_FRAME	= 1,
+        CINE_FORMAT_SAMPLE	= 2
     } 	CINE_TIME_FORMAT;
 
 typedef /* [v1_enum] */ 
 enum tagCineSelectionMode
-    {	SM_SELECT	= 0,
-	SM_DESELECT	= 1
+    {
+        SM_SELECT	= 0,
+        SM_DESELECT	= 1
     } 	SELECTION_MODE;
 
 typedef /* [v1_enum] */ 
 enum tagImageRotate
-    {	IMAGE_ROTATE_NONE	= 0,
-	IMAGE_ROTATE_90CCW	= 1,
-	IMAGE_ROTATE_180CCW	= 2,
-	IMAGE_ROTATE_270CCW	= 3
+    {
+        IMAGE_ROTATE_NONE	= 0,
+        IMAGE_ROTATE_90CCW	= 1,
+        IMAGE_ROTATE_180CCW	= 2,
+        IMAGE_ROTATE_270CCW	= 3
     } 	IMAGE_ROTATE;
 
 typedef /* [v1_enum] */ 
 enum tagPixelsOrigin
-    {	PIXELS_ORIGIN_WINDOW	= 0,
-	PIXELS_ORIGIN_OUTPUTRECT	= 1
+    {
+        PIXELS_ORIGIN_WINDOW	= 0,
+        PIXELS_ORIGIN_OUTPUTRECT	= 1
     } 	PIXELS_ORIGIN;
 
 typedef /* [v1_enum] */ 
 enum tagSweepMode
-    {	SWEEP_MODE_CYCLE	= 0,
-	SWEEP_MODE_SCROLL	= 1
+    {
+        SWEEP_MODE_CYCLE	= 0,
+        SWEEP_MODE_SCROLL	= 1
     } 	SWEEP_MODE;
 
 typedef /* [v1_enum] */ 
 enum tagDeviceState
-    {	DEVICE_STATE_CLOSED	= 0,
-	DEVICE_STATE_OPENED	= 1,
-	DEVICE_STATE_INUSE	= 2,
-	DEVICE_STATE_HARDWARE_ERROR	= 3,
-	DEVICE_STATE_WRONG_POWER	= 4,
-	DEVICE_STATE_REMOVED	= 5,
-	DEVICE_STATE_UNINITIALIZED	= 6
+    {
+        DEVICE_STATE_CLOSED	= 0,
+        DEVICE_STATE_OPENED	= 1,
+        DEVICE_STATE_INUSE	= 2,
+        DEVICE_STATE_HARDWARE_ERROR	= 3,
+        DEVICE_STATE_WRONG_POWER	= 4,
+        DEVICE_STATE_REMOVED	= 5,
+        DEVICE_STATE_UNINITIALIZED	= 6,
+        DEVICE_STATE_REVISION_MISMATCH	= 7
     } 	DEVICE_STATE;
 
 typedef /* [v1_enum] */ 
 enum tagBeamformerType
-    {	BEAMFORMER_EchoBlaster64	= 0,
-	BEAMFORMER_EchoBlaster128	= BEAMFORMER_EchoBlaster64 + 1,
-	BEAMFORMER_EchoBlaster128RevC	= BEAMFORMER_EchoBlaster128 + 1,
-	BEAMFORMER_LogicScan128	= BEAMFORMER_EchoBlaster128RevC + 1
+    {
+        BEAMFORMER_EchoBlaster64	= 0,
+        BEAMFORMER_EchoBlaster128	= ( BEAMFORMER_EchoBlaster64 + 1 ) ,
+        BEAMFORMER_EchoBlaster128RevC	= ( BEAMFORMER_EchoBlaster128 + 1 ) ,
+        BEAMFORMER_LogicScan128	= ( BEAMFORMER_EchoBlaster128RevC + 1 ) 
     } 	BEAMFORMER_TYPE;
 
 typedef /* [v1_enum] */ 
 enum tagBioeffectIndex
-    {	INDEX_MI	= 0,
-	INDEX_TI	= INDEX_MI + 1,
-	INDEX_TIS	= INDEX_TI + 1,
-	INDEX_TIB	= INDEX_TIS + 1,
-	INDEX_TIC	= INDEX_TIB + 1
+    {
+        INDEX_MI	= 0,
+        INDEX_TI	= ( INDEX_MI + 1 ) ,
+        INDEX_TIS	= ( INDEX_TI + 1 ) ,
+        INDEX_TIB	= ( INDEX_TIS + 1 ) ,
+        INDEX_TIC	= ( INDEX_TIB + 1 ) 
     } 	BIOEFFECT_INDEX;
 
 typedef /* [v1_enum] */ 
 enum tagBatteryChargeStatus
-    {	Charging	= 1,
-	Critical	= 2,
-	High	= 4,
-	Low	= 8,
-	NoBattery	= 0x10,
-	ChargeUnknown	= 0xff
+    {
+        Charging	= 1,
+        Critical	= 2,
+        High	= 4,
+        Low	= 8,
+        NoBattery	= 0x10,
+        ChargeUnknown	= 0xff
     } 	BATTERY_CHARGE_STATUS;
 
 typedef /* [v1_enum] */ 
 enum tagPowerLineStatus
-    {	Offline	= 0,
-	Online	= Offline + 1,
-	LineUnknown	= Online + 1
+    {
+        Offline	= 0,
+        Online	= ( Offline + 1 ) ,
+        LineUnknown	= ( Online + 1 ) 
     } 	POWER_LINE_STATUS;
 
 typedef /* [v1_enum] */ 
 enum tagProbeType
-    {	PROBETYPE_Undefined	= 0,
-	PROBETYPE_Linear	= PROBETYPE_Undefined + 1,
-	PROBETYPE_Convex	= PROBETYPE_Linear + 1,
-	PROBETYPE_PhasedArray	= PROBETYPE_Convex + 1,
-	PROBETYPE_TProbe	= PROBETYPE_PhasedArray + 1,
-	PROBETYPE_Convex3D	= PROBETYPE_TProbe + 1
+    {
+        PROBETYPE_Undefined	= 0,
+        PROBETYPE_Linear	= ( PROBETYPE_Undefined + 1 ) ,
+        PROBETYPE_Convex	= ( PROBETYPE_Linear + 1 ) ,
+        PROBETYPE_PhasedArray	= ( PROBETYPE_Convex + 1 ) ,
+        PROBETYPE_TProbe	= ( PROBETYPE_PhasedArray + 1 ) ,
+        PROBETYPE_Convex3D	= ( PROBETYPE_TProbe + 1 ) ,
+        PROBETYPE_ProbeDuo	= ( PROBETYPE_Convex3D + 1 ) 
     } 	PROBE_TYPE;
 
 typedef struct tagFocalZone
@@ -1199,14 +1440,15 @@ typedef struct tagValueStepping *PVALUE_STEPPING;
 
 typedef /* [v1_enum] */ 
 enum tagUnitBase
-    {	Code	= 0,
-	Second	= Code + 1,
-	Meter	= Second + 1,
-	Bell	= Meter + 1,
-	Hertz	= Bell + 1,
-	Gramm	= Hertz + 1,
-	Percent	= Gramm + 1,
-	Volt	= Percent + 1
+    {
+        Code	= 0,
+        Second	= ( Code + 1 ) ,
+        Meter	= ( Second + 1 ) ,
+        Bell	= ( Meter + 1 ) ,
+        Hertz	= ( Bell + 1 ) ,
+        Gramm	= ( Hertz + 1 ) ,
+        Percent	= ( Gramm + 1 ) ,
+        Volt	= ( Percent + 1 ) 
     } 	UNIT_BASE;
 
 typedef struct tagScaleFactor
@@ -1227,8 +1469,8 @@ typedef struct tagUsgUnit *PUSG_UNIT;
 
 
 
-extern RPC_IF_HANDLE __MIDL_itf_Usgfw2_0000_v0_0_c_ifspec;
-extern RPC_IF_HANDLE __MIDL_itf_Usgfw2_0000_v0_0_s_ifspec;
+extern RPC_IF_HANDLE __MIDL_itf_Usgfw2_0000_0000_v0_0_c_ifspec;
+extern RPC_IF_HANDLE __MIDL_itf_Usgfw2_0000_0000_v0_0_s_ifspec;
 
 #ifndef __IUsgDataView_INTERFACE_DEFINED__
 #define __IUsgDataView_INTERFACE_DEFINED__
@@ -1280,6 +1522,7 @@ EXTERN_C const IID IID_IUsgDataView;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDataViewVtbl
@@ -1289,7 +1532,8 @@ EXTERN_C const IID IID_IUsgDataView;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDataView * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDataView * This);
@@ -1311,20 +1555,28 @@ EXTERN_C const IID IID_IUsgDataView;
             IUsgDataView * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDataView * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_ScanMode )( 
             IUsgDataView * This,
@@ -1382,174 +1634,60 @@ EXTERN_C const IID IID_IUsgDataView;
 
 
 #define IUsgDataView_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDataView_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDataView_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDataView_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDataView_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDataView_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDataView_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDataView_get_ScanMode(This,pVal)	\
-    (This)->lpVtbl -> get_ScanMode(This,pVal)
+    ( (This)->lpVtbl -> get_ScanMode(This,pVal) ) 
 
 #define IUsgDataView_put_ScanMode(This,newVal)	\
-    (This)->lpVtbl -> put_ScanMode(This,newVal)
+    ( (This)->lpVtbl -> put_ScanMode(This,newVal) ) 
 
 #define IUsgDataView_get_ScanState(This,pVal)	\
-    (This)->lpVtbl -> get_ScanState(This,pVal)
+    ( (This)->lpVtbl -> get_ScanState(This,pVal) ) 
 
 #define IUsgDataView_put_ScanState(This,newVal)	\
-    (This)->lpVtbl -> put_ScanState(This,newVal)
+    ( (This)->lpVtbl -> put_ScanState(This,newVal) ) 
 
 #define IUsgDataView_get_ScanModes(This,pVal)	\
-    (This)->lpVtbl -> get_ScanModes(This,pVal)
+    ( (This)->lpVtbl -> get_ScanModes(This,pVal) ) 
 
 #define IUsgDataView_GetScanModeObj(This,scanMode,pUsgScanMode)	\
-    (This)->lpVtbl -> GetScanModeObj(This,scanMode,pUsgScanMode)
+    ( (This)->lpVtbl -> GetScanModeObj(This,scanMode,pUsgScanMode) ) 
 
 #define IUsgDataView_get_FilgraphManager(This,pVal)	\
-    (This)->lpVtbl -> get_FilgraphManager(This,pVal)
+    ( (This)->lpVtbl -> get_FilgraphManager(This,pVal) ) 
 
 #define IUsgDataView_GetControlObj(This,riidCtrl,scanMode,streamId,ppObj)	\
-    (This)->lpVtbl -> GetControlObj(This,riidCtrl,scanMode,streamId,ppObj)
+    ( (This)->lpVtbl -> GetControlObj(This,riidCtrl,scanMode,streamId,ppObj) ) 
 
 #define IUsgDataView_CreateUsgfwFile(This,FileName,createFlags,ppFileObject)	\
-    (This)->lpVtbl -> CreateUsgfwFile(This,FileName,createFlags,ppFileObject)
+    ( (This)->lpVtbl -> CreateUsgfwFile(This,FileName,createFlags,ppFileObject) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDataView_get_ScanMode_Proxy( 
-    IUsgDataView * This,
-    /* [retval][out] */ ULONG *pVal);
-
-
-void __RPC_STUB IUsgDataView_get_ScanMode_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgDataView_put_ScanMode_Proxy( 
-    IUsgDataView * This,
-    /* [in] */ ULONG newVal);
-
-
-void __RPC_STUB IUsgDataView_put_ScanMode_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDataView_get_ScanState_Proxy( 
-    IUsgDataView * This,
-    /* [retval][out] */ SCAN_STATE *pVal);
-
-
-void __RPC_STUB IUsgDataView_get_ScanState_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgDataView_put_ScanState_Proxy( 
-    IUsgDataView * This,
-    /* [in] */ SCAN_STATE newVal);
-
-
-void __RPC_STUB IUsgDataView_put_ScanState_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDataView_get_ScanModes_Proxy( 
-    IUsgDataView * This,
-    /* [retval][out] */ IScanModes **pVal);
-
-
-void __RPC_STUB IUsgDataView_get_ScanModes_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDataView_GetScanModeObj_Proxy( 
-    IUsgDataView * This,
-    /* [in] */ ULONG scanMode,
-    /* [out] */ IUsgScanMode **pUsgScanMode);
-
-
-void __RPC_STUB IUsgDataView_GetScanModeObj_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDataView_get_FilgraphManager_Proxy( 
-    IUsgDataView * This,
-    /* [retval][out] */ IMediaControl **pVal);
-
-
-void __RPC_STUB IUsgDataView_get_FilgraphManager_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDataView_GetControlObj_Proxy( 
-    IUsgDataView * This,
-    /* [in] */ const IID *riidCtrl,
-    /* [in] */ ULONG scanMode,
-    /* [in] */ ULONG streamId,
-    /* [out] */ IUsgControl **ppObj);
-
-
-void __RPC_STUB IUsgDataView_GetControlObj_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDataView_CreateUsgfwFile_Proxy( 
-    IUsgDataView * This,
-    /* [in] */ BSTR FileName,
-    /* [in] */ LONG createFlags,
-    /* [retval][out] */ IUsgFileStorage **ppFileObject);
-
-
-void __RPC_STUB IUsgDataView_CreateUsgfwFile_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -1599,6 +1737,7 @@ EXTERN_C const IID IID_IUsgScanMode;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgScanModeVtbl
@@ -1608,7 +1747,8 @@ EXTERN_C const IID IID_IUsgScanMode;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgScanMode * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgScanMode * This);
@@ -1630,20 +1770,28 @@ EXTERN_C const IID IID_IUsgScanMode;
             IUsgScanMode * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgScanMode * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *GetMixerControl )( 
             IUsgScanMode * This,
@@ -1692,143 +1840,54 @@ EXTERN_C const IID IID_IUsgScanMode;
 
 
 #define IUsgScanMode_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgScanMode_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgScanMode_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgScanMode_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgScanMode_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgScanMode_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgScanMode_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgScanMode_GetMixerControl(This,scanMode,streamId,ppMixerCtrl)	\
-    (This)->lpVtbl -> GetMixerControl(This,scanMode,streamId,ppMixerCtrl)
+    ( (This)->lpVtbl -> GetMixerControl(This,scanMode,streamId,ppMixerCtrl) ) 
 
 #define IUsgScanMode_GetControlObj(This,riidCtrl,scanMode,streamId,ppCtrl)	\
-    (This)->lpVtbl -> GetControlObj(This,riidCtrl,scanMode,streamId,ppCtrl)
+    ( (This)->lpVtbl -> GetControlObj(This,riidCtrl,scanMode,streamId,ppCtrl) ) 
 
 #define IUsgScanMode_CreateCopy(This,ppNewScanMode)	\
-    (This)->lpVtbl -> CreateCopy(This,ppNewScanMode)
+    ( (This)->lpVtbl -> CreateCopy(This,ppNewScanMode) ) 
 
 #define IUsgScanMode_Union(This,nScanMode)	\
-    (This)->lpVtbl -> Union(This,nScanMode)
+    ( (This)->lpVtbl -> Union(This,nScanMode) ) 
 
 #define IUsgScanMode_get_StreamsCollection(This,pVal)	\
-    (This)->lpVtbl -> get_StreamsCollection(This,pVal)
+    ( (This)->lpVtbl -> get_StreamsCollection(This,pVal) ) 
 
 #define IUsgScanMode_get_ScanMode(This,pVal)	\
-    (This)->lpVtbl -> get_ScanMode(This,pVal)
+    ( (This)->lpVtbl -> get_ScanMode(This,pVal) ) 
 
 #define IUsgScanMode_CreateClone(This,ppNewScanMode)	\
-    (This)->lpVtbl -> CreateClone(This,ppNewScanMode)
+    ( (This)->lpVtbl -> CreateClone(This,ppNewScanMode) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgScanMode_GetMixerControl_Proxy( 
-    IUsgScanMode * This,
-    /* [in] */ ULONG scanMode,
-    /* [in] */ ULONG streamId,
-    /* [out] */ IUsgMixerControl **ppMixerCtrl);
-
-
-void __RPC_STUB IUsgScanMode_GetMixerControl_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgScanMode_GetControlObj_Proxy( 
-    IUsgScanMode * This,
-    /* [in] */ const IID *riidCtrl,
-    /* [in] */ LONG scanMode,
-    /* [in] */ ULONG streamId,
-    /* [out] */ IUsgControl **ppCtrl);
-
-
-void __RPC_STUB IUsgScanMode_GetControlObj_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgScanMode_CreateCopy_Proxy( 
-    IUsgScanMode * This,
-    /* [retval][out] */ IUsgScanMode **ppNewScanMode);
-
-
-void __RPC_STUB IUsgScanMode_CreateCopy_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgScanMode_Union_Proxy( 
-    IUsgScanMode * This,
-    /* [in] */ ULONG nScanMode);
-
-
-void __RPC_STUB IUsgScanMode_Union_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgScanMode_get_StreamsCollection_Proxy( 
-    IUsgScanMode * This,
-    /* [retval][out] */ IUnknown **pVal);
-
-
-void __RPC_STUB IUsgScanMode_get_StreamsCollection_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgScanMode_get_ScanMode_Proxy( 
-    IUsgScanMode * This,
-    /* [retval][out] */ ULONG *pVal);
-
-
-void __RPC_STUB IUsgScanMode_get_ScanMode_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgScanMode_CreateClone_Proxy( 
-    IUsgScanMode * This,
-    /* [retval][out] */ IUsgScanMode **ppNewScanMode);
-
-
-void __RPC_STUB IUsgScanMode_CreateClone_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -1871,6 +1930,7 @@ EXTERN_C const IID IID_IUsgDataStream;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDataStreamVtbl
@@ -1880,7 +1940,8 @@ EXTERN_C const IID IID_IUsgDataStream;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDataStream * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDataStream * This);
@@ -1902,20 +1963,28 @@ EXTERN_C const IID IID_IUsgDataStream;
             IUsgDataStream * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDataStream * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *GetStreamMode )( 
             IUsgDataStream * This,
@@ -1956,124 +2025,51 @@ EXTERN_C const IID IID_IUsgDataStream;
 
 
 #define IUsgDataStream_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDataStream_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDataStream_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDataStream_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDataStream_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDataStream_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDataStream_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDataStream_GetStreamMode(This,pMode)	\
-    (This)->lpVtbl -> GetStreamMode(This,pMode)
+    ( (This)->lpVtbl -> GetStreamMode(This,pMode) ) 
 
 #define IUsgDataStream_GetControlObj(This,riid,ppobj)	\
-    (This)->lpVtbl -> GetControlObj(This,riid,ppobj)
+    ( (This)->lpVtbl -> GetControlObj(This,riid,ppobj) ) 
 
 #define IUsgDataStream_GetMixerControl(This,ppMixerControl)	\
-    (This)->lpVtbl -> GetMixerControl(This,ppMixerControl)
+    ( (This)->lpVtbl -> GetMixerControl(This,ppMixerControl) ) 
 
 #define IUsgDataStream_get_StreamId(This,pVal)	\
-    (This)->lpVtbl -> get_StreamId(This,pVal)
+    ( (This)->lpVtbl -> get_StreamId(This,pVal) ) 
 
 #define IUsgDataStream_get_ScanState(This,pVal)	\
-    (This)->lpVtbl -> get_ScanState(This,pVal)
+    ( (This)->lpVtbl -> get_ScanState(This,pVal) ) 
 
 #define IUsgDataStream_put_ScanState(This,newVal)	\
-    (This)->lpVtbl -> put_ScanState(This,newVal)
+    ( (This)->lpVtbl -> put_ScanState(This,newVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDataStream_GetStreamMode_Proxy( 
-    IUsgDataStream * This,
-    /* [retval][out] */ ULONG *pMode);
-
-
-void __RPC_STUB IUsgDataStream_GetStreamMode_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDataStream_GetControlObj_Proxy( 
-    IUsgDataStream * This,
-    /* [in] */ REFIID riid,
-    /* [retval][out] */ IUnknown **ppobj);
-
-
-void __RPC_STUB IUsgDataStream_GetControlObj_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDataStream_GetMixerControl_Proxy( 
-    IUsgDataStream * This,
-    /* [retval][out] */ IUsgMixerControl **ppMixerControl);
-
-
-void __RPC_STUB IUsgDataStream_GetMixerControl_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDataStream_get_StreamId_Proxy( 
-    IUsgDataStream * This,
-    /* [retval][out] */ ULONG *pVal);
-
-
-void __RPC_STUB IUsgDataStream_get_StreamId_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDataStream_get_ScanState_Proxy( 
-    IUsgDataStream * This,
-    /* [retval][out] */ SCAN_STATE *pVal);
-
-
-void __RPC_STUB IUsgDataStream_get_ScanState_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgDataStream_put_ScanState_Proxy( 
-    IUsgDataStream * This,
-    /* [in] */ SCAN_STATE newVal);
-
-
-void __RPC_STUB IUsgDataStream_put_ScanState_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -2137,6 +2133,7 @@ EXTERN_C const IID IID_IUsgMixerControl;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgMixerControlVtbl
@@ -2146,7 +2143,8 @@ EXTERN_C const IID IID_IUsgMixerControl;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgMixerControl * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgMixerControl * This);
@@ -2168,20 +2166,28 @@ EXTERN_C const IID IID_IUsgMixerControl;
             IUsgMixerControl * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgMixerControl * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *SetOutputWindow )( 
             IUsgMixerControl * This,
@@ -2250,229 +2256,72 @@ EXTERN_C const IID IID_IUsgMixerControl;
 
 
 #define IUsgMixerControl_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgMixerControl_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgMixerControl_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgMixerControl_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgMixerControl_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgMixerControl_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgMixerControl_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgMixerControl_SetOutputWindow(This,hWnd)	\
-    (This)->lpVtbl -> SetOutputWindow(This,hWnd)
+    ( (This)->lpVtbl -> SetOutputWindow(This,hWnd) ) 
 
 #define IUsgMixerControl_GetAlphaBitmapParameters(This,pBmpParams)	\
-    (This)->lpVtbl -> GetAlphaBitmapParameters(This,pBmpParams)
+    ( (This)->lpVtbl -> GetAlphaBitmapParameters(This,pBmpParams) ) 
 
 #define IUsgMixerControl_SetAlphaBitmap(This,pBmpParams)	\
-    (This)->lpVtbl -> SetAlphaBitmap(This,pBmpParams)
+    ( (This)->lpVtbl -> SetAlphaBitmap(This,pBmpParams) ) 
 
 #define IUsgMixerControl_UpdateAlphaBitmapParameters(This,pBmpParams)	\
-    (This)->lpVtbl -> UpdateAlphaBitmapParameters(This,pBmpParams)
+    ( (This)->lpVtbl -> UpdateAlphaBitmapParameters(This,pBmpParams) ) 
 
 #define IUsgMixerControl_SetOutputRect(This,pRect)	\
-    (This)->lpVtbl -> SetOutputRect(This,pRect)
+    ( (This)->lpVtbl -> SetOutputRect(This,pRect) ) 
 
 #define IUsgMixerControl_Capture(This,ppCurrentImage)	\
-    (This)->lpVtbl -> Capture(This,ppCurrentImage)
+    ( (This)->lpVtbl -> Capture(This,ppCurrentImage) ) 
 
 #define IUsgMixerControl_GetCurrentBitmap(This,handle)	\
-    (This)->lpVtbl -> GetCurrentBitmap(This,handle)
+    ( (This)->lpVtbl -> GetCurrentBitmap(This,handle) ) 
 
 #define IUsgMixerControl_Repaint(This,hWindow,hDC)	\
-    (This)->lpVtbl -> Repaint(This,hWindow,hDC)
+    ( (This)->lpVtbl -> Repaint(This,hWindow,hDC) ) 
 
 #define IUsgMixerControl_get_ScanState(This,pVal)	\
-    (This)->lpVtbl -> get_ScanState(This,pVal)
+    ( (This)->lpVtbl -> get_ScanState(This,pVal) ) 
 
 #define IUsgMixerControl_put_ScanState(This,newVal)	\
-    (This)->lpVtbl -> put_ScanState(This,newVal)
+    ( (This)->lpVtbl -> put_ScanState(This,newVal) ) 
 
 #define IUsgMixerControl_get_BkColor(This,pVal)	\
-    (This)->lpVtbl -> get_BkColor(This,pVal)
+    ( (This)->lpVtbl -> get_BkColor(This,pVal) ) 
 
 #define IUsgMixerControl_put_BkColor(This,newVal)	\
-    (This)->lpVtbl -> put_BkColor(This,newVal)
+    ( (This)->lpVtbl -> put_BkColor(This,newVal) ) 
 
 #define IUsgMixerControl_GetOutputRect(This,pRect)	\
-    (This)->lpVtbl -> GetOutputRect(This,pRect)
+    ( (This)->lpVtbl -> GetOutputRect(This,pRect) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgMixerControl_SetOutputWindow_Proxy( 
-    IUsgMixerControl * This,
-    /* [in] */ LONG hWnd);
-
-
-void __RPC_STUB IUsgMixerControl_SetOutputWindow_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgMixerControl_GetAlphaBitmapParameters_Proxy( 
-    IUsgMixerControl * This,
-    /* [out] */ USG_MIXING_BITMAP *pBmpParams);
-
-
-void __RPC_STUB IUsgMixerControl_GetAlphaBitmapParameters_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgMixerControl_SetAlphaBitmap_Proxy( 
-    IUsgMixerControl * This,
-    /* [in] */ USG_MIXING_BITMAP *pBmpParams);
-
-
-void __RPC_STUB IUsgMixerControl_SetAlphaBitmap_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgMixerControl_UpdateAlphaBitmapParameters_Proxy( 
-    IUsgMixerControl * This,
-    /* [in] */ USG_MIXING_BITMAP *pBmpParams);
-
-
-void __RPC_STUB IUsgMixerControl_UpdateAlphaBitmapParameters_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgMixerControl_SetOutputRect_Proxy( 
-    IUsgMixerControl * This,
-    /* [in] */ RECT *pRect);
-
-
-void __RPC_STUB IUsgMixerControl_SetOutputRect_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgMixerControl_Capture_Proxy( 
-    IUsgMixerControl * This,
-    /* [out] */ IPictureDisp **ppCurrentImage);
-
-
-void __RPC_STUB IUsgMixerControl_Capture_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgMixerControl_GetCurrentBitmap_Proxy( 
-    IUsgMixerControl * This,
-    /* [retval][out] */ LONG *handle);
-
-
-void __RPC_STUB IUsgMixerControl_GetCurrentBitmap_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgMixerControl_Repaint_Proxy( 
-    IUsgMixerControl * This,
-    LONG hWindow,
-    LONG hDC);
-
-
-void __RPC_STUB IUsgMixerControl_Repaint_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgMixerControl_get_ScanState_Proxy( 
-    IUsgMixerControl * This,
-    /* [retval][out] */ SCAN_STATE *pVal);
-
-
-void __RPC_STUB IUsgMixerControl_get_ScanState_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgMixerControl_put_ScanState_Proxy( 
-    IUsgMixerControl * This,
-    /* [in] */ SCAN_STATE newVal);
-
-
-void __RPC_STUB IUsgMixerControl_put_ScanState_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgMixerControl_get_BkColor_Proxy( 
-    IUsgMixerControl * This,
-    /* [retval][out] */ PALETTEENTRY *pVal);
-
-
-void __RPC_STUB IUsgMixerControl_get_BkColor_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgMixerControl_put_BkColor_Proxy( 
-    IUsgMixerControl * This,
-    /* [in] */ PALETTEENTRY newVal);
-
-
-void __RPC_STUB IUsgMixerControl_put_BkColor_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgMixerControl_GetOutputRect_Proxy( 
-    IUsgMixerControl * This,
-    /* [out] */ RECT *pRect);
-
-
-void __RPC_STUB IUsgMixerControl_GetOutputRect_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -2496,6 +2345,7 @@ EXTERN_C const IID IID_IUsgData;
     public:
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDataVtbl
@@ -2505,7 +2355,8 @@ EXTERN_C const IID IID_IUsgData;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgData * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgData * This);
@@ -2527,20 +2378,28 @@ EXTERN_C const IID IID_IUsgData;
             IUsgData * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgData * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         END_INTERFACE
     } IUsgDataVtbl;
@@ -2556,26 +2415,26 @@ EXTERN_C const IID IID_IUsgData;
 
 
 #define IUsgData_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgData_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgData_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgData_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgData_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgData_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgData_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #endif /* COBJMACROS */
@@ -2606,6 +2465,7 @@ EXTERN_C const IID IID_IUsgGraph;
     public:
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgGraphVtbl
@@ -2615,7 +2475,8 @@ EXTERN_C const IID IID_IUsgGraph;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgGraph * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgGraph * This);
@@ -2637,20 +2498,28 @@ EXTERN_C const IID IID_IUsgGraph;
             IUsgGraph * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgGraph * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         END_INTERFACE
     } IUsgGraphVtbl;
@@ -2666,26 +2535,26 @@ EXTERN_C const IID IID_IUsgGraph;
 
 
 #define IUsgGraph_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgGraph_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgGraph_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgGraph_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgGraph_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgGraph_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgGraph_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #endif /* COBJMACROS */
@@ -2740,6 +2609,7 @@ EXTERN_C const IID IID_IUsgDeviceChangeSink;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDeviceChangeSinkVtbl
@@ -2749,7 +2619,8 @@ EXTERN_C const IID IID_IUsgDeviceChangeSink;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDeviceChangeSink * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDeviceChangeSink * This);
@@ -2771,20 +2642,28 @@ EXTERN_C const IID IID_IUsgDeviceChangeSink;
             IUsgDeviceChangeSink * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDeviceChangeSink * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *OnProbeArrive )( 
             IUsgDeviceChangeSink * This,
@@ -2830,129 +2709,51 @@ EXTERN_C const IID IID_IUsgDeviceChangeSink;
 
 
 #define IUsgDeviceChangeSink_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDeviceChangeSink_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDeviceChangeSink_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDeviceChangeSink_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDeviceChangeSink_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDeviceChangeSink_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDeviceChangeSink_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDeviceChangeSink_OnProbeArrive(This,pUsgProbe,reserved)	\
-    (This)->lpVtbl -> OnProbeArrive(This,pUsgProbe,reserved)
+    ( (This)->lpVtbl -> OnProbeArrive(This,pUsgProbe,reserved) ) 
 
 #define IUsgDeviceChangeSink_OnBeamformerArrive(This,pUsgBeamformer,reserved)	\
-    (This)->lpVtbl -> OnBeamformerArrive(This,pUsgBeamformer,reserved)
+    ( (This)->lpVtbl -> OnBeamformerArrive(This,pUsgBeamformer,reserved) ) 
 
 #define IUsgDeviceChangeSink_OnProbeRemove(This,pUsgProbe,reserved)	\
-    (This)->lpVtbl -> OnProbeRemove(This,pUsgProbe,reserved)
+    ( (This)->lpVtbl -> OnProbeRemove(This,pUsgProbe,reserved) ) 
 
 #define IUsgDeviceChangeSink_OnBeamformerRemove(This,pUsgBeamformer,reserved)	\
-    (This)->lpVtbl -> OnBeamformerRemove(This,pUsgBeamformer,reserved)
+    ( (This)->lpVtbl -> OnBeamformerRemove(This,pUsgBeamformer,reserved) ) 
 
 #define IUsgDeviceChangeSink_OnProbeStateChanged(This,pUsgProbe,reserved)	\
-    (This)->lpVtbl -> OnProbeStateChanged(This,pUsgProbe,reserved)
+    ( (This)->lpVtbl -> OnProbeStateChanged(This,pUsgProbe,reserved) ) 
 
 #define IUsgDeviceChangeSink_OnBeamformerStateChanged(This,pUsgBeamformer,reserved)	\
-    (This)->lpVtbl -> OnBeamformerStateChanged(This,pUsgBeamformer,reserved)
+    ( (This)->lpVtbl -> OnBeamformerStateChanged(This,pUsgBeamformer,reserved) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDeviceChangeSink_OnProbeArrive_Proxy( 
-    IUsgDeviceChangeSink * This,
-    /* [in] */ IUnknown *pUsgProbe,
-    /* [out][in] */ ULONG *reserved);
-
-
-void __RPC_STUB IUsgDeviceChangeSink_OnProbeArrive_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDeviceChangeSink_OnBeamformerArrive_Proxy( 
-    IUsgDeviceChangeSink * This,
-    /* [in] */ IUnknown *pUsgBeamformer,
-    /* [out][in] */ ULONG *reserved);
-
-
-void __RPC_STUB IUsgDeviceChangeSink_OnBeamformerArrive_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDeviceChangeSink_OnProbeRemove_Proxy( 
-    IUsgDeviceChangeSink * This,
-    /* [in] */ IUnknown *pUsgProbe,
-    /* [out][in] */ ULONG *reserved);
-
-
-void __RPC_STUB IUsgDeviceChangeSink_OnProbeRemove_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDeviceChangeSink_OnBeamformerRemove_Proxy( 
-    IUsgDeviceChangeSink * This,
-    /* [in] */ IUnknown *pUsgBeamformer,
-    /* [out][in] */ ULONG *reserved);
-
-
-void __RPC_STUB IUsgDeviceChangeSink_OnBeamformerRemove_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDeviceChangeSink_OnProbeStateChanged_Proxy( 
-    IUsgDeviceChangeSink * This,
-    /* [in] */ IUnknown *pUsgProbe,
-    /* [out][in] */ ULONG *reserved);
-
-
-void __RPC_STUB IUsgDeviceChangeSink_OnProbeStateChanged_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDeviceChangeSink_OnBeamformerStateChanged_Proxy( 
-    IUsgDeviceChangeSink * This,
-    /* [in] */ IUnknown *pUsgBeamformer,
-    /* [out][in] */ ULONG *reserved);
-
-
-void __RPC_STUB IUsgDeviceChangeSink_OnBeamformerStateChanged_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -2986,6 +2787,7 @@ EXTERN_C const IID IID_IScanDepth;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IScanDepthVtbl
@@ -2995,7 +2797,8 @@ EXTERN_C const IID IID_IScanDepth;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IScanDepth * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IScanDepth * This);
@@ -3017,20 +2820,28 @@ EXTERN_C const IID IID_IScanDepth;
             IScanDepth * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IScanDepth * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *GetScanDepth )( 
             IScanDepth * This,
@@ -3059,79 +2870,42 @@ EXTERN_C const IID IID_IScanDepth;
 
 
 #define IScanDepth_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IScanDepth_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IScanDepth_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IScanDepth_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IScanDepth_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IScanDepth_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IScanDepth_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IScanDepth_GetScanDepth(This,pScanDepth)	\
-    (This)->lpVtbl -> GetScanDepth(This,pScanDepth)
+    ( (This)->lpVtbl -> GetScanDepth(This,pScanDepth) ) 
 
 #define IScanDepth_SetScanDepth(This,nScanDepth)	\
-    (This)->lpVtbl -> SetScanDepth(This,nScanDepth)
+    ( (This)->lpVtbl -> SetScanDepth(This,nScanDepth) ) 
 
 #define IScanDepth_GetScanDepthRange(This,pScanDepthMin,pScanDepthMax)	\
-    (This)->lpVtbl -> GetScanDepthRange(This,pScanDepthMin,pScanDepthMax)
+    ( (This)->lpVtbl -> GetScanDepthRange(This,pScanDepthMin,pScanDepthMax) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IScanDepth_GetScanDepth_Proxy( 
-    IScanDepth * This,
-    /* [retval][out] */ LONG *pScanDepth);
-
-
-void __RPC_STUB IScanDepth_GetScanDepth_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IScanDepth_SetScanDepth_Proxy( 
-    IScanDepth * This,
-    /* [in] */ LONG nScanDepth);
-
-
-void __RPC_STUB IScanDepth_SetScanDepth_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IScanDepth_GetScanDepthRange_Proxy( 
-    IScanDepth * This,
-    /* [out] */ LONG *pScanDepthMin,
-    /* [out] */ LONG *pScanDepthMax);
-
-
-void __RPC_STUB IScanDepth_GetScanDepthRange_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -3188,6 +2962,7 @@ EXTERN_C const IID IID_IUsgfw2;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgfw2Vtbl
@@ -3197,7 +2972,8 @@ EXTERN_C const IID IID_IUsgfw2;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgfw2 * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgfw2 * This);
@@ -3219,20 +2995,28 @@ EXTERN_C const IID IID_IUsgfw2;
             IUsgfw2 * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgfw2 * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_ProbesCollection )( 
             IUsgfw2 * This,
@@ -3290,174 +3074,60 @@ EXTERN_C const IID IID_IUsgfw2;
 
 
 #define IUsgfw2_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgfw2_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgfw2_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgfw2_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgfw2_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgfw2_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgfw2_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgfw2_get_ProbesCollection(This,pVal)	\
-    (This)->lpVtbl -> get_ProbesCollection(This,pVal)
+    ( (This)->lpVtbl -> get_ProbesCollection(This,pVal) ) 
 
 #define IUsgfw2_get_BeamformersCollection(This,pVal)	\
-    (This)->lpVtbl -> get_BeamformersCollection(This,pVal)
+    ( (This)->lpVtbl -> get_BeamformersCollection(This,pVal) ) 
 
 #define IUsgfw2_CreateDataView(This,pUnkSource,ppUsgDataView)	\
-    (This)->lpVtbl -> CreateDataView(This,pUnkSource,ppUsgDataView)
+    ( (This)->lpVtbl -> CreateDataView(This,pUnkSource,ppUsgDataView) ) 
 
 #define IUsgfw2_Invalidate(This)	\
-    (This)->lpVtbl -> Invalidate(This)
+    ( (This)->lpVtbl -> Invalidate(This) ) 
 
 #define IUsgfw2_BeamformerNameFromCode(This,Code,Name)	\
-    (This)->lpVtbl -> BeamformerNameFromCode(This,Code,Name)
+    ( (This)->lpVtbl -> BeamformerNameFromCode(This,Code,Name) ) 
 
 #define IUsgfw2_BeamformerCodeFromName(This,Name,Code)	\
-    (This)->lpVtbl -> BeamformerCodeFromName(This,Name,Code)
+    ( (This)->lpVtbl -> BeamformerCodeFromName(This,Name,Code) ) 
 
 #define IUsgfw2_ProbeNameFromCode(This,Code,Name)	\
-    (This)->lpVtbl -> ProbeNameFromCode(This,Code,Name)
+    ( (This)->lpVtbl -> ProbeNameFromCode(This,Code,Name) ) 
 
 #define IUsgfw2_ProbeCodeFromName(This,Name,Code)	\
-    (This)->lpVtbl -> ProbeCodeFromName(This,Name,Code)
+    ( (This)->lpVtbl -> ProbeCodeFromName(This,Name,Code) ) 
 
 #define IUsgfw2_CreateUsgfwFile(This,fileName,createFlags,ppFileObject)	\
-    (This)->lpVtbl -> CreateUsgfwFile(This,fileName,createFlags,ppFileObject)
+    ( (This)->lpVtbl -> CreateUsgfwFile(This,fileName,createFlags,ppFileObject) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgfw2_get_ProbesCollection_Proxy( 
-    IUsgfw2 * This,
-    /* [retval][out] */ IUnknown **pVal);
-
-
-void __RPC_STUB IUsgfw2_get_ProbesCollection_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgfw2_get_BeamformersCollection_Proxy( 
-    IUsgfw2 * This,
-    /* [retval][out] */ IUnknown **pVal);
-
-
-void __RPC_STUB IUsgfw2_get_BeamformersCollection_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgfw2_CreateDataView_Proxy( 
-    IUsgfw2 * This,
-    /* [in] */ IUnknown *pUnkSource,
-    /* [retval][out] */ IUsgDataView **ppUsgDataView);
-
-
-void __RPC_STUB IUsgfw2_CreateDataView_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgfw2_Invalidate_Proxy( 
-    IUsgfw2 * This);
-
-
-void __RPC_STUB IUsgfw2_Invalidate_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgfw2_BeamformerNameFromCode_Proxy( 
-    IUsgfw2 * This,
-    /* [in] */ LONG Code,
-    /* [retval][out] */ BSTR *Name);
-
-
-void __RPC_STUB IUsgfw2_BeamformerNameFromCode_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgfw2_BeamformerCodeFromName_Proxy( 
-    IUsgfw2 * This,
-    /* [in] */ BSTR Name,
-    /* [retval][out] */ LONG *Code);
-
-
-void __RPC_STUB IUsgfw2_BeamformerCodeFromName_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgfw2_ProbeNameFromCode_Proxy( 
-    IUsgfw2 * This,
-    /* [in] */ LONG Code,
-    /* [retval][out] */ BSTR *Name);
-
-
-void __RPC_STUB IUsgfw2_ProbeNameFromCode_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgfw2_ProbeCodeFromName_Proxy( 
-    IUsgfw2 * This,
-    /* [in] */ BSTR Name,
-    /* [retval][out] */ LONG *Code);
-
-
-void __RPC_STUB IUsgfw2_ProbeCodeFromName_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgfw2_CreateUsgfwFile_Proxy( 
-    IUsgfw2 * This,
-    /* [in] */ BSTR fileName,
-    /* [in] */ LONG createFlags,
-    /* [retval][out] */ IUsgFileStorage **ppFileObject);
-
-
-void __RPC_STUB IUsgfw2_CreateUsgfwFile_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -3481,6 +3151,7 @@ EXTERN_C const IID IID_IProbesCollection;
     public:
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IProbesCollectionVtbl
@@ -3490,7 +3161,8 @@ EXTERN_C const IID IID_IProbesCollection;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IProbesCollection * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IProbesCollection * This);
@@ -3512,20 +3184,28 @@ EXTERN_C const IID IID_IProbesCollection;
             IProbesCollection * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IProbesCollection * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         END_INTERFACE
     } IProbesCollectionVtbl;
@@ -3541,26 +3221,26 @@ EXTERN_C const IID IID_IProbesCollection;
 
 
 #define IProbesCollection_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IProbesCollection_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IProbesCollection_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IProbesCollection_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IProbesCollection_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IProbesCollection_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IProbesCollection_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #endif /* COBJMACROS */
@@ -3598,6 +3278,7 @@ EXTERN_C const IID IID_IUsgCollection;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgCollectionVtbl
@@ -3607,7 +3288,8 @@ EXTERN_C const IID IID_IUsgCollection;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgCollection * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgCollection * This);
@@ -3629,20 +3311,28 @@ EXTERN_C const IID IID_IUsgCollection;
             IUsgCollection * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgCollection * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Count )( 
             IUsgCollection * This,
@@ -3667,64 +3357,39 @@ EXTERN_C const IID IID_IUsgCollection;
 
 
 #define IUsgCollection_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgCollection_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgCollection_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgCollection_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgCollection_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgCollection_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgCollection_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgCollection_get_Count(This,pVal)	\
-    (This)->lpVtbl -> get_Count(This,pVal)
+    ( (This)->lpVtbl -> get_Count(This,pVal) ) 
 
 #define IUsgCollection_Item(This,lItem,ppUnk)	\
-    (This)->lpVtbl -> Item(This,lItem,ppUnk)
+    ( (This)->lpVtbl -> Item(This,lItem,ppUnk) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgCollection_get_Count_Proxy( 
-    IUsgCollection * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgCollection_get_Count_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgCollection_Item_Proxy( 
-    IUsgCollection * This,
-    /* [in] */ LONG lItem,
-    /* [out] */ IUnknown **ppUnk);
-
-
-void __RPC_STUB IUsgCollection_Item_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -3735,7 +3400,7 @@ void __RPC_STUB IUsgCollection_Item_Stub(
 #define __IProbe_INTERFACE_DEFINED__
 
 /* interface IProbe */
-/* [unique][helpstring][nonextensible][uuid][object] */ 
+/* [unique][helpstring][nonextensible][dual][uuid][object] */ 
 
 
 EXTERN_C const IID IID_IProbe;
@@ -3763,6 +3428,7 @@ EXTERN_C const IID IID_IProbe;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IProbeVtbl
@@ -3772,7 +3438,8 @@ EXTERN_C const IID IID_IProbe;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IProbe * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IProbe * This);
@@ -3794,20 +3461,28 @@ EXTERN_C const IID IID_IProbe;
             IProbe * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IProbe * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Name )( 
             IProbe * This,
@@ -3843,108 +3518,48 @@ EXTERN_C const IID IID_IProbe;
 
 
 #define IProbe_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IProbe_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IProbe_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IProbe_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IProbe_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IProbe_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IProbe_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IProbe_get_Name(This,pVal)	\
-    (This)->lpVtbl -> get_Name(This,pVal)
+    ( (This)->lpVtbl -> get_Name(This,pVal) ) 
 
 #define IProbe_get_Beamformer(This,pVal)	\
-    (This)->lpVtbl -> get_Beamformer(This,pVal)
+    ( (This)->lpVtbl -> get_Beamformer(This,pVal) ) 
 
 #define IProbe_get_DeviceState(This,pVal)	\
-    (This)->lpVtbl -> get_DeviceState(This,pVal)
+    ( (This)->lpVtbl -> get_DeviceState(This,pVal) ) 
 
 #define IProbe_get_DispalyName(This,pVal)	\
-    (This)->lpVtbl -> get_DispalyName(This,pVal)
+    ( (This)->lpVtbl -> get_DispalyName(This,pVal) ) 
 
 #define IProbe_get_Code(This,pVal)	\
-    (This)->lpVtbl -> get_Code(This,pVal)
+    ( (This)->lpVtbl -> get_Code(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IProbe_get_Name_Proxy( 
-    IProbe * This,
-    /* [retval][out] */ BSTR *pVal);
-
-
-void __RPC_STUB IProbe_get_Name_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IProbe_get_Beamformer_Proxy( 
-    IProbe * This,
-    /* [retval][out] */ IUnknown **pVal);
-
-
-void __RPC_STUB IProbe_get_Beamformer_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IProbe_get_DeviceState_Proxy( 
-    IProbe * This,
-    /* [retval][out] */ DEVICE_STATE *pVal);
-
-
-void __RPC_STUB IProbe_get_DeviceState_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IProbe_get_DispalyName_Proxy( 
-    IProbe * This,
-    /* [retval][out] */ BSTR *pVal);
-
-
-void __RPC_STUB IProbe_get_DispalyName_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IProbe_get_Code_Proxy( 
-    IProbe * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IProbe_get_Code_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -3975,6 +3590,7 @@ EXTERN_C const IID IID_IProbe2;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IProbe2Vtbl
@@ -3984,7 +3600,8 @@ EXTERN_C const IID IID_IProbe2;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IProbe2 * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IProbe2 * This);
@@ -4006,20 +3623,28 @@ EXTERN_C const IID IID_IProbe2;
             IProbe2 * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IProbe2 * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Name )( 
             IProbe2 * This,
@@ -4064,80 +3689,55 @@ EXTERN_C const IID IID_IProbe2;
 
 
 #define IProbe2_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IProbe2_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IProbe2_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IProbe2_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IProbe2_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IProbe2_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IProbe2_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IProbe2_get_Name(This,pVal)	\
-    (This)->lpVtbl -> get_Name(This,pVal)
+    ( (This)->lpVtbl -> get_Name(This,pVal) ) 
 
 #define IProbe2_get_Beamformer(This,pVal)	\
-    (This)->lpVtbl -> get_Beamformer(This,pVal)
+    ( (This)->lpVtbl -> get_Beamformer(This,pVal) ) 
 
 #define IProbe2_get_DeviceState(This,pVal)	\
-    (This)->lpVtbl -> get_DeviceState(This,pVal)
+    ( (This)->lpVtbl -> get_DeviceState(This,pVal) ) 
 
 #define IProbe2_get_DispalyName(This,pVal)	\
-    (This)->lpVtbl -> get_DispalyName(This,pVal)
+    ( (This)->lpVtbl -> get_DispalyName(This,pVal) ) 
 
 #define IProbe2_get_Code(This,pVal)	\
-    (This)->lpVtbl -> get_Code(This,pVal)
+    ( (This)->lpVtbl -> get_Code(This,pVal) ) 
 
 
 #define IProbe2_get_Type(This,pVal)	\
-    (This)->lpVtbl -> get_Type(This,pVal)
+    ( (This)->lpVtbl -> get_Type(This,pVal) ) 
 
 #define IProbe2_get_SerialNumber(This,index,pVal)	\
-    (This)->lpVtbl -> get_SerialNumber(This,index,pVal)
+    ( (This)->lpVtbl -> get_SerialNumber(This,index,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IProbe2_get_Type_Proxy( 
-    IProbe2 * This,
-    /* [retval][out] */ PROBE_TYPE *pVal);
-
-
-void __RPC_STUB IProbe2_get_Type_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IProbe2_get_SerialNumber_Proxy( 
-    IProbe2 * This,
-    /* [in] */ LONG index,
-    /* [retval][out] */ BSTR *pVal);
-
-
-void __RPC_STUB IProbe2_get_SerialNumber_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -4183,6 +3783,7 @@ EXTERN_C const IID IID_IBeamformer;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IBeamformerVtbl
@@ -4192,7 +3793,8 @@ EXTERN_C const IID IID_IBeamformer;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IBeamformer * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IBeamformer * This);
@@ -4214,20 +3816,28 @@ EXTERN_C const IID IID_IBeamformer;
             IBeamformer * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IBeamformer * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Name )( 
             IBeamformer * This,
@@ -4273,151 +3883,57 @@ EXTERN_C const IID IID_IBeamformer;
 
 
 #define IBeamformer_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IBeamformer_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IBeamformer_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IBeamformer_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IBeamformer_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IBeamformer_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IBeamformer_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IBeamformer_get_Name(This,pVal)	\
-    (This)->lpVtbl -> get_Name(This,pVal)
+    ( (This)->lpVtbl -> get_Name(This,pVal) ) 
 
 #define IBeamformer_get_Probes(This,pVal)	\
-    (This)->lpVtbl -> get_Probes(This,pVal)
+    ( (This)->lpVtbl -> get_Probes(This,pVal) ) 
 
 #define IBeamformer_get_DeviceState(This,pVal)	\
-    (This)->lpVtbl -> get_DeviceState(This,pVal)
+    ( (This)->lpVtbl -> get_DeviceState(This,pVal) ) 
 
 #define IBeamformer_get_DisplayName(This,pVal)	\
-    (This)->lpVtbl -> get_DisplayName(This,pVal)
+    ( (This)->lpVtbl -> get_DisplayName(This,pVal) ) 
 
 #define IBeamformer_OpenDevice(This)	\
-    (This)->lpVtbl -> OpenDevice(This)
+    ( (This)->lpVtbl -> OpenDevice(This) ) 
 
 #define IBeamformer_SwitchConnector(This)	\
-    (This)->lpVtbl -> SwitchConnector(This)
+    ( (This)->lpVtbl -> SwitchConnector(This) ) 
 
 #define IBeamformer_SwitchConnectorSupported(This,bSupported)	\
-    (This)->lpVtbl -> SwitchConnectorSupported(This,bSupported)
+    ( (This)->lpVtbl -> SwitchConnectorSupported(This,bSupported) ) 
 
 #define IBeamformer_get_Code(This,pVal)	\
-    (This)->lpVtbl -> get_Code(This,pVal)
+    ( (This)->lpVtbl -> get_Code(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IBeamformer_get_Name_Proxy( 
-    IBeamformer * This,
-    /* [retval][out] */ BSTR *pVal);
-
-
-void __RPC_STUB IBeamformer_get_Name_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IBeamformer_get_Probes_Proxy( 
-    IBeamformer * This,
-    /* [retval][out] */ IUnknown **pVal);
-
-
-void __RPC_STUB IBeamformer_get_Probes_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IBeamformer_get_DeviceState_Proxy( 
-    IBeamformer * This,
-    /* [retval][out] */ DEVICE_STATE *pVal);
-
-
-void __RPC_STUB IBeamformer_get_DeviceState_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IBeamformer_get_DisplayName_Proxy( 
-    IBeamformer * This,
-    /* [retval][out] */ BSTR *pVal);
-
-
-void __RPC_STUB IBeamformer_get_DisplayName_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IBeamformer_OpenDevice_Proxy( 
-    IBeamformer * This);
-
-
-void __RPC_STUB IBeamformer_OpenDevice_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IBeamformer_SwitchConnector_Proxy( 
-    IBeamformer * This);
-
-
-void __RPC_STUB IBeamformer_SwitchConnector_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IBeamformer_SwitchConnectorSupported_Proxy( 
-    IBeamformer * This,
-    /* [retval][out] */ LONG *bSupported);
-
-
-void __RPC_STUB IBeamformer_SwitchConnectorSupported_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IBeamformer_get_Code_Proxy( 
-    IBeamformer * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IBeamformer_get_Code_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -4448,6 +3964,7 @@ EXTERN_C const IID IID_IScanModes;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IScanModesVtbl
@@ -4457,7 +3974,8 @@ EXTERN_C const IID IID_IScanModes;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IScanModes * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IScanModes * This);
@@ -4479,20 +3997,28 @@ EXTERN_C const IID IID_IScanModes;
             IScanModes * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IScanModes * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Count )( 
             IScanModes * This,
@@ -4517,64 +4043,39 @@ EXTERN_C const IID IID_IScanModes;
 
 
 #define IScanModes_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IScanModes_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IScanModes_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IScanModes_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IScanModes_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IScanModes_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IScanModes_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IScanModes_get_Count(This,pVal)	\
-    (This)->lpVtbl -> get_Count(This,pVal)
+    ( (This)->lpVtbl -> get_Count(This,pVal) ) 
 
 #define IScanModes_Item(This,lItem,pScanMode)	\
-    (This)->lpVtbl -> Item(This,lItem,pScanMode)
+    ( (This)->lpVtbl -> Item(This,lItem,pScanMode) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IScanModes_get_Count_Proxy( 
-    IScanModes * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IScanModes_get_Count_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IScanModes_Item_Proxy( 
-    IScanModes * This,
-    /* [in] */ LONG lItem,
-    /* [out] */ ULONG *pScanMode);
-
-
-void __RPC_STUB IScanModes_Item_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -4598,6 +4099,7 @@ EXTERN_C const IID IID_IUsgControl;
     public:
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgControlVtbl
@@ -4607,7 +4109,8 @@ EXTERN_C const IID IID_IUsgControl;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgControl * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgControl * This);
@@ -4629,20 +4132,28 @@ EXTERN_C const IID IID_IUsgControl;
             IUsgControl * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgControl * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         END_INTERFACE
     } IUsgControlVtbl;
@@ -4658,26 +4169,26 @@ EXTERN_C const IID IID_IUsgControl;
 
 
 #define IUsgControl_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgControl_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgControl_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgControl_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgControl_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgControl_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgControl_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #endif /* COBJMACROS */
@@ -4717,6 +4228,7 @@ EXTERN_C const IID IID_IUsgGain;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgGainVtbl
@@ -4726,7 +4238,8 @@ EXTERN_C const IID IID_IUsgGain;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgGain * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgGain * This);
@@ -4748,20 +4261,28 @@ EXTERN_C const IID IID_IUsgGain;
             IUsgGain * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgGain * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgGain * This,
@@ -4789,78 +4310,42 @@ EXTERN_C const IID IID_IUsgGain;
 
 
 #define IUsgGain_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgGain_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgGain_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgGain_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgGain_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgGain_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgGain_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgGain_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgGain_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgGain_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgGain_get_Current_Proxy( 
-    IUsgGain * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgGain_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgGain_put_Current_Proxy( 
-    IUsgGain * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgGain_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgGain_get_Values_Proxy( 
-    IUsgGain * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgGain_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -4891,6 +4376,7 @@ EXTERN_C const IID IID_IUsgValues;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgValuesVtbl
@@ -4900,7 +4386,8 @@ EXTERN_C const IID IID_IUsgValues;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgValues * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgValues * This);
@@ -4922,20 +4409,28 @@ EXTERN_C const IID IID_IUsgValues;
             IUsgValues * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgValues * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Count )( 
             IUsgValues * This,
@@ -4960,64 +4455,39 @@ EXTERN_C const IID IID_IUsgValues;
 
 
 #define IUsgValues_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgValues_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgValues_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgValues_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgValues_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgValues_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgValues_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgValues_get_Count(This,pVal)	\
-    (This)->lpVtbl -> get_Count(This,pVal)
+    ( (This)->lpVtbl -> get_Count(This,pVal) ) 
 
 #define IUsgValues_Item(This,lItem,pValue)	\
-    (This)->lpVtbl -> Item(This,lItem,pValue)
+    ( (This)->lpVtbl -> Item(This,lItem,pValue) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgValues_get_Count_Proxy( 
-    IUsgValues * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgValues_get_Count_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgValues_Item_Proxy( 
-    IUsgValues * This,
-    /* [in] */ LONG lItem,
-    /* [retval][out] */ VARIANT *pValue);
-
-
-void __RPC_STUB IUsgValues_Item_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -5050,6 +4520,7 @@ EXTERN_C const IID IID_IUsgPower;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgPowerVtbl
@@ -5059,7 +4530,8 @@ EXTERN_C const IID IID_IUsgPower;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgPower * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgPower * This);
@@ -5081,20 +4553,28 @@ EXTERN_C const IID IID_IUsgPower;
             IUsgPower * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgPower * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgPower * This,
@@ -5122,78 +4602,42 @@ EXTERN_C const IID IID_IUsgPower;
 
 
 #define IUsgPower_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgPower_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgPower_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgPower_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgPower_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgPower_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgPower_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgPower_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgPower_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgPower_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgPower_get_Current_Proxy( 
-    IUsgPower * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgPower_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgPower_put_Current_Proxy( 
-    IUsgPower * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgPower_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgPower_get_Values_Proxy( 
-    IUsgPower * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgPower_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -5226,6 +4670,7 @@ EXTERN_C const IID IID_IUsgDynamicRange;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDynamicRangeVtbl
@@ -5235,7 +4680,8 @@ EXTERN_C const IID IID_IUsgDynamicRange;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDynamicRange * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDynamicRange * This);
@@ -5257,20 +4703,28 @@ EXTERN_C const IID IID_IUsgDynamicRange;
             IUsgDynamicRange * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDynamicRange * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgDynamicRange * This,
@@ -5298,78 +4752,42 @@ EXTERN_C const IID IID_IUsgDynamicRange;
 
 
 #define IUsgDynamicRange_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDynamicRange_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDynamicRange_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDynamicRange_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDynamicRange_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDynamicRange_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDynamicRange_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDynamicRange_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgDynamicRange_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgDynamicRange_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDynamicRange_get_Current_Proxy( 
-    IUsgDynamicRange * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgDynamicRange_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgDynamicRange_put_Current_Proxy( 
-    IUsgDynamicRange * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgDynamicRange_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDynamicRange_get_Values_Proxy( 
-    IUsgDynamicRange * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgDynamicRange_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -5402,6 +4820,7 @@ EXTERN_C const IID IID_IUsgFrameAvg;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgFrameAvgVtbl
@@ -5411,7 +4830,8 @@ EXTERN_C const IID IID_IUsgFrameAvg;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgFrameAvg * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgFrameAvg * This);
@@ -5433,20 +4853,28 @@ EXTERN_C const IID IID_IUsgFrameAvg;
             IUsgFrameAvg * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgFrameAvg * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgFrameAvg * This,
@@ -5474,78 +4902,42 @@ EXTERN_C const IID IID_IUsgFrameAvg;
 
 
 #define IUsgFrameAvg_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgFrameAvg_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgFrameAvg_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgFrameAvg_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgFrameAvg_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgFrameAvg_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgFrameAvg_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgFrameAvg_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgFrameAvg_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgFrameAvg_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgFrameAvg_get_Current_Proxy( 
-    IUsgFrameAvg * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgFrameAvg_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgFrameAvg_put_Current_Proxy( 
-    IUsgFrameAvg * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgFrameAvg_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgFrameAvg_get_Values_Proxy( 
-    IUsgFrameAvg * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgFrameAvg_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -5578,6 +4970,7 @@ EXTERN_C const IID IID_IUsgRejection2;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgRejection2Vtbl
@@ -5587,7 +4980,8 @@ EXTERN_C const IID IID_IUsgRejection2;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgRejection2 * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgRejection2 * This);
@@ -5609,20 +5003,28 @@ EXTERN_C const IID IID_IUsgRejection2;
             IUsgRejection2 * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgRejection2 * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgRejection2 * This,
@@ -5650,78 +5052,42 @@ EXTERN_C const IID IID_IUsgRejection2;
 
 
 #define IUsgRejection2_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgRejection2_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgRejection2_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgRejection2_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgRejection2_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgRejection2_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgRejection2_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgRejection2_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgRejection2_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgRejection2_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgRejection2_get_Current_Proxy( 
-    IUsgRejection2 * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgRejection2_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgRejection2_put_Current_Proxy( 
-    IUsgRejection2 * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgRejection2_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgRejection2_get_Values_Proxy( 
-    IUsgRejection2 * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgRejection2_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -5754,6 +5120,7 @@ EXTERN_C const IID IID_IUsgProbeFrequency2;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgProbeFrequency2Vtbl
@@ -5763,7 +5130,8 @@ EXTERN_C const IID IID_IUsgProbeFrequency2;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgProbeFrequency2 * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgProbeFrequency2 * This);
@@ -5785,20 +5153,28 @@ EXTERN_C const IID IID_IUsgProbeFrequency2;
             IUsgProbeFrequency2 * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgProbeFrequency2 * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgProbeFrequency2 * This,
@@ -5826,78 +5202,42 @@ EXTERN_C const IID IID_IUsgProbeFrequency2;
 
 
 #define IUsgProbeFrequency2_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgProbeFrequency2_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgProbeFrequency2_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgProbeFrequency2_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgProbeFrequency2_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgProbeFrequency2_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgProbeFrequency2_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgProbeFrequency2_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgProbeFrequency2_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgProbeFrequency2_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgProbeFrequency2_get_Current_Proxy( 
-    IUsgProbeFrequency2 * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgProbeFrequency2_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgProbeFrequency2_put_Current_Proxy( 
-    IUsgProbeFrequency2 * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgProbeFrequency2_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgProbeFrequency2_get_Values_Proxy( 
-    IUsgProbeFrequency2 * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgProbeFrequency2_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -5930,6 +5270,7 @@ EXTERN_C const IID IID_IUsgDepth;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDepthVtbl
@@ -5939,7 +5280,8 @@ EXTERN_C const IID IID_IUsgDepth;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDepth * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDepth * This);
@@ -5961,20 +5303,28 @@ EXTERN_C const IID IID_IUsgDepth;
             IUsgDepth * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDepth * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgDepth * This,
@@ -6002,78 +5352,42 @@ EXTERN_C const IID IID_IUsgDepth;
 
 
 #define IUsgDepth_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDepth_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDepth_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDepth_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDepth_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDepth_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDepth_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDepth_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgDepth_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgDepth_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDepth_get_Current_Proxy( 
-    IUsgDepth * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgDepth_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgDepth_put_Current_Proxy( 
-    IUsgDepth * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgDepth_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDepth_get_Values_Proxy( 
-    IUsgDepth * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgDepth_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -6109,6 +5423,7 @@ EXTERN_C const IID IID_IUsgImageOrientation;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgImageOrientationVtbl
@@ -6118,7 +5433,8 @@ EXTERN_C const IID IID_IUsgImageOrientation;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgImageOrientation * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgImageOrientation * This);
@@ -6140,20 +5456,28 @@ EXTERN_C const IID IID_IUsgImageOrientation;
             IUsgImageOrientation * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgImageOrientation * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Mirror )( 
             IUsgImageOrientation * This,
@@ -6185,93 +5509,45 @@ EXTERN_C const IID IID_IUsgImageOrientation;
 
 
 #define IUsgImageOrientation_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgImageOrientation_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgImageOrientation_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgImageOrientation_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgImageOrientation_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgImageOrientation_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgImageOrientation_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgImageOrientation_get_Mirror(This,pVal)	\
-    (This)->lpVtbl -> get_Mirror(This,pVal)
+    ( (This)->lpVtbl -> get_Mirror(This,pVal) ) 
 
 #define IUsgImageOrientation_put_Mirror(This,newVal)	\
-    (This)->lpVtbl -> put_Mirror(This,newVal)
+    ( (This)->lpVtbl -> put_Mirror(This,newVal) ) 
 
 #define IUsgImageOrientation_get_Rotate(This,pVal)	\
-    (This)->lpVtbl -> get_Rotate(This,pVal)
+    ( (This)->lpVtbl -> get_Rotate(This,pVal) ) 
 
 #define IUsgImageOrientation_put_Rotate(This,newVal)	\
-    (This)->lpVtbl -> put_Rotate(This,newVal)
+    ( (This)->lpVtbl -> put_Rotate(This,newVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgImageOrientation_get_Mirror_Proxy( 
-    IUsgImageOrientation * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgImageOrientation_get_Mirror_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgImageOrientation_put_Mirror_Proxy( 
-    IUsgImageOrientation * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgImageOrientation_put_Mirror_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgImageOrientation_get_Rotate_Proxy( 
-    IUsgImageOrientation * This,
-    /* [retval][out] */ IMAGE_ROTATE *pVal);
-
-
-void __RPC_STUB IUsgImageOrientation_get_Rotate_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgImageOrientation_put_Rotate_Proxy( 
-    IUsgImageOrientation * This,
-    /* [in] */ IMAGE_ROTATE newVal);
-
-
-void __RPC_STUB IUsgImageOrientation_put_Rotate_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -6310,6 +5586,7 @@ EXTERN_C const IID IID_IUsgImageEnhancement;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgImageEnhancementVtbl
@@ -6319,7 +5596,8 @@ EXTERN_C const IID IID_IUsgImageEnhancement;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgImageEnhancement * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgImageEnhancement * This);
@@ -6341,20 +5619,28 @@ EXTERN_C const IID IID_IUsgImageEnhancement;
             IUsgImageEnhancement * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgImageEnhancement * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgImageEnhancement * This,
@@ -6390,108 +5676,48 @@ EXTERN_C const IID IID_IUsgImageEnhancement;
 
 
 #define IUsgImageEnhancement_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgImageEnhancement_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgImageEnhancement_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgImageEnhancement_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgImageEnhancement_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgImageEnhancement_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgImageEnhancement_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgImageEnhancement_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgImageEnhancement_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgImageEnhancement_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #define IUsgImageEnhancement_get_Enabled(This,pVal)	\
-    (This)->lpVtbl -> get_Enabled(This,pVal)
+    ( (This)->lpVtbl -> get_Enabled(This,pVal) ) 
 
 #define IUsgImageEnhancement_put_Enabled(This,newVal)	\
-    (This)->lpVtbl -> put_Enabled(This,newVal)
+    ( (This)->lpVtbl -> put_Enabled(This,newVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgImageEnhancement_get_Current_Proxy( 
-    IUsgImageEnhancement * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgImageEnhancement_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgImageEnhancement_put_Current_Proxy( 
-    IUsgImageEnhancement * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgImageEnhancement_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgImageEnhancement_get_Values_Proxy( 
-    IUsgImageEnhancement * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgImageEnhancement_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgImageEnhancement_get_Enabled_Proxy( 
-    IUsgImageEnhancement * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgImageEnhancement_get_Enabled_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgImageEnhancement_put_Enabled_Proxy( 
-    IUsgImageEnhancement * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgImageEnhancement_put_Enabled_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -6524,6 +5750,7 @@ EXTERN_C const IID IID_IUsgViewArea;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgViewAreaVtbl
@@ -6533,7 +5760,8 @@ EXTERN_C const IID IID_IUsgViewArea;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgViewArea * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgViewArea * This);
@@ -6555,20 +5783,28 @@ EXTERN_C const IID IID_IUsgViewArea;
             IUsgViewArea * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgViewArea * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgViewArea * This,
@@ -6596,78 +5832,42 @@ EXTERN_C const IID IID_IUsgViewArea;
 
 
 #define IUsgViewArea_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgViewArea_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgViewArea_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgViewArea_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgViewArea_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgViewArea_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgViewArea_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgViewArea_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgViewArea_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgViewArea_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgViewArea_get_Current_Proxy( 
-    IUsgViewArea * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgViewArea_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgViewArea_put_Current_Proxy( 
-    IUsgViewArea * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgViewArea_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgViewArea_get_Values_Proxy( 
-    IUsgViewArea * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgViewArea_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -6700,6 +5900,7 @@ EXTERN_C const IID IID_IUsgLineDensity;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgLineDensityVtbl
@@ -6709,7 +5910,8 @@ EXTERN_C const IID IID_IUsgLineDensity;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgLineDensity * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgLineDensity * This);
@@ -6731,20 +5933,28 @@ EXTERN_C const IID IID_IUsgLineDensity;
             IUsgLineDensity * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgLineDensity * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgLineDensity * This,
@@ -6772,78 +5982,42 @@ EXTERN_C const IID IID_IUsgLineDensity;
 
 
 #define IUsgLineDensity_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgLineDensity_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgLineDensity_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgLineDensity_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgLineDensity_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgLineDensity_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgLineDensity_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgLineDensity_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgLineDensity_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgLineDensity_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgLineDensity_get_Current_Proxy( 
-    IUsgLineDensity * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgLineDensity_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgLineDensity_put_Current_Proxy( 
-    IUsgLineDensity * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgLineDensity_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgLineDensity_get_Values_Proxy( 
-    IUsgLineDensity * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgLineDensity_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -6917,6 +6091,7 @@ EXTERN_C const IID IID_IUsgFocus;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgFocusVtbl
@@ -6926,7 +6101,8 @@ EXTERN_C const IID IID_IUsgFocus;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgFocus * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgFocus * This);
@@ -6948,20 +6124,28 @@ EXTERN_C const IID IID_IUsgFocus;
             IUsgFocus * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgFocus * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_CurrentMode )( 
             IUsgFocus * This,
@@ -7038,215 +6222,66 @@ EXTERN_C const IID IID_IUsgFocus;
 
 
 #define IUsgFocus_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgFocus_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgFocus_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgFocus_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgFocus_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgFocus_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgFocus_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgFocus_get_CurrentMode(This,pVal)	\
-    (This)->lpVtbl -> get_CurrentMode(This,pVal)
+    ( (This)->lpVtbl -> get_CurrentMode(This,pVal) ) 
 
 #define IUsgFocus_put_CurrentMode(This,newVal)	\
-    (This)->lpVtbl -> put_CurrentMode(This,newVal)
+    ( (This)->lpVtbl -> put_CurrentMode(This,newVal) ) 
 
 #define IUsgFocus_get_ValuesMode(This,pVal)	\
-    (This)->lpVtbl -> get_ValuesMode(This,pVal)
+    ( (This)->lpVtbl -> get_ValuesMode(This,pVal) ) 
 
 #define IUsgFocus_get_FocusSet(This,mode,pVal)	\
-    (This)->lpVtbl -> get_FocusSet(This,mode,pVal)
+    ( (This)->lpVtbl -> get_FocusSet(This,mode,pVal) ) 
 
 #define IUsgFocus_put_FocusSet(This,mode,newVal)	\
-    (This)->lpVtbl -> put_FocusSet(This,mode,newVal)
+    ( (This)->lpVtbl -> put_FocusSet(This,mode,newVal) ) 
 
 #define IUsgFocus_get_FocusSetCount(This,mode,pVal)	\
-    (This)->lpVtbl -> get_FocusSetCount(This,mode,pVal)
+    ( (This)->lpVtbl -> get_FocusSetCount(This,mode,pVal) ) 
 
 #define IUsgFocus_GetFocalZonesCount(This,mode,focusSet,pFocalZones)	\
-    (This)->lpVtbl -> GetFocalZonesCount(This,mode,focusSet,pFocalZones)
+    ( (This)->lpVtbl -> GetFocalZonesCount(This,mode,focusSet,pFocalZones) ) 
 
 #define IUsgFocus_GetFocalZone(This,mode,focusSet,zoneIndex,pFocalZone)	\
-    (This)->lpVtbl -> GetFocalZone(This,mode,focusSet,zoneIndex,pFocalZone)
+    ( (This)->lpVtbl -> GetFocalZone(This,mode,focusSet,zoneIndex,pFocalZone) ) 
 
 #define IUsgFocus_GetFocusPoint(This,mode,focusSet,zoneIndex,pFocusPoint)	\
-    (This)->lpVtbl -> GetFocusPoint(This,mode,focusSet,zoneIndex,pFocusPoint)
+    ( (This)->lpVtbl -> GetFocusPoint(This,mode,focusSet,zoneIndex,pFocusPoint) ) 
 
 #define IUsgFocus_GetFocusState(This,mode,focusSet,entries,pFocusState)	\
-    (This)->lpVtbl -> GetFocusState(This,mode,focusSet,entries,pFocusState)
+    ( (This)->lpVtbl -> GetFocusState(This,mode,focusSet,entries,pFocusState) ) 
 
 #define IUsgFocus_SetFocusState(This,mode,focusSet,entries,pFocusState)	\
-    (This)->lpVtbl -> SetFocusState(This,mode,focusSet,entries,pFocusState)
+    ( (This)->lpVtbl -> SetFocusState(This,mode,focusSet,entries,pFocusState) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgFocus_get_CurrentMode_Proxy( 
-    IUsgFocus * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgFocus_get_CurrentMode_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgFocus_put_CurrentMode_Proxy( 
-    IUsgFocus * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgFocus_put_CurrentMode_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgFocus_get_ValuesMode_Proxy( 
-    IUsgFocus * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgFocus_get_ValuesMode_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgFocus_get_FocusSet_Proxy( 
-    IUsgFocus * This,
-    /* [in] */ LONG mode,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgFocus_get_FocusSet_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgFocus_put_FocusSet_Proxy( 
-    IUsgFocus * This,
-    /* [in] */ LONG mode,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgFocus_put_FocusSet_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgFocus_get_FocusSetCount_Proxy( 
-    IUsgFocus * This,
-    /* [in] */ LONG mode,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgFocus_get_FocusSetCount_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgFocus_GetFocalZonesCount_Proxy( 
-    IUsgFocus * This,
-    /* [in] */ LONG mode,
-    /* [in] */ LONG focusSet,
-    /* [retval][out] */ LONG *pFocalZones);
-
-
-void __RPC_STUB IUsgFocus_GetFocalZonesCount_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgFocus_GetFocalZone_Proxy( 
-    IUsgFocus * This,
-    /* [in] */ LONG mode,
-    /* [in] */ LONG focusSet,
-    /* [in] */ LONG zoneIndex,
-    /* [out] */ FOCAL_ZONE *pFocalZone);
-
-
-void __RPC_STUB IUsgFocus_GetFocalZone_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgFocus_GetFocusPoint_Proxy( 
-    IUsgFocus * This,
-    /* [in] */ LONG mode,
-    /* [in] */ LONG focusSet,
-    /* [in] */ LONG zoneIndex,
-    /* [retval][out] */ LONG *pFocusPoint);
-
-
-void __RPC_STUB IUsgFocus_GetFocusPoint_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgFocus_GetFocusState_Proxy( 
-    IUsgFocus * This,
-    /* [in] */ LONG mode,
-    /* [in] */ LONG focusSet,
-    /* [in] */ ULONG entries,
-    /* [size_is][out] */ LONG *pFocusState);
-
-
-void __RPC_STUB IUsgFocus_GetFocusState_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgFocus_SetFocusState_Proxy( 
-    IUsgFocus * This,
-    /* [in] */ LONG mode,
-    /* [in] */ LONG focusSet,
-    /* [in] */ ULONG entries,
-    /* [size_is][in] */ LONG *pFocusState);
-
-
-void __RPC_STUB IUsgFocus_SetFocusState_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -7312,6 +6347,7 @@ EXTERN_C const IID IID_IUsgTgc;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgTgcVtbl
@@ -7321,7 +6357,8 @@ EXTERN_C const IID IID_IUsgTgc;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgTgc * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgTgc * This);
@@ -7343,20 +6380,28 @@ EXTERN_C const IID IID_IUsgTgc;
             IUsgTgc * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgTgc * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *GetTgcEntries )( 
             IUsgTgc * This,
@@ -7425,207 +6470,66 @@ EXTERN_C const IID IID_IUsgTgc;
 
 
 #define IUsgTgc_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgTgc_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgTgc_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgTgc_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgTgc_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgTgc_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgTgc_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgTgc_GetTgcEntries(This,startIndex,entries,pTgcData)	\
-    (This)->lpVtbl -> GetTgcEntries(This,startIndex,entries,pTgcData)
+    ( (This)->lpVtbl -> GetTgcEntries(This,startIndex,entries,pTgcData) ) 
 
 #define IUsgTgc_SetTgcEntries(This,startIndex,entries,pTgcData)	\
-    (This)->lpVtbl -> SetTgcEntries(This,startIndex,entries,pTgcData)
+    ( (This)->lpVtbl -> SetTgcEntries(This,startIndex,entries,pTgcData) ) 
 
 #define IUsgTgc_GetTgcSize(This,pVal)	\
-    (This)->lpVtbl -> GetTgcSize(This,pVal)
+    ( (This)->lpVtbl -> GetTgcSize(This,pVal) ) 
 
 #define IUsgTgc_PositionToDepth(This,pos,depth)	\
-    (This)->lpVtbl -> PositionToDepth(This,pos,depth)
+    ( (This)->lpVtbl -> PositionToDepth(This,pos,depth) ) 
 
 #define IUsgTgc_DepthToPosition(This,depth,pos)	\
-    (This)->lpVtbl -> DepthToPosition(This,depth,pos)
+    ( (This)->lpVtbl -> DepthToPosition(This,depth,pos) ) 
 
 #define IUsgTgc_get_Current(This,ctlPoint,pVal)	\
-    (This)->lpVtbl -> get_Current(This,ctlPoint,pVal)
+    ( (This)->lpVtbl -> get_Current(This,ctlPoint,pVal) ) 
 
 #define IUsgTgc_put_Current(This,ctlPoint,newVal)	\
-    (This)->lpVtbl -> put_Current(This,ctlPoint,newVal)
+    ( (This)->lpVtbl -> put_Current(This,ctlPoint,newVal) ) 
 
 #define IUsgTgc_get_CtlPointsCount(This,pVal)	\
-    (This)->lpVtbl -> get_CtlPointsCount(This,pVal)
+    ( (This)->lpVtbl -> get_CtlPointsCount(This,pVal) ) 
 
 #define IUsgTgc_put_CtlPointsCount(This,newVal)	\
-    (This)->lpVtbl -> put_CtlPointsCount(This,newVal)
+    ( (This)->lpVtbl -> put_CtlPointsCount(This,newVal) ) 
 
 #define IUsgTgc_get_CtlPointPos(This,ctlPoint,pVal)	\
-    (This)->lpVtbl -> get_CtlPointPos(This,ctlPoint,pVal)
+    ( (This)->lpVtbl -> get_CtlPointPos(This,ctlPoint,pVal) ) 
 
 #define IUsgTgc_get_ValuesTgc(This,pVal)	\
-    (This)->lpVtbl -> get_ValuesTgc(This,pVal)
+    ( (This)->lpVtbl -> get_ValuesTgc(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgTgc_GetTgcEntries_Proxy( 
-    IUsgTgc * This,
-    /* [in] */ LONG startIndex,
-    /* [in] */ LONG entries,
-    /* [out] */ LONG *pTgcData);
-
-
-void __RPC_STUB IUsgTgc_GetTgcEntries_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgTgc_SetTgcEntries_Proxy( 
-    IUsgTgc * This,
-    /* [in] */ LONG startIndex,
-    /* [in] */ LONG entries,
-    /* [in] */ LONG *pTgcData);
-
-
-void __RPC_STUB IUsgTgc_SetTgcEntries_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgTgc_GetTgcSize_Proxy( 
-    IUsgTgc * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgTgc_GetTgcSize_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgTgc_PositionToDepth_Proxy( 
-    IUsgTgc * This,
-    /* [in] */ LONG pos,
-    /* [retval][out] */ LONG *depth);
-
-
-void __RPC_STUB IUsgTgc_PositionToDepth_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgTgc_DepthToPosition_Proxy( 
-    IUsgTgc * This,
-    /* [in] */ LONG depth,
-    /* [retval][out] */ LONG *pos);
-
-
-void __RPC_STUB IUsgTgc_DepthToPosition_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgTgc_get_Current_Proxy( 
-    IUsgTgc * This,
-    /* [in] */ LONG ctlPoint,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgTgc_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgTgc_put_Current_Proxy( 
-    IUsgTgc * This,
-    /* [in] */ LONG ctlPoint,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgTgc_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgTgc_get_CtlPointsCount_Proxy( 
-    IUsgTgc * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgTgc_get_CtlPointsCount_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgTgc_put_CtlPointsCount_Proxy( 
-    IUsgTgc * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgTgc_put_CtlPointsCount_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgTgc_get_CtlPointPos_Proxy( 
-    IUsgTgc * This,
-    /* [in] */ LONG ctlPoint,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgTgc_get_CtlPointPos_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgTgc_get_ValuesTgc_Proxy( 
-    IUsgTgc * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgTgc_get_ValuesTgc_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -7664,6 +6568,7 @@ EXTERN_C const IID IID_IUsgClearView;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgClearViewVtbl
@@ -7673,7 +6578,8 @@ EXTERN_C const IID IID_IUsgClearView;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgClearView * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgClearView * This);
@@ -7695,20 +6601,28 @@ EXTERN_C const IID IID_IUsgClearView;
             IUsgClearView * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgClearView * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgClearView * This,
@@ -7744,108 +6658,48 @@ EXTERN_C const IID IID_IUsgClearView;
 
 
 #define IUsgClearView_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgClearView_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgClearView_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgClearView_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgClearView_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgClearView_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgClearView_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgClearView_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgClearView_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgClearView_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #define IUsgClearView_get_Enabled(This,pVal)	\
-    (This)->lpVtbl -> get_Enabled(This,pVal)
+    ( (This)->lpVtbl -> get_Enabled(This,pVal) ) 
 
 #define IUsgClearView_put_Enabled(This,newVal)	\
-    (This)->lpVtbl -> put_Enabled(This,newVal)
+    ( (This)->lpVtbl -> put_Enabled(This,newVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgClearView_get_Current_Proxy( 
-    IUsgClearView * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgClearView_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgClearView_put_Current_Proxy( 
-    IUsgClearView * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgClearView_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgClearView_get_Values_Proxy( 
-    IUsgClearView * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgClearView_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgClearView_get_Enabled_Proxy( 
-    IUsgClearView * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgClearView_get_Enabled_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgClearView_put_Enabled_Proxy( 
-    IUsgClearView * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgClearView_put_Enabled_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -7926,6 +6780,7 @@ EXTERN_C const IID IID_IUsgPaletteCalculator;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgPaletteCalculatorVtbl
@@ -7935,7 +6790,8 @@ EXTERN_C const IID IID_IUsgPaletteCalculator;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgPaletteCalculator * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgPaletteCalculator * This);
@@ -7957,20 +6813,28 @@ EXTERN_C const IID IID_IUsgPaletteCalculator;
             IUsgPaletteCalculator * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgPaletteCalculator * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Brightness )( 
             IUsgPaletteCalculator * This,
@@ -8060,294 +6924,84 @@ EXTERN_C const IID IID_IUsgPaletteCalculator;
 
 
 #define IUsgPaletteCalculator_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgPaletteCalculator_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgPaletteCalculator_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgPaletteCalculator_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgPaletteCalculator_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgPaletteCalculator_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgPaletteCalculator_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgPaletteCalculator_get_Brightness(This,pVal)	\
-    (This)->lpVtbl -> get_Brightness(This,pVal)
+    ( (This)->lpVtbl -> get_Brightness(This,pVal) ) 
 
 #define IUsgPaletteCalculator_put_Brightness(This,newVal)	\
-    (This)->lpVtbl -> put_Brightness(This,newVal)
+    ( (This)->lpVtbl -> put_Brightness(This,newVal) ) 
 
 #define IUsgPaletteCalculator_get_Contrast(This,pVal)	\
-    (This)->lpVtbl -> get_Contrast(This,pVal)
+    ( (This)->lpVtbl -> get_Contrast(This,pVal) ) 
 
 #define IUsgPaletteCalculator_put_Contrast(This,newVal)	\
-    (This)->lpVtbl -> put_Contrast(This,newVal)
+    ( (This)->lpVtbl -> put_Contrast(This,newVal) ) 
 
 #define IUsgPaletteCalculator_get_Gamma(This,pVal)	\
-    (This)->lpVtbl -> get_Gamma(This,pVal)
+    ( (This)->lpVtbl -> get_Gamma(This,pVal) ) 
 
 #define IUsgPaletteCalculator_put_Gamma(This,newVal)	\
-    (This)->lpVtbl -> put_Gamma(This,newVal)
+    ( (This)->lpVtbl -> put_Gamma(This,newVal) ) 
 
 #define IUsgPaletteCalculator_get_Negative(This,pVal)	\
-    (This)->lpVtbl -> get_Negative(This,pVal)
+    ( (This)->lpVtbl -> get_Negative(This,pVal) ) 
 
 #define IUsgPaletteCalculator_put_Negative(This,newVal)	\
-    (This)->lpVtbl -> put_Negative(This,newVal)
+    ( (This)->lpVtbl -> put_Negative(This,newVal) ) 
 
 #define IUsgPaletteCalculator_get_BrightnessMin(This,pVal)	\
-    (This)->lpVtbl -> get_BrightnessMin(This,pVal)
+    ( (This)->lpVtbl -> get_BrightnessMin(This,pVal) ) 
 
 #define IUsgPaletteCalculator_get_BrightnessMax(This,pVal)	\
-    (This)->lpVtbl -> get_BrightnessMax(This,pVal)
+    ( (This)->lpVtbl -> get_BrightnessMax(This,pVal) ) 
 
 #define IUsgPaletteCalculator_get_ContrastMin(This,pVal)	\
-    (This)->lpVtbl -> get_ContrastMin(This,pVal)
+    ( (This)->lpVtbl -> get_ContrastMin(This,pVal) ) 
 
 #define IUsgPaletteCalculator_get_ContrastMax(This,pVal)	\
-    (This)->lpVtbl -> get_ContrastMax(This,pVal)
+    ( (This)->lpVtbl -> get_ContrastMax(This,pVal) ) 
 
 #define IUsgPaletteCalculator_get_GammaMin(This,pVal)	\
-    (This)->lpVtbl -> get_GammaMin(This,pVal)
+    ( (This)->lpVtbl -> get_GammaMin(This,pVal) ) 
 
 #define IUsgPaletteCalculator_get_GammaMax(This,pVal)	\
-    (This)->lpVtbl -> get_GammaMax(This,pVal)
+    ( (This)->lpVtbl -> get_GammaMax(This,pVal) ) 
 
 #define IUsgPaletteCalculator_SetReferenceData(This,nValueMax,nValuesCount,pData)	\
-    (This)->lpVtbl -> SetReferenceData(This,nValueMax,nValuesCount,pData)
+    ( (This)->lpVtbl -> SetReferenceData(This,nValueMax,nValuesCount,pData) ) 
 
 #define IUsgPaletteCalculator_GetReferenceData(This,pValueMax,pValuesCount,pData)	\
-    (This)->lpVtbl -> GetReferenceData(This,pValueMax,pValuesCount,pData)
+    ( (This)->lpVtbl -> GetReferenceData(This,pValueMax,pValuesCount,pData) ) 
 
 #define IUsgPaletteCalculator_Calculate(This,startIndex,entries,pData)	\
-    (This)->lpVtbl -> Calculate(This,startIndex,entries,pData)
+    ( (This)->lpVtbl -> Calculate(This,startIndex,entries,pData) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgPaletteCalculator_get_Brightness_Proxy( 
-    IUsgPaletteCalculator * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgPaletteCalculator_get_Brightness_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgPaletteCalculator_put_Brightness_Proxy( 
-    IUsgPaletteCalculator * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgPaletteCalculator_put_Brightness_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgPaletteCalculator_get_Contrast_Proxy( 
-    IUsgPaletteCalculator * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgPaletteCalculator_get_Contrast_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgPaletteCalculator_put_Contrast_Proxy( 
-    IUsgPaletteCalculator * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgPaletteCalculator_put_Contrast_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgPaletteCalculator_get_Gamma_Proxy( 
-    IUsgPaletteCalculator * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgPaletteCalculator_get_Gamma_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgPaletteCalculator_put_Gamma_Proxy( 
-    IUsgPaletteCalculator * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgPaletteCalculator_put_Gamma_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgPaletteCalculator_get_Negative_Proxy( 
-    IUsgPaletteCalculator * This,
-    /* [retval][out] */ BOOL *pVal);
-
-
-void __RPC_STUB IUsgPaletteCalculator_get_Negative_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgPaletteCalculator_put_Negative_Proxy( 
-    IUsgPaletteCalculator * This,
-    /* [in] */ BOOL newVal);
-
-
-void __RPC_STUB IUsgPaletteCalculator_put_Negative_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgPaletteCalculator_get_BrightnessMin_Proxy( 
-    IUsgPaletteCalculator * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgPaletteCalculator_get_BrightnessMin_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgPaletteCalculator_get_BrightnessMax_Proxy( 
-    IUsgPaletteCalculator * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgPaletteCalculator_get_BrightnessMax_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgPaletteCalculator_get_ContrastMin_Proxy( 
-    IUsgPaletteCalculator * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgPaletteCalculator_get_ContrastMin_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgPaletteCalculator_get_ContrastMax_Proxy( 
-    IUsgPaletteCalculator * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgPaletteCalculator_get_ContrastMax_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgPaletteCalculator_get_GammaMin_Proxy( 
-    IUsgPaletteCalculator * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgPaletteCalculator_get_GammaMin_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgPaletteCalculator_get_GammaMax_Proxy( 
-    IUsgPaletteCalculator * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgPaletteCalculator_get_GammaMax_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgPaletteCalculator_SetReferenceData_Proxy( 
-    IUsgPaletteCalculator * This,
-    /* [in] */ LONG nValueMax,
-    /* [in] */ LONG nValuesCount,
-    /* [in] */ LONG *pData);
-
-
-void __RPC_STUB IUsgPaletteCalculator_SetReferenceData_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgPaletteCalculator_GetReferenceData_Proxy( 
-    IUsgPaletteCalculator * This,
-    /* [out] */ LONG *pValueMax,
-    /* [out][in] */ LONG *pValuesCount,
-    /* [out] */ LONG *pData);
-
-
-void __RPC_STUB IUsgPaletteCalculator_GetReferenceData_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgPaletteCalculator_Calculate_Proxy( 
-    IUsgPaletteCalculator * This,
-    /* [in] */ LONG startIndex,
-    /* [in] */ LONG entries,
-    /* [out] */ LONG *pData);
-
-
-void __RPC_STUB IUsgPaletteCalculator_Calculate_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -8381,6 +7035,7 @@ EXTERN_C const IID IID_IUsgPalette;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgPaletteVtbl
@@ -8390,7 +7045,8 @@ EXTERN_C const IID IID_IUsgPalette;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgPalette * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgPalette * This);
@@ -8412,20 +7068,28 @@ EXTERN_C const IID IID_IUsgPalette;
             IUsgPalette * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgPalette * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *SetPaletteEntries )( 
             IUsgPalette * This,
@@ -8453,67 +7117,39 @@ EXTERN_C const IID IID_IUsgPalette;
 
 
 #define IUsgPalette_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgPalette_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgPalette_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgPalette_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgPalette_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgPalette_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgPalette_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgPalette_SetPaletteEntries(This,startIndex,entries,pPalEntries)	\
-    (This)->lpVtbl -> SetPaletteEntries(This,startIndex,entries,pPalEntries)
+    ( (This)->lpVtbl -> SetPaletteEntries(This,startIndex,entries,pPalEntries) ) 
 
 #define IUsgPalette_GetPaletteEntries(This,startIndex,entries,pPalEntries)	\
-    (This)->lpVtbl -> GetPaletteEntries(This,startIndex,entries,pPalEntries)
+    ( (This)->lpVtbl -> GetPaletteEntries(This,startIndex,entries,pPalEntries) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgPalette_SetPaletteEntries_Proxy( 
-    IUsgPalette * This,
-    /* [in] */ LONG startIndex,
-    /* [in] */ LONG entries,
-    /* [in] */ PALETTEENTRY *pPalEntries);
-
-
-void __RPC_STUB IUsgPalette_SetPaletteEntries_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgPalette_GetPaletteEntries_Proxy( 
-    IUsgPalette * This,
-    /* [in] */ LONG startIndex,
-    /* [in] */ LONG entries,
-    /* [out] */ PALETTEENTRY *pPalEntries);
-
-
-void __RPC_STUB IUsgPalette_GetPaletteEntries_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -8603,6 +7239,7 @@ EXTERN_C const IID IID_IUsgImageProperties;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgImagePropertiesVtbl
@@ -8612,7 +7249,8 @@ EXTERN_C const IID IID_IUsgImageProperties;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgImageProperties * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgImageProperties * This);
@@ -8634,20 +7272,28 @@ EXTERN_C const IID IID_IUsgImageProperties;
             IUsgImageProperties * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgImageProperties * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *GetOrigin )( 
             IUsgImageProperties * This,
@@ -8743,267 +7389,75 @@ EXTERN_C const IID IID_IUsgImageProperties;
 
 
 #define IUsgImageProperties_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgImageProperties_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgImageProperties_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgImageProperties_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgImageProperties_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgImageProperties_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgImageProperties_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgImageProperties_GetOrigin(This,point,pixelsOrigin,fPrefered)	\
-    (This)->lpVtbl -> GetOrigin(This,point,pixelsOrigin,fPrefered)
+    ( (This)->lpVtbl -> GetOrigin(This,point,pixelsOrigin,fPrefered) ) 
 
 #define IUsgImageProperties_SetOrigin(This,point,pixelsOrigin)	\
-    (This)->lpVtbl -> SetOrigin(This,point,pixelsOrigin)
+    ( (This)->lpVtbl -> SetOrigin(This,point,pixelsOrigin) ) 
 
 #define IUsgImageProperties_GetResolution(This,resolution,fPrefered)	\
-    (This)->lpVtbl -> GetResolution(This,resolution,fPrefered)
+    ( (This)->lpVtbl -> GetResolution(This,resolution,fPrefered) ) 
 
 #define IUsgImageProperties_SetResolution(This,resolution)	\
-    (This)->lpVtbl -> SetResolution(This,resolution)
+    ( (This)->lpVtbl -> SetResolution(This,resolution) ) 
 
 #define IUsgImageProperties_get_AutoProbeCenter(This,pVal)	\
-    (This)->lpVtbl -> get_AutoProbeCenter(This,pVal)
+    ( (This)->lpVtbl -> get_AutoProbeCenter(This,pVal) ) 
 
 #define IUsgImageProperties_put_AutoProbeCenter(This,newVal)	\
-    (This)->lpVtbl -> put_AutoProbeCenter(This,newVal)
+    ( (This)->lpVtbl -> put_AutoProbeCenter(This,newVal) ) 
 
 #define IUsgImageProperties_get_AutoResolution(This,pVal)	\
-    (This)->lpVtbl -> get_AutoResolution(This,pVal)
+    ( (This)->lpVtbl -> get_AutoResolution(This,pVal) ) 
 
 #define IUsgImageProperties_put_AutoResolution(This,newVal)	\
-    (This)->lpVtbl -> put_AutoResolution(This,newVal)
+    ( (This)->lpVtbl -> put_AutoResolution(This,newVal) ) 
 
 #define IUsgImageProperties_PixelsToUnits(This,Xpix,Ypix,Xunit,Yunit,pixOrigin)	\
-    (This)->lpVtbl -> PixelsToUnits(This,Xpix,Ypix,Xunit,Yunit,pixOrigin)
+    ( (This)->lpVtbl -> PixelsToUnits(This,Xpix,Ypix,Xunit,Yunit,pixOrigin) ) 
 
 #define IUsgImageProperties_UnitsToPixels(This,Xunit,Yunit,XPix,Ypix,pixOrigin)	\
-    (This)->lpVtbl -> UnitsToPixels(This,Xunit,Yunit,XPix,Ypix,pixOrigin)
+    ( (This)->lpVtbl -> UnitsToPixels(This,Xunit,Yunit,XPix,Ypix,pixOrigin) ) 
 
 #define IUsgImageProperties_SetViewRect(This,left,top,right,bottom)	\
-    (This)->lpVtbl -> SetViewRect(This,left,top,right,bottom)
+    ( (This)->lpVtbl -> SetViewRect(This,left,top,right,bottom) ) 
 
 #define IUsgImageProperties_GetViewRect(This,left,top,right,bottom,fPrefered)	\
-    (This)->lpVtbl -> GetViewRect(This,left,top,right,bottom,fPrefered)
+    ( (This)->lpVtbl -> GetViewRect(This,left,top,right,bottom,fPrefered) ) 
 
 #define IUsgImageProperties_SetZoom(This,ZoomCenterX,ZoomCenterY,ZoomFactor)	\
-    (This)->lpVtbl -> SetZoom(This,ZoomCenterX,ZoomCenterY,ZoomFactor)
+    ( (This)->lpVtbl -> SetZoom(This,ZoomCenterX,ZoomCenterY,ZoomFactor) ) 
 
 #define IUsgImageProperties_GetZoom(This,ZoomCenterX,ZooomCenterY,ZoomFactor,fPrefered)	\
-    (This)->lpVtbl -> GetZoom(This,ZoomCenterX,ZooomCenterY,ZoomFactor,fPrefered)
+    ( (This)->lpVtbl -> GetZoom(This,ZoomCenterX,ZooomCenterY,ZoomFactor,fPrefered) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgImageProperties_GetOrigin_Proxy( 
-    IUsgImageProperties * This,
-    /* [out] */ POINT *point,
-    PIXELS_ORIGIN pixelsOrigin,
-    /* [in] */ BOOL fPrefered);
-
-
-void __RPC_STUB IUsgImageProperties_GetOrigin_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgImageProperties_SetOrigin_Proxy( 
-    IUsgImageProperties * This,
-    /* [in] */ POINT *point,
-    PIXELS_ORIGIN pixelsOrigin);
-
-
-void __RPC_STUB IUsgImageProperties_SetOrigin_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgImageProperties_GetResolution_Proxy( 
-    IUsgImageProperties * This,
-    /* [out] */ IMAGE_RESOLUTION *resolution,
-    /* [in] */ BOOL fPrefered);
-
-
-void __RPC_STUB IUsgImageProperties_GetResolution_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgImageProperties_SetResolution_Proxy( 
-    IUsgImageProperties * This,
-    /* [in] */ IMAGE_RESOLUTION *resolution);
-
-
-void __RPC_STUB IUsgImageProperties_SetResolution_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgImageProperties_get_AutoProbeCenter_Proxy( 
-    IUsgImageProperties * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgImageProperties_get_AutoProbeCenter_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgImageProperties_put_AutoProbeCenter_Proxy( 
-    IUsgImageProperties * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgImageProperties_put_AutoProbeCenter_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgImageProperties_get_AutoResolution_Proxy( 
-    IUsgImageProperties * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgImageProperties_get_AutoResolution_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgImageProperties_put_AutoResolution_Proxy( 
-    IUsgImageProperties * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgImageProperties_put_AutoResolution_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgImageProperties_PixelsToUnits_Proxy( 
-    IUsgImageProperties * This,
-    /* [in] */ FLOAT Xpix,
-    /* [in] */ FLOAT Ypix,
-    /* [out] */ FLOAT *Xunit,
-    /* [out] */ FLOAT *Yunit,
-    /* [in] */ PIXELS_ORIGIN pixOrigin);
-
-
-void __RPC_STUB IUsgImageProperties_PixelsToUnits_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgImageProperties_UnitsToPixels_Proxy( 
-    IUsgImageProperties * This,
-    /* [in] */ FLOAT Xunit,
-    /* [in] */ FLOAT Yunit,
-    /* [out] */ FLOAT *XPix,
-    /* [out] */ FLOAT *Ypix,
-    /* [in] */ PIXELS_ORIGIN pixOrigin);
-
-
-void __RPC_STUB IUsgImageProperties_UnitsToPixels_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgImageProperties_SetViewRect_Proxy( 
-    IUsgImageProperties * This,
-    /* [in] */ FLOAT left,
-    /* [in] */ FLOAT top,
-    /* [in] */ FLOAT right,
-    /* [in] */ FLOAT bottom);
-
-
-void __RPC_STUB IUsgImageProperties_SetViewRect_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgImageProperties_GetViewRect_Proxy( 
-    IUsgImageProperties * This,
-    /* [out] */ FLOAT *left,
-    /* [out] */ FLOAT *top,
-    /* [out] */ FLOAT *right,
-    /* [out] */ FLOAT *bottom,
-    /* [in] */ BOOL fPrefered);
-
-
-void __RPC_STUB IUsgImageProperties_GetViewRect_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgImageProperties_SetZoom_Proxy( 
-    IUsgImageProperties * This,
-    /* [in] */ FLOAT ZoomCenterX,
-    /* [in] */ FLOAT ZoomCenterY,
-    /* [in] */ LONG ZoomFactor);
-
-
-void __RPC_STUB IUsgImageProperties_SetZoom_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgImageProperties_GetZoom_Proxy( 
-    IUsgImageProperties * This,
-    /* [out] */ FLOAT *ZoomCenterX,
-    /* [out] */ FLOAT *ZooomCenterY,
-    /* [out] */ LONG *ZoomFactor,
-    /* [in] */ BOOL fPrefered);
-
-
-void __RPC_STUB IUsgImageProperties_GetZoom_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -9031,6 +7485,7 @@ EXTERN_C const IID IID_IUsgControlChangeSink;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgControlChangeSinkVtbl
@@ -9040,7 +7495,8 @@ EXTERN_C const IID IID_IUsgControlChangeSink;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgControlChangeSink * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgControlChangeSink * This);
@@ -9062,20 +7518,28 @@ EXTERN_C const IID IID_IUsgControlChangeSink;
             IUsgControlChangeSink * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgControlChangeSink * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *ControlChanged )( 
             IUsgControlChangeSink * This,
@@ -9096,49 +7560,36 @@ EXTERN_C const IID IID_IUsgControlChangeSink;
 
 
 #define IUsgControlChangeSink_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgControlChangeSink_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgControlChangeSink_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgControlChangeSink_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgControlChangeSink_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgControlChangeSink_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgControlChangeSink_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgControlChangeSink_ControlChanged(This,dispId,flags)	\
-    (This)->lpVtbl -> ControlChanged(This,dispId,flags)
+    ( (This)->lpVtbl -> ControlChanged(This,dispId,flags) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgControlChangeSink_ControlChanged_Proxy( 
-    IUsgControlChangeSink * This,
-    /* [in] */ LONG dispId,
-    /* [in] */ LONG flags);
-
-
-void __RPC_STUB IUsgControlChangeSink_ControlChanged_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -9178,6 +7629,7 @@ EXTERN_C const IID IID_IUsgCtrlChangeCommon;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgCtrlChangeCommonVtbl
@@ -9187,7 +7639,8 @@ EXTERN_C const IID IID_IUsgCtrlChangeCommon;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgCtrlChangeCommon * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgCtrlChangeCommon * This);
@@ -9209,20 +7662,28 @@ EXTERN_C const IID IID_IUsgCtrlChangeCommon;
             IUsgCtrlChangeCommon * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgCtrlChangeCommon * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *OnControlChanged )( 
             IUsgCtrlChangeCommon * This,
@@ -9256,73 +7717,39 @@ EXTERN_C const IID IID_IUsgCtrlChangeCommon;
 
 
 #define IUsgCtrlChangeCommon_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgCtrlChangeCommon_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgCtrlChangeCommon_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgCtrlChangeCommon_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgCtrlChangeCommon_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgCtrlChangeCommon_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgCtrlChangeCommon_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgCtrlChangeCommon_OnControlChanged(This,riidCtrl,scanMode,streamId,pControlObj,dispId,flags)	\
-    (This)->lpVtbl -> OnControlChanged(This,riidCtrl,scanMode,streamId,pControlObj,dispId,flags)
+    ( (This)->lpVtbl -> OnControlChanged(This,riidCtrl,scanMode,streamId,pControlObj,dispId,flags) ) 
 
 #define IUsgCtrlChangeCommon_OnControlChangedBSTR(This,ctrlGUID,scanMode,streamId,pControlObject,dispId,flags)	\
-    (This)->lpVtbl -> OnControlChangedBSTR(This,ctrlGUID,scanMode,streamId,pControlObject,dispId,flags)
+    ( (This)->lpVtbl -> OnControlChangedBSTR(This,ctrlGUID,scanMode,streamId,pControlObject,dispId,flags) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgCtrlChangeCommon_OnControlChanged_Proxy( 
-    IUsgCtrlChangeCommon * This,
-    /* [in] */ REFIID riidCtrl,
-    /* [in] */ ULONG scanMode,
-    /* [in] */ LONG streamId,
-    /* [in] */ IUsgControl *pControlObj,
-    /* [in] */ LONG dispId,
-    /* [in] */ LONG flags);
-
-
-void __RPC_STUB IUsgCtrlChangeCommon_OnControlChanged_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgCtrlChangeCommon_OnControlChangedBSTR_Proxy( 
-    IUsgCtrlChangeCommon * This,
-    /* [in] */ BSTR ctrlGUID,
-    /* [in] */ LONG scanMode,
-    /* [in] */ LONG streamId,
-    /* [in] */ IUsgControl *pControlObject,
-    /* [in] */ LONG dispId,
-    /* [in] */ LONG flags);
-
-
-void __RPC_STUB IUsgCtrlChangeCommon_OnControlChangedBSTR_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -9375,6 +7802,7 @@ EXTERN_C const IID IID_IUsgScanLine;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgScanLineVtbl
@@ -9384,7 +7812,8 @@ EXTERN_C const IID IID_IUsgScanLine;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgScanLine * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgScanLine * This);
@@ -9406,20 +7835,28 @@ EXTERN_C const IID IID_IUsgScanLine;
             IUsgScanLine * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgScanLine * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgScanLine * This,
@@ -9470,134 +7907,51 @@ EXTERN_C const IID IID_IUsgScanLine;
 
 
 #define IUsgScanLine_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgScanLine_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgScanLine_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgScanLine_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgScanLine_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgScanLine_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgScanLine_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgScanLine_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgScanLine_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgScanLine_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #define IUsgScanLine_GetScanLine(This,x,y,value)	\
-    (This)->lpVtbl -> GetScanLine(This,x,y,value)
+    ( (This)->lpVtbl -> GetScanLine(This,x,y,value) ) 
 
 #define IUsgScanLine_GetCoordinates(This,scanLine,angle,x,y)	\
-    (This)->lpVtbl -> GetCoordinates(This,scanLine,angle,x,y)
+    ( (This)->lpVtbl -> GetCoordinates(This,scanLine,angle,x,y) ) 
 
 #define IUsgScanLine_GetCoordinates2(This,scanLine,X1,Y1,X2,Y2,startDepth,endDepth)	\
-    (This)->lpVtbl -> GetCoordinates2(This,scanLine,X1,Y1,X2,Y2,startDepth,endDepth)
+    ( (This)->lpVtbl -> GetCoordinates2(This,scanLine,X1,Y1,X2,Y2,startDepth,endDepth) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgScanLine_get_Current_Proxy( 
-    IUsgScanLine * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgScanLine_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgScanLine_put_Current_Proxy( 
-    IUsgScanLine * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgScanLine_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgScanLine_get_Values_Proxy( 
-    IUsgScanLine * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgScanLine_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgScanLine_GetScanLine_Proxy( 
-    IUsgScanLine * This,
-    /* [in] */ FLOAT x,
-    /* [in] */ FLOAT y,
-    /* [retval][out] */ LONG *value);
-
-
-void __RPC_STUB IUsgScanLine_GetScanLine_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgScanLine_GetCoordinates_Proxy( 
-    IUsgScanLine * This,
-    /* [in] */ LONG scanLine,
-    /* [out] */ FLOAT *angle,
-    /* [out] */ FLOAT *x,
-    /* [out] */ FLOAT *y);
-
-
-void __RPC_STUB IUsgScanLine_GetCoordinates_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgScanLine_GetCoordinates2_Proxy( 
-    IUsgScanLine * This,
-    /* [in] */ LONG scanLine,
-    /* [out] */ FLOAT *X1,
-    /* [out] */ FLOAT *Y1,
-    /* [out] */ FLOAT *X2,
-    /* [out] */ FLOAT *Y2,
-    /* [defaultvalue][in] */ FLOAT startDepth,
-    /* [defaultvalue][in] */ FLOAT endDepth);
-
-
-void __RPC_STUB IUsgScanLine_GetCoordinates2_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -9650,6 +8004,7 @@ EXTERN_C const IID IID_IUsgScanLineProperties;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgScanLinePropertiesVtbl
@@ -9659,7 +8014,8 @@ EXTERN_C const IID IID_IUsgScanLineProperties;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgScanLineProperties * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgScanLineProperties * This);
@@ -9681,20 +8037,28 @@ EXTERN_C const IID IID_IUsgScanLineProperties;
             IUsgScanLineProperties * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgScanLineProperties * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *GetCoordinates )( 
             IUsgScanLineProperties * This,
@@ -9744,122 +8108,48 @@ EXTERN_C const IID IID_IUsgScanLineProperties;
 
 
 #define IUsgScanLineProperties_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgScanLineProperties_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgScanLineProperties_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgScanLineProperties_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgScanLineProperties_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgScanLineProperties_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgScanLineProperties_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgScanLineProperties_GetCoordinates(This,scanLine,angle,X,Y)	\
-    (This)->lpVtbl -> GetCoordinates(This,scanLine,angle,X,Y)
+    ( (This)->lpVtbl -> GetCoordinates(This,scanLine,angle,X,Y) ) 
 
 #define IUsgScanLineProperties_GetCoordinates2(This,scanLine,X1,Y1,X2,Y2,startDepth,endDepth)	\
-    (This)->lpVtbl -> GetCoordinates2(This,scanLine,X1,Y1,X2,Y2,startDepth,endDepth)
+    ( (This)->lpVtbl -> GetCoordinates2(This,scanLine,X1,Y1,X2,Y2,startDepth,endDepth) ) 
 
 #define IUsgScanLineProperties_GetScanLine(This,X,Y,value)	\
-    (This)->lpVtbl -> GetScanLine(This,X,Y,value)
+    ( (This)->lpVtbl -> GetScanLine(This,X,Y,value) ) 
 
 #define IUsgScanLineProperties_GetScanLinesRange(This,startLine,endLine)	\
-    (This)->lpVtbl -> GetScanLinesRange(This,startLine,endLine)
+    ( (This)->lpVtbl -> GetScanLinesRange(This,startLine,endLine) ) 
 
 #define IUsgScanLineProperties_GetPointDepth(This,X,Y,value)	\
-    (This)->lpVtbl -> GetPointDepth(This,X,Y,value)
+    ( (This)->lpVtbl -> GetPointDepth(This,X,Y,value) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgScanLineProperties_GetCoordinates_Proxy( 
-    IUsgScanLineProperties * This,
-    /* [in] */ LONG scanLine,
-    /* [out] */ FLOAT *angle,
-    /* [out] */ FLOAT *X,
-    /* [out] */ FLOAT *Y);
-
-
-void __RPC_STUB IUsgScanLineProperties_GetCoordinates_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgScanLineProperties_GetCoordinates2_Proxy( 
-    IUsgScanLineProperties * This,
-    /* [in] */ LONG scanLine,
-    /* [out] */ FLOAT *X1,
-    /* [out] */ FLOAT *Y1,
-    /* [out] */ FLOAT *X2,
-    /* [out] */ FLOAT *Y2,
-    /* [defaultvalue][in] */ FLOAT startDepth,
-    /* [defaultvalue][in] */ FLOAT endDepth);
-
-
-void __RPC_STUB IUsgScanLineProperties_GetCoordinates2_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgScanLineProperties_GetScanLine_Proxy( 
-    IUsgScanLineProperties * This,
-    /* [in] */ FLOAT X,
-    /* [in] */ FLOAT Y,
-    /* [retval][out] */ LONG *value);
-
-
-void __RPC_STUB IUsgScanLineProperties_GetScanLine_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgScanLineProperties_GetScanLinesRange_Proxy( 
-    IUsgScanLineProperties * This,
-    /* [out] */ LONG *startLine,
-    /* [out] */ LONG *endLine);
-
-
-void __RPC_STUB IUsgScanLineProperties_GetScanLinesRange_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgScanLineProperties_GetPointDepth_Proxy( 
-    IUsgScanLineProperties * This,
-    /* [in] */ FLOAT X,
-    /* [in] */ FLOAT Y,
-    /* [retval][out] */ FLOAT *value);
-
-
-void __RPC_STUB IUsgScanLineProperties_GetPointDepth_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -9892,6 +8182,7 @@ EXTERN_C const IID IID_IUsgScanLineSelector;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgScanLineSelectorVtbl
@@ -9901,7 +8192,8 @@ EXTERN_C const IID IID_IUsgScanLineSelector;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgScanLineSelector * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgScanLineSelector * This);
@@ -9923,20 +8215,28 @@ EXTERN_C const IID IID_IUsgScanLineSelector;
             IUsgScanLineSelector * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgScanLineSelector * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgScanLineSelector * This,
@@ -9964,78 +8264,42 @@ EXTERN_C const IID IID_IUsgScanLineSelector;
 
 
 #define IUsgScanLineSelector_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgScanLineSelector_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgScanLineSelector_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgScanLineSelector_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgScanLineSelector_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgScanLineSelector_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgScanLineSelector_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgScanLineSelector_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgScanLineSelector_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgScanLineSelector_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgScanLineSelector_get_Current_Proxy( 
-    IUsgScanLineSelector * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgScanLineSelector_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgScanLineSelector_put_Current_Proxy( 
-    IUsgScanLineSelector * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgScanLineSelector_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgScanLineSelector_get_Values_Proxy( 
-    IUsgScanLineSelector * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgScanLineSelector_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -10068,6 +8332,7 @@ EXTERN_C const IID IID_IUsgSweepMode;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgSweepModeVtbl
@@ -10077,7 +8342,8 @@ EXTERN_C const IID IID_IUsgSweepMode;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgSweepMode * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgSweepMode * This);
@@ -10099,20 +8365,28 @@ EXTERN_C const IID IID_IUsgSweepMode;
             IUsgSweepMode * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgSweepMode * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgSweepMode * This,
@@ -10140,78 +8414,42 @@ EXTERN_C const IID IID_IUsgSweepMode;
 
 
 #define IUsgSweepMode_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgSweepMode_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgSweepMode_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgSweepMode_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgSweepMode_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgSweepMode_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgSweepMode_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgSweepMode_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgSweepMode_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgSweepMode_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgSweepMode_get_Current_Proxy( 
-    IUsgSweepMode * This,
-    /* [retval][out] */ SWEEP_MODE *pVal);
-
-
-void __RPC_STUB IUsgSweepMode_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgSweepMode_put_Current_Proxy( 
-    IUsgSweepMode * This,
-    /* [in] */ SWEEP_MODE newVal);
-
-
-void __RPC_STUB IUsgSweepMode_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgSweepMode_get_Values_Proxy( 
-    IUsgSweepMode * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgSweepMode_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -10244,6 +8482,7 @@ EXTERN_C const IID IID_IUsgQualProp;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgQualPropVtbl
@@ -10253,7 +8492,8 @@ EXTERN_C const IID IID_IUsgQualProp;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgQualProp * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgQualProp * This);
@@ -10275,20 +8515,28 @@ EXTERN_C const IID IID_IUsgQualProp;
             IUsgQualProp * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgQualProp * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_AvgFrameRate )( 
             IUsgQualProp * This,
@@ -10316,78 +8564,42 @@ EXTERN_C const IID IID_IUsgQualProp;
 
 
 #define IUsgQualProp_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgQualProp_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgQualProp_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgQualProp_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgQualProp_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgQualProp_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgQualProp_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgQualProp_get_AvgFrameRate(This,pVal)	\
-    (This)->lpVtbl -> get_AvgFrameRate(This,pVal)
+    ( (This)->lpVtbl -> get_AvgFrameRate(This,pVal) ) 
 
 #define IUsgQualProp_get_FramesDrawn(This,pVal)	\
-    (This)->lpVtbl -> get_FramesDrawn(This,pVal)
+    ( (This)->lpVtbl -> get_FramesDrawn(This,pVal) ) 
 
 #define IUsgQualProp_get_FramesDroppedInRenderer(This,pVal)	\
-    (This)->lpVtbl -> get_FramesDroppedInRenderer(This,pVal)
+    ( (This)->lpVtbl -> get_FramesDroppedInRenderer(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgQualProp_get_AvgFrameRate_Proxy( 
-    IUsgQualProp * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgQualProp_get_AvgFrameRate_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgQualProp_get_FramesDrawn_Proxy( 
-    IUsgQualProp * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgQualProp_get_FramesDrawn_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgQualProp_get_FramesDroppedInRenderer_Proxy( 
-    IUsgQualProp * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgQualProp_get_FramesDroppedInRenderer_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -10432,6 +8644,7 @@ EXTERN_C const IID IID_IUsgSweepSpeed;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgSweepSpeedVtbl
@@ -10441,7 +8654,8 @@ EXTERN_C const IID IID_IUsgSweepSpeed;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgSweepSpeed * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgSweepSpeed * This);
@@ -10463,20 +8677,28 @@ EXTERN_C const IID IID_IUsgSweepSpeed;
             IUsgSweepSpeed * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgSweepSpeed * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgSweepSpeed * This,
@@ -10519,126 +8741,51 @@ EXTERN_C const IID IID_IUsgSweepSpeed;
 
 
 #define IUsgSweepSpeed_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgSweepSpeed_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgSweepSpeed_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgSweepSpeed_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgSweepSpeed_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgSweepSpeed_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgSweepSpeed_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgSweepSpeed_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgSweepSpeed_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgSweepSpeed_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #define IUsgSweepSpeed_get_SweepSpeed(This,pVal)	\
-    (This)->lpVtbl -> get_SweepSpeed(This,pVal)
+    ( (This)->lpVtbl -> get_SweepSpeed(This,pVal) ) 
 
 #define IUsgSweepSpeed_put_SweepSpeed(This,newVal)	\
-    (This)->lpVtbl -> put_SweepSpeed(This,newVal)
+    ( (This)->lpVtbl -> put_SweepSpeed(This,newVal) ) 
 
 #define IUsgSweepSpeed_Preset(This,cEntries,pValues,iCurrent,SweepTime)	\
-    (This)->lpVtbl -> Preset(This,cEntries,pValues,iCurrent,SweepTime)
+    ( (This)->lpVtbl -> Preset(This,cEntries,pValues,iCurrent,SweepTime) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgSweepSpeed_get_Current_Proxy( 
-    IUsgSweepSpeed * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgSweepSpeed_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgSweepSpeed_put_Current_Proxy( 
-    IUsgSweepSpeed * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgSweepSpeed_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgSweepSpeed_get_Values_Proxy( 
-    IUsgSweepSpeed * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgSweepSpeed_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgSweepSpeed_get_SweepSpeed_Proxy( 
-    IUsgSweepSpeed * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgSweepSpeed_get_SweepSpeed_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgSweepSpeed_put_SweepSpeed_Proxy( 
-    IUsgSweepSpeed * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgSweepSpeed_put_SweepSpeed_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgSweepSpeed_Preset_Proxy( 
-    IUsgSweepSpeed * This,
-    /* [in] */ LONG cEntries,
-    /* [size_is][in] */ LONG *pValues,
-    /* [in] */ LONG iCurrent,
-    /* [in] */ BOOL SweepTime);
-
-
-void __RPC_STUB IUsgSweepSpeed_Preset_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -10673,6 +8820,7 @@ EXTERN_C const IID IID_IUsgDopplerColorMap;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDopplerColorMapVtbl
@@ -10682,7 +8830,8 @@ EXTERN_C const IID IID_IUsgDopplerColorMap;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDopplerColorMap * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDopplerColorMap * This);
@@ -10704,20 +8853,28 @@ EXTERN_C const IID IID_IUsgDopplerColorMap;
             IUsgDopplerColorMap * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDopplerColorMap * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *SetColorMap )( 
             IUsgDopplerColorMap * This,
@@ -10746,68 +8903,39 @@ EXTERN_C const IID IID_IUsgDopplerColorMap;
 
 
 #define IUsgDopplerColorMap_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDopplerColorMap_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDopplerColorMap_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDopplerColorMap_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDopplerColorMap_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDopplerColorMap_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDopplerColorMap_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDopplerColorMap_SetColorMap(This,pTable1,size1,pTable2,size2)	\
-    (This)->lpVtbl -> SetColorMap(This,pTable1,size1,pTable2,size2)
+    ( (This)->lpVtbl -> SetColorMap(This,pTable1,size1,pTable2,size2) ) 
 
 #define IUsgDopplerColorMap_GetPaletteEntries(This,startIndex,entries,pPalEntries)	\
-    (This)->lpVtbl -> GetPaletteEntries(This,startIndex,entries,pPalEntries)
+    ( (This)->lpVtbl -> GetPaletteEntries(This,startIndex,entries,pPalEntries) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDopplerColorMap_SetColorMap_Proxy( 
-    IUsgDopplerColorMap * This,
-    /* [in] */ PALETTEENTRY *pTable1,
-    /* [in] */ LONG size1,
-    /* [in] */ PALETTEENTRY *pTable2,
-    /* [in] */ LONG size2);
-
-
-void __RPC_STUB IUsgDopplerColorMap_SetColorMap_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDopplerColorMap_GetPaletteEntries_Proxy( 
-    IUsgDopplerColorMap * This,
-    /* [in] */ LONG startIndex,
-    /* [in] */ LONG entries,
-    /* [out] */ PALETTEENTRY *pPalEntries);
-
-
-void __RPC_STUB IUsgDopplerColorMap_GetPaletteEntries_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -10846,6 +8974,7 @@ EXTERN_C const IID IID_IUsgDopplerColorPriority;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDopplerColorPriorityVtbl
@@ -10855,7 +8984,8 @@ EXTERN_C const IID IID_IUsgDopplerColorPriority;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDopplerColorPriority * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDopplerColorPriority * This);
@@ -10877,20 +9007,28 @@ EXTERN_C const IID IID_IUsgDopplerColorPriority;
             IUsgDopplerColorPriority * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDopplerColorPriority * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgDopplerColorPriority * This,
@@ -10926,108 +9064,48 @@ EXTERN_C const IID IID_IUsgDopplerColorPriority;
 
 
 #define IUsgDopplerColorPriority_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDopplerColorPriority_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDopplerColorPriority_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDopplerColorPriority_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDopplerColorPriority_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDopplerColorPriority_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDopplerColorPriority_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDopplerColorPriority_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgDopplerColorPriority_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgDopplerColorPriority_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #define IUsgDopplerColorPriority_get_PriorityMode(This,pVal)	\
-    (This)->lpVtbl -> get_PriorityMode(This,pVal)
+    ( (This)->lpVtbl -> get_PriorityMode(This,pVal) ) 
 
 #define IUsgDopplerColorPriority_put_PriorityMode(This,newVal)	\
-    (This)->lpVtbl -> put_PriorityMode(This,newVal)
+    ( (This)->lpVtbl -> put_PriorityMode(This,newVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerColorPriority_get_Current_Proxy( 
-    IUsgDopplerColorPriority * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgDopplerColorPriority_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgDopplerColorPriority_put_Current_Proxy( 
-    IUsgDopplerColorPriority * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgDopplerColorPriority_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerColorPriority_get_Values_Proxy( 
-    IUsgDopplerColorPriority * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgDopplerColorPriority_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerColorPriority_get_PriorityMode_Proxy( 
-    IUsgDopplerColorPriority * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgDopplerColorPriority_get_PriorityMode_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgDopplerColorPriority_put_PriorityMode_Proxy( 
-    IUsgDopplerColorPriority * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgDopplerColorPriority_put_PriorityMode_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -11060,6 +9138,7 @@ EXTERN_C const IID IID_IUsgDopplerSteerAngle;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDopplerSteerAngleVtbl
@@ -11069,7 +9148,8 @@ EXTERN_C const IID IID_IUsgDopplerSteerAngle;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDopplerSteerAngle * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDopplerSteerAngle * This);
@@ -11091,20 +9171,28 @@ EXTERN_C const IID IID_IUsgDopplerSteerAngle;
             IUsgDopplerSteerAngle * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDopplerSteerAngle * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgDopplerSteerAngle * This,
@@ -11132,78 +9220,42 @@ EXTERN_C const IID IID_IUsgDopplerSteerAngle;
 
 
 #define IUsgDopplerSteerAngle_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDopplerSteerAngle_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDopplerSteerAngle_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDopplerSteerAngle_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDopplerSteerAngle_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDopplerSteerAngle_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDopplerSteerAngle_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDopplerSteerAngle_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgDopplerSteerAngle_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgDopplerSteerAngle_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerSteerAngle_get_Current_Proxy( 
-    IUsgDopplerSteerAngle * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgDopplerSteerAngle_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgDopplerSteerAngle_put_Current_Proxy( 
-    IUsgDopplerSteerAngle * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgDopplerSteerAngle_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerSteerAngle_get_Values_Proxy( 
-    IUsgDopplerSteerAngle * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgDopplerSteerAngle_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -11236,6 +9288,7 @@ EXTERN_C const IID IID_IUsgDopplerColorThreshold;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDopplerColorThresholdVtbl
@@ -11245,7 +9298,8 @@ EXTERN_C const IID IID_IUsgDopplerColorThreshold;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDopplerColorThreshold * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDopplerColorThreshold * This);
@@ -11267,20 +9321,28 @@ EXTERN_C const IID IID_IUsgDopplerColorThreshold;
             IUsgDopplerColorThreshold * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDopplerColorThreshold * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgDopplerColorThreshold * This,
@@ -11308,78 +9370,42 @@ EXTERN_C const IID IID_IUsgDopplerColorThreshold;
 
 
 #define IUsgDopplerColorThreshold_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDopplerColorThreshold_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDopplerColorThreshold_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDopplerColorThreshold_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDopplerColorThreshold_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDopplerColorThreshold_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDopplerColorThreshold_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDopplerColorThreshold_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgDopplerColorThreshold_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgDopplerColorThreshold_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerColorThreshold_get_Current_Proxy( 
-    IUsgDopplerColorThreshold * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgDopplerColorThreshold_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgDopplerColorThreshold_put_Current_Proxy( 
-    IUsgDopplerColorThreshold * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgDopplerColorThreshold_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerColorThreshold_get_Values_Proxy( 
-    IUsgDopplerColorThreshold * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgDopplerColorThreshold_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -11412,6 +9438,7 @@ EXTERN_C const IID IID_IUsgDopplerBaseLine;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDopplerBaseLineVtbl
@@ -11421,7 +9448,8 @@ EXTERN_C const IID IID_IUsgDopplerBaseLine;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDopplerBaseLine * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDopplerBaseLine * This);
@@ -11443,20 +9471,28 @@ EXTERN_C const IID IID_IUsgDopplerBaseLine;
             IUsgDopplerBaseLine * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDopplerBaseLine * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgDopplerBaseLine * This,
@@ -11484,78 +9520,42 @@ EXTERN_C const IID IID_IUsgDopplerBaseLine;
 
 
 #define IUsgDopplerBaseLine_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDopplerBaseLine_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDopplerBaseLine_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDopplerBaseLine_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDopplerBaseLine_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDopplerBaseLine_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDopplerBaseLine_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDopplerBaseLine_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgDopplerBaseLine_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgDopplerBaseLine_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerBaseLine_get_Current_Proxy( 
-    IUsgDopplerBaseLine * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgDopplerBaseLine_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgDopplerBaseLine_put_Current_Proxy( 
-    IUsgDopplerBaseLine * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgDopplerBaseLine_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerBaseLine_get_Values_Proxy( 
-    IUsgDopplerBaseLine * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgDopplerBaseLine_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -11596,6 +9596,7 @@ EXTERN_C const IID IID_IUsgDopplerPRF;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDopplerPRFVtbl
@@ -11605,7 +9606,8 @@ EXTERN_C const IID IID_IUsgDopplerPRF;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDopplerPRF * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDopplerPRF * This);
@@ -11627,20 +9629,28 @@ EXTERN_C const IID IID_IUsgDopplerPRF;
             IUsgDopplerPRF * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDopplerPRF * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgDopplerPRF * This,
@@ -11678,110 +9688,48 @@ EXTERN_C const IID IID_IUsgDopplerPRF;
 
 
 #define IUsgDopplerPRF_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDopplerPRF_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDopplerPRF_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDopplerPRF_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDopplerPRF_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDopplerPRF_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDopplerPRF_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDopplerPRF_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgDopplerPRF_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgDopplerPRF_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #define IUsgDopplerPRF_get_VisibleMin(This,units,pVal)	\
-    (This)->lpVtbl -> get_VisibleMin(This,units,pVal)
+    ( (This)->lpVtbl -> get_VisibleMin(This,units,pVal) ) 
 
 #define IUsgDopplerPRF_get_VisibleMax(This,units,pVal)	\
-    (This)->lpVtbl -> get_VisibleMax(This,units,pVal)
+    ( (This)->lpVtbl -> get_VisibleMax(This,units,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerPRF_get_Current_Proxy( 
-    IUsgDopplerPRF * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgDopplerPRF_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgDopplerPRF_put_Current_Proxy( 
-    IUsgDopplerPRF * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgDopplerPRF_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerPRF_get_Values_Proxy( 
-    IUsgDopplerPRF * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgDopplerPRF_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerPRF_get_VisibleMin_Proxy( 
-    IUsgDopplerPRF * This,
-    /* [in] */ LONG units,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgDopplerPRF_get_VisibleMin_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerPRF_get_VisibleMax_Proxy( 
-    IUsgDopplerPRF * This,
-    /* [in] */ LONG units,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgDopplerPRF_get_VisibleMax_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -11845,6 +9793,7 @@ EXTERN_C const IID IID_IUsgDopplerWindow;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDopplerWindowVtbl
@@ -11854,7 +9803,8 @@ EXTERN_C const IID IID_IUsgDopplerWindow;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDopplerWindow * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDopplerWindow * This);
@@ -11876,20 +9826,28 @@ EXTERN_C const IID IID_IUsgDopplerWindow;
             IUsgDopplerWindow * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDopplerWindow * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *SetWindow )( 
             IUsgDopplerWindow * This,
@@ -11955,193 +9913,63 @@ EXTERN_C const IID IID_IUsgDopplerWindow;
 
 
 #define IUsgDopplerWindow_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDopplerWindow_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDopplerWindow_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDopplerWindow_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDopplerWindow_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDopplerWindow_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDopplerWindow_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDopplerWindow_SetWindow(This,startLine,endLine,startDepth,endDepth)	\
-    (This)->lpVtbl -> SetWindow(This,startLine,endLine,startDepth,endDepth)
+    ( (This)->lpVtbl -> SetWindow(This,startLine,endLine,startDepth,endDepth) ) 
 
 #define IUsgDopplerWindow_GetWindow(This,startLine,endLine,startDepth,endDepth)	\
-    (This)->lpVtbl -> GetWindow(This,startLine,endLine,startDepth,endDepth)
+    ( (This)->lpVtbl -> GetWindow(This,startLine,endLine,startDepth,endDepth) ) 
 
 #define IUsgDopplerWindow_SetWidth(This,startLine,endLine)	\
-    (This)->lpVtbl -> SetWidth(This,startLine,endLine)
+    ( (This)->lpVtbl -> SetWidth(This,startLine,endLine) ) 
 
 #define IUsgDopplerWindow_SetVolume(This,startDepth,endDepth)	\
-    (This)->lpVtbl -> SetVolume(This,startDepth,endDepth)
+    ( (This)->lpVtbl -> SetVolume(This,startDepth,endDepth) ) 
 
 #define IUsgDopplerWindow_GetWidth(This,startLine,endLine)	\
-    (This)->lpVtbl -> GetWidth(This,startLine,endLine)
+    ( (This)->lpVtbl -> GetWidth(This,startLine,endLine) ) 
 
 #define IUsgDopplerWindow_GetVolume(This,startDepth,endDepth)	\
-    (This)->lpVtbl -> GetVolume(This,startDepth,endDepth)
+    ( (This)->lpVtbl -> GetVolume(This,startDepth,endDepth) ) 
 
 #define IUsgDopplerWindow_get_LinesRange(This,pVal)	\
-    (This)->lpVtbl -> get_LinesRange(This,pVal)
+    ( (This)->lpVtbl -> get_LinesRange(This,pVal) ) 
 
 #define IUsgDopplerWindow_get_WidthRange(This,pVal)	\
-    (This)->lpVtbl -> get_WidthRange(This,pVal)
+    ( (This)->lpVtbl -> get_WidthRange(This,pVal) ) 
 
 #define IUsgDopplerWindow_get_DepthsRange(This,pVal)	\
-    (This)->lpVtbl -> get_DepthsRange(This,pVal)
+    ( (This)->lpVtbl -> get_DepthsRange(This,pVal) ) 
 
 #define IUsgDopplerWindow_get_VolumesRange(This,pVal)	\
-    (This)->lpVtbl -> get_VolumesRange(This,pVal)
+    ( (This)->lpVtbl -> get_VolumesRange(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDopplerWindow_SetWindow_Proxy( 
-    IUsgDopplerWindow * This,
-    /* [in] */ LONG startLine,
-    /* [in] */ LONG endLine,
-    /* [in] */ LONG startDepth,
-    /* [in] */ LONG endDepth);
-
-
-void __RPC_STUB IUsgDopplerWindow_SetWindow_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDopplerWindow_GetWindow_Proxy( 
-    IUsgDopplerWindow * This,
-    /* [out] */ LONG *startLine,
-    /* [out] */ LONG *endLine,
-    /* [out] */ LONG *startDepth,
-    /* [out] */ LONG *endDepth);
-
-
-void __RPC_STUB IUsgDopplerWindow_GetWindow_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDopplerWindow_SetWidth_Proxy( 
-    IUsgDopplerWindow * This,
-    /* [in] */ LONG startLine,
-    /* [in] */ LONG endLine);
-
-
-void __RPC_STUB IUsgDopplerWindow_SetWidth_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDopplerWindow_SetVolume_Proxy( 
-    IUsgDopplerWindow * This,
-    /* [in] */ LONG startDepth,
-    /* [in] */ LONG endDepth);
-
-
-void __RPC_STUB IUsgDopplerWindow_SetVolume_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDopplerWindow_GetWidth_Proxy( 
-    IUsgDopplerWindow * This,
-    /* [out] */ LONG *startLine,
-    /* [out] */ LONG *endLine);
-
-
-void __RPC_STUB IUsgDopplerWindow_GetWidth_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDopplerWindow_GetVolume_Proxy( 
-    IUsgDopplerWindow * This,
-    /* [out] */ LONG *startDepth,
-    /* [out] */ LONG *endDepth);
-
-
-void __RPC_STUB IUsgDopplerWindow_GetVolume_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerWindow_get_LinesRange_Proxy( 
-    IUsgDopplerWindow * This,
-    /* [retval][out] */ VALUE_STEPPING *pVal);
-
-
-void __RPC_STUB IUsgDopplerWindow_get_LinesRange_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerWindow_get_WidthRange_Proxy( 
-    IUsgDopplerWindow * This,
-    /* [retval][out] */ VALUE_STEPPING *pVal);
-
-
-void __RPC_STUB IUsgDopplerWindow_get_WidthRange_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerWindow_get_DepthsRange_Proxy( 
-    IUsgDopplerWindow * This,
-    /* [retval][out] */ VALUE_STEPPING *pVal);
-
-
-void __RPC_STUB IUsgDopplerWindow_get_DepthsRange_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerWindow_get_VolumesRange_Proxy( 
-    IUsgDopplerWindow * This,
-    /* [retval][out] */ VALUE_STEPPING *pVal);
-
-
-void __RPC_STUB IUsgDopplerWindow_get_VolumesRange_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -12182,6 +10010,7 @@ EXTERN_C const IID IID_IUsgDopplerWallFilter;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDopplerWallFilterVtbl
@@ -12191,7 +10020,8 @@ EXTERN_C const IID IID_IUsgDopplerWallFilter;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDopplerWallFilter * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDopplerWallFilter * This);
@@ -12213,20 +10043,28 @@ EXTERN_C const IID IID_IUsgDopplerWallFilter;
             IUsgDopplerWallFilter * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDopplerWallFilter * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgDopplerWallFilter * This,
@@ -12264,110 +10102,48 @@ EXTERN_C const IID IID_IUsgDopplerWallFilter;
 
 
 #define IUsgDopplerWallFilter_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDopplerWallFilter_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDopplerWallFilter_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDopplerWallFilter_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDopplerWallFilter_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDopplerWallFilter_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDopplerWallFilter_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDopplerWallFilter_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgDopplerWallFilter_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgDopplerWallFilter_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #define IUsgDopplerWallFilter_get_VisibleMin(This,units,pVal)	\
-    (This)->lpVtbl -> get_VisibleMin(This,units,pVal)
+    ( (This)->lpVtbl -> get_VisibleMin(This,units,pVal) ) 
 
 #define IUsgDopplerWallFilter_get_VisibleMax(This,units,pVal)	\
-    (This)->lpVtbl -> get_VisibleMax(This,units,pVal)
+    ( (This)->lpVtbl -> get_VisibleMax(This,units,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerWallFilter_get_Current_Proxy( 
-    IUsgDopplerWallFilter * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgDopplerWallFilter_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgDopplerWallFilter_put_Current_Proxy( 
-    IUsgDopplerWallFilter * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgDopplerWallFilter_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerWallFilter_get_Values_Proxy( 
-    IUsgDopplerWallFilter * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgDopplerWallFilter_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerWallFilter_get_VisibleMin_Proxy( 
-    IUsgDopplerWallFilter * This,
-    /* [in] */ LONG units,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgDopplerWallFilter_get_VisibleMin_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerWallFilter_get_VisibleMax_Proxy( 
-    IUsgDopplerWallFilter * This,
-    /* [in] */ LONG units,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgDopplerWallFilter_get_VisibleMax_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -12400,6 +10176,7 @@ EXTERN_C const IID IID_IUsgDopplerSignalScale;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDopplerSignalScaleVtbl
@@ -12409,7 +10186,8 @@ EXTERN_C const IID IID_IUsgDopplerSignalScale;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDopplerSignalScale * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDopplerSignalScale * This);
@@ -12431,20 +10209,28 @@ EXTERN_C const IID IID_IUsgDopplerSignalScale;
             IUsgDopplerSignalScale * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDopplerSignalScale * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgDopplerSignalScale * This,
@@ -12472,78 +10258,42 @@ EXTERN_C const IID IID_IUsgDopplerSignalScale;
 
 
 #define IUsgDopplerSignalScale_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDopplerSignalScale_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDopplerSignalScale_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDopplerSignalScale_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDopplerSignalScale_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDopplerSignalScale_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDopplerSignalScale_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDopplerSignalScale_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgDopplerSignalScale_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgDopplerSignalScale_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerSignalScale_get_Current_Proxy( 
-    IUsgDopplerSignalScale * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgDopplerSignalScale_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgDopplerSignalScale_put_Current_Proxy( 
-    IUsgDopplerSignalScale * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgDopplerSignalScale_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerSignalScale_get_Values_Proxy( 
-    IUsgDopplerSignalScale * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgDopplerSignalScale_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -12576,6 +10326,7 @@ EXTERN_C const IID IID_IUsgDopplerPacketSize;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDopplerPacketSizeVtbl
@@ -12585,7 +10336,8 @@ EXTERN_C const IID IID_IUsgDopplerPacketSize;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDopplerPacketSize * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDopplerPacketSize * This);
@@ -12607,20 +10359,28 @@ EXTERN_C const IID IID_IUsgDopplerPacketSize;
             IUsgDopplerPacketSize * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDopplerPacketSize * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgDopplerPacketSize * This,
@@ -12648,78 +10408,42 @@ EXTERN_C const IID IID_IUsgDopplerPacketSize;
 
 
 #define IUsgDopplerPacketSize_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDopplerPacketSize_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDopplerPacketSize_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDopplerPacketSize_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDopplerPacketSize_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDopplerPacketSize_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDopplerPacketSize_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDopplerPacketSize_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgDopplerPacketSize_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgDopplerPacketSize_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerPacketSize_get_Current_Proxy( 
-    IUsgDopplerPacketSize * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgDopplerPacketSize_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgDopplerPacketSize_put_Current_Proxy( 
-    IUsgDopplerPacketSize * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgDopplerPacketSize_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerPacketSize_get_Values_Proxy( 
-    IUsgDopplerPacketSize * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgDopplerPacketSize_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -12752,6 +10476,7 @@ EXTERN_C const IID IID_IUsgPulsesNumber;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgPulsesNumberVtbl
@@ -12761,7 +10486,8 @@ EXTERN_C const IID IID_IUsgPulsesNumber;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgPulsesNumber * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgPulsesNumber * This);
@@ -12783,20 +10509,28 @@ EXTERN_C const IID IID_IUsgPulsesNumber;
             IUsgPulsesNumber * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgPulsesNumber * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgPulsesNumber * This,
@@ -12824,78 +10558,42 @@ EXTERN_C const IID IID_IUsgPulsesNumber;
 
 
 #define IUsgPulsesNumber_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgPulsesNumber_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgPulsesNumber_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgPulsesNumber_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgPulsesNumber_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgPulsesNumber_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgPulsesNumber_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgPulsesNumber_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgPulsesNumber_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgPulsesNumber_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgPulsesNumber_get_Current_Proxy( 
-    IUsgPulsesNumber * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgPulsesNumber_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgPulsesNumber_put_Current_Proxy( 
-    IUsgPulsesNumber * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgPulsesNumber_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgPulsesNumber_get_Values_Proxy( 
-    IUsgPulsesNumber * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgPulsesNumber_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -12964,6 +10662,7 @@ EXTERN_C const IID IID_IUsgCineloop;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgCineloopVtbl
@@ -12973,7 +10672,8 @@ EXTERN_C const IID IID_IUsgCineloop;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgCineloop * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgCineloop * This);
@@ -12995,20 +10695,28 @@ EXTERN_C const IID IID_IUsgCineloop;
             IUsgCineloop * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgCineloop * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_CurrentPosition )( 
             IUsgCineloop * This,
@@ -13083,246 +10791,75 @@ EXTERN_C const IID IID_IUsgCineloop;
 
 
 #define IUsgCineloop_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgCineloop_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgCineloop_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgCineloop_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgCineloop_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgCineloop_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgCineloop_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgCineloop_get_CurrentPosition(This,pVal)	\
-    (This)->lpVtbl -> get_CurrentPosition(This,pVal)
+    ( (This)->lpVtbl -> get_CurrentPosition(This,pVal) ) 
 
 #define IUsgCineloop_put_CurrentPosition(This,newVal)	\
-    (This)->lpVtbl -> put_CurrentPosition(This,newVal)
+    ( (This)->lpVtbl -> put_CurrentPosition(This,newVal) ) 
 
 #define IUsgCineloop_get_Duration(This,pVal)	\
-    (This)->lpVtbl -> get_Duration(This,pVal)
+    ( (This)->lpVtbl -> get_Duration(This,pVal) ) 
 
 #define IUsgCineloop_get_Rate(This,pVal)	\
-    (This)->lpVtbl -> get_Rate(This,pVal)
+    ( (This)->lpVtbl -> get_Rate(This,pVal) ) 
 
 #define IUsgCineloop_put_Rate(This,newVal)	\
-    (This)->lpVtbl -> put_Rate(This,newVal)
+    ( (This)->lpVtbl -> put_Rate(This,newVal) ) 
 
 #define IUsgCineloop_get_StopTime(This,pVal)	\
-    (This)->lpVtbl -> get_StopTime(This,pVal)
+    ( (This)->lpVtbl -> get_StopTime(This,pVal) ) 
 
 #define IUsgCineloop_put_StopTime(This,newVal)	\
-    (This)->lpVtbl -> put_StopTime(This,newVal)
+    ( (This)->lpVtbl -> put_StopTime(This,newVal) ) 
 
 #define IUsgCineloop_get_State(This,pVal)	\
-    (This)->lpVtbl -> get_State(This,pVal)
+    ( (This)->lpVtbl -> get_State(This,pVal) ) 
 
 #define IUsgCineloop_put_State(This,newVal)	\
-    (This)->lpVtbl -> put_State(This,newVal)
+    ( (This)->lpVtbl -> put_State(This,newVal) ) 
 
 #define IUsgCineloop_GetAvailable(This,pStart,pStop)	\
-    (This)->lpVtbl -> GetAvailable(This,pStart,pStop)
+    ( (This)->lpVtbl -> GetAvailable(This,pStart,pStop) ) 
 
 #define IUsgCineloop_GetPositions(This,pPos,pStop)	\
-    (This)->lpVtbl -> GetPositions(This,pPos,pStop)
+    ( (This)->lpVtbl -> GetPositions(This,pPos,pStop) ) 
 
 #define IUsgCineloop_SetPositions(This,llStart,llStop)	\
-    (This)->lpVtbl -> SetPositions(This,llStart,llStop)
+    ( (This)->lpVtbl -> SetPositions(This,llStart,llStop) ) 
 
 #define IUsgCineloop_GetCapabilities(This,pCaps)	\
-    (This)->lpVtbl -> GetCapabilities(This,pCaps)
+    ( (This)->lpVtbl -> GetCapabilities(This,pCaps) ) 
 
 #define IUsgCineloop_CheckCapabilities(This,pCaps)	\
-    (This)->lpVtbl -> CheckCapabilities(This,pCaps)
+    ( (This)->lpVtbl -> CheckCapabilities(This,pCaps) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgCineloop_get_CurrentPosition_Proxy( 
-    IUsgCineloop * This,
-    /* [retval][out] */ LONGLONG *pVal);
-
-
-void __RPC_STUB IUsgCineloop_get_CurrentPosition_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgCineloop_put_CurrentPosition_Proxy( 
-    IUsgCineloop * This,
-    /* [in] */ LONGLONG newVal);
-
-
-void __RPC_STUB IUsgCineloop_put_CurrentPosition_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgCineloop_get_Duration_Proxy( 
-    IUsgCineloop * This,
-    /* [retval][out] */ LONGLONG *pVal);
-
-
-void __RPC_STUB IUsgCineloop_get_Duration_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgCineloop_get_Rate_Proxy( 
-    IUsgCineloop * This,
-    /* [retval][out] */ FLOAT *pVal);
-
-
-void __RPC_STUB IUsgCineloop_get_Rate_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgCineloop_put_Rate_Proxy( 
-    IUsgCineloop * This,
-    /* [in] */ FLOAT newVal);
-
-
-void __RPC_STUB IUsgCineloop_put_Rate_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgCineloop_get_StopTime_Proxy( 
-    IUsgCineloop * This,
-    /* [retval][out] */ LONGLONG *pVal);
-
-
-void __RPC_STUB IUsgCineloop_get_StopTime_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgCineloop_put_StopTime_Proxy( 
-    IUsgCineloop * This,
-    /* [in] */ LONGLONG newVal);
-
-
-void __RPC_STUB IUsgCineloop_put_StopTime_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgCineloop_get_State_Proxy( 
-    IUsgCineloop * This,
-    /* [retval][out] */ CINE_STATE *pVal);
-
-
-void __RPC_STUB IUsgCineloop_get_State_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgCineloop_put_State_Proxy( 
-    IUsgCineloop * This,
-    /* [in] */ CINE_STATE newVal);
-
-
-void __RPC_STUB IUsgCineloop_put_State_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgCineloop_GetAvailable_Proxy( 
-    IUsgCineloop * This,
-    /* [out] */ LONG *pStart,
-    /* [out] */ LONG *pStop);
-
-
-void __RPC_STUB IUsgCineloop_GetAvailable_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgCineloop_GetPositions_Proxy( 
-    IUsgCineloop * This,
-    LONG *pPos,
-    /* [out] */ LONG *pStop);
-
-
-void __RPC_STUB IUsgCineloop_GetPositions_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgCineloop_SetPositions_Proxy( 
-    IUsgCineloop * This,
-    /* [in] */ LONGLONG llStart,
-    /* [in] */ LONGLONG llStop);
-
-
-void __RPC_STUB IUsgCineloop_SetPositions_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgCineloop_GetCapabilities_Proxy( 
-    IUsgCineloop * This,
-    /* [retval][out] */ LONG *pCaps);
-
-
-void __RPC_STUB IUsgCineloop_GetCapabilities_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgCineloop_CheckCapabilities_Proxy( 
-    IUsgCineloop * This,
-    /* [out][in] */ LONG *pCaps);
-
-
-void __RPC_STUB IUsgCineloop_CheckCapabilities_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -13417,6 +10954,7 @@ EXTERN_C const IID IID_IUsgCineStream;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgCineStreamVtbl
@@ -13426,7 +10964,8 @@ EXTERN_C const IID IID_IUsgCineStream;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgCineStream * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgCineStream * This);
@@ -13448,20 +10987,28 @@ EXTERN_C const IID IID_IUsgCineStream;
             IUsgCineStream * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgCineStream * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_CurrentPosition )( 
             IUsgCineStream * This,
@@ -13567,332 +11114,90 @@ EXTERN_C const IID IID_IUsgCineStream;
 
 
 #define IUsgCineStream_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgCineStream_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgCineStream_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgCineStream_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgCineStream_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgCineStream_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgCineStream_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgCineStream_get_CurrentPosition(This,pVal)	\
-    (This)->lpVtbl -> get_CurrentPosition(This,pVal)
+    ( (This)->lpVtbl -> get_CurrentPosition(This,pVal) ) 
 
 #define IUsgCineStream_put_CurrentPosition(This,newVal)	\
-    (This)->lpVtbl -> put_CurrentPosition(This,newVal)
+    ( (This)->lpVtbl -> put_CurrentPosition(This,newVal) ) 
 
 #define IUsgCineStream_get_StopPosition(This,pVal)	\
-    (This)->lpVtbl -> get_StopPosition(This,pVal)
+    ( (This)->lpVtbl -> get_StopPosition(This,pVal) ) 
 
 #define IUsgCineStream_put_StopPosition(This,newVal)	\
-    (This)->lpVtbl -> put_StopPosition(This,newVal)
+    ( (This)->lpVtbl -> put_StopPosition(This,newVal) ) 
 
 #define IUsgCineStream_get_Duration(This,pVal)	\
-    (This)->lpVtbl -> get_Duration(This,pVal)
+    ( (This)->lpVtbl -> get_Duration(This,pVal) ) 
 
 #define IUsgCineStream_get_Rate(This,pVal)	\
-    (This)->lpVtbl -> get_Rate(This,pVal)
+    ( (This)->lpVtbl -> get_Rate(This,pVal) ) 
 
 #define IUsgCineStream_put_Rate(This,newVal)	\
-    (This)->lpVtbl -> put_Rate(This,newVal)
+    ( (This)->lpVtbl -> put_Rate(This,newVal) ) 
 
 #define IUsgCineStream_get_State(This,pVal)	\
-    (This)->lpVtbl -> get_State(This,pVal)
+    ( (This)->lpVtbl -> get_State(This,pVal) ) 
 
 #define IUsgCineStream_put_State(This,newVal)	\
-    (This)->lpVtbl -> put_State(This,newVal)
+    ( (This)->lpVtbl -> put_State(This,newVal) ) 
 
 #define IUsgCineStream_get_TimeFormat(This,pVal)	\
-    (This)->lpVtbl -> get_TimeFormat(This,pVal)
+    ( (This)->lpVtbl -> get_TimeFormat(This,pVal) ) 
 
 #define IUsgCineStream_put_TimeFormat(This,newVal)	\
-    (This)->lpVtbl -> put_TimeFormat(This,newVal)
+    ( (This)->lpVtbl -> put_TimeFormat(This,newVal) ) 
 
 #define IUsgCineStream_ConvertTimeFormat(This,srcVal,srcFormat,dstFormat,dstVal)	\
-    (This)->lpVtbl -> ConvertTimeFormat(This,srcVal,srcFormat,dstFormat,dstVal)
+    ( (This)->lpVtbl -> ConvertTimeFormat(This,srcVal,srcFormat,dstFormat,dstVal) ) 
 
 #define IUsgCineStream_GetAvailable(This,lEarliest,lLatest)	\
-    (This)->lpVtbl -> GetAvailable(This,lEarliest,lLatest)
+    ( (This)->lpVtbl -> GetAvailable(This,lEarliest,lLatest) ) 
 
 #define IUsgCineStream_GetShiftPosition(This,from,shift,timeFormat,pos)	\
-    (This)->lpVtbl -> GetShiftPosition(This,from,shift,timeFormat,pos)
+    ( (This)->lpVtbl -> GetShiftPosition(This,from,shift,timeFormat,pos) ) 
 
 #define IUsgCineStream_SetHoldRange(This,from,to)	\
-    (This)->lpVtbl -> SetHoldRange(This,from,to)
+    ( (This)->lpVtbl -> SetHoldRange(This,from,to) ) 
 
 #define IUsgCineStream_GetHoldRange(This,from,to)	\
-    (This)->lpVtbl -> GetHoldRange(This,from,to)
+    ( (This)->lpVtbl -> GetHoldRange(This,from,to) ) 
 
 #define IUsgCineStream_IsTimeFormatSupported(This,format,support)	\
-    (This)->lpVtbl -> IsTimeFormatSupported(This,format,support)
+    ( (This)->lpVtbl -> IsTimeFormatSupported(This,format,support) ) 
 
 #define IUsgCineStream_GetContinuousInterval(This,position,start,end)	\
-    (This)->lpVtbl -> GetContinuousInterval(This,position,start,end)
+    ( (This)->lpVtbl -> GetContinuousInterval(This,position,start,end) ) 
 
 #define IUsgCineStream_SetSelection(This,from,to,mode)	\
-    (This)->lpVtbl -> SetSelection(This,from,to,mode)
+    ( (This)->lpVtbl -> SetSelection(This,from,to,mode) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgCineStream_get_CurrentPosition_Proxy( 
-    IUsgCineStream * This,
-    /* [retval][out] */ LONGLONG *pVal);
-
-
-void __RPC_STUB IUsgCineStream_get_CurrentPosition_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgCineStream_put_CurrentPosition_Proxy( 
-    IUsgCineStream * This,
-    /* [in] */ LONGLONG newVal);
-
-
-void __RPC_STUB IUsgCineStream_put_CurrentPosition_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgCineStream_get_StopPosition_Proxy( 
-    IUsgCineStream * This,
-    /* [retval][out] */ LONGLONG *pVal);
-
-
-void __RPC_STUB IUsgCineStream_get_StopPosition_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgCineStream_put_StopPosition_Proxy( 
-    IUsgCineStream * This,
-    /* [in] */ LONGLONG newVal);
-
-
-void __RPC_STUB IUsgCineStream_put_StopPosition_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgCineStream_get_Duration_Proxy( 
-    IUsgCineStream * This,
-    /* [retval][out] */ LONGLONG *pVal);
-
-
-void __RPC_STUB IUsgCineStream_get_Duration_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgCineStream_get_Rate_Proxy( 
-    IUsgCineStream * This,
-    /* [retval][out] */ FLOAT *pVal);
-
-
-void __RPC_STUB IUsgCineStream_get_Rate_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgCineStream_put_Rate_Proxy( 
-    IUsgCineStream * This,
-    /* [in] */ FLOAT newVal);
-
-
-void __RPC_STUB IUsgCineStream_put_Rate_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgCineStream_get_State_Proxy( 
-    IUsgCineStream * This,
-    /* [retval][out] */ CINE_STATE *pVal);
-
-
-void __RPC_STUB IUsgCineStream_get_State_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgCineStream_put_State_Proxy( 
-    IUsgCineStream * This,
-    /* [in] */ CINE_STATE newVal);
-
-
-void __RPC_STUB IUsgCineStream_put_State_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgCineStream_get_TimeFormat_Proxy( 
-    IUsgCineStream * This,
-    /* [retval][out] */ CINE_TIME_FORMAT *pVal);
-
-
-void __RPC_STUB IUsgCineStream_get_TimeFormat_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgCineStream_put_TimeFormat_Proxy( 
-    IUsgCineStream * This,
-    /* [in] */ CINE_TIME_FORMAT newVal);
-
-
-void __RPC_STUB IUsgCineStream_put_TimeFormat_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgCineStream_ConvertTimeFormat_Proxy( 
-    IUsgCineStream * This,
-    /* [in] */ LONGLONG srcVal,
-    /* [in] */ CINE_TIME_FORMAT srcFormat,
-    /* [in] */ CINE_TIME_FORMAT dstFormat,
-    /* [retval][out] */ LONGLONG *dstVal);
-
-
-void __RPC_STUB IUsgCineStream_ConvertTimeFormat_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgCineStream_GetAvailable_Proxy( 
-    IUsgCineStream * This,
-    /* [out] */ LONGLONG *lEarliest,
-    /* [out] */ LONGLONG *lLatest);
-
-
-void __RPC_STUB IUsgCineStream_GetAvailable_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgCineStream_GetShiftPosition_Proxy( 
-    IUsgCineStream * This,
-    /* [in] */ LONGLONG from,
-    /* [in] */ LONGLONG shift,
-    /* [in] */ CINE_TIME_FORMAT timeFormat,
-    /* [retval][out] */ LONGLONG *pos);
-
-
-void __RPC_STUB IUsgCineStream_GetShiftPosition_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgCineStream_SetHoldRange_Proxy( 
-    IUsgCineStream * This,
-    /* [in] */ LONGLONG from,
-    /* [in] */ LONGLONG to);
-
-
-void __RPC_STUB IUsgCineStream_SetHoldRange_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgCineStream_GetHoldRange_Proxy( 
-    IUsgCineStream * This,
-    /* [out] */ LONGLONG *from,
-    /* [out] */ LONGLONG *to);
-
-
-void __RPC_STUB IUsgCineStream_GetHoldRange_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgCineStream_IsTimeFormatSupported_Proxy( 
-    IUsgCineStream * This,
-    /* [in] */ CINE_TIME_FORMAT format,
-    /* [retval][out] */ BOOL *support);
-
-
-void __RPC_STUB IUsgCineStream_IsTimeFormatSupported_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgCineStream_GetContinuousInterval_Proxy( 
-    IUsgCineStream * This,
-    /* [in] */ LONGLONG position,
-    /* [out] */ LONGLONG *start,
-    /* [out] */ LONGLONG *end);
-
-
-void __RPC_STUB IUsgCineStream_GetContinuousInterval_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgCineStream_SetSelection_Proxy( 
-    IUsgCineStream * This,
-    /* [in] */ LONGLONG from,
-    /* [in] */ LONGLONG to,
-    /* [in] */ SELECTION_MODE mode);
-
-
-void __RPC_STUB IUsgCineStream_SetSelection_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -13929,6 +11234,7 @@ EXTERN_C const IID IID_IUsgCineSink;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgCineSinkVtbl
@@ -13938,7 +11244,8 @@ EXTERN_C const IID IID_IUsgCineSink;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgCineSink * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgCineSink * This);
@@ -13960,20 +11267,28 @@ EXTERN_C const IID IID_IUsgCineSink;
             IUsgCineSink * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgCineSink * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *GetBufferSize )( 
             IUsgCineSink * This,
@@ -14006,94 +11321,45 @@ EXTERN_C const IID IID_IUsgCineSink;
 
 
 #define IUsgCineSink_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgCineSink_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgCineSink_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgCineSink_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgCineSink_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgCineSink_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgCineSink_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgCineSink_GetBufferSize(This,total,used,writePos)	\
-    (This)->lpVtbl -> GetBufferSize(This,total,used,writePos)
+    ( (This)->lpVtbl -> GetBufferSize(This,total,used,writePos) ) 
 
 #define IUsgCineSink_Reset(This)	\
-    (This)->lpVtbl -> Reset(This)
+    ( (This)->lpVtbl -> Reset(This) ) 
 
 #define IUsgCineSink_SetBufferSize(This,cbSize)	\
-    (This)->lpVtbl -> SetBufferSize(This,cbSize)
+    ( (This)->lpVtbl -> SetBufferSize(This,cbSize) ) 
 
 #define IUsgCineSink_SaveData(This,strFileName)	\
-    (This)->lpVtbl -> SaveData(This,strFileName)
+    ( (This)->lpVtbl -> SaveData(This,strFileName) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgCineSink_GetBufferSize_Proxy( 
-    IUsgCineSink * This,
-    /* [out] */ LONG *total,
-    /* [out] */ LONG *used,
-    /* [out] */ LONG *writePos);
-
-
-void __RPC_STUB IUsgCineSink_GetBufferSize_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgCineSink_Reset_Proxy( 
-    IUsgCineSink * This);
-
-
-void __RPC_STUB IUsgCineSink_Reset_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgCineSink_SetBufferSize_Proxy( 
-    IUsgCineSink * This,
-    /* [in] */ LONG cbSize);
-
-
-void __RPC_STUB IUsgCineSink_SetBufferSize_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgCineSink_SaveData_Proxy( 
-    IUsgCineSink * This,
-    /* [in] */ BSTR strFileName);
-
-
-void __RPC_STUB IUsgCineSink_SaveData_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -14132,6 +11398,7 @@ EXTERN_C const IID IID_IUsgSpatialFilter;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgSpatialFilterVtbl
@@ -14141,7 +11408,8 @@ EXTERN_C const IID IID_IUsgSpatialFilter;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgSpatialFilter * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgSpatialFilter * This);
@@ -14163,20 +11431,28 @@ EXTERN_C const IID IID_IUsgSpatialFilter;
             IUsgSpatialFilter * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgSpatialFilter * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgSpatialFilter * This,
@@ -14212,108 +11488,48 @@ EXTERN_C const IID IID_IUsgSpatialFilter;
 
 
 #define IUsgSpatialFilter_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgSpatialFilter_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgSpatialFilter_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgSpatialFilter_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgSpatialFilter_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgSpatialFilter_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgSpatialFilter_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgSpatialFilter_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgSpatialFilter_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgSpatialFilter_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #define IUsgSpatialFilter_get_Enabled(This,pVal)	\
-    (This)->lpVtbl -> get_Enabled(This,pVal)
+    ( (This)->lpVtbl -> get_Enabled(This,pVal) ) 
 
 #define IUsgSpatialFilter_put_Enabled(This,newVal)	\
-    (This)->lpVtbl -> put_Enabled(This,newVal)
+    ( (This)->lpVtbl -> put_Enabled(This,newVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgSpatialFilter_get_Current_Proxy( 
-    IUsgSpatialFilter * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgSpatialFilter_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgSpatialFilter_put_Current_Proxy( 
-    IUsgSpatialFilter * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgSpatialFilter_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgSpatialFilter_get_Values_Proxy( 
-    IUsgSpatialFilter * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgSpatialFilter_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgSpatialFilter_get_Enabled_Proxy( 
-    IUsgSpatialFilter * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgSpatialFilter_get_Enabled_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgSpatialFilter_put_Enabled_Proxy( 
-    IUsgSpatialFilter * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgSpatialFilter_put_Enabled_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -14360,6 +11576,7 @@ EXTERN_C const IID IID_IUsgDopplerSampleVolume;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDopplerSampleVolumeVtbl
@@ -14369,7 +11586,8 @@ EXTERN_C const IID IID_IUsgDopplerSampleVolume;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDopplerSampleVolume * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDopplerSampleVolume * This);
@@ -14391,20 +11609,28 @@ EXTERN_C const IID IID_IUsgDopplerSampleVolume;
             IUsgDopplerSampleVolume * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDopplerSampleVolume * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *SetVolume )( 
             IUsgDopplerSampleVolume * This,
@@ -14449,128 +11675,51 @@ EXTERN_C const IID IID_IUsgDopplerSampleVolume;
 
 
 #define IUsgDopplerSampleVolume_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDopplerSampleVolume_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDopplerSampleVolume_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDopplerSampleVolume_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDopplerSampleVolume_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDopplerSampleVolume_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDopplerSampleVolume_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDopplerSampleVolume_SetVolume(This,startDepth,endDepth)	\
-    (This)->lpVtbl -> SetVolume(This,startDepth,endDepth)
+    ( (This)->lpVtbl -> SetVolume(This,startDepth,endDepth) ) 
 
 #define IUsgDopplerSampleVolume_GetVolume(This,startDepth,endDepth)	\
-    (This)->lpVtbl -> GetVolume(This,startDepth,endDepth)
+    ( (This)->lpVtbl -> GetVolume(This,startDepth,endDepth) ) 
 
 #define IUsgDopplerSampleVolume_get_DepthsRange(This,pVal)	\
-    (This)->lpVtbl -> get_DepthsRange(This,pVal)
+    ( (This)->lpVtbl -> get_DepthsRange(This,pVal) ) 
 
 #define IUsgDopplerSampleVolume_get_VolumesRange(This,pVal)	\
-    (This)->lpVtbl -> get_VolumesRange(This,pVal)
+    ( (This)->lpVtbl -> get_VolumesRange(This,pVal) ) 
 
 #define IUsgDopplerSampleVolume_SetSampleVolume(This,startDepth,endDepth,line)	\
-    (This)->lpVtbl -> SetSampleVolume(This,startDepth,endDepth,line)
+    ( (This)->lpVtbl -> SetSampleVolume(This,startDepth,endDepth,line) ) 
 
 #define IUsgDopplerSampleVolume_GetPhantomVolume(This,startDepth,endDepth)	\
-    (This)->lpVtbl -> GetPhantomVolume(This,startDepth,endDepth)
+    ( (This)->lpVtbl -> GetPhantomVolume(This,startDepth,endDepth) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDopplerSampleVolume_SetVolume_Proxy( 
-    IUsgDopplerSampleVolume * This,
-    /* [in] */ LONG startDepth,
-    /* [in] */ LONG endDepth);
-
-
-void __RPC_STUB IUsgDopplerSampleVolume_SetVolume_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDopplerSampleVolume_GetVolume_Proxy( 
-    IUsgDopplerSampleVolume * This,
-    /* [out] */ LONG *startDepth,
-    /* [out] */ LONG *endDepth);
-
-
-void __RPC_STUB IUsgDopplerSampleVolume_GetVolume_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerSampleVolume_get_DepthsRange_Proxy( 
-    IUsgDopplerSampleVolume * This,
-    /* [retval][out] */ VALUE_STEPPING *pVal);
-
-
-void __RPC_STUB IUsgDopplerSampleVolume_get_DepthsRange_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerSampleVolume_get_VolumesRange_Proxy( 
-    IUsgDopplerSampleVolume * This,
-    /* [retval][out] */ VALUE_STEPPING *pVal);
-
-
-void __RPC_STUB IUsgDopplerSampleVolume_get_VolumesRange_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDopplerSampleVolume_SetSampleVolume_Proxy( 
-    IUsgDopplerSampleVolume * This,
-    /* [in] */ LONG startDepth,
-    /* [in] */ LONG endDepth,
-    /* [in] */ LONG line);
-
-
-void __RPC_STUB IUsgDopplerSampleVolume_SetSampleVolume_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDopplerSampleVolume_GetPhantomVolume_Proxy( 
-    IUsgDopplerSampleVolume * This,
-    /* [out] */ LONG *startDepth,
-    /* [out] */ LONG *endDepth);
-
-
-void __RPC_STUB IUsgDopplerSampleVolume_GetPhantomVolume_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -14603,6 +11752,7 @@ EXTERN_C const IID IID_IUsgDopplerCorrectionAngle;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDopplerCorrectionAngleVtbl
@@ -14612,7 +11762,8 @@ EXTERN_C const IID IID_IUsgDopplerCorrectionAngle;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDopplerCorrectionAngle * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDopplerCorrectionAngle * This);
@@ -14634,20 +11785,28 @@ EXTERN_C const IID IID_IUsgDopplerCorrectionAngle;
             IUsgDopplerCorrectionAngle * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDopplerCorrectionAngle * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgDopplerCorrectionAngle * This,
@@ -14675,78 +11834,42 @@ EXTERN_C const IID IID_IUsgDopplerCorrectionAngle;
 
 
 #define IUsgDopplerCorrectionAngle_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDopplerCorrectionAngle_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDopplerCorrectionAngle_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDopplerCorrectionAngle_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDopplerCorrectionAngle_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDopplerCorrectionAngle_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDopplerCorrectionAngle_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDopplerCorrectionAngle_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgDopplerCorrectionAngle_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgDopplerCorrectionAngle_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerCorrectionAngle_get_Current_Proxy( 
-    IUsgDopplerCorrectionAngle * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgDopplerCorrectionAngle_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgDopplerCorrectionAngle_put_Current_Proxy( 
-    IUsgDopplerCorrectionAngle * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgDopplerCorrectionAngle_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerCorrectionAngle_get_Values_Proxy( 
-    IUsgDopplerCorrectionAngle * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgDopplerCorrectionAngle_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -14773,6 +11896,7 @@ EXTERN_C const IID IID_IUsgScanConverterPlugin;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgScanConverterPluginVtbl
@@ -14782,7 +11906,8 @@ EXTERN_C const IID IID_IUsgScanConverterPlugin;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgScanConverterPlugin * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgScanConverterPlugin * This);
@@ -14804,20 +11929,28 @@ EXTERN_C const IID IID_IUsgScanConverterPlugin;
             IUsgScanConverterPlugin * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgScanConverterPlugin * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_ScanConverter )( 
             IUsgScanConverterPlugin * This,
@@ -14837,48 +11970,36 @@ EXTERN_C const IID IID_IUsgScanConverterPlugin;
 
 
 #define IUsgScanConverterPlugin_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgScanConverterPlugin_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgScanConverterPlugin_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgScanConverterPlugin_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgScanConverterPlugin_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgScanConverterPlugin_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgScanConverterPlugin_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgScanConverterPlugin_get_ScanConverter(This,pVal)	\
-    (This)->lpVtbl -> get_ScanConverter(This,pVal)
+    ( (This)->lpVtbl -> get_ScanConverter(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgScanConverterPlugin_get_ScanConverter_Proxy( 
-    IUsgScanConverterPlugin * This,
-    /* [retval][out] */ IUnknown **pVal);
-
-
-void __RPC_STUB IUsgScanConverterPlugin_get_ScanConverter_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -14908,6 +12029,7 @@ EXTERN_C const IID IID_IUsgScanConverterPlugin2;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgScanConverterPlugin2Vtbl
@@ -14917,7 +12039,8 @@ EXTERN_C const IID IID_IUsgScanConverterPlugin2;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgScanConverterPlugin2 * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgScanConverterPlugin2 * This);
@@ -14939,20 +12062,28 @@ EXTERN_C const IID IID_IUsgScanConverterPlugin2;
             IUsgScanConverterPlugin2 * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgScanConverterPlugin2 * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_ScanConverter )( 
             IUsgScanConverterPlugin2 * This,
@@ -14980,67 +12111,43 @@ EXTERN_C const IID IID_IUsgScanConverterPlugin2;
 
 
 #define IUsgScanConverterPlugin2_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgScanConverterPlugin2_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgScanConverterPlugin2_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgScanConverterPlugin2_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgScanConverterPlugin2_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgScanConverterPlugin2_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgScanConverterPlugin2_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgScanConverterPlugin2_get_ScanConverter(This,pVal)	\
-    (This)->lpVtbl -> get_ScanConverter(This,pVal)
+    ( (This)->lpVtbl -> get_ScanConverter(This,pVal) ) 
 
 
 #define IUsgScanConverterPlugin2_get_InputPin(This,pVal)	\
-    (This)->lpVtbl -> get_InputPin(This,pVal)
+    ( (This)->lpVtbl -> get_InputPin(This,pVal) ) 
 
 #define IUsgScanConverterPlugin2_get_OutputPin(This,pVal)	\
-    (This)->lpVtbl -> get_OutputPin(This,pVal)
+    ( (This)->lpVtbl -> get_OutputPin(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgScanConverterPlugin2_get_InputPin_Proxy( 
-    IUsgScanConverterPlugin2 * This,
-    /* [retval][out] */ ULONG *pVal);
-
-
-void __RPC_STUB IUsgScanConverterPlugin2_get_InputPin_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgScanConverterPlugin2_get_OutputPin_Proxy( 
-    IUsgScanConverterPlugin2 * This,
-    /* [retval][out] */ ULONG *pVal);
-
-
-void __RPC_STUB IUsgScanConverterPlugin2_get_OutputPin_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -15073,6 +12180,7 @@ EXTERN_C const IID IID_IUsgDopplerSignalSmooth;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDopplerSignalSmoothVtbl
@@ -15082,7 +12190,8 @@ EXTERN_C const IID IID_IUsgDopplerSignalSmooth;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDopplerSignalSmooth * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDopplerSignalSmooth * This);
@@ -15104,20 +12213,28 @@ EXTERN_C const IID IID_IUsgDopplerSignalSmooth;
             IUsgDopplerSignalSmooth * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDopplerSignalSmooth * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgDopplerSignalSmooth * This,
@@ -15145,78 +12262,42 @@ EXTERN_C const IID IID_IUsgDopplerSignalSmooth;
 
 
 #define IUsgDopplerSignalSmooth_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDopplerSignalSmooth_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDopplerSignalSmooth_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDopplerSignalSmooth_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDopplerSignalSmooth_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDopplerSignalSmooth_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDopplerSignalSmooth_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDopplerSignalSmooth_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgDopplerSignalSmooth_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgDopplerSignalSmooth_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerSignalSmooth_get_Current_Proxy( 
-    IUsgDopplerSignalSmooth * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgDopplerSignalSmooth_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgDopplerSignalSmooth_put_Current_Proxy( 
-    IUsgDopplerSignalSmooth * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgDopplerSignalSmooth_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerSignalSmooth_get_Values_Proxy( 
-    IUsgDopplerSignalSmooth * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgDopplerSignalSmooth_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -15255,6 +12336,7 @@ EXTERN_C const IID IID_IUsgAudioVolume;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgAudioVolumeVtbl
@@ -15264,7 +12346,8 @@ EXTERN_C const IID IID_IUsgAudioVolume;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgAudioVolume * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgAudioVolume * This);
@@ -15286,20 +12369,28 @@ EXTERN_C const IID IID_IUsgAudioVolume;
             IUsgAudioVolume * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgAudioVolume * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgAudioVolume * This,
@@ -15335,108 +12426,48 @@ EXTERN_C const IID IID_IUsgAudioVolume;
 
 
 #define IUsgAudioVolume_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgAudioVolume_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgAudioVolume_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgAudioVolume_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgAudioVolume_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgAudioVolume_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgAudioVolume_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgAudioVolume_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgAudioVolume_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgAudioVolume_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #define IUsgAudioVolume_get_Mute(This,pVal)	\
-    (This)->lpVtbl -> get_Mute(This,pVal)
+    ( (This)->lpVtbl -> get_Mute(This,pVal) ) 
 
 #define IUsgAudioVolume_put_Mute(This,newVal)	\
-    (This)->lpVtbl -> put_Mute(This,newVal)
+    ( (This)->lpVtbl -> put_Mute(This,newVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgAudioVolume_get_Current_Proxy( 
-    IUsgAudioVolume * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgAudioVolume_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgAudioVolume_put_Current_Proxy( 
-    IUsgAudioVolume * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgAudioVolume_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgAudioVolume_get_Values_Proxy( 
-    IUsgAudioVolume * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgAudioVolume_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgAudioVolume_get_Mute_Proxy( 
-    IUsgAudioVolume * This,
-    /* [retval][out] */ BOOL *pVal);
-
-
-void __RPC_STUB IUsgAudioVolume_get_Mute_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgAudioVolume_put_Mute_Proxy( 
-    IUsgAudioVolume * This,
-    /* [in] */ BOOL newVal);
-
-
-void __RPC_STUB IUsgAudioVolume_put_Mute_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -15469,6 +12500,7 @@ EXTERN_C const IID IID_IUsgDopplerSpectralAvg;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDopplerSpectralAvgVtbl
@@ -15478,7 +12510,8 @@ EXTERN_C const IID IID_IUsgDopplerSpectralAvg;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDopplerSpectralAvg * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDopplerSpectralAvg * This);
@@ -15500,20 +12533,28 @@ EXTERN_C const IID IID_IUsgDopplerSpectralAvg;
             IUsgDopplerSpectralAvg * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDopplerSpectralAvg * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgDopplerSpectralAvg * This,
@@ -15541,78 +12582,42 @@ EXTERN_C const IID IID_IUsgDopplerSpectralAvg;
 
 
 #define IUsgDopplerSpectralAvg_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDopplerSpectralAvg_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDopplerSpectralAvg_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDopplerSpectralAvg_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDopplerSpectralAvg_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDopplerSpectralAvg_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDopplerSpectralAvg_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDopplerSpectralAvg_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgDopplerSpectralAvg_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgDopplerSpectralAvg_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerSpectralAvg_get_Current_Proxy( 
-    IUsgDopplerSpectralAvg * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgDopplerSpectralAvg_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgDopplerSpectralAvg_put_Current_Proxy( 
-    IUsgDopplerSpectralAvg * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgDopplerSpectralAvg_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerSpectralAvg_get_Values_Proxy( 
-    IUsgDopplerSpectralAvg * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgDopplerSpectralAvg_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -15644,6 +12649,7 @@ EXTERN_C const IID IID_IUsgBioeffectsIndices;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgBioeffectsIndicesVtbl
@@ -15653,7 +12659,8 @@ EXTERN_C const IID IID_IUsgBioeffectsIndices;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgBioeffectsIndices * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgBioeffectsIndices * This);
@@ -15675,20 +12682,28 @@ EXTERN_C const IID IID_IUsgBioeffectsIndices;
             IUsgBioeffectsIndices * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgBioeffectsIndices * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *IsSupported )( 
             IUsgBioeffectsIndices * This,
@@ -15714,65 +12729,39 @@ EXTERN_C const IID IID_IUsgBioeffectsIndices;
 
 
 #define IUsgBioeffectsIndices_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgBioeffectsIndices_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgBioeffectsIndices_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgBioeffectsIndices_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgBioeffectsIndices_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgBioeffectsIndices_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgBioeffectsIndices_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgBioeffectsIndices_IsSupported(This,nIndex,supported)	\
-    (This)->lpVtbl -> IsSupported(This,nIndex,supported)
+    ( (This)->lpVtbl -> IsSupported(This,nIndex,supported) ) 
 
 #define IUsgBioeffectsIndices_GetIndex(This,nIndex,value)	\
-    (This)->lpVtbl -> GetIndex(This,nIndex,value)
+    ( (This)->lpVtbl -> GetIndex(This,nIndex,value) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgBioeffectsIndices_IsSupported_Proxy( 
-    IUsgBioeffectsIndices * This,
-    /* [in] */ BIOEFFECT_INDEX nIndex,
-    /* [retval][out] */ LONG *supported);
-
-
-void __RPC_STUB IUsgBioeffectsIndices_IsSupported_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgBioeffectsIndices_GetIndex_Proxy( 
-    IUsgBioeffectsIndices * This,
-    /* [in] */ BIOEFFECT_INDEX nIndex,
-    /* [retval][out] */ VALUE_BOUNDS *value);
-
-
-void __RPC_STUB IUsgBioeffectsIndices_GetIndex_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -15805,6 +12794,7 @@ EXTERN_C const IID IID_IUsgProbeFrequency3;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgProbeFrequency3Vtbl
@@ -15814,7 +12804,8 @@ EXTERN_C const IID IID_IUsgProbeFrequency3;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgProbeFrequency3 * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgProbeFrequency3 * This);
@@ -15836,20 +12827,28 @@ EXTERN_C const IID IID_IUsgProbeFrequency3;
             IUsgProbeFrequency3 * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgProbeFrequency3 * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgProbeFrequency3 * This,
@@ -15877,78 +12876,42 @@ EXTERN_C const IID IID_IUsgProbeFrequency3;
 
 
 #define IUsgProbeFrequency3_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgProbeFrequency3_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgProbeFrequency3_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgProbeFrequency3_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgProbeFrequency3_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgProbeFrequency3_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgProbeFrequency3_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgProbeFrequency3_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgProbeFrequency3_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgProbeFrequency3_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgProbeFrequency3_get_Current_Proxy( 
-    IUsgProbeFrequency3 * This,
-    /* [retval][out] */ struct FREQUENCY3 *pVal);
-
-
-void __RPC_STUB IUsgProbeFrequency3_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgProbeFrequency3_put_Current_Proxy( 
-    IUsgProbeFrequency3 * This,
-    /* [in] */ struct FREQUENCY3 newVal);
-
-
-void __RPC_STUB IUsgProbeFrequency3_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgProbeFrequency3_get_Values_Proxy( 
-    IUsgProbeFrequency3 * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgProbeFrequency3_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -15987,6 +12950,7 @@ EXTERN_C const IID IID_IUsgDopplerColorTransparency;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDopplerColorTransparencyVtbl
@@ -15996,7 +12960,8 @@ EXTERN_C const IID IID_IUsgDopplerColorTransparency;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDopplerColorTransparency * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDopplerColorTransparency * This);
@@ -16018,20 +12983,28 @@ EXTERN_C const IID IID_IUsgDopplerColorTransparency;
             IUsgDopplerColorTransparency * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDopplerColorTransparency * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgDopplerColorTransparency * This,
@@ -16067,108 +13040,48 @@ EXTERN_C const IID IID_IUsgDopplerColorTransparency;
 
 
 #define IUsgDopplerColorTransparency_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDopplerColorTransparency_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDopplerColorTransparency_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDopplerColorTransparency_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDopplerColorTransparency_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDopplerColorTransparency_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDopplerColorTransparency_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDopplerColorTransparency_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgDopplerColorTransparency_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgDopplerColorTransparency_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #define IUsgDopplerColorTransparency_get_TransparencyMode(This,pVal)	\
-    (This)->lpVtbl -> get_TransparencyMode(This,pVal)
+    ( (This)->lpVtbl -> get_TransparencyMode(This,pVal) ) 
 
 #define IUsgDopplerColorTransparency_put_TransparencyMode(This,newVal)	\
-    (This)->lpVtbl -> put_TransparencyMode(This,newVal)
+    ( (This)->lpVtbl -> put_TransparencyMode(This,newVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerColorTransparency_get_Current_Proxy( 
-    IUsgDopplerColorTransparency * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgDopplerColorTransparency_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgDopplerColorTransparency_put_Current_Proxy( 
-    IUsgDopplerColorTransparency * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgDopplerColorTransparency_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerColorTransparency_get_Values_Proxy( 
-    IUsgDopplerColorTransparency * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgDopplerColorTransparency_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgDopplerColorTransparency_get_TransparencyMode_Proxy( 
-    IUsgDopplerColorTransparency * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgDopplerColorTransparency_get_TransparencyMode_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgDopplerColorTransparency_put_TransparencyMode_Proxy( 
-    IUsgDopplerColorTransparency * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgDopplerColorTransparency_put_TransparencyMode_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -16201,6 +13114,7 @@ EXTERN_C const IID IID_IUsg3dVolumeSize;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsg3dVolumeSizeVtbl
@@ -16210,7 +13124,8 @@ EXTERN_C const IID IID_IUsg3dVolumeSize;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsg3dVolumeSize * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsg3dVolumeSize * This);
@@ -16232,20 +13147,28 @@ EXTERN_C const IID IID_IUsg3dVolumeSize;
             IUsg3dVolumeSize * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsg3dVolumeSize * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsg3dVolumeSize * This,
@@ -16273,78 +13196,42 @@ EXTERN_C const IID IID_IUsg3dVolumeSize;
 
 
 #define IUsg3dVolumeSize_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsg3dVolumeSize_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsg3dVolumeSize_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsg3dVolumeSize_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsg3dVolumeSize_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsg3dVolumeSize_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsg3dVolumeSize_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsg3dVolumeSize_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsg3dVolumeSize_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsg3dVolumeSize_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsg3dVolumeSize_get_Current_Proxy( 
-    IUsg3dVolumeSize * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsg3dVolumeSize_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsg3dVolumeSize_put_Current_Proxy( 
-    IUsg3dVolumeSize * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsg3dVolumeSize_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsg3dVolumeSize_get_Values_Proxy( 
-    IUsg3dVolumeSize * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsg3dVolumeSize_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -16377,6 +13264,7 @@ EXTERN_C const IID IID_IUsg3dVolumeDensity;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsg3dVolumeDensityVtbl
@@ -16386,7 +13274,8 @@ EXTERN_C const IID IID_IUsg3dVolumeDensity;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsg3dVolumeDensity * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsg3dVolumeDensity * This);
@@ -16408,20 +13297,28 @@ EXTERN_C const IID IID_IUsg3dVolumeDensity;
             IUsg3dVolumeDensity * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsg3dVolumeDensity * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsg3dVolumeDensity * This,
@@ -16449,78 +13346,42 @@ EXTERN_C const IID IID_IUsg3dVolumeDensity;
 
 
 #define IUsg3dVolumeDensity_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsg3dVolumeDensity_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsg3dVolumeDensity_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsg3dVolumeDensity_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsg3dVolumeDensity_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsg3dVolumeDensity_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsg3dVolumeDensity_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsg3dVolumeDensity_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsg3dVolumeDensity_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsg3dVolumeDensity_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsg3dVolumeDensity_get_Current_Proxy( 
-    IUsg3dVolumeDensity * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsg3dVolumeDensity_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsg3dVolumeDensity_put_Current_Proxy( 
-    IUsg3dVolumeDensity * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsg3dVolumeDensity_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsg3dVolumeDensity_get_Values_Proxy( 
-    IUsg3dVolumeDensity * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsg3dVolumeDensity_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -16554,37 +13415,37 @@ EXTERN_C const IID IID_IUsgFileStorage;
             /* [in] */ LONG saveFlags) = 0;
         
         virtual /* [helpstring][id] */ HRESULT STDMETHODCALLTYPE CreateDataKey( 
-            /* [in] */ LONG hBaseKey,
+            /* [in] */ LONG_PTR hBaseKey,
             /* [in] */ LONG keyId,
-            /* [retval][out] */ LONG *dataKey) = 0;
+            /* [retval][out] */ LONG_PTR *dataKey) = 0;
         
         virtual /* [helpstring][id] */ HRESULT STDMETHODCALLTYPE OpenDataKey( 
-            /* [in] */ LONG baseKey,
+            /* [in] */ LONG_PTR baseKey,
             /* [in] */ LONG keyId,
             /* [in] */ LONG keyIndex,
-            /* [retval][out] */ LONG *dataKey) = 0;
+            /* [retval][out] */ LONG_PTR *dataKey) = 0;
         
         virtual /* [helpstring][id] */ HRESULT STDMETHODCALLTYPE CloseDataKey( 
-            /* [in] */ LONG dataKey) = 0;
+            /* [in] */ LONG_PTR dataKey) = 0;
         
         virtual /* [helpstring][id] */ HRESULT STDMETHODCALLTYPE GetKeyInfo( 
-            /* [in] */ LONG dataKey,
+            /* [in] */ LONG_PTR dataKey,
             /* [out] */ LONG *subKeys,
             /* [out] */ LONG *dataValues) = 0;
         
         virtual /* [helpstring][id] */ HRESULT STDMETHODCALLTYPE EnumValues( 
-            /* [in] */ LONG dataKey,
+            /* [in] */ LONG_PTR dataKey,
             /* [in] */ LONG ValueNum,
             /* [out] */ LONG *valueId,
             /* [out] */ LONG *valueSize) = 0;
         
         virtual /* [helpstring][id] */ HRESULT STDMETHODCALLTYPE EnumSubkeys( 
-            /* [in] */ LONG dataKey,
+            /* [in] */ LONG_PTR dataKey,
             /* [in] */ LONG subkeyNum,
             /* [out] */ LONG *subkeyId) = 0;
         
         virtual /* [helpstring][id] */ HRESULT STDMETHODCALLTYPE GetValue( 
-            /* [in] */ LONG dataKey,
+            /* [in] */ LONG_PTR dataKey,
             /* [in] */ LONG valueId,
             /* [in] */ LONG valueIndex,
             /* [in] */ LONG cbBufferSize,
@@ -16592,13 +13453,14 @@ EXTERN_C const IID IID_IUsgFileStorage;
             /* [out] */ LONG *dataSize) = 0;
         
         virtual /* [helpstring][id] */ HRESULT STDMETHODCALLTYPE SetValue( 
-            /* [in] */ LONG dataKey,
+            /* [in] */ LONG_PTR dataKey,
             /* [in] */ LONG valueId,
             /* [in] */ LONG valueIndex,
             /* [size_is][in] */ BYTE *dataBuffer,
             /* [in] */ LONG dataSize) = 0;
         
     };
+    
     
 #else 	/* C style interface */
 
@@ -16609,7 +13471,8 @@ EXTERN_C const IID IID_IUsgFileStorage;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgFileStorage * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgFileStorage * This);
@@ -16631,20 +13494,28 @@ EXTERN_C const IID IID_IUsgFileStorage;
             IUsgFileStorage * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgFileStorage * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_FileName )( 
             IUsgFileStorage * This,
@@ -16663,43 +13534,43 @@ EXTERN_C const IID IID_IUsgFileStorage;
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *CreateDataKey )( 
             IUsgFileStorage * This,
-            /* [in] */ LONG hBaseKey,
+            /* [in] */ LONG_PTR hBaseKey,
             /* [in] */ LONG keyId,
-            /* [retval][out] */ LONG *dataKey);
+            /* [retval][out] */ LONG_PTR *dataKey);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *OpenDataKey )( 
             IUsgFileStorage * This,
-            /* [in] */ LONG baseKey,
+            /* [in] */ LONG_PTR baseKey,
             /* [in] */ LONG keyId,
             /* [in] */ LONG keyIndex,
-            /* [retval][out] */ LONG *dataKey);
+            /* [retval][out] */ LONG_PTR *dataKey);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *CloseDataKey )( 
             IUsgFileStorage * This,
-            /* [in] */ LONG dataKey);
+            /* [in] */ LONG_PTR dataKey);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *GetKeyInfo )( 
             IUsgFileStorage * This,
-            /* [in] */ LONG dataKey,
+            /* [in] */ LONG_PTR dataKey,
             /* [out] */ LONG *subKeys,
             /* [out] */ LONG *dataValues);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *EnumValues )( 
             IUsgFileStorage * This,
-            /* [in] */ LONG dataKey,
+            /* [in] */ LONG_PTR dataKey,
             /* [in] */ LONG ValueNum,
             /* [out] */ LONG *valueId,
             /* [out] */ LONG *valueSize);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *EnumSubkeys )( 
             IUsgFileStorage * This,
-            /* [in] */ LONG dataKey,
+            /* [in] */ LONG_PTR dataKey,
             /* [in] */ LONG subkeyNum,
             /* [out] */ LONG *subkeyId);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *GetValue )( 
             IUsgFileStorage * This,
-            /* [in] */ LONG dataKey,
+            /* [in] */ LONG_PTR dataKey,
             /* [in] */ LONG valueId,
             /* [in] */ LONG valueIndex,
             /* [in] */ LONG cbBufferSize,
@@ -16708,7 +13579,7 @@ EXTERN_C const IID IID_IUsgFileStorage;
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *SetValue )( 
             IUsgFileStorage * This,
-            /* [in] */ LONG dataKey,
+            /* [in] */ LONG_PTR dataKey,
             /* [in] */ LONG valueId,
             /* [in] */ LONG valueIndex,
             /* [size_is][in] */ BYTE *dataBuffer,
@@ -16728,233 +13599,69 @@ EXTERN_C const IID IID_IUsgFileStorage;
 
 
 #define IUsgFileStorage_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgFileStorage_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgFileStorage_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgFileStorage_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgFileStorage_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgFileStorage_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgFileStorage_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgFileStorage_get_FileName(This,pVal)	\
-    (This)->lpVtbl -> get_FileName(This,pVal)
+    ( (This)->lpVtbl -> get_FileName(This,pVal) ) 
 
 #define IUsgFileStorage_put_FileName(This,newVal)	\
-    (This)->lpVtbl -> put_FileName(This,newVal)
+    ( (This)->lpVtbl -> put_FileName(This,newVal) ) 
 
 #define IUsgFileStorage_Load(This)	\
-    (This)->lpVtbl -> Load(This)
+    ( (This)->lpVtbl -> Load(This) ) 
 
 #define IUsgFileStorage_Save(This,saveFlags)	\
-    (This)->lpVtbl -> Save(This,saveFlags)
+    ( (This)->lpVtbl -> Save(This,saveFlags) ) 
 
 #define IUsgFileStorage_CreateDataKey(This,hBaseKey,keyId,dataKey)	\
-    (This)->lpVtbl -> CreateDataKey(This,hBaseKey,keyId,dataKey)
+    ( (This)->lpVtbl -> CreateDataKey(This,hBaseKey,keyId,dataKey) ) 
 
 #define IUsgFileStorage_OpenDataKey(This,baseKey,keyId,keyIndex,dataKey)	\
-    (This)->lpVtbl -> OpenDataKey(This,baseKey,keyId,keyIndex,dataKey)
+    ( (This)->lpVtbl -> OpenDataKey(This,baseKey,keyId,keyIndex,dataKey) ) 
 
 #define IUsgFileStorage_CloseDataKey(This,dataKey)	\
-    (This)->lpVtbl -> CloseDataKey(This,dataKey)
+    ( (This)->lpVtbl -> CloseDataKey(This,dataKey) ) 
 
 #define IUsgFileStorage_GetKeyInfo(This,dataKey,subKeys,dataValues)	\
-    (This)->lpVtbl -> GetKeyInfo(This,dataKey,subKeys,dataValues)
+    ( (This)->lpVtbl -> GetKeyInfo(This,dataKey,subKeys,dataValues) ) 
 
 #define IUsgFileStorage_EnumValues(This,dataKey,ValueNum,valueId,valueSize)	\
-    (This)->lpVtbl -> EnumValues(This,dataKey,ValueNum,valueId,valueSize)
+    ( (This)->lpVtbl -> EnumValues(This,dataKey,ValueNum,valueId,valueSize) ) 
 
 #define IUsgFileStorage_EnumSubkeys(This,dataKey,subkeyNum,subkeyId)	\
-    (This)->lpVtbl -> EnumSubkeys(This,dataKey,subkeyNum,subkeyId)
+    ( (This)->lpVtbl -> EnumSubkeys(This,dataKey,subkeyNum,subkeyId) ) 
 
 #define IUsgFileStorage_GetValue(This,dataKey,valueId,valueIndex,cbBufferSize,dataBuffer,dataSize)	\
-    (This)->lpVtbl -> GetValue(This,dataKey,valueId,valueIndex,cbBufferSize,dataBuffer,dataSize)
+    ( (This)->lpVtbl -> GetValue(This,dataKey,valueId,valueIndex,cbBufferSize,dataBuffer,dataSize) ) 
 
 #define IUsgFileStorage_SetValue(This,dataKey,valueId,valueIndex,dataBuffer,dataSize)	\
-    (This)->lpVtbl -> SetValue(This,dataKey,valueId,valueIndex,dataBuffer,dataSize)
+    ( (This)->lpVtbl -> SetValue(This,dataKey,valueId,valueIndex,dataBuffer,dataSize) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgFileStorage_get_FileName_Proxy( 
-    IUsgFileStorage * This,
-    /* [retval][out] */ BSTR *pVal);
-
-
-void __RPC_STUB IUsgFileStorage_get_FileName_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgFileStorage_put_FileName_Proxy( 
-    IUsgFileStorage * This,
-    /* [in] */ BSTR newVal);
-
-
-void __RPC_STUB IUsgFileStorage_put_FileName_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgFileStorage_Load_Proxy( 
-    IUsgFileStorage * This);
-
-
-void __RPC_STUB IUsgFileStorage_Load_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgFileStorage_Save_Proxy( 
-    IUsgFileStorage * This,
-    /* [in] */ LONG saveFlags);
-
-
-void __RPC_STUB IUsgFileStorage_Save_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgFileStorage_CreateDataKey_Proxy( 
-    IUsgFileStorage * This,
-    /* [in] */ LONG hBaseKey,
-    /* [in] */ LONG keyId,
-    /* [retval][out] */ LONG *dataKey);
-
-
-void __RPC_STUB IUsgFileStorage_CreateDataKey_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgFileStorage_OpenDataKey_Proxy( 
-    IUsgFileStorage * This,
-    /* [in] */ LONG baseKey,
-    /* [in] */ LONG keyId,
-    /* [in] */ LONG keyIndex,
-    /* [retval][out] */ LONG *dataKey);
-
-
-void __RPC_STUB IUsgFileStorage_OpenDataKey_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgFileStorage_CloseDataKey_Proxy( 
-    IUsgFileStorage * This,
-    /* [in] */ LONG dataKey);
-
-
-void __RPC_STUB IUsgFileStorage_CloseDataKey_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgFileStorage_GetKeyInfo_Proxy( 
-    IUsgFileStorage * This,
-    /* [in] */ LONG dataKey,
-    /* [out] */ LONG *subKeys,
-    /* [out] */ LONG *dataValues);
-
-
-void __RPC_STUB IUsgFileStorage_GetKeyInfo_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgFileStorage_EnumValues_Proxy( 
-    IUsgFileStorage * This,
-    /* [in] */ LONG dataKey,
-    /* [in] */ LONG ValueNum,
-    /* [out] */ LONG *valueId,
-    /* [out] */ LONG *valueSize);
-
-
-void __RPC_STUB IUsgFileStorage_EnumValues_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgFileStorage_EnumSubkeys_Proxy( 
-    IUsgFileStorage * This,
-    /* [in] */ LONG dataKey,
-    /* [in] */ LONG subkeyNum,
-    /* [out] */ LONG *subkeyId);
-
-
-void __RPC_STUB IUsgFileStorage_EnumSubkeys_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgFileStorage_GetValue_Proxy( 
-    IUsgFileStorage * This,
-    /* [in] */ LONG dataKey,
-    /* [in] */ LONG valueId,
-    /* [in] */ LONG valueIndex,
-    /* [in] */ LONG cbBufferSize,
-    /* [size_is][out] */ BYTE *dataBuffer,
-    /* [out] */ LONG *dataSize);
-
-
-void __RPC_STUB IUsgFileStorage_GetValue_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgFileStorage_SetValue_Proxy( 
-    IUsgFileStorage * This,
-    /* [in] */ LONG dataKey,
-    /* [in] */ LONG valueId,
-    /* [in] */ LONG valueIndex,
-    /* [size_is][in] */ BYTE *dataBuffer,
-    /* [in] */ LONG dataSize);
-
-
-void __RPC_STUB IUsgFileStorage_SetValue_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -16983,6 +13690,7 @@ EXTERN_C const IID IID_IUsgfw2Debug;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgfw2DebugVtbl
@@ -16992,7 +13700,8 @@ EXTERN_C const IID IID_IUsgfw2Debug;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgfw2Debug * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgfw2Debug * This);
@@ -17014,20 +13723,28 @@ EXTERN_C const IID IID_IUsgfw2Debug;
             IUsgfw2Debug * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgfw2Debug * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *CreateObjectsDump )( 
             IUsgfw2Debug * This,
@@ -17049,50 +13766,36 @@ EXTERN_C const IID IID_IUsgfw2Debug;
 
 
 #define IUsgfw2Debug_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgfw2Debug_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgfw2Debug_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgfw2Debug_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgfw2Debug_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgfw2Debug_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgfw2Debug_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgfw2Debug_CreateObjectsDump(This,fileName,reserved1,reserved2)	\
-    (This)->lpVtbl -> CreateObjectsDump(This,fileName,reserved1,reserved2)
+    ( (This)->lpVtbl -> CreateObjectsDump(This,fileName,reserved1,reserved2) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgfw2Debug_CreateObjectsDump_Proxy( 
-    IUsgfw2Debug * This,
-    /* [in] */ BSTR fileName,
-    /* [in] */ LONG reserved1,
-    /* [in] */ LONG reserved2);
-
-
-void __RPC_STUB IUsgfw2Debug_CreateObjectsDump_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -17123,6 +13826,7 @@ EXTERN_C const IID IID_IUsgPlugin;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgPluginVtbl
@@ -17132,7 +13836,8 @@ EXTERN_C const IID IID_IUsgPlugin;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgPlugin * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgPlugin * This);
@@ -17154,20 +13859,28 @@ EXTERN_C const IID IID_IUsgPlugin;
             IUsgPlugin * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgPlugin * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *AddPlugin )( 
             IUsgPlugin * This,
@@ -17192,64 +13905,39 @@ EXTERN_C const IID IID_IUsgPlugin;
 
 
 #define IUsgPlugin_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgPlugin_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgPlugin_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgPlugin_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgPlugin_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgPlugin_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgPlugin_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgPlugin_AddPlugin(This,pPlugin,cookie)	\
-    (This)->lpVtbl -> AddPlugin(This,pPlugin,cookie)
+    ( (This)->lpVtbl -> AddPlugin(This,pPlugin,cookie) ) 
 
 #define IUsgPlugin_RemovePlugin(This,cookie)	\
-    (This)->lpVtbl -> RemovePlugin(This,cookie)
+    ( (This)->lpVtbl -> RemovePlugin(This,cookie) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgPlugin_AddPlugin_Proxy( 
-    IUsgPlugin * This,
-    /* [in] */ IUnknown *pPlugin,
-    /* [retval][out] */ LONG *cookie);
-
-
-void __RPC_STUB IUsgPlugin_AddPlugin_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgPlugin_RemovePlugin_Proxy( 
-    IUsgPlugin * This,
-    /* [in] */ LONG cookie);
-
-
-void __RPC_STUB IUsgPlugin_RemovePlugin_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -17288,6 +13976,7 @@ EXTERN_C const IID IID_IBeamformerPowerState;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IBeamformerPowerStateVtbl
@@ -17297,7 +13986,8 @@ EXTERN_C const IID IID_IBeamformerPowerState;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IBeamformerPowerState * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IBeamformerPowerState * This);
@@ -17319,20 +14009,28 @@ EXTERN_C const IID IID_IBeamformerPowerState;
             IBeamformerPowerState * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IBeamformerPowerState * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_BatteryChargeStatus )( 
             IBeamformerPowerState * This,
@@ -17368,108 +14066,48 @@ EXTERN_C const IID IID_IBeamformerPowerState;
 
 
 #define IBeamformerPowerState_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IBeamformerPowerState_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IBeamformerPowerState_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IBeamformerPowerState_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IBeamformerPowerState_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IBeamformerPowerState_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IBeamformerPowerState_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IBeamformerPowerState_get_BatteryChargeStatus(This,pVal)	\
-    (This)->lpVtbl -> get_BatteryChargeStatus(This,pVal)
+    ( (This)->lpVtbl -> get_BatteryChargeStatus(This,pVal) ) 
 
 #define IBeamformerPowerState_get_BatteryFullLifetime(This,pVal)	\
-    (This)->lpVtbl -> get_BatteryFullLifetime(This,pVal)
+    ( (This)->lpVtbl -> get_BatteryFullLifetime(This,pVal) ) 
 
 #define IBeamformerPowerState_get_BatteryLifePercent(This,pVal)	\
-    (This)->lpVtbl -> get_BatteryLifePercent(This,pVal)
+    ( (This)->lpVtbl -> get_BatteryLifePercent(This,pVal) ) 
 
 #define IBeamformerPowerState_get_BatteryLifeRemaining(This,pVal)	\
-    (This)->lpVtbl -> get_BatteryLifeRemaining(This,pVal)
+    ( (This)->lpVtbl -> get_BatteryLifeRemaining(This,pVal) ) 
 
 #define IBeamformerPowerState_get_PowerLineStatus(This,pVal)	\
-    (This)->lpVtbl -> get_PowerLineStatus(This,pVal)
+    ( (This)->lpVtbl -> get_PowerLineStatus(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IBeamformerPowerState_get_BatteryChargeStatus_Proxy( 
-    IBeamformerPowerState * This,
-    /* [retval][out] */ BATTERY_CHARGE_STATUS *pVal);
-
-
-void __RPC_STUB IBeamformerPowerState_get_BatteryChargeStatus_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IBeamformerPowerState_get_BatteryFullLifetime_Proxy( 
-    IBeamformerPowerState * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IBeamformerPowerState_get_BatteryFullLifetime_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IBeamformerPowerState_get_BatteryLifePercent_Proxy( 
-    IBeamformerPowerState * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IBeamformerPowerState_get_BatteryLifePercent_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IBeamformerPowerState_get_BatteryLifeRemaining_Proxy( 
-    IBeamformerPowerState * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IBeamformerPowerState_get_BatteryLifeRemaining_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IBeamformerPowerState_get_PowerLineStatus_Proxy( 
-    IBeamformerPowerState * This,
-    /* [retval][out] */ POWER_LINE_STATUS *pVal);
-
-
-void __RPC_STUB IBeamformerPowerState_get_PowerLineStatus_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -17502,6 +14140,7 @@ EXTERN_C const IID IID_IUsgScanType;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgScanTypeVtbl
@@ -17511,7 +14150,8 @@ EXTERN_C const IID IID_IUsgScanType;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgScanType * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgScanType * This);
@@ -17533,20 +14173,28 @@ EXTERN_C const IID IID_IUsgScanType;
             IUsgScanType * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgScanType * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgScanType * This,
@@ -17574,78 +14222,42 @@ EXTERN_C const IID IID_IUsgScanType;
 
 
 #define IUsgScanType_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgScanType_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgScanType_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgScanType_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgScanType_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgScanType_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgScanType_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgScanType_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgScanType_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgScanType_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgScanType_get_Current_Proxy( 
-    IUsgScanType * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgScanType_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgScanType_put_Current_Proxy( 
-    IUsgScanType * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgScanType_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgScanType_get_Values_Proxy( 
-    IUsgScanType * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgScanType_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -17678,6 +14290,7 @@ EXTERN_C const IID IID_IUsgSteeringAngle;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgSteeringAngleVtbl
@@ -17687,7 +14300,8 @@ EXTERN_C const IID IID_IUsgSteeringAngle;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgSteeringAngle * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgSteeringAngle * This);
@@ -17709,20 +14323,28 @@ EXTERN_C const IID IID_IUsgSteeringAngle;
             IUsgSteeringAngle * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgSteeringAngle * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgSteeringAngle * This,
@@ -17750,78 +14372,42 @@ EXTERN_C const IID IID_IUsgSteeringAngle;
 
 
 #define IUsgSteeringAngle_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgSteeringAngle_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgSteeringAngle_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgSteeringAngle_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgSteeringAngle_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgSteeringAngle_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgSteeringAngle_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgSteeringAngle_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgSteeringAngle_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgSteeringAngle_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgSteeringAngle_get_Current_Proxy( 
-    IUsgSteeringAngle * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgSteeringAngle_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgSteeringAngle_put_Current_Proxy( 
-    IUsgSteeringAngle * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgSteeringAngle_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgSteeringAngle_get_Values_Proxy( 
-    IUsgSteeringAngle * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgSteeringAngle_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -17854,6 +14440,7 @@ EXTERN_C const IID IID_IUsgViewAngle;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgViewAngleVtbl
@@ -17863,7 +14450,8 @@ EXTERN_C const IID IID_IUsgViewAngle;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgViewAngle * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgViewAngle * This);
@@ -17885,20 +14473,28 @@ EXTERN_C const IID IID_IUsgViewAngle;
             IUsgViewAngle * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgViewAngle * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgViewAngle * This,
@@ -17926,78 +14522,42 @@ EXTERN_C const IID IID_IUsgViewAngle;
 
 
 #define IUsgViewAngle_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgViewAngle_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgViewAngle_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgViewAngle_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgViewAngle_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgViewAngle_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgViewAngle_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgViewAngle_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgViewAngle_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgViewAngle_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgViewAngle_get_Current_Proxy( 
-    IUsgViewAngle * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgViewAngle_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgViewAngle_put_Current_Proxy( 
-    IUsgViewAngle * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgViewAngle_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgViewAngle_get_Values_Proxy( 
-    IUsgViewAngle * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgViewAngle_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -18030,6 +14590,7 @@ EXTERN_C const IID IID_IUsgCompoundFrames;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgCompoundFramesVtbl
@@ -18039,7 +14600,8 @@ EXTERN_C const IID IID_IUsgCompoundFrames;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgCompoundFrames * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgCompoundFrames * This);
@@ -18061,20 +14623,28 @@ EXTERN_C const IID IID_IUsgCompoundFrames;
             IUsgCompoundFrames * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgCompoundFrames * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgCompoundFrames * This,
@@ -18102,78 +14672,42 @@ EXTERN_C const IID IID_IUsgCompoundFrames;
 
 
 #define IUsgCompoundFrames_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgCompoundFrames_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgCompoundFrames_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgCompoundFrames_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgCompoundFrames_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgCompoundFrames_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgCompoundFrames_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgCompoundFrames_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgCompoundFrames_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgCompoundFrames_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgCompoundFrames_get_Current_Proxy( 
-    IUsgCompoundFrames * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgCompoundFrames_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgCompoundFrames_put_Current_Proxy( 
-    IUsgCompoundFrames * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgCompoundFrames_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgCompoundFrames_get_Values_Proxy( 
-    IUsgCompoundFrames * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgCompoundFrames_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -18206,6 +14740,7 @@ EXTERN_C const IID IID_IUsgCompoundAngle;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgCompoundAngleVtbl
@@ -18215,7 +14750,8 @@ EXTERN_C const IID IID_IUsgCompoundAngle;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgCompoundAngle * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgCompoundAngle * This);
@@ -18237,20 +14773,28 @@ EXTERN_C const IID IID_IUsgCompoundAngle;
             IUsgCompoundAngle * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgCompoundAngle * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
             IUsgCompoundAngle * This,
@@ -18278,78 +14822,42 @@ EXTERN_C const IID IID_IUsgCompoundAngle;
 
 
 #define IUsgCompoundAngle_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgCompoundAngle_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgCompoundAngle_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgCompoundAngle_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgCompoundAngle_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgCompoundAngle_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgCompoundAngle_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgCompoundAngle_get_Current(This,pVal)	\
-    (This)->lpVtbl -> get_Current(This,pVal)
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
 
 #define IUsgCompoundAngle_put_Current(This,newVal)	\
-    (This)->lpVtbl -> put_Current(This,newVal)
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
 
 #define IUsgCompoundAngle_get_Values(This,pVal)	\
-    (This)->lpVtbl -> get_Values(This,pVal)
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgCompoundAngle_get_Current_Proxy( 
-    IUsgCompoundAngle * This,
-    /* [retval][out] */ LONG *pVal);
-
-
-void __RPC_STUB IUsgCompoundAngle_get_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE IUsgCompoundAngle_put_Current_Proxy( 
-    IUsgCompoundAngle * This,
-    /* [in] */ LONG newVal);
-
-
-void __RPC_STUB IUsgCompoundAngle_put_Current_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE IUsgCompoundAngle_get_Values_Proxy( 
-    IUsgCompoundAngle * This,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgCompoundAngle_get_Values_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -18379,6 +14887,7 @@ EXTERN_C const IID IID_IUsgDeviceCapabilities;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgDeviceCapabilitiesVtbl
@@ -18388,7 +14897,8 @@ EXTERN_C const IID IID_IUsgDeviceCapabilities;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgDeviceCapabilities * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgDeviceCapabilities * This);
@@ -18410,20 +14920,28 @@ EXTERN_C const IID IID_IUsgDeviceCapabilities;
             IUsgDeviceCapabilities * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgDeviceCapabilities * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *ScanModeCaps )( 
             IUsgDeviceCapabilities * This,
@@ -18446,51 +14964,36 @@ EXTERN_C const IID IID_IUsgDeviceCapabilities;
 
 
 #define IUsgDeviceCapabilities_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgDeviceCapabilities_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgDeviceCapabilities_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgDeviceCapabilities_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgDeviceCapabilities_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgDeviceCapabilities_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgDeviceCapabilities_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgDeviceCapabilities_ScanModeCaps(This,Parameter,ScanMode,Capability,Support)	\
-    (This)->lpVtbl -> ScanModeCaps(This,Parameter,ScanMode,Capability,Support)
+    ( (This)->lpVtbl -> ScanModeCaps(This,Parameter,ScanMode,Capability,Support) ) 
 
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgDeviceCapabilities_ScanModeCaps_Proxy( 
-    IUsgDeviceCapabilities * This,
-    /* [in] */ LONG Parameter,
-    /* [in] */ ULONG ScanMode,
-    /* [out] */ LONG *Capability,
-    /* [retval][out] */ LONG *Support);
-
-
-void __RPC_STUB IUsgDeviceCapabilities_ScanModeCaps_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 
@@ -18526,6 +15029,7 @@ EXTERN_C const IID IID_IUsgUnits;
         
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct IUsgUnitsVtbl
@@ -18535,7 +15039,8 @@ EXTERN_C const IID IID_IUsgUnits;
         HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
             IUsgUnits * This,
             /* [in] */ REFIID riid,
-            /* [iid_is][out] */ void **ppvObject);
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             IUsgUnits * This);
@@ -18557,20 +15062,28 @@ EXTERN_C const IID IID_IUsgUnits;
             IUsgUnits * This,
             /* [in] */ REFIID riid,
             /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [in] */ UINT cNames,
+            /* [range][in] */ UINT cNames,
             /* [in] */ LCID lcid,
             /* [size_is][out] */ DISPID *rgDispId);
         
         /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
             IUsgUnits * This,
-            /* [in] */ DISPID dispIdMember,
-            /* [in] */ REFIID riid,
-            /* [in] */ LCID lcid,
-            /* [in] */ WORD wFlags,
-            /* [out][in] */ DISPPARAMS *pDispParams,
-            /* [out] */ VARIANT *pVarResult,
-            /* [out] */ EXCEPINFO *pExcepInfo,
-            /* [out] */ UINT *puArgErr);
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
         
         /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *GetCurrent )( 
             IUsgUnits * This,
@@ -18601,36 +15114,36 @@ EXTERN_C const IID IID_IUsgUnits;
 
 
 #define IUsgUnits_QueryInterface(This,riid,ppvObject)	\
-    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
 
 #define IUsgUnits_AddRef(This)	\
-    (This)->lpVtbl -> AddRef(This)
+    ( (This)->lpVtbl -> AddRef(This) ) 
 
 #define IUsgUnits_Release(This)	\
-    (This)->lpVtbl -> Release(This)
+    ( (This)->lpVtbl -> Release(This) ) 
 
 
 #define IUsgUnits_GetTypeInfoCount(This,pctinfo)	\
-    (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo)
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
 
 #define IUsgUnits_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo)
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
 
 #define IUsgUnits_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
 
 #define IUsgUnits_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
 
 
 #define IUsgUnits_GetCurrent(This,pControlObject,pVal)	\
-    (This)->lpVtbl -> GetCurrent(This,pControlObject,pVal)
+    ( (This)->lpVtbl -> GetCurrent(This,pControlObject,pVal) ) 
 
 #define IUsgUnits_SetCurrent(This,pControlObject,pVal)	\
-    (This)->lpVtbl -> SetCurrent(This,pControlObject,pVal)
+    ( (This)->lpVtbl -> SetCurrent(This,pControlObject,pVal) ) 
 
 #define IUsgUnits_GetValues(This,pControlObject,pVal)	\
-    (This)->lpVtbl -> GetValues(This,pControlObject,pVal)
+    ( (This)->lpVtbl -> GetValues(This,pControlObject,pVal) ) 
 
 #endif /* COBJMACROS */
 
@@ -18639,47 +15152,820 @@ EXTERN_C const IID IID_IUsgUnits;
 
 
 
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgUnits_GetCurrent_Proxy( 
-    IUsgUnits * This,
-    /* [in] */ IUnknown *pControlObject,
-    /* [retval][out] */ USG_UNIT *pVal);
-
-
-void __RPC_STUB IUsgUnits_GetCurrent_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgUnits_SetCurrent_Proxy( 
-    IUsgUnits * This,
-    /* [in] */ IUnknown *pControlObject,
-    /* [in] */ USG_UNIT *pVal);
-
-
-void __RPC_STUB IUsgUnits_SetCurrent_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
-/* [helpstring][id] */ HRESULT STDMETHODCALLTYPE IUsgUnits_GetValues_Proxy( 
-    IUsgUnits * This,
-    /* [in] */ IUnknown *pControlObject,
-    /* [retval][out] */ IUsgValues **pVal);
-
-
-void __RPC_STUB IUsgUnits_GetValues_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
-
-
 
 #endif 	/* __IUsgUnits_INTERFACE_DEFINED__ */
+
+
+#ifndef __ISampleGrabberFilter_INTERFACE_DEFINED__
+#define __ISampleGrabberFilter_INTERFACE_DEFINED__
+
+/* interface ISampleGrabberFilter */
+/* [unique][helpstring][nonextensible][dual][uuid][object] */ 
+
+
+EXTERN_C const IID IID_ISampleGrabberFilter;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+    
+    MIDL_INTERFACE("4591F5BF-FBB2-4D6E-BDAD-E629E0635FFB")
+    ISampleGrabberFilter : public IDispatch
+    {
+    public:
+        virtual /* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE get_FilterObj( 
+            /* [in] */ LONG_PTR FilterIndex,
+            /* [retval][out] */ IUnknown **pVal) = 0;
+        
+    };
+    
+    
+#else 	/* C style interface */
+
+    typedef struct ISampleGrabberFilterVtbl
+    {
+        BEGIN_INTERFACE
+        
+        HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+            ISampleGrabberFilter * This,
+            /* [in] */ REFIID riid,
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
+        
+        ULONG ( STDMETHODCALLTYPE *AddRef )( 
+            ISampleGrabberFilter * This);
+        
+        ULONG ( STDMETHODCALLTYPE *Release )( 
+            ISampleGrabberFilter * This);
+        
+        HRESULT ( STDMETHODCALLTYPE *GetTypeInfoCount )( 
+            ISampleGrabberFilter * This,
+            /* [out] */ UINT *pctinfo);
+        
+        HRESULT ( STDMETHODCALLTYPE *GetTypeInfo )( 
+            ISampleGrabberFilter * This,
+            /* [in] */ UINT iTInfo,
+            /* [in] */ LCID lcid,
+            /* [out] */ ITypeInfo **ppTInfo);
+        
+        HRESULT ( STDMETHODCALLTYPE *GetIDsOfNames )( 
+            ISampleGrabberFilter * This,
+            /* [in] */ REFIID riid,
+            /* [size_is][in] */ LPOLESTR *rgszNames,
+            /* [range][in] */ UINT cNames,
+            /* [in] */ LCID lcid,
+            /* [size_is][out] */ DISPID *rgDispId);
+        
+        /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
+            ISampleGrabberFilter * This,
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
+        
+        /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_FilterObj )( 
+            ISampleGrabberFilter * This,
+            /* [in] */ LONG_PTR FilterIndex,
+            /* [retval][out] */ IUnknown **pVal);
+        
+        END_INTERFACE
+    } ISampleGrabberFilterVtbl;
+
+    interface ISampleGrabberFilter
+    {
+        CONST_VTBL struct ISampleGrabberFilterVtbl *lpVtbl;
+    };
+
+    
+
+#ifdef COBJMACROS
+
+
+#define ISampleGrabberFilter_QueryInterface(This,riid,ppvObject)	\
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+
+#define ISampleGrabberFilter_AddRef(This)	\
+    ( (This)->lpVtbl -> AddRef(This) ) 
+
+#define ISampleGrabberFilter_Release(This)	\
+    ( (This)->lpVtbl -> Release(This) ) 
+
+
+#define ISampleGrabberFilter_GetTypeInfoCount(This,pctinfo)	\
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
+
+#define ISampleGrabberFilter_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
+
+#define ISampleGrabberFilter_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
+
+#define ISampleGrabberFilter_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
+
+
+#define ISampleGrabberFilter_get_FilterObj(This,FilterIndex,pVal)	\
+    ( (This)->lpVtbl -> get_FilterObj(This,FilterIndex,pVal) ) 
+
+#endif /* COBJMACROS */
+
+
+#endif 	/* C style interface */
+
+
+
+
+#endif 	/* __ISampleGrabberFilter_INTERFACE_DEFINED__ */
+
+
+#ifndef __IUsgWindowRF_INTERFACE_DEFINED__
+#define __IUsgWindowRF_INTERFACE_DEFINED__
+
+/* interface IUsgWindowRF */
+/* [unique][helpstring][nonextensible][dual][uuid][object] */ 
+
+
+EXTERN_C const IID IID_IUsgWindowRF;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+    
+    MIDL_INTERFACE("5E2238EF-0DA8-48C4-84C5-E5E61194045D")
+    IUsgWindowRF : public IDispatch
+    {
+    public:
+        virtual /* [helpstring][id] */ HRESULT STDMETHODCALLTYPE SetWindow( 
+            /* [in] */ LONG startLine,
+            /* [in] */ LONG endLine,
+            /* [in] */ LONG startDepth,
+            /* [in] */ LONG endDepth) = 0;
+        
+        virtual /* [helpstring][id] */ HRESULT STDMETHODCALLTYPE GetWindow( 
+            /* [out] */ LONG *startLine,
+            /* [out] */ LONG *endLine,
+            /* [out] */ LONG *startDepth,
+            /* [out] */ LONG *endDepth) = 0;
+        
+        virtual /* [helpstring][id] */ HRESULT STDMETHODCALLTYPE SetWidth( 
+            /* [in] */ LONG startLine,
+            /* [in] */ LONG endLine) = 0;
+        
+        virtual /* [helpstring][id] */ HRESULT STDMETHODCALLTYPE SetVolume( 
+            /* [in] */ LONG startDepth,
+            /* [in] */ LONG endDepth) = 0;
+        
+        virtual /* [helpstring][id] */ HRESULT STDMETHODCALLTYPE GetWidth( 
+            /* [out] */ LONG *startLine,
+            /* [out] */ LONG *endLine) = 0;
+        
+        virtual /* [helpstring][id] */ HRESULT STDMETHODCALLTYPE GetVolume( 
+            /* [out] */ LONG *startDepth,
+            /* [out] */ LONG *endDepth) = 0;
+        
+        virtual /* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE get_LinesRange( 
+            /* [retval][out] */ VALUE_STEPPING *pVal) = 0;
+        
+        virtual /* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE get_WidthRange( 
+            /* [retval][out] */ VALUE_STEPPING *pVal) = 0;
+        
+        virtual /* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE get_DepthsRange( 
+            /* [retval][out] */ VALUE_STEPPING *pVal) = 0;
+        
+        virtual /* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE get_VolumesRange( 
+            /* [retval][out] */ VALUE_STEPPING *pVal) = 0;
+        
+    };
+    
+    
+#else 	/* C style interface */
+
+    typedef struct IUsgWindowRFVtbl
+    {
+        BEGIN_INTERFACE
+        
+        HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+            IUsgWindowRF * This,
+            /* [in] */ REFIID riid,
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
+        
+        ULONG ( STDMETHODCALLTYPE *AddRef )( 
+            IUsgWindowRF * This);
+        
+        ULONG ( STDMETHODCALLTYPE *Release )( 
+            IUsgWindowRF * This);
+        
+        HRESULT ( STDMETHODCALLTYPE *GetTypeInfoCount )( 
+            IUsgWindowRF * This,
+            /* [out] */ UINT *pctinfo);
+        
+        HRESULT ( STDMETHODCALLTYPE *GetTypeInfo )( 
+            IUsgWindowRF * This,
+            /* [in] */ UINT iTInfo,
+            /* [in] */ LCID lcid,
+            /* [out] */ ITypeInfo **ppTInfo);
+        
+        HRESULT ( STDMETHODCALLTYPE *GetIDsOfNames )( 
+            IUsgWindowRF * This,
+            /* [in] */ REFIID riid,
+            /* [size_is][in] */ LPOLESTR *rgszNames,
+            /* [range][in] */ UINT cNames,
+            /* [in] */ LCID lcid,
+            /* [size_is][out] */ DISPID *rgDispId);
+        
+        /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
+            IUsgWindowRF * This,
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
+        
+        /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *SetWindow )( 
+            IUsgWindowRF * This,
+            /* [in] */ LONG startLine,
+            /* [in] */ LONG endLine,
+            /* [in] */ LONG startDepth,
+            /* [in] */ LONG endDepth);
+        
+        /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+            IUsgWindowRF * This,
+            /* [out] */ LONG *startLine,
+            /* [out] */ LONG *endLine,
+            /* [out] */ LONG *startDepth,
+            /* [out] */ LONG *endDepth);
+        
+        /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *SetWidth )( 
+            IUsgWindowRF * This,
+            /* [in] */ LONG startLine,
+            /* [in] */ LONG endLine);
+        
+        /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *SetVolume )( 
+            IUsgWindowRF * This,
+            /* [in] */ LONG startDepth,
+            /* [in] */ LONG endDepth);
+        
+        /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *GetWidth )( 
+            IUsgWindowRF * This,
+            /* [out] */ LONG *startLine,
+            /* [out] */ LONG *endLine);
+        
+        /* [helpstring][id] */ HRESULT ( STDMETHODCALLTYPE *GetVolume )( 
+            IUsgWindowRF * This,
+            /* [out] */ LONG *startDepth,
+            /* [out] */ LONG *endDepth);
+        
+        /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_LinesRange )( 
+            IUsgWindowRF * This,
+            /* [retval][out] */ VALUE_STEPPING *pVal);
+        
+        /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_WidthRange )( 
+            IUsgWindowRF * This,
+            /* [retval][out] */ VALUE_STEPPING *pVal);
+        
+        /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_DepthsRange )( 
+            IUsgWindowRF * This,
+            /* [retval][out] */ VALUE_STEPPING *pVal);
+        
+        /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_VolumesRange )( 
+            IUsgWindowRF * This,
+            /* [retval][out] */ VALUE_STEPPING *pVal);
+        
+        END_INTERFACE
+    } IUsgWindowRFVtbl;
+
+    interface IUsgWindowRF
+    {
+        CONST_VTBL struct IUsgWindowRFVtbl *lpVtbl;
+    };
+
+    
+
+#ifdef COBJMACROS
+
+
+#define IUsgWindowRF_QueryInterface(This,riid,ppvObject)	\
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+
+#define IUsgWindowRF_AddRef(This)	\
+    ( (This)->lpVtbl -> AddRef(This) ) 
+
+#define IUsgWindowRF_Release(This)	\
+    ( (This)->lpVtbl -> Release(This) ) 
+
+
+#define IUsgWindowRF_GetTypeInfoCount(This,pctinfo)	\
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
+
+#define IUsgWindowRF_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
+
+#define IUsgWindowRF_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
+
+#define IUsgWindowRF_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
+
+
+#define IUsgWindowRF_SetWindow(This,startLine,endLine,startDepth,endDepth)	\
+    ( (This)->lpVtbl -> SetWindow(This,startLine,endLine,startDepth,endDepth) ) 
+
+#define IUsgWindowRF_GetWindow(This,startLine,endLine,startDepth,endDepth)	\
+    ( (This)->lpVtbl -> GetWindow(This,startLine,endLine,startDepth,endDepth) ) 
+
+#define IUsgWindowRF_SetWidth(This,startLine,endLine)	\
+    ( (This)->lpVtbl -> SetWidth(This,startLine,endLine) ) 
+
+#define IUsgWindowRF_SetVolume(This,startDepth,endDepth)	\
+    ( (This)->lpVtbl -> SetVolume(This,startDepth,endDepth) ) 
+
+#define IUsgWindowRF_GetWidth(This,startLine,endLine)	\
+    ( (This)->lpVtbl -> GetWidth(This,startLine,endLine) ) 
+
+#define IUsgWindowRF_GetVolume(This,startDepth,endDepth)	\
+    ( (This)->lpVtbl -> GetVolume(This,startDepth,endDepth) ) 
+
+#define IUsgWindowRF_get_LinesRange(This,pVal)	\
+    ( (This)->lpVtbl -> get_LinesRange(This,pVal) ) 
+
+#define IUsgWindowRF_get_WidthRange(This,pVal)	\
+    ( (This)->lpVtbl -> get_WidthRange(This,pVal) ) 
+
+#define IUsgWindowRF_get_DepthsRange(This,pVal)	\
+    ( (This)->lpVtbl -> get_DepthsRange(This,pVal) ) 
+
+#define IUsgWindowRF_get_VolumesRange(This,pVal)	\
+    ( (This)->lpVtbl -> get_VolumesRange(This,pVal) ) 
+
+#endif /* COBJMACROS */
+
+
+#endif 	/* C style interface */
+
+
+
+
+#endif 	/* __IUsgWindowRF_INTERFACE_DEFINED__ */
+
+
+#ifndef __IUsgStreamEnable_INTERFACE_DEFINED__
+#define __IUsgStreamEnable_INTERFACE_DEFINED__
+
+/* interface IUsgStreamEnable */
+/* [unique][helpstring][nonextensible][dual][uuid][object] */ 
+
+
+EXTERN_C const IID IID_IUsgStreamEnable;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+    
+    MIDL_INTERFACE("33857397-F4BB-4B97-9776-39C50736F8BA")
+    IUsgStreamEnable : public IDispatch
+    {
+    public:
+        virtual /* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE get_Enable( 
+            /* [retval][out] */ LONG *pVal) = 0;
+        
+        virtual /* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE put_Enable( 
+            /* [in] */ LONG newVal) = 0;
+        
+    };
+    
+    
+#else 	/* C style interface */
+
+    typedef struct IUsgStreamEnableVtbl
+    {
+        BEGIN_INTERFACE
+        
+        HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+            IUsgStreamEnable * This,
+            /* [in] */ REFIID riid,
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
+        
+        ULONG ( STDMETHODCALLTYPE *AddRef )( 
+            IUsgStreamEnable * This);
+        
+        ULONG ( STDMETHODCALLTYPE *Release )( 
+            IUsgStreamEnable * This);
+        
+        HRESULT ( STDMETHODCALLTYPE *GetTypeInfoCount )( 
+            IUsgStreamEnable * This,
+            /* [out] */ UINT *pctinfo);
+        
+        HRESULT ( STDMETHODCALLTYPE *GetTypeInfo )( 
+            IUsgStreamEnable * This,
+            /* [in] */ UINT iTInfo,
+            /* [in] */ LCID lcid,
+            /* [out] */ ITypeInfo **ppTInfo);
+        
+        HRESULT ( STDMETHODCALLTYPE *GetIDsOfNames )( 
+            IUsgStreamEnable * This,
+            /* [in] */ REFIID riid,
+            /* [size_is][in] */ LPOLESTR *rgszNames,
+            /* [range][in] */ UINT cNames,
+            /* [in] */ LCID lcid,
+            /* [size_is][out] */ DISPID *rgDispId);
+        
+        /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
+            IUsgStreamEnable * This,
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
+        
+        /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Enable )( 
+            IUsgStreamEnable * This,
+            /* [retval][out] */ LONG *pVal);
+        
+        /* [helpstring][id][propput] */ HRESULT ( STDMETHODCALLTYPE *put_Enable )( 
+            IUsgStreamEnable * This,
+            /* [in] */ LONG newVal);
+        
+        END_INTERFACE
+    } IUsgStreamEnableVtbl;
+
+    interface IUsgStreamEnable
+    {
+        CONST_VTBL struct IUsgStreamEnableVtbl *lpVtbl;
+    };
+
+    
+
+#ifdef COBJMACROS
+
+
+#define IUsgStreamEnable_QueryInterface(This,riid,ppvObject)	\
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+
+#define IUsgStreamEnable_AddRef(This)	\
+    ( (This)->lpVtbl -> AddRef(This) ) 
+
+#define IUsgStreamEnable_Release(This)	\
+    ( (This)->lpVtbl -> Release(This) ) 
+
+
+#define IUsgStreamEnable_GetTypeInfoCount(This,pctinfo)	\
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
+
+#define IUsgStreamEnable_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
+
+#define IUsgStreamEnable_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
+
+#define IUsgStreamEnable_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
+
+
+#define IUsgStreamEnable_get_Enable(This,pVal)	\
+    ( (This)->lpVtbl -> get_Enable(This,pVal) ) 
+
+#define IUsgStreamEnable_put_Enable(This,newVal)	\
+    ( (This)->lpVtbl -> put_Enable(This,newVal) ) 
+
+#endif /* COBJMACROS */
+
+
+#endif 	/* C style interface */
+
+
+
+
+#endif 	/* __IUsgStreamEnable_INTERFACE_DEFINED__ */
+
+
+#ifndef __IUsgDataSourceRF_INTERFACE_DEFINED__
+#define __IUsgDataSourceRF_INTERFACE_DEFINED__
+
+/* interface IUsgDataSourceRF */
+/* [unique][helpstring][nonextensible][dual][uuid][object] */ 
+
+
+EXTERN_C const IID IID_IUsgDataSourceRF;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+    
+    MIDL_INTERFACE("3D9B6FC0-2AB7-4CFE-8B04-32D939F80DFE")
+    IUsgDataSourceRF : public IDispatch
+    {
+    public:
+        virtual /* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE get_Current( 
+            /* [retval][out] */ LONG *pVal) = 0;
+        
+        virtual /* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE put_Current( 
+            /* [in] */ LONG newVal) = 0;
+        
+        virtual /* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE get_Values( 
+            /* [retval][out] */ IUsgValues **pVal) = 0;
+        
+    };
+    
+    
+#else 	/* C style interface */
+
+    typedef struct IUsgDataSourceRFVtbl
+    {
+        BEGIN_INTERFACE
+        
+        HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+            IUsgDataSourceRF * This,
+            /* [in] */ REFIID riid,
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
+        
+        ULONG ( STDMETHODCALLTYPE *AddRef )( 
+            IUsgDataSourceRF * This);
+        
+        ULONG ( STDMETHODCALLTYPE *Release )( 
+            IUsgDataSourceRF * This);
+        
+        HRESULT ( STDMETHODCALLTYPE *GetTypeInfoCount )( 
+            IUsgDataSourceRF * This,
+            /* [out] */ UINT *pctinfo);
+        
+        HRESULT ( STDMETHODCALLTYPE *GetTypeInfo )( 
+            IUsgDataSourceRF * This,
+            /* [in] */ UINT iTInfo,
+            /* [in] */ LCID lcid,
+            /* [out] */ ITypeInfo **ppTInfo);
+        
+        HRESULT ( STDMETHODCALLTYPE *GetIDsOfNames )( 
+            IUsgDataSourceRF * This,
+            /* [in] */ REFIID riid,
+            /* [size_is][in] */ LPOLESTR *rgszNames,
+            /* [range][in] */ UINT cNames,
+            /* [in] */ LCID lcid,
+            /* [size_is][out] */ DISPID *rgDispId);
+        
+        /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
+            IUsgDataSourceRF * This,
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
+        
+        /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
+            IUsgDataSourceRF * This,
+            /* [retval][out] */ LONG *pVal);
+        
+        /* [helpstring][id][propput] */ HRESULT ( STDMETHODCALLTYPE *put_Current )( 
+            IUsgDataSourceRF * This,
+            /* [in] */ LONG newVal);
+        
+        /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Values )( 
+            IUsgDataSourceRF * This,
+            /* [retval][out] */ IUsgValues **pVal);
+        
+        END_INTERFACE
+    } IUsgDataSourceRFVtbl;
+
+    interface IUsgDataSourceRF
+    {
+        CONST_VTBL struct IUsgDataSourceRFVtbl *lpVtbl;
+    };
+
+    
+
+#ifdef COBJMACROS
+
+
+#define IUsgDataSourceRF_QueryInterface(This,riid,ppvObject)	\
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+
+#define IUsgDataSourceRF_AddRef(This)	\
+    ( (This)->lpVtbl -> AddRef(This) ) 
+
+#define IUsgDataSourceRF_Release(This)	\
+    ( (This)->lpVtbl -> Release(This) ) 
+
+
+#define IUsgDataSourceRF_GetTypeInfoCount(This,pctinfo)	\
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
+
+#define IUsgDataSourceRF_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
+
+#define IUsgDataSourceRF_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
+
+#define IUsgDataSourceRF_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
+
+
+#define IUsgDataSourceRF_get_Current(This,pVal)	\
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
+
+#define IUsgDataSourceRF_put_Current(This,newVal)	\
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
+
+#define IUsgDataSourceRF_get_Values(This,pVal)	\
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
+
+#endif /* COBJMACROS */
+
+
+#endif 	/* C style interface */
+
+
+
+
+#endif 	/* __IUsgDataSourceRF_INTERFACE_DEFINED__ */
+
+
+#ifndef __IUsgMultiBeam_INTERFACE_DEFINED__
+#define __IUsgMultiBeam_INTERFACE_DEFINED__
+
+/* interface IUsgMultiBeam */
+/* [unique][helpstring][nonextensible][dual][uuid][object] */ 
+
+
+EXTERN_C const IID IID_IUsgMultiBeam;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+    
+    MIDL_INTERFACE("5431298D-7FDF-439F-9D23-1DAFDE059F19")
+    IUsgMultiBeam : public IDispatch
+    {
+    public:
+        virtual /* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE get_Current( 
+            /* [retval][out] */ LONG *pVal) = 0;
+        
+        virtual /* [helpstring][id][propput] */ HRESULT STDMETHODCALLTYPE put_Current( 
+            /* [in] */ LONG newVal) = 0;
+        
+        virtual /* [helpstring][id][propget] */ HRESULT STDMETHODCALLTYPE get_Values( 
+            /* [retval][out] */ IUsgValues **pVal) = 0;
+        
+    };
+    
+    
+#else 	/* C style interface */
+
+    typedef struct IUsgMultiBeamVtbl
+    {
+        BEGIN_INTERFACE
+        
+        HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+            IUsgMultiBeam * This,
+            /* [in] */ REFIID riid,
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
+        
+        ULONG ( STDMETHODCALLTYPE *AddRef )( 
+            IUsgMultiBeam * This);
+        
+        ULONG ( STDMETHODCALLTYPE *Release )( 
+            IUsgMultiBeam * This);
+        
+        HRESULT ( STDMETHODCALLTYPE *GetTypeInfoCount )( 
+            IUsgMultiBeam * This,
+            /* [out] */ UINT *pctinfo);
+        
+        HRESULT ( STDMETHODCALLTYPE *GetTypeInfo )( 
+            IUsgMultiBeam * This,
+            /* [in] */ UINT iTInfo,
+            /* [in] */ LCID lcid,
+            /* [out] */ ITypeInfo **ppTInfo);
+        
+        HRESULT ( STDMETHODCALLTYPE *GetIDsOfNames )( 
+            IUsgMultiBeam * This,
+            /* [in] */ REFIID riid,
+            /* [size_is][in] */ LPOLESTR *rgszNames,
+            /* [range][in] */ UINT cNames,
+            /* [in] */ LCID lcid,
+            /* [size_is][out] */ DISPID *rgDispId);
+        
+        /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
+            IUsgMultiBeam * This,
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
+        
+        /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Current )( 
+            IUsgMultiBeam * This,
+            /* [retval][out] */ LONG *pVal);
+        
+        /* [helpstring][id][propput] */ HRESULT ( STDMETHODCALLTYPE *put_Current )( 
+            IUsgMultiBeam * This,
+            /* [in] */ LONG newVal);
+        
+        /* [helpstring][id][propget] */ HRESULT ( STDMETHODCALLTYPE *get_Values )( 
+            IUsgMultiBeam * This,
+            /* [retval][out] */ IUsgValues **pVal);
+        
+        END_INTERFACE
+    } IUsgMultiBeamVtbl;
+
+    interface IUsgMultiBeam
+    {
+        CONST_VTBL struct IUsgMultiBeamVtbl *lpVtbl;
+    };
+
+    
+
+#ifdef COBJMACROS
+
+
+#define IUsgMultiBeam_QueryInterface(This,riid,ppvObject)	\
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+
+#define IUsgMultiBeam_AddRef(This)	\
+    ( (This)->lpVtbl -> AddRef(This) ) 
+
+#define IUsgMultiBeam_Release(This)	\
+    ( (This)->lpVtbl -> Release(This) ) 
+
+
+#define IUsgMultiBeam_GetTypeInfoCount(This,pctinfo)	\
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
+
+#define IUsgMultiBeam_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
+
+#define IUsgMultiBeam_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
+
+#define IUsgMultiBeam_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
+
+
+#define IUsgMultiBeam_get_Current(This,pVal)	\
+    ( (This)->lpVtbl -> get_Current(This,pVal) ) 
+
+#define IUsgMultiBeam_put_Current(This,newVal)	\
+    ( (This)->lpVtbl -> put_Current(This,newVal) ) 
+
+#define IUsgMultiBeam_get_Values(This,pVal)	\
+    ( (This)->lpVtbl -> get_Values(This,pVal) ) 
+
+#endif /* COBJMACROS */
+
+
+#endif 	/* C style interface */
+
+
+
+
+#endif 	/* __IUsgMultiBeam_INTERFACE_DEFINED__ */
 
 
 
@@ -18757,6 +16043,12 @@ void __RPC_STUB IUsgUnits_GetValues_Stub(
 
 
 
+
+
+
+
+
+
 /* [uuid] */ struct  DECLSPEC_UUID("52EA1133-C021-4c4a-8B32-C142447788DA") USG_UNIT_RANGE
     {
     /* [helpstring] */ UNIT_BASE UnitBase;
@@ -18765,180 +16057,216 @@ void __RPC_STUB IUsgUnits_GetValues_Stub(
     } ;
 typedef /* [v1_enum] */ 
 enum tagUsgMixingBitmapFlags
-    {	UsgMixingBitmap_Disable	= 0x1,
-	UsgMixingBitmap_hDC	= 0x2,
-	UsgMixingBitmap_hBitmap	= 0x4,
-	UsgMixingBitmap_SrcColorKey	= 0x8,
-	UsgMixingBitmap_SrcRect	= 0x10,
-	UsgMixingBitmap_FilterMode	= 0x20,
-	UsgMixingBitmap_MixBitmap	= 0x10000000,
-	UsgMixingBitmap_SplashBitmap	= 0x20000000
+    {
+        UsgMixingBitmap_Disable	= 0x1,
+        UsgMixingBitmap_hDC	= 0x2,
+        UsgMixingBitmap_hBitmap	= 0x4,
+        UsgMixingBitmap_SrcColorKey	= 0x8,
+        UsgMixingBitmap_SrcRect	= 0x10,
+        UsgMixingBitmap_FilterMode	= 0x20,
+        UsgMixingBitmap_SrcPerPixelAlpha	= 0x40,
+        UsgMixingBitmap_MixBitmap	= 0x10000000,
+        UsgMixingBitmap_SplashBitmap	= 0x20000000
     } 	UsgMixingBitmapFlags;
 
 typedef /* [v1_enum] */ 
 enum tagScanMode
-    {	SCAN_MODE_UNKNOWN	= 0,
-	SCAN_MODE_B	= 1,
-	SCAN_MODE_M	= 2,
-	SCAN_MODE_A	= 3,
-	SCAN_MODE_PW	= 4,
-	SCAN_MODE_BM	= 5,
-	SCAN_MODE_BA	= 6,
-	SCAN_MODE_BPW	= 7,
-	SCAN_MODE_CFM	= 8,
-	SCAN_MODE_BCFM	= 9,
-	SCAN_MODE_BCFM_PW	= 10,
-	SCAN_MODE_PDI	= 11,
-	SCAN_MODE_BPDI	= 12,
-	SCAN_MODE_BPDI_PW	= 13,
-	SCAN_MODE_DPDI	= 14,
-	SCAN_MODE_BDPDI	= 15,
-	SCAN_MODE_BDPDI_PW	= 16,
-	SCAN_MODE_B2	= 17,
-	SCAN_MODE_PWAUDIO	= 18,
-	SCAN_MODE_3D	= 19,
-	SCAN_MODES_CUSTOM	= 1000
+    {
+        SCAN_MODE_UNKNOWN	= 0,
+        SCAN_MODE_B	= 1,
+        SCAN_MODE_M	= 2,
+        SCAN_MODE_A	= 3,
+        SCAN_MODE_PW	= 4,
+        SCAN_MODE_BM	= 5,
+        SCAN_MODE_BA	= 6,
+        SCAN_MODE_BPW	= 7,
+        SCAN_MODE_CFM	= 8,
+        SCAN_MODE_BCFM	= 9,
+        SCAN_MODE_BCFM_PW	= 10,
+        SCAN_MODE_PDI	= 11,
+        SCAN_MODE_BPDI	= 12,
+        SCAN_MODE_BPDI_PW	= 13,
+        SCAN_MODE_DPDI	= 14,
+        SCAN_MODE_BDPDI	= 15,
+        SCAN_MODE_BDPDI_PW	= 16,
+        SCAN_MODE_B2	= 17,
+        SCAN_MODE_PWAUDIO	= 18,
+        SCAN_MODE_3D	= 19,
+        SCAN_MODE_CW	= 20,
+        SCAN_MODE_CM	= 21,
+        SCAN_MODE_BM_CM	= 22,
+        SCAN_MODE_M_CM	= 23,
+        SCAN_MODE_RFB	= 24,
+        SCAN_MODES_CUSTOM	= 1000
     } 	SCAN_MODE;
 
 typedef /* [v1_enum] */ 
 enum tagImageEnhancement
-    {	IMAGE_ENHANC_SHARPEN	= 1,
-	IMAGE_ENHANC_SHARPENMORE	= 2,
-	IMAGE_ENHANC_SMOOTH	= 3,
-	IMAGE_ENHANC_SMOOTHMORE	= 4
+    {
+        IMAGE_ENHANC_SHARPEN	= 1,
+        IMAGE_ENHANC_SHARPENMORE	= 2,
+        IMAGE_ENHANC_SMOOTH	= 3,
+        IMAGE_ENHANC_SMOOTHMORE	= 4
     } 	IMAGE_ENHANCEMENT;
 
 typedef /* [v1_enum] */ 
 enum tagClearView
-    {	SRF_CV1	= 1,
-	SRF_CV2	= 2,
-	SRF_CV3	= 3,
-	SRF_CV4	= 4,
-	SRF_CV5	= 5,
-	SRF_CV6	= 6,
-	SRF_CV7	= 7,
-	SRF_CV8	= 8,
-	SRF_CV9	= 9,
-	SRF_CV10	= 10,
-	SRF_CV11	= 11,
-	SRF_CV12	= 12,
-	SRF_CV13	= 13,
-	SRF_CV14	= 14,
-	SRF_CV15	= 15,
-	SRF_CV16	= 16,
-	SRF_PV1	= 101,
-	SRF_PV2	= 102,
-	SRF_PV3	= 103,
-	SRF_PV4	= 104,
-	SRF_PV5	= 105,
-	SRF_PV6	= 106,
-	SRF_PV7	= 107,
-	SRF_PV8	= 108,
-	SRF_PV9	= 109,
-	SRF_PV10	= 110,
-	SRF_PV11	= 111,
-	SRF_PV12	= 112,
-	SRF_PV13	= 113,
-	SRF_PV14	= 114,
-	SRF_PV15	= 115,
-	SRF_PV16	= 116,
-	SRF_NV1	= 201,
-	SRF_NV2	= 202,
-	SRF_NV3	= 203,
-	SRF_NV4	= 204,
-	SRF_NV5	= 205,
-	SRF_NV6	= 206,
-	SRF_NV7	= 207,
-	SRF_NV8	= 208,
-	SRF_NV9	= 209,
-	SRF_NV10	= 210,
-	SRF_NV11	= 211,
-	SRF_NV12	= 212,
-	SRF_NV13	= 213,
-	SRF_NV14	= 214,
-	SRF_NV15	= 215,
-	SRF_NV16	= 216,
-	SRF_NVC1	= 301,
-	SRF_NVC2	= 302,
-	SRF_NVC3	= 303,
-	SRF_NVC4	= 304,
-	SRF_NVC5	= 305,
-	SRF_NVC6	= 306,
-	SRF_NVC7	= 307,
-	SRF_NVC8	= 308,
-	SRF_NVC9	= 309,
-	SRF_NVC10	= 310,
-	SRF_NVC11	= 311,
-	SRF_NVC12	= 312,
-	SRF_NVC13	= 313,
-	SRF_NVC14	= 314,
-	SRF_NVC15	= 315,
-	SRF_NVC16	= 316,
-	SRF_QV1	= 401,
-	SRF_QV2	= 402,
-	SRF_QV3	= 403,
-	SRF_QV4	= 404,
-	SRF_QV5	= 405,
-	SRF_QV6	= 406,
-	SRF_QV7	= 407,
-	SRF_QV8	= 408,
-	SRF_QV9	= 409,
-	SRF_QV10	= 410,
-	SRF_QV11	= 411,
-	SRF_QV12	= 412,
-	SRF_QV13	= 413,
-	SRF_QV14	= 414,
-	SRF_QV15	= 415,
-	SRF_QV16	= 416
+    {
+        SRF_CV1	= 1,
+        SRF_CV2	= 2,
+        SRF_CV3	= 3,
+        SRF_CV4	= 4,
+        SRF_CV5	= 5,
+        SRF_CV6	= 6,
+        SRF_CV7	= 7,
+        SRF_CV8	= 8,
+        SRF_CV9	= 9,
+        SRF_CV10	= 10,
+        SRF_CV11	= 11,
+        SRF_CV12	= 12,
+        SRF_CV13	= 13,
+        SRF_CV14	= 14,
+        SRF_CV15	= 15,
+        SRF_CV16	= 16,
+        SRF_PV1	= 101,
+        SRF_PV2	= 102,
+        SRF_PV3	= 103,
+        SRF_PV4	= 104,
+        SRF_PV5	= 105,
+        SRF_PV6	= 106,
+        SRF_PV7	= 107,
+        SRF_PV8	= 108,
+        SRF_PV9	= 109,
+        SRF_PV10	= 110,
+        SRF_PV11	= 111,
+        SRF_PV12	= 112,
+        SRF_PV13	= 113,
+        SRF_PV14	= 114,
+        SRF_PV15	= 115,
+        SRF_PV16	= 116,
+        SRF_NV1	= 201,
+        SRF_NV2	= 202,
+        SRF_NV3	= 203,
+        SRF_NV4	= 204,
+        SRF_NV5	= 205,
+        SRF_NV6	= 206,
+        SRF_NV7	= 207,
+        SRF_NV8	= 208,
+        SRF_NV9	= 209,
+        SRF_NV10	= 210,
+        SRF_NV11	= 211,
+        SRF_NV12	= 212,
+        SRF_NV13	= 213,
+        SRF_NV14	= 214,
+        SRF_NV15	= 215,
+        SRF_NV16	= 216,
+        SRF_NVC1	= 301,
+        SRF_NVC2	= 302,
+        SRF_NVC3	= 303,
+        SRF_NVC4	= 304,
+        SRF_NVC5	= 305,
+        SRF_NVC6	= 306,
+        SRF_NVC7	= 307,
+        SRF_NVC8	= 308,
+        SRF_NVC9	= 309,
+        SRF_NVC10	= 310,
+        SRF_NVC11	= 311,
+        SRF_NVC12	= 312,
+        SRF_NVC13	= 313,
+        SRF_NVC14	= 314,
+        SRF_NVC15	= 315,
+        SRF_NVC16	= 316,
+        SRF_QV1	= 401,
+        SRF_QV2	= 402,
+        SRF_QV3	= 403,
+        SRF_QV4	= 404,
+        SRF_QV5	= 405,
+        SRF_QV6	= 406,
+        SRF_QV7	= 407,
+        SRF_QV8	= 408,
+        SRF_QV9	= 409,
+        SRF_QV10	= 410,
+        SRF_QV11	= 411,
+        SRF_QV12	= 412,
+        SRF_QV13	= 413,
+        SRF_QV14	= 414,
+        SRF_QV15	= 415,
+        SRF_QV16	= 416,
+        SRF_NVO1	= 501,
+        SRF_NVO2	= 502,
+        SRF_NVO3	= 503,
+        SRF_NVO4	= 504,
+        SRF_NVO5	= 505,
+        SRF_NVO6	= 506,
+        SRF_NVO7	= 507,
+        SRF_NVO8	= 508,
+        SRF_NVO9	= 509,
+        SRF_NVO10	= 510,
+        SRF_NVO11	= 511,
+        SRF_NVO12	= 512,
+        SRF_NVO13	= 513,
+        SRF_NVO14	= 514,
+        SRF_NVO15	= 515,
+        SRF_NVO16	= 516
     } 	CLEAR_VIEW;
 
 typedef /* [v1_enum] */ 
 enum tagLineDensity
-    {	LINE_DENSITY_LOW	= 8,
-	LINE_DENSITY_MEDIUM	= 16,
-	LINE_DENSITY_STANDARD	= 24,
-	LINE_DENSITY_HIGH	= 32
+    {
+        LINE_DENSITY_LOW	= 8,
+        LINE_DENSITY_MEDIUM	= 16,
+        LINE_DENSITY_STANDARD	= 24,
+        LINE_DENSITY_HIGH	= 32
     } 	LINE_DENSITY;
 
 typedef /* [v1_enum] */ 
 enum tagFocusMode
-    {	FOCUS_MODE_MULTI	= 1,
-	FOCUS_MODE_DYNAMIC	= 2
+    {
+        FOCUS_MODE_MULTI	= 1,
+        FOCUS_MODE_DYNAMIC	= 2
     } 	FOCUS_MODE;
 
 typedef /* [v1_enum] */ 
 enum tagFileCreateFlags
-    {	FCF_OPEN	= 0,
-	FCF_CREATE	= 1,
-	FCF_RECREATE	= 2
+    {
+        FCF_OPEN	= 0,
+        FCF_CREATE	= 1,
+        FCF_RECREATE	= 2
     } 	FILE_CREATE_FLAGS;
 
 typedef /* [v1_enum] */ 
 enum tagFileSaveFlags
-    {	FSF_ALL	= 0,
-	FSF_CUSTOM_DATA_ONLY	= 1,
-	FSF_RAW_DATA_ONLY	= 2
+    {
+        FSF_ALL	= 0,
+        FSF_CUSTOM_DATA_ONLY	= 1,
+        FSF_RAW_DATA_ONLY	= 2
     } 	FILE_SAVE_FLAGS;
 
 typedef /* [v1_enum] */ 
 enum tagTgcControlMode
-    {	TGC_CTRLMODE_DEPTHFIXED	= 1,
-	TGC_CTRLMODE_IMAGEFIXED	= 2
+    {
+        TGC_CTRLMODE_DEPTHFIXED	= 1,
+        TGC_CTRLMODE_IMAGEFIXED	= 2
     } 	TGC_CTRLMODE;
 
 typedef /* [v1_enum] */ 
 enum tagScanType
-    {	SCAN_TYPE_UNKNOWN	= 0,
-	SCAN_TYPE_NORMAL	= 1,
-	SCAN_TYPE_VIRTUALCONVEX	= 2,
-	SCAN_TYPE_COMPOUND	= 3
+    {
+        SCAN_TYPE_UNKNOWN	= 0,
+        SCAN_TYPE_NORMAL	= 1,
+        SCAN_TYPE_VIRTUALCONVEX	= 2,
+        SCAN_TYPE_COMPOUND	= 3,
+        SCAN_TYPE_COMPOUND_SLOPLEFT	= 4,
+        SCAN_TYPE_COMPOUND_SLOPRIGHT	= 5
     } 	SCAN_TYPE;
 
 typedef /* [v1_enum] */ 
 enum tagScanModeCaps
-    {	MODECAPS_ScanType_Steering	= 0,
-	MODECAPS_ScanType_Compound	= 1,
-	MODECAPS_ScanType_VirtualConvex	= 2
+    {
+        MODECAPS_ScanType_Steering	= 0,
+        MODECAPS_ScanType_Compound	= 1,
+        MODECAPS_ScanType_VirtualConvex	= 2,
+        MODECAPS_ScanType_CompoundSlop	= 3
     } 	SCAN_MODE_CAPS;
 
 

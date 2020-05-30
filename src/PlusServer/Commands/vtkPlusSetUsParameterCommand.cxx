@@ -200,6 +200,7 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
     }
     else if (parameterName == vtkPlusUsImagingParameters::KEY_FREQUENCY
              || parameterName == vtkPlusUsImagingParameters::KEY_DEPTH
+             || parameterName == vtkPlusUsImagingParameters::KEY_FOCUS_DEPTH
              || parameterName == vtkPlusUsImagingParameters::KEY_SECTOR
              || parameterName == vtkPlusUsImagingParameters::KEY_GAIN
              || parameterName == vtkPlusUsImagingParameters::KEY_INTENSITY
