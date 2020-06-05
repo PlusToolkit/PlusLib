@@ -18,7 +18,7 @@ vtkStandardNewMacro(vtkPlusUsImagingParameters);
 const char* vtkPlusUsImagingParameters::XML_ELEMENT_TAG   = "UsImagingParameters";
 const char* vtkPlusUsImagingParameters::KEY_CONTRAST      = "Contrast";
 const char* vtkPlusUsImagingParameters::KEY_DEPTH         = "DepthMm";
-const char* vtkPlusUsImagingParameters::KEY_FOCUS_DEPTH   = "FocusDepth";
+const char* vtkPlusUsImagingParameters::KEY_FOCUS_DEPTH   = "FocusDepthPercent";
 const char* vtkPlusUsImagingParameters::KEY_DYNRANGE      = "DynRangeDb";
 const char* vtkPlusUsImagingParameters::KEY_FREQUENCY     = "FrequencyMhz";
 const char* vtkPlusUsImagingParameters::KEY_GAIN          = "GainPercent";
@@ -98,19 +98,19 @@ double vtkPlusUsImagingParameters::GetDepthMm() const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUsImagingParameters::SetFocusDepth(double aFocusDepth)
+PlusStatus vtkPlusUsImagingParameters::SetFocusDepthPercent(double aFocusDepthPercent)
 {
-  return this->SetValue<double>(KEY_FOCUS_DEPTH, aFocusDepth);
+  return this->SetValue<double>(KEY_FOCUS_DEPTH, aFocusDepthPercent);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUsImagingParameters::GetFocusDepth(double& aFocusDepth) const
+PlusStatus vtkPlusUsImagingParameters::GetFocusDepthPercent(double& aFocusDepthPercent) const
 {
-  return this->GetValue<double>(KEY_FOCUS_DEPTH, aFocusDepth);
+  return this->GetValue<double>(KEY_FOCUS_DEPTH, aFocusDepthPercent);
 }
 
 //----------------------------------------------------------------------------
-double vtkPlusUsImagingParameters::GetFocusDepth() const
+double vtkPlusUsImagingParameters::GetFocusDepthPercent() const
 {
   double aValue;
   this->GetValue<double>(KEY_FOCUS_DEPTH, aValue);

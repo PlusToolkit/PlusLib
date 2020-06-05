@@ -75,10 +75,10 @@ public:
   /*! Get the imaging power of B-mode ultrasound as percentage of maximum power (valid range: -20 to 0) */
   PlusStatus GetPowerDb(double& aPowerDb);
 
-  /*! Set the focus depth of B-mode ultrasound normalized to [0,1] */
-  PlusStatus SetFocusDepth(double aFocusDepth);
-  /*! Get the focus depth of B-mode ultrasound normalized to [0,1] */
-  PlusStatus GetFocusDepth(double& aFocusDepth);
+  /*! Set the focus depth of B-mode ultrasound normalized to [0,100] (percent) */
+  PlusStatus SetFocusDepthPercent(double aFocusDepthPercent);
+  /*! Get the focus depth of B-mode ultrasound normalized to [0,100] (percnet) */
+  PlusStatus GetFocusDepthPercent(double& aFocusDepthPercent);
 
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
@@ -117,7 +117,7 @@ protected:
   double GainPercent;
   double DynRangeDb;
   double PowerDb;
-  double FocusDepth;
+  double FocusDepthPercent;
 
 private:
   vtkImageImport* importer;

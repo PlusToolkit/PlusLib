@@ -44,8 +44,8 @@ public:
   PlusStatus SetPowerDb(double powerDb);
   PlusStatus GetPowerDb(double& powerDb);
 
-  PlusStatus SetFocusDepth(double focusDepth);
-  PlusStatus GetFocusDepth(double& focusDepth);
+  PlusStatus SetFocusDepthPercent(double focusDepthPercent);
+  PlusStatus GetFocusDepthPercent(double& focusDepthPercent);
 
   PlusStatus SetDynRangeDb(double dynRangeDb);
   PlusStatus GetDynRangeDb(double& dynRangeDb);
