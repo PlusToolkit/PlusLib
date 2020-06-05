@@ -1155,11 +1155,13 @@ PlusStatus TelemedUltrasound::GetPowerDb(double& powerDb)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus TelemedUltrasound::SetFocusDepth(double focusDepth)
+PlusStatus TelemedUltrasound::SetFocusDepthPercent(double focusDepthPercent)
 {
+  double focusDepth = focusDepthPercent / 100;
+
   if (m_b_focus_ctrl == NULL)
   {
-    LOG_ERROR("TelemedUltrasound::SetFocusDepth failed: not connected to hardware interface");
+    LOG_ERROR("TelemedUltrasound::SetFocusDepthPercent failed: not connected to hardware interface");
     return PLUS_FAIL;
   }
   int focus_mode = FOCUS_MODE_MULTI;
@@ -1184,11 +1186,11 @@ PlusStatus TelemedUltrasound::SetFocusDepth(double focusDepth)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus TelemedUltrasound::GetFocusDepth(double& focusDepth)
+PlusStatus TelemedUltrasound::GetFocusDepthPercent(double& focusDepthPercent)
 {
   if (m_b_focus_ctrl == NULL)
   {
-    LOG_ERROR("TelemedUltrasound::GetFocusDepth failed: not connected to hardware interface");
+    LOG_ERROR("TelemedUltrasound::GetFocusDepthPercent failed: not connected to hardware interface");
     return PLUS_FAIL;
   }
   LONG focus_mode;
@@ -1199,6 +1201,7 @@ PlusStatus TelemedUltrasound::GetFocusDepth(double& focusDepth)
   m_b_focus_ctrl->GetFocalZonesCount(focus_mode, focus_set, &focal_zones_count);
 
   LONG* arr;
+  double focusDepth = 0;
   arr = new LONG[focal_zones_count];
   m_b_focus_ctrl->GetFocusState(focus_mode, focus_set, focal_zones_count, arr);
   for (int i = 0; i < focal_zones_count; i++)
@@ -1209,6 +1212,7 @@ PlusStatus TelemedUltrasound::GetFocusDepth(double& focusDepth)
       break;
     }
   }
+  focusDepthPercent = focusDepth * 100;
   return PLUS_SUCCESS;
 }
 

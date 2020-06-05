@@ -24,7 +24,7 @@ This class exists mainly for two reasons:
 Currently contains the following items
 * FrequencyMhz
 * DepthMm
-* FocusDepth (normalized [0,1])
+* FocusDepthPercent (normalized [0,100])
 * SectorPercent
 * GainPercent
 * TGC [initialgain, midgain, fargain]
@@ -174,10 +174,10 @@ public:
   double GetDepthMm() const;
 
   /*! Set the focus depth (normalized [0,1]) of B-mode ultrasound */
-  PlusStatus SetFocusDepth(double aFocusDepth);
+  PlusStatus SetFocusDepthPercent(double aFocusDepthPercent);
   /*! Get the focus depth (normalized [0,1]) of B-mode ultrasound */
-  PlusStatus GetFocusDepth(double& aFocusDepth) const;
-  double GetFocusDepth() const;
+  PlusStatus GetFocusDepthPercent(double& aFocusDepthPercent) const;
+  double GetFocusDepthPercent() const;
 
   /*! Set the Gain (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus SetGainPercent(double aGainPercent);
