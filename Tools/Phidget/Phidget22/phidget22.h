@@ -18,7 +18,10 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-#include <stdarg.h>/*
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdlib.h>
+/*
  * This file is part of libphidget22
  *
  * Copyright 2015 Phidgets Inc <patrick@phidgets.com>
@@ -58,6 +61,8 @@ extern "C" {
 #define PFALSE		0x00	/* False. Used for boolean values. */
 #define PTRUE		0x01	/* True. Used for boolean values. */
 
+#define PRIphid "P"			/* mos_printf format string for printing a PhidgetHandle */
+
 #endif /* _PHIDGET_CONSTANTS_H_ */
 #ifndef _PHIDGETCONSTANTS_GEN_H_
 #define _PHIDGETCONSTANTS_GEN_H_
@@ -67,7 +72,7 @@ extern "C" {
 #define PHIDGET_CHANNEL_ANY -1	// Pass to ${METHOD:setChannel} to open any channel.
 #define PHIDGET_LABEL_ANY NULL	// Pass to ${METHOD:setDeviceLabel} to open any label.
 #define PHIDGET_TIMEOUT_INFINITE 0x0	// Pass to ${METHOD:openWaitForAttachment} for an infinite timeout.
-#define PHIDGET_TIMEOUT_DEFAULT 0x1f4	// Pass to ${METHOD:openWaitForAttachment} for the default timeout.
+#define PHIDGET_TIMEOUT_DEFAULT 0x3e8	// Pass to ${METHOD:openWaitForAttachment} for the default timeout.
 #define PHIDGETSERVER_AUTHREQUIRED 0x1	// PhidgetServer flag indicating that the server requires a password to authenticate
 #define IR_RAWDATA_LONGSPACE 0xffffffff	// The value for a long space in raw data
 #define IR_MAX_CODE_BIT_COUNT 0x80	// Maximum bit count for sent / received data
@@ -94,6 +99,16 @@ extern "C" {
  * License along with this library; if not, see
  * <http://www.gnu.org/licenses/>
  */
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -393,22 +408,12 @@ extern "C" {
 
 
 
-
-
-
-
-
 typedef enum {
-	ENCODER_IO_MODE_PUSH_PULL = 0x1,
-	 	/* No additional pull-up or pull-down resistors will be applied to the input lines. */
-	ENCODER_IO_MODE_LINE_DRIVER_2K2 = 0x2,
-	 	/* 2.2kÎ© pull-down resistors will be applied to the input lines. */
-	ENCODER_IO_MODE_LINE_DRIVER_10K = 0x3,
-	 	/* 10kÎ© pull-down resistors will be applied to the input lines. */
-	ENCODER_IO_MODE_OPEN_COLLECTOR_2K2 = 0x4,
-	 	/* 2.2kÎ© pull-up resistors will be applied to the input lines. */
-	ENCODER_IO_MODE_OPEN_COLLECTOR_10K = 0x5,
-	 	/* 10kÎ© pull-up resistors will be applied to the input lines. */
+	ENCODER_IO_MODE_PUSH_PULL = 0x1,	/* Push-Pull */
+	ENCODER_IO_MODE_LINE_DRIVER_2K2 = 0x2,	/* Line Driver 2.2K */
+	ENCODER_IO_MODE_LINE_DRIVER_10K = 0x3,	/* Line Driver 10K */
+	ENCODER_IO_MODE_OPEN_COLLECTOR_2K2 = 0x4,	/* Open Collector 2.2K */
+	ENCODER_IO_MODE_OPEN_COLLECTOR_10K = 0x5,	/* Open Collector 10K */
 } Phidget_EncoderIOMode;
 
 typedef enum {
@@ -436,7 +441,7 @@ typedef enum {
 	EPHIDGET_UNSUPPORTED = 0x14,	/* Operation Not Supported */
 	EPHIDGET_INVALIDARG = 0x15,	/* Invalid Argument */
 	EPHIDGET_AGAIN = 0x16,	/* Try again */
-	EPHIDGET_EOF = 0x1f,	/* End of File */
+	EPHIDGET_NOTEMPTY = 0x1a,	/* Not Empty */
 	EPHIDGET_UNEXPECTED = 0x1c,	/* Unexpected Error */
 	EPHIDGET_DUPLICATE = 0x1b,	/* Duplicate */
 	EPHIDGET_BADPASSWORD = 0x25,	/* Bad Credential */
@@ -455,27 +460,30 @@ typedef enum {
 	EPHIDGET_BADVERSION = 0x37,	/* Bad Version */
 	EPHIDGET_CLOSED = 0x38,	/* Closed */
 	EPHIDGET_NOTCONFIGURED = 0x39,	/* Not Configured */
+	EPHIDGET_EOF = 0x1f,	/* End of File */
+	EPHIDGET_FAILSAFE = 0x3b,	/* Failsafe Triggered */
 } PhidgetReturnCode;
 
 typedef enum {
-	EEPHIDGET_BADVERSION = 0x1,	/* Client and Server protocol versions don't match. */
-	EEPHIDGET_BUSY = 0x2,	/* Phidget is in use. */
-	EEPHIDGET_NETWORK = 0x3,	/* Networking communication error. */
-	EEPHIDGET_DISPATCH = 0x4,	/* An error occured dispatching a command or event. */
-	EEPHIDGET_OK = 0x1000,	/* An error state has cleared. */
-	EEPHIDGET_OVERRUN = 0x1002,	/* A sampling overrun happened in firmware. */
-	EEPHIDGET_PACKETLOST = 0x1003,	/* One or more packets were lost. */
-	EEPHIDGET_WRAP = 0x1004,	/* A variable has wrapped around. */
-	EEPHIDGET_OVERTEMP = 0x1005,	/* Over-temperature condition detected. */
-	EEPHIDGET_OVERCURRENT = 0x1006,	/* Over-current condition detected. */
-	EEPHIDGET_OUTOFRANGE = 0x1007,	/* Out of range condition detected. */
-	EEPHIDGET_BADPOWER = 0x1008,	/* Power supply problem detected. */
-	EEPHIDGET_SATURATION = 0x1009,	/* Saturation condition detected. */
-	EEPHIDGET_OVERVOLTAGE = 0x100b,	/* Over-voltage condition detected. */
-	EEPHIDGET_FAILSAFE = 0x100c,	/* Fail-safe condition detected. */
-	EEPHIDGET_VOLTAGEERROR = 0x100d,	/* Voltage error detected. */
-	EEPHIDGET_ENERGYDUMP = 0x100e,	/* Energy dump condition detected. */
-	EEPHIDGET_MOTORSTALL = 0x100f,	/* Motor stall detected. */
+	EEPHIDGET_BADVERSION = 0x1,	/* Version Mismatch */
+	EEPHIDGET_BUSY = 0x2,	/* Phidget in Use */
+	EEPHIDGET_NETWORK = 0x3,	/* Network Error */
+	EEPHIDGET_DISPATCH = 0x4,	/* Dispatch Error */
+	EEPHIDGET_FAILURE = 0x5,	/* General Failure */
+	EEPHIDGET_OK = 0x1000,	/* Error Cleared */
+	EEPHIDGET_OVERRUN = 0x1002,	/* Sample Overrun */
+	EEPHIDGET_PACKETLOST = 0x1003,	/* Packet Lost */
+	EEPHIDGET_WRAP = 0x1004,	/* Wrap-Around */
+	EEPHIDGET_OVERTEMP = 0x1005,	/* Over-Temperature */
+	EEPHIDGET_OVERCURRENT = 0x1006,	/* Over-Current */
+	EEPHIDGET_OUTOFRANGE = 0x1007,	/* Out of Range */
+	EEPHIDGET_BADPOWER = 0x1008,	/* Bad Power */
+	EEPHIDGET_SATURATION = 0x1009,	/* Saturation */
+	EEPHIDGET_OVERVOLTAGE = 0x100b,	/* Over-Voltage */
+	EEPHIDGET_FAILSAFE = 0x100c,	/* Failsafe */
+	EEPHIDGET_VOLTAGEERROR = 0x100d,	/* Voltage Error */
+	EEPHIDGET_ENERGYDUMP = 0x100e,	/* Energy Dump */
+	EEPHIDGET_MOTORSTALL = 0x100f,	/* Motor Stall */
 } Phidget_ErrorEventCode;
 
 typedef enum {
@@ -545,11 +553,11 @@ typedef enum {
 	PHIDID_HIN1000 = 0x3d,	/* Capacitive Touch Sensor */
 	PHIDID_HIN1001 = 0x3e,	/* Capacitive Scroll */
 	PHIDID_HIN1100 = 0x3f,	/* Joystick */
-	PHIDID_HUB0000 = 0x40,	/* Phidget Hub with 6 ports */
+	PHIDID_HUB0000 = 0x40,	/* Phidget USB VINT Hub with 6 ports */
 	PHIDID_HUB0001 = 0x41,	/* Phidget Mesh Hub with 4 ports */
 	PHIDID_HUB0002 = 0x42,	/* Phidget Mesh Dongle */
 	PHIDID_HUB0004 = 0x43,	/* Phidget SPI VINT Hub with 6 ports */
-	PHIDID_HUB0005 = 0x44,	/* Phidget Lightning Hub with 6 ports */
+	PHIDID_HUB0005 = 0x44,	/* Phidget Lightning VINT Hub with 6 ports */
 	PHIDID_HUM1000 = 0x45,	/* Humidity Sensor */
 	PHIDID_LCD1100 = 0x46,	/* LCD */
 	PHIDID_LED1000 = 0x47,	/* LED Driver 32 */
@@ -587,16 +595,31 @@ typedef enum {
 	PHIDID_FIRMWARE_UPGRADE_STM8S = 0x67,	/* VINT Device in firmware upgrade mode, STM8S Proc. */
 	PHIDID_FIRMWARE_UPGRADE_SPI = 0x68,	/* Phidget SPI device under firmware upgrade */
 	PHIDID_VCP1100 = 0x69,	/* 30A Current Sensor */
-	PHIDID_VINTSERVO_S2313M = 0x6a,	/* Single Servo S2313M */
 	PHIDID_DCC1100 = 0x6c,	/* BLDC Motor Controller */
 	PHIDID_HIN1101 = 0x6d,	/* Dial Encoder */
 	PHIDID_DCC1001 = 0x6e,	/* Small DC Motor Controller */
 	PHIDID_DICTIONARY = 0x6f,	/* Dictionary */
-	PHIDID_VINTSERVO_S3317M = 0x70,	/* Single Servo S3317M */
-	PHIDID_VINTSERVO_S4309M = 0x71,	/* Single Servo S4309M */
-	PHIDID_VINTSERVO_S4309R = 0x72,	/* Single Servo S4309R (Continuous Rotation) */
 	PHIDID_STC1001 = 0x73,	/* Bipolar Stepper Motor SmallController */
 	PHIDID_USBSWITCH = 0x74,	/* OS Testing Fixture */
+	PHIDID_DCC1002 = 0x75,	/* 4A Small DC Motor Controller */
+	PHIDID_STC1002 = 0x76,	/* 8A Bipolar Stepper Motor Controller */
+	PHIDID_STC1003 = 0x77,	/* 4A Bipolar Stepper Motor SmallController */
+	PHIDID_DCC1003 = 0x78,	/* 2 Channel DC Motor Controller */
+	PHIDID_DST1001 = 0x79,	/* 650mm distance sensor */
+	PHIDID_CURLOOP = 0x7a,	/* 4-20mA Output */
+	PHIDID_HUB5000 = 0x7b,	/* Phidget Network Hub with 6 ports */
+	PHIDID_RCC0004 = 0x7c,	/* PhidgetAdvancedServo 8-Motor (RCC0004) */
+	PHIDID_UNKNOWN = 0x7d,	/* Unknown device */
+	PHIDID_DST1002 = 0x7e,	/* 1200mm distance sensor */
+	PHIDID_HUM1001 = 0x7f,	/* Humidity Sensor */
+	PHIDID_DCC1004 = 0x80,	/* DC Motor Controller 12A */
+	PHIDID_DCC1005 = 0x81,	/* DC Motor Controller High Current */
+	PHIDID_REL1101_1 = 0x82,	/* Digital Output 16 Isolated */
+	PHIDID_SPT_PROTO = 0x83,	/* Spatial Prototype */
+	PHIDID_ADP_RS232 = 0x84,	/* RS232 Prototype */
+	PHIDID_ADP_RS485_422 = 0x85,	/* RS485/422 Prototype */
+	PHIDID_ADP_SERIAL = 0x86,	/* Serial Prototype */
+	PHIDID_1067_1 = 0x87,	/* Stepper */
 } Phidget_DeviceID;
 
 typedef enum {
@@ -609,72 +632,74 @@ typedef enum {
 } Phidget_LogLevel;
 
 typedef enum {
-	PHIDCLASS_NOTHING = 0x0,	/* Any device */
-	PHIDCLASS_ACCELEROMETER = 0x1,	/* PhidgetAccelerometer device */
-	PHIDCLASS_ADVANCEDSERVO = 0x2,	/* PhidgetAdvancedServo device */
-	PHIDCLASS_ANALOG = 0x3,	/* PhidgetAnalog device */
-	PHIDCLASS_BRIDGE = 0x4,	/* PhidgetBridge device */
-	PHIDCLASS_ENCODER = 0x5,	/* PhidgetEncoder device */
-	PHIDCLASS_FREQUENCYCOUNTER = 0x6,	/* PhidgetFrequencyCounter device */
-	PHIDCLASS_GPS = 0x7,	/* PhidgetGPS device */
-	PHIDCLASS_HUB = 0x8,	/* Phidget VINT Hub device */
-	PHIDCLASS_INTERFACEKIT = 0x9,	/* PhidgetInterfaceKit device */
-	PHIDCLASS_IR = 0xa,	/* PhidgetIR device */
-	PHIDCLASS_LED = 0xb,	/* PhidgetLED device */
-	PHIDCLASS_MESHDONGLE = 0xc,	/* Phidget Mesh Dongle */
-	PHIDCLASS_MOTORCONTROL = 0xd,	/* PhidgetMotorControl device */
-	PHIDCLASS_PHSENSOR = 0xe,	/* PhidgetPHSensor device */
-	PHIDCLASS_RFID = 0xf,	/* PhidgetRFID device */
-	PHIDCLASS_SERVO = 0x10,	/* PhidgetServo device */
-	PHIDCLASS_SPATIAL = 0x11,	/* PhidgetSpatial device */
-	PHIDCLASS_STEPPER = 0x12,	/* PhidgetStepper device */
-	PHIDCLASS_TEMPERATURESENSOR = 0x13,	/* PhidgetTemperatureSensor device */
-	PHIDCLASS_TEXTLCD = 0x14,	/* PhidgetTextLCD device */
-	PHIDCLASS_VINT = 0x15,	/* Phidget VINT device */
-	PHIDCLASS_GENERIC = 0x16,	/* Generic device */
-	PHIDCLASS_FIRMWAREUPGRADE = 0x17,	/* Phidget device in Firmware Upgrade mode */
-	PHIDCLASS_DICTIONARY = 0x18,	/* Dictionary device */
+	PHIDCLASS_NOTHING = 0x0,	/* PhidgetNone */
+	PHIDCLASS_ACCELEROMETER = 0x1,	/* PhidgetAccelerometer */
+	PHIDCLASS_ADVANCEDSERVO = 0x2,	/* PhidgetAdvancedServo */
+	PHIDCLASS_ANALOG = 0x3,	/* PhidgetAnalog */
+	PHIDCLASS_BRIDGE = 0x4,	/* PhidgetBridge */
+	PHIDCLASS_ENCODER = 0x5,	/* PhidgetEncoder */
+	PHIDCLASS_FREQUENCYCOUNTER = 0x6,	/* PhidgetFrequencyCounter */
+	PHIDCLASS_GPS = 0x7,	/* PhidgetGPS */
+	PHIDCLASS_HUB = 0x8,	/* PhidgetHub */
+	PHIDCLASS_INTERFACEKIT = 0x9,	/* PhidgetInterfaceKit */
+	PHIDCLASS_IR = 0xa,	/* PhidgetIR */
+	PHIDCLASS_LED = 0xb,	/* PhidgetLED */
+	PHIDCLASS_MESHDONGLE = 0xc,	/* PhidgetMeshDongle */
+	PHIDCLASS_MOTORCONTROL = 0xd,	/* PhidgetMotorControl */
+	PHIDCLASS_PHSENSOR = 0xe,	/* PhidgetPHSensor */
+	PHIDCLASS_RFID = 0xf,	/* PhidgetRFID */
+	PHIDCLASS_SERVO = 0x10,	/* PhidgetServo */
+	PHIDCLASS_SPATIAL = 0x11,	/* PhidgetSpatial */
+	PHIDCLASS_STEPPER = 0x12,	/* PhidgetStepper */
+	PHIDCLASS_TEMPERATURESENSOR = 0x13,	/* PhidgetTemperatureSensor */
+	PHIDCLASS_TEXTLCD = 0x14,	/* PhidgetTextLCD */
+	PHIDCLASS_VINT = 0x15,	/* PhidgetVINT */
+	PHIDCLASS_GENERIC = 0x16,	/* PhidgetGeneric */
+	PHIDCLASS_FIRMWAREUPGRADE = 0x17,	/* PhidgetFirmwareUpgrade */
+	PHIDCLASS_DICTIONARY = 0x18,	/* PhidgetDictionary */
+	PHIDCLASS_DATAADAPTER = 0x19,	/* PhidgetDataAdapter */
 } Phidget_DeviceClass;
 
 typedef enum {
-	PHIDCHCLASS_NOTHING = 0x0,	/* Not a channel */
-	PHIDCHCLASS_ACCELEROMETER = 0x1,	/* Accelerometer channel */
-	PHIDCHCLASS_CURRENTINPUT = 0x2,	/* Current input channel */
-	PHIDCHCLASS_DATAADAPTER = 0x3,	/* Data adapter channel */
-	PHIDCHCLASS_DCMOTOR = 0x4,	/* DC motor channel */
-	PHIDCHCLASS_DIGITALINPUT = 0x5,	/* Digital input channel */
-	PHIDCHCLASS_DIGITALOUTPUT = 0x6,	/* Digital output channel */
-	PHIDCHCLASS_DISTANCESENSOR = 0x7,	/* Distance sensor channel */
-	PHIDCHCLASS_ENCODER = 0x8,	/* Encoder channel */
-	PHIDCHCLASS_FREQUENCYCOUNTER = 0x9,	/* Frequency counter channel */
-	PHIDCHCLASS_GPS = 0xa,	/* GPS channel */
-	PHIDCHCLASS_LCD = 0xb,	/* LCD channel */
-	PHIDCHCLASS_GYROSCOPE = 0xc,	/* Gyroscope channel */
-	PHIDCHCLASS_HUB = 0xd,	/* VINT Hub channel */
-	PHIDCHCLASS_CAPACITIVETOUCH = 0xe,	/* Capacitive Touch channel */
-	PHIDCHCLASS_HUMIDITYSENSOR = 0xf,	/* Humidity sensor channel */
-	PHIDCHCLASS_IR = 0x10,	/* IR channel */
-	PHIDCHCLASS_LIGHTSENSOR = 0x11,	/* Light sensor channel */
-	PHIDCHCLASS_MAGNETOMETER = 0x12,	/* Magnetometer channel */
-	PHIDCHCLASS_MESHDONGLE = 0x13,	/* Mesh dongle channel */
-	PHIDCHCLASS_PHSENSOR = 0x25,	/* pH sensor channel */
-	PHIDCHCLASS_POWERGUARD = 0x14,	/* Power guard channel */
-	PHIDCHCLASS_PRESSURESENSOR = 0x15,	/* Pressure sensor channel */
-	PHIDCHCLASS_RCSERVO = 0x16,	/* RC Servo channel */
-	PHIDCHCLASS_RESISTANCEINPUT = 0x17,	/* Resistance input channel */
-	PHIDCHCLASS_RFID = 0x18,	/* RFID channel */
-	PHIDCHCLASS_SOUNDSENSOR = 0x19,	/* Sound sensor channel */
-	PHIDCHCLASS_SPATIAL = 0x1a,	/* Spatial channel */
-	PHIDCHCLASS_STEPPER = 0x1b,	/* Stepper channel */
-	PHIDCHCLASS_TEMPERATURESENSOR = 0x1c,	/* Temperature sensor channel */
-	PHIDCHCLASS_VOLTAGEINPUT = 0x1d,	/* Voltage input channel */
-	PHIDCHCLASS_VOLTAGEOUTPUT = 0x1e,	/* Voltage output channel */
-	PHIDCHCLASS_VOLTAGERATIOINPUT = 0x1f,	/* Voltage ratio input channel */
-	PHIDCHCLASS_FIRMWAREUPGRADE = 0x20,	/* Firmware upgrade channel */
-	PHIDCHCLASS_GENERIC = 0x21,	/* Generic channel */
-	PHIDCHCLASS_MOTORPOSITIONCONTROLLER = 0x22,	/* Motor position control channel. */
-	PHIDCHCLASS_BLDCMOTOR = 0x23,	/* BLDC motor channel */
-	PHIDCHCLASS_DICTIONARY = 0x24,	/* Dictionary */
+	PHIDCHCLASS_NOTHING = 0x0,	/* PhidgetNone */
+	PHIDCHCLASS_ACCELEROMETER = 0x1,	/* PhidgetAccelerometer */
+	PHIDCHCLASS_CURRENTINPUT = 0x2,	/* PhidgetCurrentInput */
+	PHIDCHCLASS_DATAADAPTER = 0x3,	/* PhidgetDataAdapter */
+	PHIDCHCLASS_DCMOTOR = 0x4,	/* PhidgetDCMotor */
+	PHIDCHCLASS_DIGITALINPUT = 0x5,	/* PhidgetDigitalInput */
+	PHIDCHCLASS_DIGITALOUTPUT = 0x6,	/* PhidgetDigitalOutput */
+	PHIDCHCLASS_DISTANCESENSOR = 0x7,	/* PhidgetDistanceSensor */
+	PHIDCHCLASS_ENCODER = 0x8,	/* PhidgetEncoder */
+	PHIDCHCLASS_FREQUENCYCOUNTER = 0x9,	/* PhidgetFrequencyCounter */
+	PHIDCHCLASS_GPS = 0xa,	/* PhidgetGPS */
+	PHIDCHCLASS_LCD = 0xb,	/* PhidgetLCD */
+	PHIDCHCLASS_GYROSCOPE = 0xc,	/* PhidgetGyroscope */
+	PHIDCHCLASS_HUB = 0xd,	/* PhidgetHub */
+	PHIDCHCLASS_CAPACITIVETOUCH = 0xe,	/* PhidgetCapacitiveTouch */
+	PHIDCHCLASS_HUMIDITYSENSOR = 0xf,	/* PhidgetHumiditySensor */
+	PHIDCHCLASS_IR = 0x10,	/* PhidgetIR */
+	PHIDCHCLASS_LIGHTSENSOR = 0x11,	/* PhidgetLightSensor */
+	PHIDCHCLASS_MAGNETOMETER = 0x12,	/* PhidgetMagnetometer */
+	PHIDCHCLASS_MESHDONGLE = 0x13,	/* PhidgetMeshDongle */
+	PHIDCHCLASS_PHSENSOR = 0x25,	/* PhidgetPHSensor */
+	PHIDCHCLASS_POWERGUARD = 0x14,	/* PhidgetPowerGuard */
+	PHIDCHCLASS_PRESSURESENSOR = 0x15,	/* PhidgetPressureSensor */
+	PHIDCHCLASS_RCSERVO = 0x16,	/* PhidgetRCServo */
+	PHIDCHCLASS_RESISTANCEINPUT = 0x17,	/* PhidgetResistanceInput */
+	PHIDCHCLASS_RFID = 0x18,	/* PhidgetRFID */
+	PHIDCHCLASS_SOUNDSENSOR = 0x19,	/* PhidgetSoundSensor */
+	PHIDCHCLASS_SPATIAL = 0x1a,	/* PhidgetSpatial */
+	PHIDCHCLASS_STEPPER = 0x1b,	/* PhidgetStepper */
+	PHIDCHCLASS_TEMPERATURESENSOR = 0x1c,	/* PhidgetTemperatureSensor */
+	PHIDCHCLASS_VOLTAGEINPUT = 0x1d,	/* PhidgetVoltageInput */
+	PHIDCHCLASS_VOLTAGEOUTPUT = 0x1e,	/* PhidgetVoltageOutput */
+	PHIDCHCLASS_VOLTAGERATIOINPUT = 0x1f,	/* PhidgetVoltageRatioInput */
+	PHIDCHCLASS_FIRMWAREUPGRADE = 0x20,	/* PhidgetFirmwareUpgrade */
+	PHIDCHCLASS_GENERIC = 0x21,	/* PhidgetGeneric */
+	PHIDCHCLASS_MOTORPOSITIONCONTROLLER = 0x22,	/* PhidgetMotorPositionController */
+	PHIDCHCLASS_BLDCMOTOR = 0x23,	/* PhidgetBLDCMotor */
+	PHIDCHCLASS_DICTIONARY = 0x24,	/* PhidgetDictionary */
+	PHIDCHCLASS_CURRENTOUTPUT = 0x26,	/* PhidgetCurrentOutput */
 } Phidget_ChannelClass;
 
 typedef enum {
@@ -688,8 +713,8 @@ typedef enum {
 	PHIDCHSUBCLASS_VOLTAGERATIOINPUT_BRIDGE = 0x41,	/* Voltage ratio bridge input */
 	PHIDCHSUBCLASS_LCD_GRAPHIC = 0x50,	/* Graphic LCD */
 	PHIDCHSUBCLASS_LCD_TEXT = 0x51,	/* Text LCD */
-	PHIDCHSUBCLASS_ENCODER_MODE_SETTABLE = 0x60,	/* Text LCD */
-	PHIDCHSUBCLASS_RCSERVO_EMBEDDED = 0x70,	/* RC Servo Embedded */
+	PHIDCHSUBCLASS_ENCODER_MODE_SETTABLE = 0x60,	/* Encoder IO mode settable */
+	PHIDCHSUBCLASS_SPATIAL_AHRS = 0x70,	/* Spatial AHRS/IMU */
 } Phidget_ChannelSubclass;
 
 typedef enum {
@@ -698,30 +723,33 @@ typedef enum {
 } Phidget_MeshMode;
 
 typedef enum {
-	POWER_SUPPLY_OFF = 0x1,	/* Switch the sensor power supply off */
-	POWER_SUPPLY_12V = 0x2,	/* The sensor is provided with 12 volts */
-	POWER_SUPPLY_24V = 0x3,	/* The sensor is provided with 24 volts */
+	POWER_SUPPLY_OFF = 0x1,	/* Off */
+	POWER_SUPPLY_12V = 0x2,	/* 12 V */
+	POWER_SUPPLY_24V = 0x3,	/* 24 V */
 } Phidget_PowerSupply;
 
 typedef enum {
-	RTD_WIRE_SETUP_2WIRE = 0x1,
-	 	/* Configures the device to make resistance calculations based on a 2-wire RTD setup. */
-	RTD_WIRE_SETUP_3WIRE = 0x2,
-	 	/* Configures the device to make resistance calculations based on a 3-wire RTD setup. */
-	RTD_WIRE_SETUP_4WIRE = 0x3,
-	 	/* Configures the device to make resistance calculations based on a 4-wire RTD setup. */
+	RTD_WIRE_SETUP_2WIRE = 0x1,	/* 2 Wire */
+	RTD_WIRE_SETUP_3WIRE = 0x2,	/* 3 Wire */
+	RTD_WIRE_SETUP_4WIRE = 0x3,	/* 4 Wire */
 } Phidget_RTDWireSetup;
 
 typedef enum {
-	INPUT_MODE_NPN = 0x1,	/* For interfacing NPN digital sensors */
-	INPUT_MODE_PNP = 0x2,	/* For interfacing PNP digital sensors */
+	INPUT_MODE_NPN = 0x1,	/* NPN */
+	INPUT_MODE_PNP = 0x2,	/* PNP */
 } Phidget_InputMode;
 
 typedef enum {
-	FAN_MODE_OFF = 0x1,	/* Turns the fan off. */
-	FAN_MODE_ON = 0x2,	/* Turns the fan on. */
-	FAN_MODE_AUTO = 0x3,	/* The fan will be automatically controlled based on temperature. */
+	FAN_MODE_OFF = 0x1,	/* Off */
+	FAN_MODE_ON = 0x2,	/* On */
+	FAN_MODE_AUTO = 0x3,	/* Automatic */
 } Phidget_FanMode;
+
+typedef enum {
+	SPATIAL_PRECISION_HYBRID = 0x0,	/* Hybrid */
+	SPATIAL_PRECISION_HIGH = 0x1,	/* High */
+	SPATIAL_PRECISION_LOW = 0x2,	/* Low */
+} Phidget_SpatialPrecision;
 
 typedef enum {
 	PHIDUNIT_NONE = 0x0,	/* Unitless */
@@ -745,6 +773,56 @@ typedef enum {
 } Phidget_Unit;
 
 typedef enum {
+	PARITY_MODE_NONE = 0x1,	/* No Parity Bit */
+	PARITY_MODE_EVEN = 0x2,	/* Even Parity */
+	PARITY_MODE_ODD = 0x3,	/* Odd Parity */
+} PhidgetDataAdapter_Parity;
+
+typedef enum {
+	STOP_BITS_ONE = 0x1,	/* One Stop Bit */
+	STOP_BITS_TWO = 0x2,	/* Two Stop Bits */
+} PhidgetDataAdapter_StopBits;
+
+typedef enum {
+	RTS_CTS_MODE_DISABLED = 0x1,	/* RTS is never set, and CTS is ignored. */
+	RTS_CTS_MODE_REQUEST_TO_SEND = 0x2,
+	 	/* RTS Pin requests to transmit data. CTS input confirms we can send data. */
+	RTS_CTS_MODE_READY_TO_RECEIVE = 0x3,
+	 	/* RTS signals this device can receive data. CTS confirms we can send data. */
+} PhidgetDataAdapter_RTSMode;
+
+typedef enum {
+	PROTOCOL_RS485 = 0x1,	/* Basic half-duplex RS485. Always receiving until you send data. */
+	PROTOCOL_RS422 = 0x2,	/* Uses full-duplex RS422 communication. */
+	PROTOCOL_DMX512 = 0x3,	/* Allows communication with DMX512-compatible devices,
+	  such as stage lighting */
+	PROTOCOL_MODBUS_RTU = 0x4,	/* Allows communication with MODBUS RTU compatible devices */
+	PROTOCOL_SPI = 0x5,	/* Allows communication with SPI compatible devices */
+	PROTOCOL_I2C = 0x6,	/* Allows communication with I2C compatible devices */
+	PROTOCOL_UART = 0x7,	/* Allows communication with UART compatible devices */
+} PhidgetDataAdapter_Protocol;
+
+typedef enum {
+	SPI_MODE_0 = 0x1,	/* CPOL = 0 CPHA = 0 */
+	SPI_MODE_1 = 0x2,	/* CPOL = 0 CPHA = 1 */
+	SPI_MODE_2 = 0x3,	/* CPOL = 1 CPHA = 0 */
+	SPI_MODE_3 = 0x4,	/* CPOL = 1 CPHA = 1 */
+} PhidgetDataAdapter_SPIMode;
+
+typedef enum {
+	ENDIANNESS_MSB_FIRST = 0x1,	/* MSB First */
+	ENDIANNESS_LSB_FIRST = 0x2,	/* LSB First */
+} PhidgetDataAdapter_Endianness;
+
+typedef enum {
+	IO_VOLTAGE_EXTERN = 0x1,	/* Voltage supplied by external device */
+	IO_VOLTAGE_1_8V = 0x2,	/* 1.8V */
+	IO_VOLTAGE_2_5V = 0x3,	/* 2.5V */
+	IO_VOLTAGE_3_3V = 0x4,	/* 3.3V */
+	IO_VOLTAGE_5_0V = 0x5,	/* 5.0V */
+} PhidgetDataAdapter_IOVoltage;
+
+typedef enum {
 	LED_FORWARD_VOLTAGE_1_7V = 0x1,	/* 1.7 V */
 	LED_FORWARD_VOLTAGE_2_75V = 0x2,	/* 2.75 V */
 	LED_FORWARD_VOLTAGE_3_2V = 0x3,	/* 3.2 V */
@@ -756,10 +834,8 @@ typedef enum {
 } PhidgetDigitalOutput_LEDForwardVoltage;
 
 typedef enum {
-	FILTER_TYPE_ZERO_CROSSING = 0x1,
-	 	/* Frequency is calculated from the number of times the signal transitions from a negative voltage to a positive voltage and back again. */
-	FILTER_TYPE_LOGIC_LEVEL = 0x2,
-	 	/* Frequency is calculated from the number of times the signal transitions from a logic false to a logic true and back again. */
+	FILTER_TYPE_ZERO_CROSSING = 0x1,	/* Zero Crossing */
+	FILTER_TYPE_LOGIC_LEVEL = 0x2,	/* Logic Level */
 } PhidgetFrequencyCounter_FilterType;
 
 typedef struct {
@@ -820,26 +896,26 @@ typedef struct {
 } PhidgetGPS_NMEAData, *PhidgetGPS_NMEADataHandle;
 
 typedef enum {
-	PORT_MODE_VINT_PORT = 0x0,	/* Communicate with a smart VINT device */
-	PORT_MODE_DIGITAL_INPUT = 0x1,	/* 5V Logic-level digital input */
-	PORT_MODE_DIGITAL_OUTPUT = 0x2,	/* 3.3V digital output */
-	PORT_MODE_VOLTAGE_INPUT = 0x3,	/* 0-5V voltage input for non-ratiometric sensors  */
-	PORT_MODE_VOLTAGE_RATIO_INPUT = 0x4,	/* 0-5V voltage input for ratiometric sensors */
+	PORT_MODE_VINT_PORT = 0x0,	/* VINT */
+	PORT_MODE_DIGITAL_INPUT = 0x1,	/* Digital Input */
+	PORT_MODE_DIGITAL_OUTPUT = 0x2,	/* Digital Output */
+	PORT_MODE_VOLTAGE_INPUT = 0x3,	/* Voltage Input */
+	PORT_MODE_VOLTAGE_RATIO_INPUT = 0x4,	/* Voltage Ratio Input */
 } PhidgetHub_PortMode;
 
 typedef enum {
-	IR_ENCODING_UNKNOWN = 0x1,	/* Unknown - the default value */
-	IR_ENCODING_SPACE = 0x2,	/* Space encoding, or Pulse Distance Modulation */
-	IR_ENCODING_PULSE = 0x3,	/* Pulse encoding, or Pulse Width Modulation */
-	IR_ENCODING_BIPHASE = 0x4,	/* Bi-Phase, or Manchester encoding */
-	IR_ENCODING_RC5 = 0x5,	/* RC5 - a type of Bi-Phase encoding */
-	IR_ENCODING_RC6 = 0x6,	/* RC6 - a type of Bi-Phase encoding */
+	IR_ENCODING_UNKNOWN = 0x1,	/* Unknown */
+	IR_ENCODING_SPACE = 0x2,	/* Space */
+	IR_ENCODING_PULSE = 0x3,	/* Pulse */
+	IR_ENCODING_BIPHASE = 0x4,	/* BiPhase */
+	IR_ENCODING_RC5 = 0x5,	/* RC5 */
+	IR_ENCODING_RC6 = 0x6,	/* RC6 */
 } PhidgetIR_Encoding;
 
 typedef enum {
-	IR_LENGTH_UNKNOWN = 0x1,	/* Unknown - the default value */
-	IR_LENGTH_CONSTANT = 0x2,	/* Constant - the bitstream and gap length is constant */
-	IR_LENGTH_VARIABLE = 0x3,	/* Variable - the bitstream has a variable length with a constant gap */
+	IR_LENGTH_UNKNOWN = 0x1,	/* Unknown */
+	IR_LENGTH_CONSTANT = 0x2,	/* Constant */
+	IR_LENGTH_VARIABLE = 0x3,	/* Variable */
 } PhidgetIR_Length;
 
 typedef struct {
@@ -859,33 +935,33 @@ typedef struct {
 } PhidgetIR_CodeInfo, *PhidgetIR_CodeInfoHandle;
 
 typedef enum {
-	FONT_User1 = 0x1,	/* User-defined font #1 */
-	FONT_User2 = 0x2,	/* User-defined font #2 */
-	FONT_6x10 = 0x3,	/* 6px by 10px font */
-	FONT_5x8 = 0x4,	/* 5px by 8px font */
-	FONT_6x12 = 0x5,	/* 6px by 12px font */
+	FONT_User1 = 0x1,	/* User 1 */
+	FONT_User2 = 0x2,	/* User 2 */
+	FONT_6x10 = 0x3,	/* 6x10 */
+	FONT_5x8 = 0x4,	/* 5x8 */
+	FONT_6x12 = 0x5,	/* 6x12 */
 } PhidgetLCD_Font;
 
 typedef enum {
-	SCREEN_SIZE_NONE = 0x1,	/* Screen size unknown */
-	SCREEN_SIZE_1x8 = 0x2,	/* One row, eight column text screen */
-	SCREEN_SIZE_2x8 = 0x3,	/* Two row, eight column text screen */
-	SCREEN_SIZE_1x16 = 0x4,	/* One row, 16 column text screen */
-	SCREEN_SIZE_2x16 = 0x5,	/* Two row, 16 column text screen */
-	SCREEN_SIZE_4x16 = 0x6,	/* Four row, 16 column text screen */
-	SCREEN_SIZE_2x20 = 0x7,	/* Two row, 20 column text screen */
-	SCREEN_SIZE_4x20 = 0x8,	/* Four row, 20 column text screen. */
-	SCREEN_SIZE_2x24 = 0x9,	/* Two row, 24 column text screen */
-	SCREEN_SIZE_1x40 = 0xa,	/* One row, 40 column text screen */
-	SCREEN_SIZE_2x40 = 0xb,	/* Two row, 40 column text screen */
-	SCREEN_SIZE_4x40 = 0xc,	/* Four row, 40 column text screen */
-	SCREEN_SIZE_64x128 = 0xd,	/* 64px by 128px graphic screen */
+	SCREEN_SIZE_NONE = 0x1,	/* No Screen */
+	SCREEN_SIZE_1x8 = 0x2,	/* 1x8 */
+	SCREEN_SIZE_2x8 = 0x3,	/* 2x8 */
+	SCREEN_SIZE_1x16 = 0x4,	/* 1x16 */
+	SCREEN_SIZE_2x16 = 0x5,	/* 2x16 */
+	SCREEN_SIZE_4x16 = 0x6,	/* 4x16 */
+	SCREEN_SIZE_2x20 = 0x7,	/* 2x20 */
+	SCREEN_SIZE_4x20 = 0x8,	/* 4x20 */
+	SCREEN_SIZE_2x24 = 0x9,	/* 2x24 */
+	SCREEN_SIZE_1x40 = 0xa,	/* 1x40 */
+	SCREEN_SIZE_2x40 = 0xb,	/* 2x40 */
+	SCREEN_SIZE_4x40 = 0xc,	/* 4x40 */
+	SCREEN_SIZE_64x128 = 0xd,	/* 64x128 */
 } PhidgetLCD_ScreenSize;
 
 typedef enum {
-	PIXEL_STATE_OFF = 0x0,	/* Pixel off state */
-	PIXEL_STATE_ON = 0x1,	/* Pixel on state */
-	PIXEL_STATE_INVERT = 0x2,	/* Invert the pixel state */
+	PIXEL_STATE_OFF = 0x0,	/* Off */
+	PIXEL_STATE_ON = 0x1,	/* On */
+	PIXEL_STATE_INVERT = 0x2,	/* Invert */
 } PhidgetLCD_PixelState;
 
 typedef struct {
@@ -906,9 +982,9 @@ typedef enum {
 } PhidgetServerType;
 
 typedef enum {
-	RCSERVO_VOLTAGE_5V = 0x1,	/* Run all servos on 5V DC */
-	RCSERVO_VOLTAGE_6V = 0x2,	/* Run all servos on 6V DC */
-	RCSERVO_VOLTAGE_7_4V = 0x3,	/* Run all servos on 7.4V DC */
+	RCSERVO_VOLTAGE_5V = 0x1,	/* 5.0 V */
+	RCSERVO_VOLTAGE_6V = 0x2,	/* 6.0 V */
+	RCSERVO_VOLTAGE_7_4V = 0x3,	/* 7.4 V */
 } PhidgetRCServo_Voltage;
 
 typedef enum {
@@ -918,47 +994,51 @@ typedef enum {
 } PhidgetRFID_Protocol;
 
 typedef enum {
-	SPL_RANGE_102dB = 0x1,	/* Range 102dB */
-	SPL_RANGE_82dB = 0x2,	/* Range 82dB */
+	SPL_RANGE_102dB = 0x1,	/* 102 dB */
+	SPL_RANGE_82dB = 0x2,	/* 82 dB */
 } PhidgetSoundSensor_SPLRange;
 
 typedef enum {
-	CONTROL_MODE_STEP = 0x0,	/* Control the motor by setting a target position. */
-	CONTROL_MODE_RUN = 0x1,
-	 	/* Control the motor by selecting a target velocity (sign indicates direction). The motor will rotate continously in the chosen direction. */
+	SPATIAL_ALGORITHM_NONE = 0x0,	/* None */
+	SPATIAL_ALGORITHM_AHRS = 0x1,	/* AHRS */
+	SPATIAL_ALGORITHM_IMU = 0x2,	/* IMU */
+} Phidget_SpatialAlgorithm;
+
+typedef enum {
+	CONTROL_MODE_STEP = 0x0,	/* Step */
+	CONTROL_MODE_RUN = 0x1,	/* Run */
 } PhidgetStepper_ControlMode;
 
 typedef enum {
-	RTD_TYPE_PT100_3850 = 0x1,	/* Configures the RTD type as a PT100 with a 3850ppm curve. */
-	RTD_TYPE_PT1000_3850 = 0x2,	/* Configures the RTD type as a PT1000 with a 3850ppm curve. */
-	RTD_TYPE_PT100_3920 = 0x3,	/* Configures the RTD type as a PT100 with a 3920ppm curve. */
-	RTD_TYPE_PT1000_3920 = 0x4,	/* Configures the RTD type as a PT1000 with a 3920ppm curve. */
+	RTD_TYPE_PT100_3850 = 0x1,	/* PT100 3850 */
+	RTD_TYPE_PT1000_3850 = 0x2,	/* PT1000 3850 */
+	RTD_TYPE_PT100_3920 = 0x3,	/* PT100 3920 */
+	RTD_TYPE_PT1000_3920 = 0x4,	/* PT1000 3920 */
 } PhidgetTemperatureSensor_RTDType;
 
 typedef enum {
-	THERMOCOUPLE_TYPE_J = 0x1,	/* Configures the thermocouple input as a J-Type thermocouple. */
-	THERMOCOUPLE_TYPE_K = 0x2,	/* Configures the thermocouple input as a K-Type thermocouple. */
-	THERMOCOUPLE_TYPE_E = 0x3,	/* Configures the thermocouple input as a E-Type thermocouple. */
-	THERMOCOUPLE_TYPE_T = 0x4,	/* Configures the thermocouple input as a T-Type thermocouple. */
+	THERMOCOUPLE_TYPE_J = 0x1,	/* J-Type */
+	THERMOCOUPLE_TYPE_K = 0x2,	/* K-Type */
+	THERMOCOUPLE_TYPE_E = 0x3,	/* E-Type */
+	THERMOCOUPLE_TYPE_T = 0x4,	/* T-Type */
 } PhidgetTemperatureSensor_ThermocoupleType;
 
 typedef enum {
-	VOLTAGE_RANGE_10mV = 0x1,	/* Range Â±10mV DC */
-	VOLTAGE_RANGE_40mV = 0x2,	/* Range Â±40mV DC */
-	VOLTAGE_RANGE_200mV = 0x3,	/* Range Â±200mV DC */
-	VOLTAGE_RANGE_312_5mV = 0x4,	/* Range Â±312.5mV DC */
-	VOLTAGE_RANGE_400mV = 0x5,	/* Range Â±400mV DC */
-	VOLTAGE_RANGE_1000mV = 0x6,	/* Range Â±1000mV DC */
-	VOLTAGE_RANGE_2V = 0x7,	/* Range Â±2V DC */
-	VOLTAGE_RANGE_5V = 0x8,	/* Range Â±5V DC */
-	VOLTAGE_RANGE_15V = 0x9,	/* Range Â±15V DC */
-	VOLTAGE_RANGE_40V = 0xa,	/* Range Â±40V DC */
-	VOLTAGE_RANGE_AUTO = 0xb,	/* Auto-range mode changes based on the present voltage measurements. */
+	VOLTAGE_RANGE_10mV = 0x1,	/* 10 mV */
+	VOLTAGE_RANGE_40mV = 0x2,	/* 40 mV */
+	VOLTAGE_RANGE_200mV = 0x3,	/* 200 mV */
+	VOLTAGE_RANGE_312_5mV = 0x4,	/* 312.5 mV */
+	VOLTAGE_RANGE_400mV = 0x5,	/* 400 mV */
+	VOLTAGE_RANGE_1000mV = 0x6,	/* 1000 mV */
+	VOLTAGE_RANGE_2V = 0x7,	/* 2 V */
+	VOLTAGE_RANGE_5V = 0x8,	/* 5 V */
+	VOLTAGE_RANGE_15V = 0x9,	/* 15 V */
+	VOLTAGE_RANGE_40V = 0xa,	/* 40 V */
+	VOLTAGE_RANGE_AUTO = 0xb,	/* Auto */
 } PhidgetVoltageInput_VoltageRange;
 
 typedef enum {
-	SENSOR_TYPE_VOLTAGE = 0x0,
-	 	/* Default. Configures the channel to be a generic voltage sensor. Unit is volts. */
+	SENSOR_TYPE_VOLTAGE = 0x0,	/* Generic voltage sensor */
 	SENSOR_TYPE_1114 = 0x2b84,	/* 1114 - Temperature Sensor */
 	SENSOR_TYPE_1117 = 0x2ba2,	/* 1117 - Voltage Sensor */
 	SENSOR_TYPE_1123 = 0x2bde,	/* 1123 - Precision Voltage Sensor */
@@ -1001,19 +1081,18 @@ typedef enum {
 } PhidgetVoltageOutput_VoltageOutputRange;
 
 typedef enum {
-	BRIDGE_GAIN_1 = 0x1,	/* 1x Amplificaion */
-	BRIDGE_GAIN_2 = 0x2,	/* 2x Amplification */
-	BRIDGE_GAIN_4 = 0x3,	/* 4x Amplification */
-	BRIDGE_GAIN_8 = 0x4,	/* 8x Amplification */
-	BRIDGE_GAIN_16 = 0x5,	/* 16x Amplification */
-	BRIDGE_GAIN_32 = 0x6,	/* 32x Amplification */
-	BRIDGE_GAIN_64 = 0x7,	/* 64x Amplification */
-	BRIDGE_GAIN_128 = 0x8,	/* 128x Amplification */
+	BRIDGE_GAIN_1 = 0x1,	/* 1x */
+	BRIDGE_GAIN_2 = 0x2,	/* 2x */
+	BRIDGE_GAIN_4 = 0x3,	/* 4x */
+	BRIDGE_GAIN_8 = 0x4,	/* 8x */
+	BRIDGE_GAIN_16 = 0x5,	/* 16x */
+	BRIDGE_GAIN_32 = 0x6,	/* 32x */
+	BRIDGE_GAIN_64 = 0x7,	/* 64x */
+	BRIDGE_GAIN_128 = 0x8,	/* 128x */
 } PhidgetVoltageRatioInput_BridgeGain;
 
 typedef enum {
-	SENSOR_TYPE_VOLTAGERATIO = 0x0,
-	 	/* Default. Configures the channel to be a generic ratiometric sensor. Unit is volts/volt. */
+	SENSOR_TYPE_VOLTAGERATIO = 0x0,	/* Generic ratiometric sensor */
 	SENSOR_TYPE_1101_SHARP_2D120X = 0x2b03,	/* 1101 - IR Distance Adapter,
 	  with Sharp Distance Sensor 2D120X (4-30cm) */
 	SENSOR_TYPE_1101_SHARP_2Y0A21 = 0x2b04,	/* 1101 - IR Distance Adapter,
@@ -1180,14 +1259,18 @@ typedef struct _Phidget *PhidgetHandle;
 
 
 
+
 typedef void(__stdcall *Phidget_AsyncCallback)(PhidgetHandle phid, void *ctx, PhidgetReturnCode returnCode);
 
 /* Library Properties */
 __declspec(dllimport) PhidgetReturnCode __stdcall Phidget_getLibraryVersion		(const char **libraryVersion);
+__declspec(dllimport) PhidgetReturnCode __stdcall Phidget_getLibraryVersionNumber	(const char **libraryVersion);
 
 /* Library Methods */
 __declspec(dllimport) PhidgetReturnCode __stdcall Phidget_getErrorDescription		(PhidgetReturnCode errorCode, const char **errorString);
+__declspec(dllimport) PhidgetReturnCode __stdcall Phidget_getLastError			(PhidgetReturnCode *errorCode, const char **errorString, char *errorDetail, size_t *errorDetailLen);
 __declspec(dllimport) PhidgetReturnCode __stdcall Phidget_finalize				(int flags);
+__declspec(dllimport) PhidgetReturnCode __stdcall Phidget_resetLibrary			(void);
 
 /* Methods */
 __declspec(dllimport) PhidgetReturnCode __stdcall Phidget_open					(PhidgetHandle phid);
@@ -1211,6 +1294,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall Phidget_getIsRemote				(Phidge
 __declspec(dllimport) PhidgetReturnCode __stdcall Phidget_setIsRemote				(PhidgetHandle phid, int isRemote);
 __declspec(dllimport) PhidgetReturnCode __stdcall Phidget_getParent				(PhidgetHandle phid, PhidgetHandle *parent);
 __declspec(dllimport) PhidgetReturnCode __stdcall Phidget_getServerName			(PhidgetHandle phid, const char **serverName);
+__declspec(dllimport) PhidgetReturnCode __stdcall Phidget_getServerUniqueName		(PhidgetHandle phid, const char **serverUniqueName);
 __declspec(dllimport) PhidgetReturnCode __stdcall Phidget_setServerName			(PhidgetHandle phid, const char *serverName);
 __declspec(dllimport) PhidgetReturnCode __stdcall Phidget_getServerPeerName		(PhidgetHandle phid, const char **serverPeerName);
 __declspec(dllimport) PhidgetReturnCode __stdcall Phidget_getServerHostname		(PhidgetHandle phid, const char **serverHostname);
@@ -1234,6 +1318,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall Phidget_getDeviceSerialNumber	
 __declspec(dllimport) PhidgetReturnCode __stdcall Phidget_setDeviceSerialNumber	(PhidgetHandle phid, int32_t deviceSerialNumber);
 __declspec(dllimport) PhidgetReturnCode __stdcall Phidget_getDeviceSKU			(PhidgetHandle phid, const char **deviceSKU);
 __declspec(dllimport) PhidgetReturnCode __stdcall Phidget_getDeviceVersion		(PhidgetHandle phid, int *deviceVersion);
+__declspec(dllimport) PhidgetReturnCode __stdcall Phidget_getDeviceChannelCount	(PhidgetHandle phid, Phidget_ChannelClass cls, uint32_t *count);
 
 /* VINT Hub Properties */
 __declspec(dllimport) PhidgetReturnCode __stdcall Phidget_getIsHubPortDevice		(PhidgetHandle phid, int *isHubPortDevice);
@@ -1261,6 +1346,123 @@ __declspec(dllimport) PhidgetReturnCode __stdcall Phidget_setOnPropertyChangeHan
 __declspec(dllimport) int __stdcall Phidget_validDictionaryKey(const char *);
 typedef void(__stdcall *PhidgetDictionary_OnChangeCallback)(int, const char *, void *, int, const char *, const char *);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDictionary_setOnChangeCallbackHandler(PhidgetDictionary_OnChangeCallback, void *);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2247,29 +2449,29 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetManager_setOnErrorHandl
 
 
 
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_enable(Phidget_LogLevel level, const char *dest);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_enable(Phidget_LogLevel level, const char *destination);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_disable(void);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_enableNetwork(const char *, int);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_enableNetwork(const char *address, int port);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_disableNetwork(void);
 
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_log(Phidget_LogLevel level, const char *fmt, ...);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_log(Phidget_LogLevel level, const char *message, ...) ;
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_loge(const char *file, int line, const char *func,
-  const char *src, Phidget_LogLevel level, const char *fmt, ...);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_logs(Phidget_LogLevel level, const char *str);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_loges(Phidget_LogLevel level, const char *srcname, const char *str);
+  const char *src, Phidget_LogLevel level, const char *message, ...) ;
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_logs(Phidget_LogLevel level, const char *message);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_loges(Phidget_LogLevel level, const char *source, const char *message);
 
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_rotate(void);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_enableRotating(void);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_disableRotating(void);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_isRotating(int *);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_getRotating(uint64_t *rotatesz, int *keep);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_setRotating(uint64_t rotatesz, int keep);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_getLevel(Phidget_LogLevel *);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_setLevel(Phidget_LogLevel);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_addSource(const char *, Phidget_LogLevel);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_getSourceLevel(const char *, Phidget_LogLevel *);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_setSourceLevel(const char *, Phidget_LogLevel);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_getSources(const char **, uint32_t *);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_isRotating(int *isrotating);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_getRotating(uint64_t *size, int *keepCount);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_setRotating(uint64_t size, int keepCount);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_getLevel(Phidget_LogLevel *level);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_setLevel(Phidget_LogLevel level);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_addSource(const char *, Phidget_LogLevel level);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_getSourceLevel(const char *source, Phidget_LogLevel *level);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_setSourceLevel(const char *source, Phidget_LogLevel level);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLog_getSources(const char *sources[], uint32_t *count);
 
 
 
@@ -2347,16 +2549,17 @@ typedef struct {
 
 /* Client API */
 
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_addServer(const char *, const char *, int, const char *, int);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_removeServer(const char *);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_addServer(const char *serverName, const char *address, int port, const char *password, int flags);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_removeServer(const char *serverName);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_removeAllServers(void);
 
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_enableServer(const char *name);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_disableServer(const char *name, int flags);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_enableServer(const char *serverName);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_disableServer(const char *serverName, int flags);
 
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_setServerPassword(const char *name, const char *passwd);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_setServerPassword(const char *serverName, const char *password);
 
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_enableServerDiscovery(PhidgetServerType srvt);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_disableServerDiscovery(PhidgetServerType srvt);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_enableServerDiscovery(PhidgetServerType serverType);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_disableServerDiscovery(PhidgetServerType serverType);
 
 typedef void (__stdcall *PhidgetNet_OnServerAddedCallback)(void *ctx, PhidgetServerHandle server, void *kv);
 typedef void (__stdcall *PhidgetNet_OnServerRemovedCallback)(void *ctx, PhidgetServerHandle server);
@@ -2364,11 +2567,31 @@ typedef void (__stdcall *PhidgetNet_OnServerRemovedCallback)(void *ctx, PhidgetS
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_setOnServerAddedHandler(PhidgetNet_OnServerAddedCallback fptr, void *ctx);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_setOnServerRemovedHandler(PhidgetNet_OnServerRemovedCallback fptr, void *ctx);
 
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_getServerAddressList(const char *hostname, int addressFamily, char *addressList[], uint32_t *count);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_freeServerAddressList(char *addressList[], uint32_t count);
 /* Server API */
 
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_startServer(int flags, int af, const char *srvname, const char *address, int port,
-  const char *passwd, PhidgetServerHandle *server);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_startServer(int flags, int addressFamily, const char *serverName, const char *address, int port,
+  const char *password, PhidgetServerHandle *server);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetNet_stopServer(PhidgetServerHandle *server);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2856,7 +3079,48 @@ __declspec(dllimport) int __stdcall Phidget_enumFromString(const char *);
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:13 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetVoltageRatioInput *PhidgetVoltageRatioInputHandle;
 
@@ -2923,7 +3187,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetVoltageRatioInput_setOn
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:13 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetDigitalInput *PhidgetDigitalInputHandle;
 
@@ -2955,13 +3219,16 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDigitalInput_setOnState
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:13 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetDigitalOutput *PhidgetDigitalOutputHandle;
 
 /* Methods */
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDigitalOutput_create(PhidgetDigitalOutputHandle *ch);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDigitalOutput_delete(PhidgetDigitalOutputHandle *ch);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDigitalOutput_enableFailsafe(PhidgetDigitalOutputHandle ch,
+  uint32_t failsafeTime);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDigitalOutput_resetFailsafe(PhidgetDigitalOutputHandle ch);
 
 /* Properties */
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDigitalOutput_setDutyCycle(PhidgetDigitalOutputHandle ch, double dutyCycle);
@@ -2972,6 +3239,16 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDigitalOutput_getMinDut
   double *minDutyCycle);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDigitalOutput_getMaxDutyCycle(PhidgetDigitalOutputHandle ch,
   double *maxDutyCycle);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDigitalOutput_getMinFailsafeTime(PhidgetDigitalOutputHandle ch,
+  uint32_t *minFailsafeTime);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDigitalOutput_getMaxFailsafeTime(PhidgetDigitalOutputHandle ch,
+  uint32_t *maxFailsafeTime);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDigitalOutput_setFrequency(PhidgetDigitalOutputHandle ch, double frequency);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDigitalOutput_getFrequency(PhidgetDigitalOutputHandle ch, double *frequency);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDigitalOutput_getMinFrequency(PhidgetDigitalOutputHandle ch,
+  double *minFrequency);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDigitalOutput_getMaxFrequency(PhidgetDigitalOutputHandle ch,
+  double *maxFrequency);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDigitalOutput_setLEDCurrentLimit(PhidgetDigitalOutputHandle ch,
   double LEDCurrentLimit);
 __declspec(dllimport) void __stdcall PhidgetDigitalOutput_setLEDCurrentLimit_async(PhidgetDigitalOutputHandle ch,
@@ -2999,13 +3276,15 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDigitalOutput_getState(
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:13 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetRCServo *PhidgetRCServoHandle;
 
 /* Methods */
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetRCServo_create(PhidgetRCServoHandle *ch);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetRCServo_delete(PhidgetRCServoHandle *ch);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetRCServo_enableFailsafe(PhidgetRCServoHandle ch, uint32_t failsafeTime);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetRCServo_resetFailsafe(PhidgetRCServoHandle ch);
 
 /* Properties */
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetRCServo_setAcceleration(PhidgetRCServoHandle ch, double acceleration);
@@ -3018,6 +3297,8 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetRCServo_getMinDataInter
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetRCServo_getMaxDataInterval(PhidgetRCServoHandle ch, uint32_t *maxDataInterval);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetRCServo_setEngaged(PhidgetRCServoHandle ch, int engaged);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetRCServo_getEngaged(PhidgetRCServoHandle ch, int *engaged);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetRCServo_getMinFailsafeTime(PhidgetRCServoHandle ch, uint32_t *minFailsafeTime);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetRCServo_getMaxFailsafeTime(PhidgetRCServoHandle ch, uint32_t *maxFailsafeTime);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetRCServo_getIsMoving(PhidgetRCServoHandle ch, int *isMoving);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetRCServo_getPosition(PhidgetRCServoHandle ch, double *position);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetRCServo_setMinPosition(PhidgetRCServoHandle ch, double minPosition);
@@ -3073,17 +3354,24 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetRCServo_setOnVelocityCh
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:13 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetVoltageOutput *PhidgetVoltageOutputHandle;
 
 /* Methods */
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetVoltageOutput_create(PhidgetVoltageOutputHandle *ch);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetVoltageOutput_delete(PhidgetVoltageOutputHandle *ch);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetVoltageOutput_enableFailsafe(PhidgetVoltageOutputHandle ch,
+  uint32_t failsafeTime);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetVoltageOutput_resetFailsafe(PhidgetVoltageOutputHandle ch);
 
 /* Properties */
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetVoltageOutput_setEnabled(PhidgetVoltageOutputHandle ch, int enabled);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetVoltageOutput_getEnabled(PhidgetVoltageOutputHandle ch, int *enabled);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetVoltageOutput_getMinFailsafeTime(PhidgetVoltageOutputHandle ch,
+  uint32_t *minFailsafeTime);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetVoltageOutput_getMaxFailsafeTime(PhidgetVoltageOutputHandle ch,
+  uint32_t *maxFailsafeTime);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetVoltageOutput_setVoltage(PhidgetVoltageOutputHandle ch, double voltage);
 __declspec(dllimport) void __stdcall PhidgetVoltageOutput_setVoltage_async(PhidgetVoltageOutputHandle ch, double voltage,
   Phidget_AsyncCallback fptr, void *ctx);
@@ -3103,7 +3391,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetVoltageOutput_getVoltag
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:13 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetAccelerometer *PhidgetAccelerometerHandle;
 
@@ -3135,6 +3423,12 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetAccelerometer_getMinDat
   uint32_t *minDataInterval);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetAccelerometer_getMaxDataInterval(PhidgetAccelerometerHandle ch,
   uint32_t *maxDataInterval);
+
+
+
+
+
+
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetAccelerometer_getTimestamp(PhidgetAccelerometerHandle ch, double *timestamp);
 
 /* Events */
@@ -3150,7 +3444,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetAccelerometer_setOnAcce
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:13 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetVoltageInput *PhidgetVoltageInputHandle;
 
@@ -3216,7 +3510,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetVoltageInput_setOnVolta
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:13 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetCapacitiveTouch *PhidgetCapacitiveTouchHandle;
 
@@ -3275,7 +3569,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetCapacitiveTouch_setOnTo
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:13 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetRFID *PhidgetRFIDHandle;
 
@@ -3310,7 +3604,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetRFID_setOnTagLostHandle
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:13 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetGPS *PhidgetGPSHandle;
 
@@ -3352,7 +3646,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetGPS_setOnPositionFixSta
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:13 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetGyroscope *PhidgetGyroscopeHandle;
 
@@ -3374,6 +3668,12 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetGyroscope_getMinDataInt
   uint32_t *minDataInterval);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetGyroscope_getMaxDataInterval(PhidgetGyroscopeHandle ch,
   uint32_t *maxDataInterval);
+
+
+
+
+
+
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetGyroscope_getTimestamp(PhidgetGyroscopeHandle ch, double *timestamp);
 
 /* Events */
@@ -3389,15 +3689,15 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetGyroscope_setOnAngularR
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:13 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetMagnetometer *PhidgetMagnetometerHandle;
 
 /* Methods */
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMagnetometer_create(PhidgetMagnetometerHandle *ch);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMagnetometer_delete(PhidgetMagnetometerHandle *ch);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMagnetometer_setCorrectionParameters(PhidgetMagnetometerHandle ch, double magField,
-  double offset0, double offset1, double offset2, double gain0, double gain1, double gain2, double T0, double T1, double T2, double T3, double T4, double T5);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMagnetometer_setCorrectionParameters(PhidgetMagnetometerHandle ch,
+  double magneticField, double offset0, double offset1, double offset2, double gain0, double gain1, double gain2, double T0, double T1, double T2, double T3, double T4, double T5);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMagnetometer_resetCorrectionParameters(PhidgetMagnetometerHandle ch);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMagnetometer_saveCorrectionParameters(PhidgetMagnetometerHandle ch);
 
@@ -3440,7 +3740,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMagnetometer_setOnMagne
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:13 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetSpatial *PhidgetSpatialHandle;
 
@@ -3448,18 +3748,38 @@ typedef struct _PhidgetSpatial *PhidgetSpatialHandle;
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetSpatial_create(PhidgetSpatialHandle *ch);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetSpatial_delete(PhidgetSpatialHandle *ch);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetSpatial_setMagnetometerCorrectionParameters(PhidgetSpatialHandle ch,
-  double magField, double offset0, double offset1, double offset2, double gain0, double gain1, double gain2, double T0, double T1, double T2, double T3, double T4, double T5);
+  double magneticField, double offset0, double offset1, double offset2, double gain0, double gain1, double gain2, double T0, double T1, double T2, double T3, double T4, double T5);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetSpatial_resetMagnetometerCorrectionParameters(PhidgetSpatialHandle ch);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetSpatial_saveMagnetometerCorrectionParameters(PhidgetSpatialHandle ch);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetSpatial_zeroAlgorithm(PhidgetSpatialHandle ch);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetSpatial_zeroGyro(PhidgetSpatialHandle ch);
 
 /* Properties */
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetSpatial_setAlgorithm(PhidgetSpatialHandle ch,
+  Phidget_SpatialAlgorithm algorithm);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetSpatial_getAlgorithm(PhidgetSpatialHandle ch,
+  Phidget_SpatialAlgorithm *algorithm);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetSpatial_setAlgorithmMagnetometerGain(PhidgetSpatialHandle ch,
+  double algorithmMagnetometerGain);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetSpatial_getAlgorithmMagnetometerGain(PhidgetSpatialHandle ch,
+  double *algorithmMagnetometerGain);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetSpatial_setDataInterval(PhidgetSpatialHandle ch, uint32_t dataInterval);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetSpatial_getDataInterval(PhidgetSpatialHandle ch, uint32_t *dataInterval);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetSpatial_getMinDataInterval(PhidgetSpatialHandle ch, uint32_t *minDataInterval);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetSpatial_getMaxDataInterval(PhidgetSpatialHandle ch, uint32_t *maxDataInterval);
 
+
+
+
+
+
+
 /* Events */
+typedef void (__stdcall *PhidgetSpatial_OnAlgorithmDataCallback)(PhidgetSpatialHandle ch, void *ctx,
+  const double quaternion[4], double timestamp);
+
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetSpatial_setOnAlgorithmDataHandler(PhidgetSpatialHandle ch,
+  PhidgetSpatial_OnAlgorithmDataCallback fptr, void *ctx);
 typedef void (__stdcall *PhidgetSpatial_OnSpatialDataCallback)(PhidgetSpatialHandle ch, void *ctx,
   const double acceleration[3], const double angularRate[3], const double magneticField[3], double timestamp);
 
@@ -3472,7 +3792,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetSpatial_setOnSpatialDat
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:13 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetTemperatureSensor *PhidgetTemperatureSensorHandle;
 
@@ -3528,7 +3848,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetTemperatureSensor_setOn
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:13 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetEncoder *PhidgetEncoderHandle;
 
@@ -3570,7 +3890,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetEncoder_setOnPositionCh
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:13 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetFrequencyCounter *PhidgetFrequencyCounterHandle;
 
@@ -3636,19 +3956,19 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetFrequencyCounter_setOnF
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:13 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetIR *PhidgetIRHandle;
 
 /* Methods */
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetIR_create(PhidgetIRHandle *ch);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetIR_delete(PhidgetIRHandle *ch);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetIR_getLastCode(PhidgetIRHandle ch, char *code, size_t codeLength,
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetIR_getLastCode(PhidgetIRHandle ch, char *code, size_t codeLen,
   uint32_t *bitCount);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetIR_getLastLearnedCode(PhidgetIRHandle ch, char *code, size_t codeLength,
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetIR_getLastLearnedCode(PhidgetIRHandle ch, char *code, size_t codeLen,
   PhidgetIR_CodeInfo *codeInfo);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetIR_transmit(PhidgetIRHandle ch, const char *code, PhidgetIR_CodeInfo *codeInfo);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetIR_transmitRaw(PhidgetIRHandle ch, const uint32_t *data, size_t dataLength,
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetIR_transmitRaw(PhidgetIRHandle ch, const uint32_t *data, size_t dataLen,
   uint32_t carrierFrequency, double dutyCycle, uint32_t gap);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetIR_transmitRepeat(PhidgetIRHandle ch);
 
@@ -3666,7 +3986,7 @@ typedef void (__stdcall *PhidgetIR_OnLearnCallback)(PhidgetIRHandle ch, void *ct
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetIR_setOnLearnHandler(PhidgetIRHandle ch, PhidgetIR_OnLearnCallback fptr,
   void *ctx);
 typedef void (__stdcall *PhidgetIR_OnRawDataCallback)(PhidgetIRHandle ch, void *ctx, const uint32_t *data,
-  size_t dataLength);
+  size_t dataLen);
 
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetIR_setOnRawDataHandler(PhidgetIRHandle ch, PhidgetIR_OnRawDataCallback fptr,
   void *ctx);
@@ -3677,7 +3997,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetIR_setOnRawDataHandler(
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:13 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetPHSensor *PhidgetPHSensorHandle;
 
@@ -3721,13 +4041,15 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetPHSensor_setOnPHChangeH
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:13 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetDCMotor *PhidgetDCMotorHandle;
 
 /* Methods */
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_create(PhidgetDCMotorHandle *ch);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_delete(PhidgetDCMotorHandle *ch);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_enableFailsafe(PhidgetDCMotorHandle ch, uint32_t failsafeTime);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_resetFailsafe(PhidgetDCMotorHandle ch);
 
 /* Properties */
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_setAcceleration(PhidgetDCMotorHandle ch, double acceleration);
@@ -3759,6 +4081,8 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_setDataInterval
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_getDataInterval(PhidgetDCMotorHandle ch, uint32_t *dataInterval);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_getMinDataInterval(PhidgetDCMotorHandle ch, uint32_t *minDataInterval);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_getMaxDataInterval(PhidgetDCMotorHandle ch, uint32_t *maxDataInterval);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_getMinFailsafeTime(PhidgetDCMotorHandle ch, uint32_t *minFailsafeTime);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_getMaxFailsafeTime(PhidgetDCMotorHandle ch, uint32_t *maxFailsafeTime);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_setFanMode(PhidgetDCMotorHandle ch, Phidget_FanMode fanMode);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_getFanMode(PhidgetDCMotorHandle ch, Phidget_FanMode *fanMode);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_setTargetBrakingStrength(PhidgetDCMotorHandle ch,
@@ -3766,6 +4090,8 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_setTargetBrakin
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_getTargetBrakingStrength(PhidgetDCMotorHandle ch,
   double *targetBrakingStrength);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_setTargetVelocity(PhidgetDCMotorHandle ch, double targetVelocity);
+__declspec(dllimport) void __stdcall PhidgetDCMotor_setTargetVelocity_async(PhidgetDCMotorHandle ch, double targetVelocity,
+  Phidget_AsyncCallback fptr, void *ctx);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_getTargetVelocity(PhidgetDCMotorHandle ch, double *targetVelocity);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_getVelocity(PhidgetDCMotorHandle ch, double *velocity);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_getMinVelocity(PhidgetDCMotorHandle ch, double *minVelocity);
@@ -3794,7 +4120,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDCMotor_setOnVelocityUp
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:14 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetCurrentInput *PhidgetCurrentInputHandle;
 
@@ -3840,14 +4166,16 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetCurrentInput_setOnCurre
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:14 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetStepper *PhidgetStepperHandle;
 
 /* Methods */
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetStepper_create(PhidgetStepperHandle *ch);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetStepper_delete(PhidgetStepperHandle *ch);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetStepper_enableFailsafe(PhidgetStepperHandle ch, uint32_t failsafeTime);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetStepper_addPositionOffset(PhidgetStepperHandle ch, double positionOffset);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetStepper_resetFailsafe(PhidgetStepperHandle ch);
 
 /* Properties */
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetStepper_setAcceleration(PhidgetStepperHandle ch, double acceleration);
@@ -3868,6 +4196,8 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetStepper_getMinDataInter
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetStepper_getMaxDataInterval(PhidgetStepperHandle ch, uint32_t *maxDataInterval);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetStepper_setEngaged(PhidgetStepperHandle ch, int engaged);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetStepper_getEngaged(PhidgetStepperHandle ch, int *engaged);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetStepper_getMinFailsafeTime(PhidgetStepperHandle ch, uint32_t *minFailsafeTime);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetStepper_getMaxFailsafeTime(PhidgetStepperHandle ch, uint32_t *maxFailsafeTime);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetStepper_setHoldingCurrentLimit(PhidgetStepperHandle ch,
   double holdingCurrentLimit);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetStepper_getHoldingCurrentLimit(PhidgetStepperHandle ch,
@@ -3910,7 +4240,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetStepper_setOnVelocityCh
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:14 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetLCD *PhidgetLCDHandle;
 
@@ -3925,10 +4255,10 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLCD_getMaxCharacters(Ph
   int *maxCharacters);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLCD_clear(PhidgetLCDHandle ch);
 __declspec(dllimport) void __stdcall PhidgetLCD_clear_async(PhidgetLCDHandle ch, Phidget_AsyncCallback fptr, void *ctx);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLCD_copy(PhidgetLCDHandle ch, int srcFramebuffer, int dstFramebuffer, int srcX1,
-  int srcY1, int srcX2, int srcY2, int dstX, int dstY, int inverted);
-__declspec(dllimport) void __stdcall PhidgetLCD_copy_async(PhidgetLCDHandle ch, int srcFramebuffer, int dstFramebuffer,
-  int srcX1, int srcY1, int srcX2, int srcY2, int dstX, int dstY, int inverted, Phidget_AsyncCallback fptr, void *ctx);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLCD_copy(PhidgetLCDHandle ch, int sourceFramebuffer, int destFramebuffer,
+  int sourceX1, int sourceY1, int sourceX2, int sourceY2, int destX, int destY, int inverted);
+__declspec(dllimport) void __stdcall PhidgetLCD_copy_async(PhidgetLCDHandle ch, int sourceFramebuffer, int destFramebuffer,
+  int sourceX1, int sourceY1, int sourceX2, int sourceY2, int destX, int destY, int inverted, Phidget_AsyncCallback fptr, void *ctx);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLCD_drawLine(PhidgetLCDHandle ch, int x1, int y1, int x2, int y2);
 __declspec(dllimport) void __stdcall PhidgetLCD_drawLine_async(PhidgetLCDHandle ch, int x1, int y1, int x2, int y2,
   Phidget_AsyncCallback fptr, void *ctx);
@@ -3950,14 +4280,14 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLCD_initialize(PhidgetL
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLCD_saveFrameBuffer(PhidgetLCDHandle ch, int frameBuffer);
 __declspec(dllimport) void __stdcall PhidgetLCD_saveFrameBuffer_async(PhidgetLCDHandle ch, int frameBuffer,
   Phidget_AsyncCallback fptr, void *ctx);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLCD_writeBitmap(PhidgetLCDHandle ch, int xpos, int ypos, int xsize, int ysize,
-  const uint8_t *bitmap);
-__declspec(dllimport) void __stdcall PhidgetLCD_writeBitmap_async(PhidgetLCDHandle ch, int xpos, int ypos, int xsize,
-  int ysize, const uint8_t *bitmap, Phidget_AsyncCallback fptr, void *ctx);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLCD_writeText(PhidgetLCDHandle ch, PhidgetLCD_Font font, int xpos, int ypos,
-  const char *text);
-__declspec(dllimport) void __stdcall PhidgetLCD_writeText_async(PhidgetLCDHandle ch, PhidgetLCD_Font font, int xpos, int ypos,
-  const char *text, Phidget_AsyncCallback fptr, void *ctx);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLCD_writeBitmap(PhidgetLCDHandle ch, int xPosition, int yPosition, int xSize,
+  int ySize, const uint8_t *bitmap);
+__declspec(dllimport) void __stdcall PhidgetLCD_writeBitmap_async(PhidgetLCDHandle ch, int xPosition, int yPosition, int xSize,
+  int ySize, const uint8_t *bitmap, Phidget_AsyncCallback fptr, void *ctx);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLCD_writeText(PhidgetLCDHandle ch, PhidgetLCD_Font font, int xPosition,
+  int yPosition, const char *text);
+__declspec(dllimport) void __stdcall PhidgetLCD_writeText_async(PhidgetLCDHandle ch, PhidgetLCD_Font font, int xPosition,
+  int yPosition, const char *text, Phidget_AsyncCallback fptr, void *ctx);
 
 /* Properties */
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLCD_setBacklight(PhidgetLCDHandle ch, double backlight);
@@ -3991,28 +4321,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLCD_getWidth(PhidgetLCD
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
-
-typedef struct _PhidgetDataAdapter *PhidgetDataAdapterHandle;
-
-/* Methods */
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDataAdapter_create(PhidgetDataAdapterHandle *ch);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDataAdapter_delete(PhidgetDataAdapterHandle *ch);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDataAdapter_sendPacket(PhidgetDataAdapterHandle ch, const uint8_t *data,
-  size_t length);
-__declspec(dllimport) void __stdcall PhidgetDataAdapter_sendPacket_async(PhidgetDataAdapterHandle ch, const uint8_t *data,
-  size_t length, Phidget_AsyncCallback fptr, void *ctx);
-
-/* Properties */
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDataAdapter_getMaxPacketLength(PhidgetDataAdapterHandle ch,
-  uint32_t *maxPacketLength);
-
-/* Events */
-typedef void (__stdcall *PhidgetDataAdapter_OnPacketCallback)(PhidgetDataAdapterHandle ch, void *ctx,
-  const uint8_t *data, size_t length, int overrun);
-
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDataAdapter_setOnPacketHandler(PhidgetDataAdapterHandle ch,
-  PhidgetDataAdapter_OnPacketCallback fptr, void *ctx);
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:14 GMT-0600 (Mountain Daylight Time) */
 
 
 
@@ -4020,15 +4329,122 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDataAdapter_setOnPacket
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:14 GMT-0600 (Mountain Daylight Time) */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:14 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetMotorPositionController *PhidgetMotorPositionControllerHandle;
 
 /* Methods */
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMotorPositionController_create(PhidgetMotorPositionControllerHandle *ch);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMotorPositionController_delete(PhidgetMotorPositionControllerHandle *ch);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMotorPositionController_enableFailsafe(PhidgetMotorPositionControllerHandle ch,
+  uint32_t failsafeTime);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMotorPositionController_addPositionOffset(PhidgetMotorPositionControllerHandle ch,
   double positionOffset);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMotorPositionController_resetFailsafe(PhidgetMotorPositionControllerHandle ch);
 
 /* Properties */
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMotorPositionController_setAcceleration(PhidgetMotorPositionControllerHandle ch,
@@ -4069,6 +4485,10 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMotorPositionController
   int engaged);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMotorPositionController_getEngaged(PhidgetMotorPositionControllerHandle ch,
   int *engaged);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMotorPositionController_getMinFailsafeTime(PhidgetMotorPositionControllerHandle ch,
+  uint32_t *minFailsafeTime);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMotorPositionController_getMaxFailsafeTime(PhidgetMotorPositionControllerHandle ch,
+  uint32_t *maxFailsafeTime);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMotorPositionController_setFanMode(PhidgetMotorPositionControllerHandle ch,
   Phidget_FanMode fanMode);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMotorPositionController_getFanMode(PhidgetMotorPositionControllerHandle ch,
@@ -4081,6 +4501,10 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMotorPositionController
   double kd);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMotorPositionController_getKd(PhidgetMotorPositionControllerHandle ch,
   double *kd);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMotorPositionController_setKi(PhidgetMotorPositionControllerHandle ch,
+  double ki);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMotorPositionController_getKi(PhidgetMotorPositionControllerHandle ch,
+  double *ki);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMotorPositionController_setKp(PhidgetMotorPositionControllerHandle ch,
   double kp);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMotorPositionController_getKp(PhidgetMotorPositionControllerHandle ch,
@@ -4127,14 +4551,16 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetMotorPositionController
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:14 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetBLDCMotor *PhidgetBLDCMotorHandle;
 
 /* Methods */
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetBLDCMotor_create(PhidgetBLDCMotorHandle *ch);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetBLDCMotor_delete(PhidgetBLDCMotorHandle *ch);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetBLDCMotor_enableFailsafe(PhidgetBLDCMotorHandle ch, uint32_t failsafeTime);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetBLDCMotor_addPositionOffset(PhidgetBLDCMotorHandle ch, double positionOffset);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetBLDCMotor_resetFailsafe(PhidgetBLDCMotorHandle ch);
 
 /* Properties */
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetBLDCMotor_setAcceleration(PhidgetBLDCMotorHandle ch, double acceleration);
@@ -4152,6 +4578,10 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetBLDCMotor_getMinDataInt
   uint32_t *minDataInterval);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetBLDCMotor_getMaxDataInterval(PhidgetBLDCMotorHandle ch,
   uint32_t *maxDataInterval);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetBLDCMotor_getMinFailsafeTime(PhidgetBLDCMotorHandle ch,
+  uint32_t *minFailsafeTime);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetBLDCMotor_getMaxFailsafeTime(PhidgetBLDCMotorHandle ch,
+  uint32_t *maxFailsafeTime);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetBLDCMotor_getPosition(PhidgetBLDCMotorHandle ch, double *position);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetBLDCMotor_getMinPosition(PhidgetBLDCMotorHandle ch, double *minPosition);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetBLDCMotor_getMaxPosition(PhidgetBLDCMotorHandle ch, double *maxPosition);
@@ -4168,6 +4598,8 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetBLDCMotor_setTargetBrak
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetBLDCMotor_getTargetBrakingStrength(PhidgetBLDCMotorHandle ch,
   double *targetBrakingStrength);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetBLDCMotor_setTargetVelocity(PhidgetBLDCMotorHandle ch, double targetVelocity);
+__declspec(dllimport) void __stdcall PhidgetBLDCMotor_setTargetVelocity_async(PhidgetBLDCMotorHandle ch, double targetVelocity,
+  Phidget_AsyncCallback fptr, void *ctx);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetBLDCMotor_getTargetVelocity(PhidgetBLDCMotorHandle ch, double *targetVelocity);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetBLDCMotor_getVelocity(PhidgetBLDCMotorHandle ch, double *velocity);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetBLDCMotor_getMinVelocity(PhidgetBLDCMotorHandle ch, double *minVelocity);
@@ -4196,7 +4628,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetBLDCMotor_setOnVelocity
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:14 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetDistanceSensor *PhidgetDistanceSensorHandle;
 
@@ -4204,7 +4636,7 @@ typedef struct _PhidgetDistanceSensor *PhidgetDistanceSensorHandle;
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDistanceSensor_create(PhidgetDistanceSensorHandle *ch);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDistanceSensor_delete(PhidgetDistanceSensorHandle *ch);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDistanceSensor_getSonarReflections(PhidgetDistanceSensorHandle ch,
-  uint32_t *distances, uint32_t *amplitudes, uint32_t *count);
+  uint32_t (*distances)[8], uint32_t (*amplitudes)[8], uint32_t *count);
 
 /* Properties */
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDistanceSensor_setDataInterval(PhidgetDistanceSensorHandle ch,
@@ -4250,7 +4682,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDistanceSensor_setOnSon
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:14 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetHumiditySensor *PhidgetHumiditySensorHandle;
 
@@ -4294,7 +4726,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetHumiditySensor_setOnHum
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:14 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetLightSensor *PhidgetLightSensorHandle;
 
@@ -4336,7 +4768,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetLightSensor_setOnIllumi
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:14 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetPressureSensor *PhidgetPressureSensorHandle;
 
@@ -4380,15 +4812,21 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetPressureSensor_setOnPre
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:14 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetPowerGuard *PhidgetPowerGuardHandle;
 
 /* Methods */
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetPowerGuard_create(PhidgetPowerGuardHandle *ch);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetPowerGuard_delete(PhidgetPowerGuardHandle *ch);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetPowerGuard_enableFailsafe(PhidgetPowerGuardHandle ch, uint32_t failsafeTime);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetPowerGuard_resetFailsafe(PhidgetPowerGuardHandle ch);
 
 /* Properties */
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetPowerGuard_getMinFailsafeTime(PhidgetPowerGuardHandle ch,
+  uint32_t *minFailsafeTime);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetPowerGuard_getMaxFailsafeTime(PhidgetPowerGuardHandle ch,
+  uint32_t *maxFailsafeTime);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetPowerGuard_setFanMode(PhidgetPowerGuardHandle ch, Phidget_FanMode fanMode);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetPowerGuard_getFanMode(PhidgetPowerGuardHandle ch, Phidget_FanMode *fanMode);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetPowerGuard_setOverVoltage(PhidgetPowerGuardHandle ch, double overVoltage);
@@ -4406,7 +4844,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetPowerGuard_getPowerEnab
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:14 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetSoundSensor *PhidgetSoundSensorHandle;
 
@@ -4453,7 +4891,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetSoundSensor_setOnSPLCha
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:14 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetResistanceInput *PhidgetResistanceInputHandle;
 
@@ -4502,7 +4940,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetResistanceInput_setOnRe
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:14 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetHub *PhidgetHubHandle;
 
@@ -4531,7 +4969,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetHub_setPortPower(Phidge
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:14 GMT-0600 (Mountain Daylight Time) */
 
 
 
@@ -4551,7 +4989,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetHub_setPortPower(Phidge
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:14 GMT-0600 (Mountain Daylight Time) */
 
 
 
@@ -4605,7 +5043,7 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetHub_setPortPower(Phidge
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:14 GMT-0600 (Mountain Daylight Time) */
 
 
 
@@ -4636,7 +5074,19 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetHub_setPortPower(Phidge
 
 
 
-/* Generated by WriteClassHeaderVisitor: Wed Sep 06 2017 15:06:32 GMT-0600 (Mountain Daylight Time) */
+
+
+
+
+
+
+
+
+
+
+
+
+/* Generated by WriteClassHeaderVisitor: Sun Apr 26 2020 14:03:14 GMT-0600 (Mountain Daylight Time) */
 
 typedef struct _PhidgetDictionary *PhidgetDictionaryHandle;
 
@@ -4661,10 +5111,10 @@ __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDictionary_delete(Phidg
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDictionary_add(PhidgetDictionaryHandle ch, const char *key, const char *value);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDictionary_removeAll(PhidgetDictionaryHandle ch);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDictionary_get(PhidgetDictionaryHandle ch, const char *key, char *value,
-  size_t len);
+  size_t valueLen);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDictionary_remove(PhidgetDictionaryHandle ch, const char *key);
-__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDictionary_scan(PhidgetDictionaryHandle ch, const char *start, char *keyslist,
-  size_t len);
+__declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDictionary_scan(PhidgetDictionaryHandle ch, const char *start, char *keyList,
+  size_t keyListLen);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDictionary_set(PhidgetDictionaryHandle ch, const char *key, const char *value);
 __declspec(dllimport) PhidgetReturnCode __stdcall PhidgetDictionary_update(PhidgetDictionaryHandle ch, const char *key,
   const char *value);
