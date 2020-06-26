@@ -378,7 +378,10 @@ void vtkPlusOptiTrack::vtkInternal::InternalCallback(sFrameOfMocapData* data, vo
     rigidBodyToTrackerMatrix->Identity();
     sRigidBodyData currentRigidBody = rigidBodies[rigidBodyId];
 
-    if (currentRigidBody.MeanError != 0)
+    // Check if tool is in view
+    bool bTrackingValid = currentRigidBody.params & 0x01; 
+
+    if ((currentRigidBody.MeanError != 0) & (bTrackingValid))
     {
       // convert translation to mm
       double translation[3] = { currentRigidBody.x * self->Internal->UnitsToMm, currentRigidBody.y * self->Internal->UnitsToMm, currentRigidBody.z * self->Internal->UnitsToMm };
