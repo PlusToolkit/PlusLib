@@ -250,7 +250,7 @@ IF(PLUS_USE_OPTITRACK)
   IF (CMAKE_HOST_WIN32 AND CMAKE_CL_64 )
     SET(PLATFORM_NAME_SUFFIX "x64")
     SET(LIBRARIES_PATH_SUFFIX "")
-	SET(OPTITRACK_NATNET_PATH_SUFFIX "x64/")
+    SET(OPTITRACK_NATNET_PATH_SUFFIX "x64/")
   ENDIF ()
 
   LIST(APPEND OPTITRACK_MOTIVE_API_STATIC_LIBS
@@ -327,7 +327,7 @@ IF(PLUS_USE_OPTITRACK)
     ${OPTITRACK_MOTIVE_API_SHARED_LIBS}
     ${OPTITRACK_NATNET_BINARY_DIR}/${OPTITRACK_NATNET_PATH_SUFFIX}/NatNetLib${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
-	
+    
 ENDIF()
 
 # --------------------------------------------------------------------------
@@ -596,7 +596,7 @@ IF(PLUS_USE_BLACKMAGIC_DECKLINK)
     SET(BlackMagicDeckLink_HDRS
       BlackMagic/vtkPlusDeckLinkVideoSource.h
       BlackMagic/DeckLinkAPIWrapper.h
-	  BlackMagic/PlusOutputVideoFrame.h
+      BlackMagic/PlusOutputVideoFrame.h
       ${DeckLinkSDK_INCLUDE_DIR}/DeckLinkAPIVersion.h
     )
   ENDIF()
@@ -604,7 +604,7 @@ IF(PLUS_USE_BLACKMAGIC_DECKLINK)
   SET(BlackMagicDeckLink_SRCS
     BlackMagic/vtkPlusDeckLinkVideoSource.cxx
     BlackMagic/DeckLinkAPIWrapper.cxx
-	BlackMagic/PlusOutputVideoFrame.cxx
+    BlackMagic/PlusOutputVideoFrame.cxx
     )
 
   IF(UNIX)
