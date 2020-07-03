@@ -378,10 +378,7 @@ void vtkPlusOptiTrack::vtkInternal::InternalCallback(sFrameOfMocapData* data, vo
     rigidBodyToTrackerMatrix->Identity();
     sRigidBodyData currentRigidBody = rigidBodies[rigidBodyId];
 
-    // Check if tool is in view
-    bool bTrackingValid = currentRigidBody.params & 0x01; 
-
-    if ((currentRigidBody.MeanError != 0) & (bTrackingValid))
+    if (currentRigidBody.MeanError != 0)
     {
       // convert translation to mm
       double translation[3] = { currentRigidBody.x * self->Internal->UnitsToMm, currentRigidBody.y * self->Internal->UnitsToMm, currentRigidBody.z * self->Internal->UnitsToMm };
@@ -401,9 +398,12 @@ void vtkPlusOptiTrack::vtkInternal::InternalCallback(sFrameOfMocapData* data, vo
         rigidBodyToTrackerMatrix->SetElement(i, 3, translation[i]);
       }
 
+      // check if tool is in view
+      bool bTrackingValid = currentRigidBody.params & 0x01;
+
       // make sure the tool was specified in the Config file
       igsioTransformName toolToTracker = self->Internal->MapRBNameToTransform[currentRigidBody.ID];
-      self->ToolTimeStampedUpdate(toolToTracker.GetTransformName(), rigidBodyToTrackerMatrix, TOOL_OK, self->FrameNumber, unfilteredTimestamp);
+      self->ToolTimeStampedUpdate(toolToTracker.GetTransformName(), rigidBodyToTrackerMatrix, (bTrackingValid ? TOOL_OK : TOOL_INVALID), self->FrameNumber, unfilteredTimestamp);
     }
     else
     {
