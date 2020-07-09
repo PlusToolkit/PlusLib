@@ -63,7 +63,7 @@
 
 //----------------------------------------------------------------------------
 
-vtkPlusClarius * vtkPlusClarius::instance;
+vtkPlusClarius* vtkPlusClarius::instance;
 
 //----------------------------------------------------------------------------
 vtkPlusClarius* vtkPlusClarius::New()
@@ -417,20 +417,24 @@ PlusStatus vtkPlusClarius::InternalConnect()
     argv[0] = new char[4];
     strcpy(argv[0], "abc");
     const char* path = device->PathToSecKey.c_str();
-    ClariusNewImageFn SaveDataCallBackPtr = static_cast<ClariusNewImageFn>(&vtkPlusClarius::SaveDataCallback);
-    ClariusFreezeFn FreezeCallBackFnPtr = static_cast<ClariusFreezeFn>(&vtkPlusClarius::FreezeFn);
-    ClariusButtonFn ButtonCallBackFnPtr = static_cast<ClariusButtonFn>(&vtkPlusClarius::ButtonFn);
-    ClariusProgressFn ProgressCallBackFnPtr = static_cast<ClariusProgressFn>(&vtkPlusClarius::ProgressFn);
-    ClariusErrorFn ErrorCallBackFnPtr = static_cast<ClariusErrorFn>(&vtkPlusClarius::ErrorFn);
-    
+
+    // Callbacks
+    ClariusNewProcessedImageFn processedImageCallbackPtr = static_cast<ClariusNewProcessedImageFn>(&vtkPlusClarius::ProcessedImageCallback);
+    ClariusNewRawImageFn rawDataCallBackPtr = static_cast<ClariusNewRawImageFn>(&vtkPlusClarius::RawImageCallback);
+    ClariusFreezeFn freezeCallBackFnPtr = static_cast<ClariusFreezeFn>(&vtkPlusClarius::FreezeFn);
+    ClariusButtonFn buttonCallBackFnPtr = static_cast<ClariusButtonFn>(&vtkPlusClarius::ButtonFn);
+    ClariusProgressFn progressCallBackFnPtr = static_cast<ClariusProgressFn>(&vtkPlusClarius::ProgressFn);
+    ClariusErrorFn errorCallBackFnPtr = static_cast<ClariusErrorFn>(&vtkPlusClarius::ErrorFn);
+
     try
     {
       if (clariusInitListener(argc, argv, path,
-        SaveDataCallBackPtr,
-        FreezeCallBackFnPtr,
-        ButtonCallBackFnPtr,
-        ProgressCallBackFnPtr,
-        ErrorCallBackFnPtr,
+        processedImageCallbackPtr,
+        rawDataCallBackPtr,
+        freezeCallBackFnPtr,
+        buttonCallBackFnPtr,
+        progressCallBackFnPtr,
+        errorCallBackFnPtr,
         BLOCKINGCALL,
         FrameWidth,
         FrameHeight) < 0)
@@ -585,7 +589,7 @@ void vtkPlusClarius::ButtonFn(int btn, int clicks)
  * @param[in] npos the # fo positional data points embedded with the frame
  * @param[in] pos the buffer of positional data
  * */
-void vtkPlusClarius::NewImageFn(const void* newImage, const ClariusImageInfo* nfo, int npos, const ClariusPosInfo* pos)
+void vtkPlusClarius::NewImageFn(const void* newImage, const ClariusProcessedImageInfo* nfo, int npos, const ClariusPosInfo* pos)
 {
   LOG_TRACE("new image (" << newImage << "): " << nfo->width << " x " << nfo->height << " @ " << nfo->bitsPerPixel
     << "bits. @ " << nfo->micronsPerPixel << " microns per pixel. imu points: " << npos);
@@ -602,9 +606,9 @@ void vtkPlusClarius::NewImageFn(const void* newImage, const ClariusImageInfo* nf
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusClarius::SaveDataCallback(const void* newImage, const ClariusImageInfo* nfo, int npos, const ClariusPosInfo* pos)
+void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const ClariusProcessedImageInfo* nfo, int npos, const ClariusPosInfo* pos)
 {
-  LOG_TRACE("vtkPlusClarius::SaveDataCallback");
+  LOG_TRACE("vtkPlusClarius::ProcessedImageCallback");
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
   if (device == NULL)
   {
@@ -671,7 +675,7 @@ void vtkPlusClarius::SaveDataCallback(const void* newImage, const ClariusImageIn
   {
     device->WritePosesToCsv(nfo, npos, pos, device->FrameNumber, systemTime, converted_timestamp);
   }
-  
+
   if (device->WriteImagesToDisk)
   {
     // create cvimg to write to disk
@@ -833,7 +837,21 @@ void vtkPlusClarius::SaveDataCallback(const void* newImage, const ClariusImageIn
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusClarius::WritePosesToCsv(const ClariusImageInfo* nfo, int npos, const ClariusPosInfo* pos, int frameNum, double systemTime, double convertedTime)
+void vtkPlusClarius::RawImageCallback(const void* newImage, const ClariusRawImageInfo* nfo, int npos, const ClariusPosInfo* pos)
+{
+  LOG_TRACE("vtkPlusClarius::ProcessedImageCallback");
+  vtkPlusClarius* device = vtkPlusClarius::GetInstance();
+  if (device == NULL)
+  {
+    LOG_ERROR("Clarius instance is NULL!!!");
+    return;
+  }
+
+  // TODO: Implement raw image handling
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusClarius::WritePosesToCsv(const ClariusProcessedImageInfo* nfo, int npos, const ClariusPosInfo* pos, int frameNum, double systemTime, double convertedTime)
 {
   LOG_TRACE("vtkPlusClarius::WritePosesToCsv");
   if (npos != 0)
