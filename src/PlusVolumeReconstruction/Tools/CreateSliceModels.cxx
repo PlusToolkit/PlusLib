@@ -8,30 +8,37 @@
 * This program creates a vtkPolyData model that represents tracked ultrasound
 * image slices in their tracked positions.
 * It can be used to debug geometry problems in volume reconstruction.
-*
 */
 
 #include "PlusConfigure.h"
-#include "vtksys/CommandLineArguments.hxx"
 
+// STL includes
 #include <iostream>
+#include <algorithm>
+#include <cctype>
+#include <string>
 
-#include "vtkAppendPolyData.h"
-#include "vtkCubeSource.h"
-#include "vtkMatrix4x4.h"
-#include "vtkPolyData.h"
-#include "vtkPolyDataWriter.h"
-#include "vtkSmartPointer.h"
-#include "vtkTransform.h"
-#include "vtkTransformPolyDataFilter.h"
-#include "vtkXMLUtilities.h"
+// VTK includes
+#include <vtkAppendPolyData.h>
+#include <vtkCubeSource.h>
+#include <vtkMatrix4x4.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataWriter.h>
+#include <vtkSTLWriter.h>
+#include <vtkSmartPointer.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
+#include <vtkXMLUtilities.h>
+#include <vtksys/CommandLineArguments.hxx>
 
-#include "igsioTrackedFrame.h"
-#include "vtkIGSIOSequenceIO.h"
-#include "vtkIGSIOTrackedFrameList.h"
-#include "vtkIGSIOTransformRepository.h"
-#include "vtkPlusVolumeReconstructor.h"
+// IGSIO includes
+#include <igsioTrackedFrame.h>
+#include <vtkIGSIOSequenceIO.h>
+#include <vtkIGSIOTrackedFrameList.h>
+#include <vtkIGSIOTransformRepository.h>
 
+// Plus includes
+#include <vtkPlusVolumeReconstructor.h>
 
 int main( int argc, char** argv )
 {
@@ -48,7 +55,7 @@ int main( int argc, char** argv )
 
   args.AddArgument( "--image-to-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &imageToReferenceTransformNameStr, "Image to reference transform name used for creating slice models" );
   args.AddArgument( "--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMetaFilename, "Tracked ultrasound recorded by Plus (e.g., by the TrackedUltrasoundCapturing application) in a sequence file (.mha/.nrrd)" );
-  args.AddArgument( "--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file used for volume reconstrucion. It contains the probe calibration matrix, the ImageToTool transform (.xml) " );
+  args.AddArgument( "--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file used for volume reconstruction. It contains the probe calibration matrix, the ImageToTool transform (.xml) " );
   args.AddArgument( "--output-model-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputModelFilename, "A 3D model file that contains rectangles corresponding to each US image slice (.vtk)" );
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
   args.AddArgument( "--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help." );
@@ -91,14 +98,10 @@ int main( int argc, char** argv )
   LOG_DEBUG( "Reading input done." );
   LOG_DEBUG( "Number of frames: " << trackedFrameList->GetNumberOfTrackedFrames() );
 
-  // Get the image size from the trackedFrameList header (so that we can create models without having
-  // access to the image data)
-  int clipRectangleOrigin[2] = {0, 0};
-  std::istringstream issDimSize( trackedFrameList->GetCustomString( "DimSize" ) ); // DimSize = 640 480 567
-  int clipRectangleSize[2] = {0, 0};
-  issDimSize >> clipRectangleSize[0];
-  issDimSize >> clipRectangleSize[1];
-  if ( clipRectangleSize[0] <= 0 || clipRectangleSize[1] <= 0 )
+  // Get the image size
+  FrameSizeType clipRectangleOrigin = { 0, 0, 0 };
+  FrameSizeType clipRectangleSize = trackedFrameList->GetTrackedFrame(0)->GetFrameSize(); 
+  if (clipRectangleSize[0] <= 0 || clipRectangleSize[1] <= 0 )
   {
     LOG_ERROR( "Invalid frame size: " << clipRectangleSize[0] << "x" << clipRectangleSize[1] );
     clipRectangleSize[0] = 0;
@@ -117,7 +120,7 @@ int main( int argc, char** argv )
       return EXIT_FAILURE;
     }
 
-    vtkSmartPointer< vtkPlusVolumeReconstructor > reconstructor = vtkSmartPointer< vtkPlusVolumeReconstructor >::New();
+    vtkSmartPointer<vtkPlusVolumeReconstructor> reconstructor = vtkSmartPointer<vtkPlusVolumeReconstructor>::New();
     reconstructor->ReadConfiguration( configRootElement );
     LOG_DEBUG( "Reading config file done." );
     if ( transformRepository->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
@@ -128,14 +131,14 @@ int main( int argc, char** argv )
     int* clipRectangleOriginInConfig = reconstructor->GetClipRectangleOrigin();
     if ( clipRectangleOriginInConfig != NULL && clipRectangleOriginInConfig[0] >= 0 && clipRectangleOriginInConfig[1] >= 0 )
     {
-      clipRectangleOrigin[0] = clipRectangleOriginInConfig[0];
-      clipRectangleOrigin[1] = clipRectangleOriginInConfig[1];
+      clipRectangleOrigin[0] = static_cast<unsigned int>(clipRectangleOriginInConfig[0]);
+      clipRectangleOrigin[1] = static_cast<unsigned int>(clipRectangleOriginInConfig[1]);
     }
     int* clipRectangleSizeInConfig = reconstructor->GetClipRectangleSize();
     if ( clipRectangleSizeInConfig != NULL && clipRectangleSizeInConfig[0] > 0 && clipRectangleSizeInConfig[1] > 0 )
     {
-      clipRectangleSize[0] = clipRectangleSizeInConfig[0];
-      clipRectangleSize[1] = clipRectangleSizeInConfig[1];
+      clipRectangleSize[0] = static_cast<unsigned int>(clipRectangleSizeInConfig[0]);
+      clipRectangleSize[1] = static_cast<unsigned int>(clipRectangleSizeInConfig[1]);
     }
   }
   else
@@ -144,7 +147,7 @@ int main( int argc, char** argv )
   }
 
   // Prepare the output polydata.
-  vtkSmartPointer< vtkAppendPolyData > appender = vtkSmartPointer< vtkAppendPolyData >::New();
+  vtkSmartPointer<vtkAppendPolyData> appender = vtkSmartPointer<vtkAppendPolyData>::New();
 
   igsioTransformName imageToReferenceTransformName;
   if ( imageToReferenceTransformName.SetTransformName( imageToReferenceTransformNameStr.c_str() ) != PLUS_SUCCESS )
@@ -174,37 +177,50 @@ int main( int argc, char** argv )
       continue;
     }
 
-    vtkSmartPointer< vtkTransform > imageToReferenceTransform = vtkSmartPointer< vtkTransform >::New();
+    vtkSmartPointer<vtkTransform> imageToReferenceTransform = vtkSmartPointer<vtkTransform>::New();
     imageToReferenceTransform->SetMatrix( imageToReferenceTransformMatrix );
 
-    vtkSmartPointer< vtkTransform > tCubeToImage = vtkSmartPointer< vtkTransform >::New();
-    tCubeToImage->Translate( clipRectangleOrigin[ 0 ], clipRectangleOrigin[ 1 ], 1 );
-    tCubeToImage->Scale( clipRectangleSize[ 0 ], clipRectangleSize[ 1 ], 1 );
+    vtkSmartPointer<vtkTransform> tCubeToImage = vtkSmartPointer<vtkTransform>::New();
+    tCubeToImage->Translate( clipRectangleOrigin[0], clipRectangleOrigin[1], clipRectangleOrigin[2] );
+    tCubeToImage->Scale( clipRectangleSize[0], clipRectangleSize[1], clipRectangleSize[2] );
     tCubeToImage->Translate( 0.5, 0.5, 0.5 );  // Moving the corner to the origin.
 
-    vtkSmartPointer< vtkTransform > tCubeToTracker = vtkSmartPointer< vtkTransform >::New();
+    vtkSmartPointer<vtkTransform> tCubeToTracker = vtkSmartPointer<vtkTransform>::New();
     tCubeToTracker->Identity();
     tCubeToTracker->Concatenate( imageToReferenceTransform );
     tCubeToTracker->Concatenate( tCubeToImage );
 
-    vtkSmartPointer< vtkTransformPolyDataFilter > cubeToTracker = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+    vtkSmartPointer<vtkTransformPolyDataFilter> cubeToTracker = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
     cubeToTracker->SetTransform( tCubeToTracker );
-    vtkSmartPointer< vtkCubeSource > source = vtkSmartPointer< vtkCubeSource >::New();
+    vtkSmartPointer<vtkCubeSource> source = vtkSmartPointer<vtkCubeSource>::New();
     source->Update();
     cubeToTracker->SetInputConnection( source->GetOutputPort() );
     cubeToTracker->Update();
 
     appender->AddInputConnection( cubeToTracker->GetOutputPort() );
-
   }
-
+  
   // Write model output.
   LOG_DEBUG( "Writing output model file (" << outputModelFilename << ")..." );
-  vtkSmartPointer< vtkPolyDataWriter > writer = vtkSmartPointer< vtkPolyDataWriter >::New();
-  writer->SetFileName( outputModelFilename.c_str() );
-  writer->SetInputConnection( appender->GetOutputPort() );
-  writer->Update();
+  std::string copy(outputModelFilename);
+  std::transform(copy.begin(), copy.end(), copy.begin(),
+    [](unsigned char c) { return std::tolower(c); });
+  if (copy.find("stl") != std::string::npos)
+  {
+    vtkSmartPointer<vtkSTLWriter> writer = vtkSmartPointer<vtkSTLWriter>::New();
+    writer->SetFileName(outputModelFilename.c_str());
+    writer->SetInputConnection(appender->GetOutputPort());
+    writer->Update();
+  }
+  else
+  {
+    vtkSmartPointer<vtkPolyDataWriter> writer = vtkSmartPointer<vtkPolyDataWriter>::New();
+    writer->SetFileName(outputModelFilename.c_str());
+    writer->SetInputConnection(appender->GetOutputPort());
+    writer->Update();
+  }
   LOG_DEBUG( "Writing model file done." );
+
   LOG_INFO( "Model file created: " << outputModelFilename );
 
   return EXIT_SUCCESS;
