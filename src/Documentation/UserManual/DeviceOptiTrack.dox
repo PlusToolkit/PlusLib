@@ -11,8 +11,9 @@
 - \ref PackageWin64
 
 \section OptiTrackInstallation Installation
-- For PLUS v2.6 or below: download and install <a href="http://optitrack.com/downloads/">Motive 1.10.3</a>.
-- For newer versions: download and install <a href="http://optitrack.com/downloads/">Motive 2.0.2</a>.
+- For 32-bit PLUS or v2.6 and below: download and install <a href="http://optitrack.com/downloads/">Motive 1.10.3</a>.
+- For 64-bit PLUS v2.8: download and install <a href="http://optitrack.com/downloads/">Motive 2.1.1</a>.
+- For newer 64-bit versions: download and install <a href="http://optitrack.com/downloads/">Motive 2.1.2</a>.
 
 \section OptiTrackDocumentation Important sections of OptiTrack Motive Documentation
   - Read the following sections of the <a href="http://v110.wiki.optitrack.com/index.php?title=OptiTrack_Documentation_Wiki">Motive User Manual</a>
