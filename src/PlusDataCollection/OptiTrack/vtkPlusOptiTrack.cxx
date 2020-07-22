@@ -227,6 +227,10 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
       return PLUS_FAIL;
     }
 
+    // enforce NatNet streaming enabled, this is required for PLUS tracking
+    // this is the equivalent to checking the "Broadcast Frame Data" button in the Motive GUI
+    TT_StreamNP(true);
+
     // add any additional rigid body files to project
     std::string rbFilePath;
     for (auto it = this->Internal->AdditionalRigidBodyFiles.begin(); it != this->Internal->AdditionalRigidBodyFiles.end(); it++)
