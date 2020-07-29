@@ -15,6 +15,8 @@
 - For 64-bit PLUS v2.8: download and install <a href="http://optitrack.com/downloads/">Motive 2.1.1</a>.
 - For newer 64-bit versions: download and install <a href="http://optitrack.com/downloads/">Motive 2.1.2</a>.
 
+Known limitation: Some web cameras and OptiTrack Duo cannot be used on the same computer. According to NaturalPoint support team, <a href="https://discourse.slicer.org/t/optitrack-duo-and-external-webcam-problem/12730/7">this issue cannot be fixed</a>.
+
 \section OptiTrackDocumentation Important sections of OptiTrack Motive Documentation
   - Read the following sections of the <a href="http://v110.wiki.optitrack.com/index.php?title=OptiTrack_Documentation_Wiki">Motive User Manual</a>
     - <a href="http://v110.wiki.optitrack.com/index.php?title=Motive_Basics">Motive basics</a>: This will give you a basic understanding of how the Motive software works.
