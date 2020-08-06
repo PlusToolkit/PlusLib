@@ -20,12 +20,11 @@
 #include <vtk_zlib.h>
 #include <vtkImageData.h>
 #include <vtkImageImport.h>
+#include <vtkMatrix4x4.h>
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
-#include <vtkImageData.h>
 #include <vtkTransform.h>
 #include <vtkXMLUtilities.h>
-#include <vtkMatrix4x4.h>
 
 // std includes
 #include <stdio.h>
@@ -636,10 +635,9 @@ void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const ClariusP
 
   // check if there exist active data source;
   vtkPlusDataSource* aSource;
-  if (device->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS)
+  if (device->GetVideoSource(vtkPlusDevice::BMODE_PORT_NAME.c_str(), aSource) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Unable to retrieve active data source.");
-    // Cannot return fail because the callback function has to return void
+    LOG_WARNING("Processed image was received, however no output B-Mode video source was found.");
     return;
   }
 
@@ -839,15 +837,95 @@ void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const ClariusP
 //----------------------------------------------------------------------------
 void vtkPlusClarius::RawImageCallback(const void* newImage, const ClariusRawImageInfo* nfo, int npos, const ClariusPosInfo* pos)
 {
-  LOG_TRACE("vtkPlusClarius::ProcessedImageCallback");
+  LOG_TRACE("vtkPlusClarius::RawImageCallback");
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
   if (device == NULL)
   {
-    LOG_ERROR("Clarius instance is NULL!!!");
+    LOG_ERROR("Clarius instance is NULL");
     return;
   }
 
-  // TODO: Implement raw image handling
+  LOG_TRACE("New raw image (" << newImage << "): " << nfo->lines << " lines using " << nfo->samples << " samples, @ " << nfo->bitsPerSample << " bits."
+    << nfo->axialSize << " axial microns per sample, " << nfo->lateralSize << " lateral microns per line.");
+
+  // Check if still connected
+  if (device->Connected == 0)
+  {
+    LOG_ERROR("Trouble connecting to Clarius Device. IpAddress = " << device->IpAddress
+      << " port = " << device->TcpPort);
+    return;
+  }
+
+  if (newImage == NULL)
+  {
+    LOG_ERROR("No frame received by the device");
+    return;
+  }
+
+  vtkPlusDataSource* rfDataSource = nullptr;
+  if (device->GetVideoSource(vtkPlusDevice::RFMODE_PORT_NAME.c_str(), rfDataSource) != PLUS_SUCCESS)
+  {
+    LOG_WARNING("Raw image was received, however no output RF video source was found.");
+    return;
+  }
+
+  // Set Image Properties
+  int pixelType = VTK_UNSIGNED_CHAR;
+  int frameBufferBytesPerSample = (nfo->bitsPerSample / 8);
+  switch (frameBufferBytesPerSample)
+  {
+  case VTK_SIZEOF_LONG_LONG:
+    pixelType = VTK_LONG_LONG;
+    break;
+  case VTK_SIZEOF_INT:
+    pixelType = VTK_UNSIGNED_INT;
+    break;
+  case VTK_SIZEOF_SHORT:
+    pixelType = VTK_UNSIGNED_SHORT;
+    break;
+  case VTK_SIZEOF_CHAR:
+  default:
+    pixelType = VTK_UNSIGNED_CHAR;
+    break;
+  }
+  rfDataSource->SetInputFrameSize(nfo->lines, nfo->samples, 1);
+  rfDataSource->SetPixelType(pixelType);
+  rfDataSource->SetImageType(US_IMG_RF_REAL);
+  rfDataSource->SetOutputImageOrientation(US_IMG_ORIENT_MF);
+
+  int frameSizeInBytes = nfo->lines * nfo->samples * frameBufferBytesPerSample;
+
+  // the clarius timestamp is in nanoseconds
+  device->ClariusLastTimestamp = static_cast<double>((double)nfo->tm / (double)1000000000);
+  // Get system time (elapsed time since last reboot), return Internal system time in seconds
+  double systemTime = vtkIGSIOAccurateTimer::GetSystemTime();
+  if (device->FrameNumber == 0)
+  {
+    device->SystemStartTimestamp = systemTime;
+    device->ClariusStartTimestamp = device->ClariusLastTimestamp;
+  }
+
+  // Need to copy newImage to new char vector vtkDataSource::AddItem() do not accept const char array
+  std::vector<char> imageData;
+  if (imageData.size() < static_cast<size_t>(frameSizeInBytes))
+  {
+    imageData.resize(static_cast<size_t>(frameSizeInBytes));
+  }
+  memcpy(imageData.data(), newImage, static_cast<size_t>(frameSizeInBytes));
+
+  double convertedTimestamp = device->SystemStartTimestamp + (device->ClariusLastTimestamp - device->ClariusStartTimestamp);
+  rfDataSource->AddItem(
+    (void*)newImage, // pointer to char array
+    rfDataSource->GetInputImageOrientation(), // refer to this url: http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/UltrasoundImageOrientation.html for reference;
+                                              // Set to UN to keep the orientation of the image the same as on tablet
+    rfDataSource->GetInputFrameSize(),
+    pixelType,
+    1,
+    US_IMG_RF_REAL,
+    0,
+    device->FrameNumber,
+    convertedTimestamp,
+    convertedTimestamp);
 }
 
 //----------------------------------------------------------------------------
