@@ -775,6 +775,11 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
     LOG_ERROR("Failed loading defaults!");
     return PLUS_FAIL;
   }
+  if(this->GetTransducerInternalID() == 15) // 15 corresponds to the "No transducer" entry in the Transducers.xml
+  {
+    LOG_ERROR("Transducer not connected!");
+    return PLUS_FAIL;
+  }
   LOG_DEBUG("Setting transducer ID: " << this->m_TransducerID);
   WPSetTransducerID(this->m_TransducerID.c_str());
 
@@ -1768,11 +1773,13 @@ PlusStatus vtkPlusWinProbeVideoSource::SetTransducerID(std::string guid)
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlusWinProbeVideoSource::GetTransducerInternalID()
 {
   int transducer_id = ::GetTransducerInternalID();
   return transducer_id;
 }
+
 //----------------------------------------------------------------------------
 std::vector<double> vtkPlusWinProbeVideoSource::GetPrimarySourceSpacing()
 {
