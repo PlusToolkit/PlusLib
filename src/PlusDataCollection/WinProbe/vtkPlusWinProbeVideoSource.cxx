@@ -43,6 +43,10 @@ int32_t focalCountFromDepthsArray(float* depths, unsigned arraySize)
       ++i;
     }
   }
+  if (nonZeroes.size() == 0)
+  {
+    nonZeroes.push_back(depths[0]);  // Need to specify at least one focal depth even if all depths are 0 mm
+  }
   int32_t count = nonZeroes.size();
 
   // copy sorted non-zero array back into original array
