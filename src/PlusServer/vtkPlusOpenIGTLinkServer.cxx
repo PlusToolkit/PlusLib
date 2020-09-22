@@ -999,7 +999,6 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
   } // ConnectionActive
 
   // Close thread
-  client->DataReceiverThreadId = -1;
   client->DataReceiverActive.second = false;
   return NULL;
 }
@@ -1129,7 +1128,7 @@ void vtkPlusOpenIGTLinkServer::DisconnectClient(int clientId)
         {
           continue;
         }
-        if (clientIterator->DataReceiverThreadId > 0)
+        if (this->Threader->IsThreadActive(clientIterator->DataReceiverThreadId))
         {
           if (clientIterator->DataReceiverActive.second)
           {
@@ -1138,8 +1137,8 @@ void vtkPlusOpenIGTLinkServer::DisconnectClient(int clientId)
           }
           else
           {
-            // thread stopped
-            clientIterator->DataReceiverThreadId = -1;
+            // stop thread
+            this->Threader->TerminateThread(clientIterator->DataReceiverThreadId);
           }
           break;
         }
