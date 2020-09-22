@@ -1128,7 +1128,7 @@ void vtkPlusOpenIGTLinkServer::DisconnectClient(int clientId)
         {
           continue;
         }
-        if (this->Threader->IsThreadActive(clientIterator->DataReceiverThreadId))
+        if (clientIterator->DataReceiverThreadId >= 0)
         {
           if (clientIterator->DataReceiverActive.second)
           {
@@ -1137,8 +1137,12 @@ void vtkPlusOpenIGTLinkServer::DisconnectClient(int clientId)
           }
           else
           {
-            // stop thread
+            // thread stopped
+            // We still need to call vtkMultiThreader::TerminateThread, not to terminate the thread (as it is already stopped)
+            // but to indicate to the multithreader that the thread ID can be reused. Without this, vtkMultiThreader runs out
+            // of usable thread IDs after the number of connects/disconnects reaches VTK_MAX_THREADS
             this->Threader->TerminateThread(clientIterator->DataReceiverThreadId);
+            clientIterator->DataReceiverThreadId = -1;
           }
           break;
         }
