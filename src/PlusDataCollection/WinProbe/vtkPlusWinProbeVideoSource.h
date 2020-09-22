@@ -144,6 +144,9 @@ public:
   /*! Checks whether the device is frozen or live. */
   bool IsFrozen();
 
+  /*! Checks whether the device is scanning or not. It could be in the process of resetting the sequencer. */
+  bool IsScanning();
+
   /*! Sets GUID of the probe type to be used. */
   PlusStatus SetTransducerID(std::string guid);
 

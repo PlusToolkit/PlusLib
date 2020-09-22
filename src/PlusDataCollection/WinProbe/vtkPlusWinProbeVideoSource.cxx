@@ -985,6 +985,12 @@ bool vtkPlusWinProbeVideoSource::IsFrozen()
 }
 
 // ----------------------------------------------------------------------------
+bool vtkPlusWinProbeVideoSource::IsScanning()
+{
+  return WPGetIsScanningProperty();
+}
+
+// ----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::SetTransmitFrequencyMHz(float frequency)
 {
   m_Frequency = frequency;
