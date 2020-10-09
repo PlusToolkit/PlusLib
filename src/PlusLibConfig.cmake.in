@@ -28,7 +28,9 @@ ELSE()
 ENDIF()
 
 FIND_PACKAGE(VTK "@VTK_VERSION@" EXACT REQUIRED NO_MODULE)
-INCLUDE(${VTK_USE_FILE}) # Must be included as VTK does not populate CMake target properties correctly
+IF(VTK_VERSION VERSION_LESS 8.9.0)
+  INCLUDE(${VTK_USE_FILE}) # Must be included as VTK does not populate CMake target properties correctly
+ENDIF()
 
 IF(@ITK_FOUND@)
   IF(ITK_FOUND)

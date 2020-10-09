@@ -49,13 +49,13 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Build the library
 SET(${PROJECT_NAME}_LIBS
-  vtkCommonCore
-  vtkCommonDataModel
-  vtkImagingCore
-  vtkIOXMLParser
-  vtkIOImage
-  vtkCommonSystem
-  vtksys
+  ${PLUSLIB_VTK_PREFIX}CommonCore
+  ${PLUSLIB_VTK_PREFIX}CommonDataModel
+  ${PLUSLIB_VTK_PREFIX}ImagingCore
+  ${PLUSLIB_VTK_PREFIX}IOXMLParser
+  ${PLUSLIB_VTK_PREFIX}IOImage
+  ${PLUSLIB_VTK_PREFIX}CommonSystem
+  ${PLUSLIB_VTKSYS}
   itksys
   ${PlusZLib}
   ITKIONIFTI

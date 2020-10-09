@@ -45,6 +45,10 @@ typedef igsioStatus PlusStatus;
 
 class vtkXMLDataElement;
 
+#ifndef VTK_OVERRIDE
+  #define VTK_OVERRIDE override;
+#endif
+
 namespace PlusCommon
 {
   typedef itk::ImageIOBase::IOComponentType ITKScalarPixelType;
@@ -54,7 +58,7 @@ namespace PlusCommon
   vtkPlusCommonExport std::string GetPlusLibVersionString();
 
   vtkPlusCommonExport PlusStatus WriteToFile(igsioTrackedFrame* frame, const std::string& filename, vtkMatrix4x4* imageToTracker);
-  
+
 #ifdef PLUS_USE_OpenIGTLink
   /*! Convert between ITK and IGTL scalar pixel types */
   vtkPlusCommonExport IGTLScalarPixelType GetIGTLScalarPixelTypeFromVTK(igsioCommon::VTKScalarPixelType vtkScalarPixelType);

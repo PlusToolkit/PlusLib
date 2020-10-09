@@ -22,14 +22,14 @@ SET(${PROJECT_NAME}_INCLUDE_DIRS
 # Build the library
 SET(${PROJECT_NAME}_LIBS
   vtkPlusCommon
-  vtkInteractionStyle
-  vtkRenderingFreeType
+  ${PLUSLIB_VTK_PREFIX}InteractionStyle
+  ${PLUSLIB_VTK_PREFIX}RenderingFreeType
   vtkVolumeReconstruction
   )
 IF(PLUS_RENDERING_ENABLED)
   LIST(APPEND ${PROJECT_NAME}_LIBS
-    vtkRendering${VTK_RENDERING_BACKEND}
-    vtkRenderingVolume${VTK_RENDERING_BACKEND}
+    ${PLUSLIB_VTK_PREFIX}Rendering${VTK_RENDERING_BACKEND}
+    ${PLUSLIB_VTK_PREFIX}RenderingVolume${VTK_RENDERING_BACKEND}
     )
 ENDIF()
 
@@ -62,9 +62,9 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   TARGET_LINK_LIBRARIES(CreateSliceModels 
     vtkPlusCommon 
     vtkPlusVolumeReconstruction 
-    vtkFiltersSources 
-    vtkFiltersGeneral
-    vtkIOLegacy
+    ${PLUSLIB_VTK_PREFIX}FiltersSources 
+    ${PLUSLIB_VTK_PREFIX}FiltersGeneral
+    ${PLUSLIB_VTK_PREFIX}IOLegacy
     )
   GENERATE_HELP_DOC(CreateSliceModels)
 
@@ -73,9 +73,9 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/Tools)
   TARGET_LINK_LIBRARIES(CompareVolumes 
     vtkPlusCommon 
-    vtkIOLegacy 
-    vtkImagingMath 
-    vtkImagingStatistics
+    ${PLUSLIB_VTK_PREFIX}IOLegacy 
+    ${PLUSLIB_VTK_PREFIX}ImagingMath 
+    ${PLUSLIB_VTK_PREFIX}ImagingStatistics
     )
 
   ADD_EXECUTABLE(DrawClipRegion Tools/DrawClipRegion.cxx )

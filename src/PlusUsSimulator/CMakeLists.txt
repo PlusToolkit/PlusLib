@@ -23,10 +23,10 @@ SET(${PROJECT_NAME}_INCLUDE_DIRS
 SET(${PROJECT_NAME}_LIBS
   vtkPlusCommon
   vtkPlusImageProcessing
-  vtkFiltersSources
-  vtkFiltersFlowPaths
-  vtkIOGeometry
-  vtkIOXML
+  ${PLUSLIB_VTK_PREFIX}FiltersSources
+  ${PLUSLIB_VTK_PREFIX}FiltersFlowPaths
+  ${PLUSLIB_VTK_PREFIX}IOGeometry
+  ${PLUSLIB_VTK_PREFIX}IOXML
   )
 IF(PLUS_RENDERING_ENABLED)
   LIST(APPEND ${PROJECT_NAME}_LIBS

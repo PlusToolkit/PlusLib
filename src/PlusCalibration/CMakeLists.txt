@@ -88,9 +88,9 @@ SET(${PROJECT_NAME}_LIBS
   ITKIOImageBase
   ITKOptimizers
   ITKTransform
-  vtkInteractionStyle
-  vtkRenderingFreeType
-  vtkFiltersStatistics
+  ${PLUSLIB_VTK_PREFIX}InteractionStyle
+  ${PLUSLIB_VTK_PREFIX}RenderingFreeType
+  ${PLUSLIB_VTK_PREFIX}FiltersStatistics
   vtkPlusCommon
   )
 IF(${ITK_VERSION_MAJOR} GREATER 4)

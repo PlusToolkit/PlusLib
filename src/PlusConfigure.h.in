@@ -38,7 +38,10 @@
 #define PlusLib_STATIC
 #endif
 
-#include <vtkType.h>
+#include <vtkVersionMacros.h>
+#if VTK_MAJOR_VERSION < 9
+  #include <vtkType.h>
+#endif
 
 #ifndef VTK_HAS_MTIME_TYPE
 typedef unsigned long int vtkMTimeType;
@@ -56,8 +59,6 @@ typedef unsigned long int vtkMTimeType;
 #define OPENIGTLINK_VERSION_MINOR @OpenIGTLink_VERSION_MINOR@
 #define OPENIGTLINK_VERSION_PATCH @OpenIGTLink_VERSION_PATCH@
 #define OPENIGTLINK_VERSION "@OpenIGTLink_VERSION_MAJOR@.@OpenIGTLink_VERSION_MINOR@.@OpenIGTLink_VERSION_PATCH@"
-
-#include "vtkVersionMacros.h"
 
 #cmakedefine PLUS_USE_3dConnexion_TRACKER
 #cmakedefine PLUS_USE_aruco

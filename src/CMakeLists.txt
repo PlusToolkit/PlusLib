@@ -2,10 +2,14 @@
 # Try to find VTK and include its settings (otherwise complain)
 FIND_PACKAGE(VTK NO_MODULE REQUIRED PATHS ${VTK_DIR} NO_DEFAULT_PATH)
 
-IF(VTK_FOUND)
+IF(VTK_VERSION VERSION_LESS 8.9.0)
   INCLUDE(${VTK_USE_FILE})
+  SET(PLUSLIB_VTK_PREFIX vtk)
+  SET(PLUSLIB_VTKSYS vtksys)
 ELSE()
-  MESSAGE(FATAL_ERROR "This application requires VTK. One of these components is missing. Please verify configuration")
+  SET(PLUSLIB_VTK_PREFIX VTK::)
+  SET(PLUSLIB_VTKSYS VTK::vtksys)
+  SET(VTK_RENDERING_BACKEND OpenGL2)
 ENDIF()
 
 # --------------------------------------------------------------------------
@@ -213,7 +217,7 @@ IF(PLUS_USE_SYSTEM_ZLIB) # setting PlusZLib needs to come before processing subd
   INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIR})
   LIST(APPEND PLUSLIB_INCLUDE_DIRS ${ZLIB_INCLUDE_DIR} CACHE INTERNAL "")
 ELSE()
-  SET(PlusZLib vtkzlib)
+  SET(PlusZLib ${PLUSLIB_VTK_PREFIX}zlib)
 ENDIF()
 
 IF(PLUS_BUILD_WIDGETS)

@@ -22,9 +22,10 @@ class vtkIGSIORecursiveCriticalSection;
   \brief Message queue to store OpenIGTLink messages.
   \ingroup PlusLibOpenIGTLink
 */
-class vtkPlusOpenIGTLinkExport vtkPlusIGTLMessageQueue
-: public vtkObject
+class vtkPlusOpenIGTLinkExport vtkPlusIGTLMessageQueue : public vtkObject
 {
+  typedef std::deque<igtl::MessageBase*> MessageBuffer;
+
 public:
   static vtkPlusIGTLMessageQueue *New();
   vtkTypeMacro( vtkPlusIGTLMessageQueue,vtkObject );
@@ -42,11 +43,8 @@ protected:
   
   
 protected:
-
   vtkIGSIORecursiveCriticalSection* Mutex;
-  
-  std::deque< igtl::MessageBase* > DataBuffer;
-  
+  MessageBuffer DataBuffer;
 };
 
 
