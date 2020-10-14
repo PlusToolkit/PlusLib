@@ -596,6 +596,12 @@ PlusStatus vtkPlusVirtualCapture::TakeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
+PlusStatus vtkPlusVirtualCapture::SetCustomHeaderField(const std::string& fieldName, const std::string& fieldValue)
+{
+  return this->Writer->GetTrackedFrameList()->SetCustomString(fieldName, fieldValue);
+}
+
+//-----------------------------------------------------------------------------
 PlusStatus vtkPlusVirtualCapture::WriteFrames(bool force)
 {
   if (!this->IsHeaderPrepared && this->RecordedFrames->GetNumberOfTrackedFrames() != 0)
