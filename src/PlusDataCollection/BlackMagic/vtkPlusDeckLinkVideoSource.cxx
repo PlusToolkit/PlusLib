@@ -64,6 +64,12 @@ private:
 namespace
 {
   //----------------------------------------------------------------------------
+  bool AreSame(double a, double b)
+  {
+    return std::abs(a - b) < 0.0001;
+  }
+
+  //----------------------------------------------------------------------------
   bool InitCOM(std::atomic_bool& comInit)
   {
 #if WIN32
@@ -359,9 +365,10 @@ PlusStatus vtkPlusDeckLinkVideoSource::InternalConnect()
             continue;
           }
 
+          double frameRate = (double)timeScale / (double)frameDuration;
           if (deckLinkDisplayMode->GetWidth() == this->Internal->RequestedFrameSize[0] &&
               deckLinkDisplayMode->GetHeight() == this->Internal->RequestedFrameSize[1] &&
-              (double)timeScale / (double)frameDuration == this->AcquisitionRate)
+            AreSame(frameRate, this->AcquisitionRate))
           {
             BOOL supported;
             if (deckLinkInput->DoesSupportVideoMode(bmdVideoConnectionUnspecified, deckLinkDisplayMode->GetDisplayMode(), bmdFormatUnspecified, bmdSupportedVideoModeDefault, &supported) && supported)
@@ -384,6 +391,8 @@ PlusStatus vtkPlusDeckLinkVideoSource::InternalConnect()
 
     count++;
   }
+
+  LOG_ERROR("Unable to locate requested capture parameters.")
 
 out:
   if (deckLinkDisplayModeIterator)
@@ -411,9 +420,10 @@ out:
     this->Internal->DeckLinkInput->SetScreenPreviewCallback(nullptr);
     this->Internal->DeckLinkInput->DisableAudioInput();
 
-    if (this->Internal->DeckLinkInput->EnableVideoInput(this->Internal->DeckLinkDisplayMode->GetDisplayMode(), this->Internal->RequestedPixelFormat, bmdVideoInputFlagDefault) != S_OK)
+    HRESULT res = this->Internal->DeckLinkInput->EnableVideoInput(this->Internal->DeckLinkDisplayMode->GetDisplayMode(), this->Internal->RequestedPixelFormat, bmdVideoInputFlagDefault);
+    if (res != S_OK)
     {
-      LOG_ERROR("Unable to enable video input.");
+      LOG_ERROR("Unable to enable video input: " << res);
       this->Internal->DeckLinkDisplayMode->Release();
       this->Internal->DeckLinkDisplayMode = nullptr;
       this->Internal->DeckLinkInput->Release();
