@@ -13,6 +13,9 @@ See License.txt for details.
 #include "vtkPlusDeckLinkVideoSource.h"
 
 // VTK includes
+#include <vtkImageAppendComponents.h>
+#include <vtkImageExtractComponents.h>
+#include <vtkImageImport.h>
 #include <vtkObject.h>
 
 // System includes
@@ -53,6 +56,12 @@ public:
   IDeckLinkVideoConversion* DeckLinkVideoConversion = nullptr;
 
   PlusOutputVideoFrame*     OutputFrame = nullptr;
+
+  vtkSmartPointer<vtkImageImport> ImageImport;
+  vtkSmartPointer<vtkImageExtractComponents> BlueComponent;
+  vtkSmartPointer<vtkImageExtractComponents> GreenComponent;
+  vtkSmartPointer<vtkImageExtractComponents> RedComponent;
+  vtkSmartPointer<vtkImageAppendComponents> AppendComponent;
 
   std::atomic_bool          COMInitialized = false;
 
@@ -111,6 +120,11 @@ vtkPlusDeckLinkVideoSource::vtkPlusDeckLinkVideoSource::vtkInternal* vtkPlusDeck
   vtkPlusDeckLinkVideoSource::vtkInternal* result = new vtkPlusDeckLinkVideoSource::vtkInternal();
   result->InitializeObjectBase();
   result->External = _arg;
+  result->ImageImport = vtkSmartPointer<vtkImageImport>::New();
+  result->BlueComponent = vtkSmartPointer<vtkImageExtractComponents>::New();
+  result->GreenComponent = vtkSmartPointer<vtkImageExtractComponents>::New();
+  result->RedComponent = vtkSmartPointer<vtkImageExtractComponents>::New();
+  result->AppendComponent = vtkSmartPointer<vtkImageAppendComponents>::New();
   return result;
 }
 
@@ -414,7 +428,27 @@ out:
     this->GetFirstVideoSource(source);
     source->SetInputFrameSize(this->Internal->RequestedFrameSize);
     source->SetPixelType(VTK_UNSIGNED_CHAR);
-    source->SetNumberOfScalarComponents(4);
+    source->SetNumberOfScalarComponents(3);
+
+    this->Internal->ImageImport->SetDataSpacing(1, 1, 1);
+    this->Internal->ImageImport->SetDataOrigin(0, 0, 0);
+    this->Internal->ImageImport->SetWholeExtent(0, this->Internal->RequestedFrameSize[0] - 1, 0, this->Internal->RequestedFrameSize[1] - 1, 0, 0);
+    this->Internal->ImageImport->SetDataExtentToWholeExtent();
+    this->Internal->ImageImport->SetDataScalarTypeToUnsignedChar();
+    this->Internal->ImageImport->SetNumberOfScalarComponents(4);
+
+    this->Internal->BlueComponent->SetInputConnection(this->Internal->ImageImport->GetOutputPort());
+    this->Internal->BlueComponent->SetComponents(0);
+
+    this->Internal->GreenComponent->SetInputConnection(this->Internal->ImageImport->GetOutputPort());
+    this->Internal->GreenComponent->SetComponents(1);
+
+    this->Internal->RedComponent->SetInputConnection(this->Internal->ImageImport->GetOutputPort());
+    this->Internal->RedComponent->SetComponents(2);
+
+    this->Internal->AppendComponent->SetInputConnection(0, this->Internal->RedComponent->GetOutputPort());
+    this->Internal->AppendComponent->AddInputConnection(0, this->Internal->GreenComponent->GetOutputPort());
+    this->Internal->AppendComponent->AddInputConnection(0, this->Internal->BlueComponent->GetOutputPort());
 
     this->Internal->DeckLinkInput->SetCallback(this);
     this->Internal->DeckLinkInput->SetScreenPreviewCallback(nullptr);
@@ -423,7 +457,10 @@ out:
     HRESULT res = this->Internal->DeckLinkInput->EnableVideoInput(this->Internal->DeckLinkDisplayMode->GetDisplayMode(), this->Internal->RequestedPixelFormat, bmdVideoInputFlagDefault);
     if (res != S_OK)
     {
-      LOG_ERROR("Unable to enable video input: " << res);
+      LPTSTR errorMsgPtr = 0;
+      FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, res, 0, (LPTSTR)&errorMsgPtr, 0, NULL);
+      LOG_ERROR("Unable to convert video frame: " << errorMsgPtr);
+      LocalFree(errorMsgPtr);
       this->Internal->DeckLinkDisplayMode->Release();
       this->Internal->DeckLinkDisplayMode = nullptr;
       this->Internal->DeckLinkInput->Release();
@@ -577,11 +614,6 @@ HRESULT STDMETHODCALLTYPE vtkPlusDeckLinkVideoSource::VideoInputFormatChanged(BM
   return S_OK;
 }
 
-#include <vtkImageImport.h>
-#include <vtkNew.h>
-#include <vtkImageHistogramStatistics.h>
-#include <wincodec.h>
-
 //----------------------------------------------------------------------------
 HRESULT STDMETHODCALLTYPE vtkPlusDeckLinkVideoSource::VideoInputFrameArrived(IDeckLinkVideoInputFrame* videoFrame, IDeckLinkAudioInputPacket* audioPacket)
 {
@@ -598,19 +630,40 @@ HRESULT STDMETHODCALLTYPE vtkPlusDeckLinkVideoSource::VideoInputFrameArrived(IDe
       this->Internal->DeckLinkInput->StartStreams();
     }
 
-    if (inputFrameValid && this->Internal->PreviousFrameValid && this->Internal->DeckLinkVideoConversion->ConvertFrame(videoFrame, this->Internal->OutputFrame) == S_OK)
+    if (inputFrameValid)
     {
-      void* buffer;
-      if (this->Internal->OutputFrame->GetBytes(&buffer) == S_OK)
+      HRESULT res = this->Internal->DeckLinkVideoConversion->ConvertFrame(videoFrame, this->Internal->OutputFrame);
+      if (res != S_OK)
       {
-        vtkPlusDataSource* source;
-        this->GetFirstVideoSource(source);
-        if (source->AddItem(buffer, this->Internal->RequestedFrameSize, this->Internal->OutputFrame->GetHeight() * this->Internal->OutputFrame->GetRowBytes(), US_IMG_RGB_COLOR, this->FrameNumber) != PLUS_SUCCESS)
+        LPTSTR errorMsgPtr = 0;
+        FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, res, 0, (LPTSTR)&errorMsgPtr, 0, NULL);
+        LOG_ERROR("Unable to convert video frame: " << errorMsgPtr);
+        LocalFree(errorMsgPtr);
+      }
+
+      if (this->Internal->PreviousFrameValid && res == S_OK)
+      {
+        void* buffer;
+        if (this->Internal->OutputFrame->GetBytes(&buffer) == S_OK)
         {
-          LOG_ERROR("Unable to add video item to buffer.");
-          return PLUS_FAIL;
+          vtkPlusDataSource* source;
+          this->GetFirstVideoSource(source);
+
+          // Flip BGRA to RGB
+          this->Internal->ImageImport->SetImportVoidPointer(buffer);
+          this->Internal->ImageImport->Modified();
+
+          this->Internal->AppendComponent->Update();
+
+          vtkImageData* image = vtkImageData::SafeDownCast(this->Internal->AppendComponent->GetOutputDataObject(0));
+
+          if (source->AddItem(image->GetScalarPointer(), source->GetInputImageOrientation(), this->Internal->RequestedFrameSize, VTK_UNSIGNED_CHAR, 3, US_IMG_RGB_COLOR, 0, this->FrameNumber) != PLUS_SUCCESS)
+          {
+            LOG_ERROR("Unable to add video item to buffer.");
+            return PLUS_FAIL;
+          }
+          this->FrameNumber++;
         }
-        this->FrameNumber++;
       }
     }
 
