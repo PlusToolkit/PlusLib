@@ -617,6 +617,11 @@ HRESULT STDMETHODCALLTYPE vtkPlusDeckLinkVideoSource::VideoInputFormatChanged(BM
 //----------------------------------------------------------------------------
 HRESULT STDMETHODCALLTYPE vtkPlusDeckLinkVideoSource::VideoInputFrameArrived(IDeckLinkVideoInputFrame* videoFrame, IDeckLinkAudioInputPacket* audioPacket)
 {
+  if (!this->IsRecording())
+  {
+    return S_OK;
+  }
+
   if (videoFrame)
   {
     this->Internal->OutputFrame->SetFlags(videoFrame->GetFlags());
