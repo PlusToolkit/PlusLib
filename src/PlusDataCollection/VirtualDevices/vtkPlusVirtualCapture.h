@@ -53,6 +53,8 @@ public:
 
   virtual PlusStatus TakeSnapshot();
 
+  virtual PlusStatus SetCustomHeaderField(const std::string& fieldName, const std::string& fieldValue);
+
   virtual int OutputChannelCount() const;
 
   /*! Enables capturing frames. It can be used for pausing the recording. */
