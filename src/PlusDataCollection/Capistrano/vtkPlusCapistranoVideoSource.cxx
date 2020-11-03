@@ -487,6 +487,7 @@ public:
     USProbePulserParamsDB.clear();
     PULSER pulser;
 
+    #if defined(CAPISTRANO_SDK2013)
     // Frequency = 10.0f ----------------------------------------------------
     pulser.MINDelay              = 93;
     pulser.MIDDelay              = 94;
@@ -556,6 +557,77 @@ public:
     pulser.MAXDelay              = 29;
 
     USProbePulserParamsDB[50.0f] = pulser;
+    #else
+    // Frequency = 10.0f ----------------------------------------------------
+    pulser.MINDelay              = 10;
+    pulser.MIDDelay              = 10;
+    pulser.MAXDelay              = 11;
+
+    USProbePulserParamsDB[10.0f] = pulser;
+
+    // Frequency = 12.0f ----------------------------------------------------
+    pulser.MINDelay              = 8;
+    pulser.MIDDelay              = 9;
+    pulser.MAXDelay              = 10;
+
+    USProbePulserParamsDB[12.0f] = pulser;
+
+    // Frequency = 16.0f ----------------------------------------------------
+    pulser.MINDelay              = 6;
+    pulser.MIDDelay              = 7;
+    pulser.MAXDelay              = 8;
+
+    USProbePulserParamsDB[16.0f] = pulser;
+
+    // Frequency = 18.0f ----------------------------------------------------
+    pulser.MINDelay              = 5;
+    pulser.MIDDelay              = 6;
+    pulser.MAXDelay              = 7;
+
+    USProbePulserParamsDB[18.0f] = pulser;
+
+    // Frequency = 20.0f ----------------------------------------------------
+    pulser.MINDelay              = 4;
+    pulser.MIDDelay              = 5;
+    pulser.MAXDelay              = 6;
+
+    USProbePulserParamsDB[20.0f] = pulser;
+
+    // Frequency = 25.0f ----------------------------------------------------
+    pulser.MINDelay              = 3;
+    pulser.MIDDelay              = 4;
+    pulser.MAXDelay              = 5;
+
+    USProbePulserParamsDB[25.0f] = pulser;
+
+    // Frequency = 30.0f ----------------------------------------------------
+    pulser.MINDelay              = 2;
+    pulser.MIDDelay              = 3;
+    pulser.MAXDelay              = 4;
+
+    USProbePulserParamsDB[30.0f] = pulser;
+
+    // Frequency = 35.0f ----------------------------------------------------
+    pulser.MINDelay              = 2;
+    pulser.MIDDelay              = 3;
+    pulser.MAXDelay              = 4;
+
+    USProbePulserParamsDB[35.0f] = pulser;
+
+    // Frequency = 45.0f ----------------------------------------------------
+    pulser.MINDelay              = 1;
+    pulser.MIDDelay              = 2;
+    pulser.MAXDelay              = 3;
+
+    USProbePulserParamsDB[45.0f] = pulser;
+
+    // Frequency = 50.0f ----------------------------------------------------
+    pulser.MINDelay              = 1;
+    pulser.MIDDelay              = 2;
+    pulser.MAXDelay              = 3;
+
+    USProbePulserParamsDB[50.0f] = pulser;
+    #endif
   }
 
   /*! Retrieve US pulser parameters from predefined values */
