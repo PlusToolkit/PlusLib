@@ -113,6 +113,8 @@ vtkPlusClarius::vtkPlusClarius()
   this->FilteredTiltSensorWestAxisIndex = 1;
   this->TiltSensorWestAxisIndex = 1; // the sensor plane is horizontal (axis 2 points down, axis 1 points West)
 
+  this->RequirePortNameInDeviceSetConfiguration = true;
+
   instance = this;
 }
 
@@ -425,6 +427,22 @@ PlusStatus vtkPlusClarius::InternalConnect()
     ClariusProgressFn progressCallBackFnPtr = static_cast<ClariusProgressFn>(&vtkPlusClarius::ProgressFn);
     ClariusErrorFn errorCallBackFnPtr = static_cast<ClariusErrorFn>(&vtkPlusClarius::ErrorFn);
 
+    // No B-mode data sources. Disable B mode callback.
+    std::vector<vtkPlusDataSource*> bModeSources;
+    device->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, bModeSources);
+    if (bModeSources.empty())
+    {
+      processedImageCallbackPtr = nullptr;
+    }
+
+    // No RF-mode data sources. Disable RF mode callback.
+    std::vector<vtkPlusDataSource*> rfModeSources;
+    device->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, rfModeSources);
+    if (rfModeSources.empty())
+    {
+      rawDataCallBackPtr = nullptr;
+    }
+
     try
     {
       if (clariusInitListener(argc, argv, path,
@@ -634,18 +652,24 @@ void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const ClariusP
   }
 
   // check if there exist active data source;
-  vtkPlusDataSource* aSource;
-  if (device->GetVideoSource(vtkPlusDevice::BMODE_PORT_NAME.c_str(), aSource) != PLUS_SUCCESS)
+  vtkPlusDataSource* bModeSource;
+  std::vector<vtkPlusDataSource*> bModeSources;
+  device->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, bModeSources);
+  if (!bModeSources.empty())
+  {
+    bModeSource = bModeSources[0];
+  }
+  else
   {
     LOG_WARNING("Processed image was received, however no output B-Mode video source was found.");
     return;
   }
 
   // Set Image Properties
-  aSource->SetInputFrameSize(nfo->width, nfo->height, 1);
+  bModeSource->SetInputFrameSize(nfo->width, nfo->height, 1);
   int frameBufferBytesPerPixel = (nfo->bitsPerPixel / 8);
   int frameSizeInBytes = nfo->width * nfo->height * frameBufferBytesPerPixel;
-  aSource->SetNumberOfScalarComponents(frameBufferBytesPerPixel);
+  bModeSource->SetNumberOfScalarComponents(frameBufferBytesPerPixel);
 
   // need to copy newImage to new char vector vtkDataSource::AddItem() do not accept const char array
   std::vector<char> _image;
@@ -685,11 +709,11 @@ void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const ClariusP
     }
   }
 
-  aSource->AddItem(
+  bModeSource->AddItem(
     _image.data(), // pointer to char array
-    aSource->GetInputImageOrientation(), // refer to this url: http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/UltrasoundImageOrientation.html for reference;
+    bModeSource->GetInputImageOrientation(), // refer to this url: http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/UltrasoundImageOrientation.html for reference;
                                          // Set to UN to keep the orientation of the image the same as on tablet
-    aSource->GetInputFrameSize(),
+    bModeSource->GetInputFrameSize(),
     VTK_UNSIGNED_CHAR,
     frameBufferBytesPerPixel,
     US_IMG_BRIGHTNESS,
@@ -862,8 +886,14 @@ void vtkPlusClarius::RawImageCallback(const void* newImage, const ClariusRawImag
     return;
   }
 
-  vtkPlusDataSource* rfDataSource = nullptr;
-  if (device->GetVideoSource(vtkPlusDevice::RFMODE_PORT_NAME.c_str(), rfDataSource) != PLUS_SUCCESS)
+  vtkPlusDataSource* rfModeSource = nullptr;
+  std::vector<vtkPlusDataSource*> rfModeSources;
+  device->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, rfModeSources);
+  if (!rfModeSources.empty())
+  {
+    rfModeSource = rfModeSources[0];
+  }
+  else
   {
     LOG_WARNING("Raw image was received, however no output RF video source was found.");
     return;
@@ -888,10 +918,10 @@ void vtkPlusClarius::RawImageCallback(const void* newImage, const ClariusRawImag
     pixelType = VTK_UNSIGNED_CHAR;
     break;
   }
-  rfDataSource->SetInputFrameSize(nfo->lines, nfo->samples, 1);
-  rfDataSource->SetPixelType(pixelType);
-  rfDataSource->SetImageType(US_IMG_RF_REAL);
-  rfDataSource->SetOutputImageOrientation(US_IMG_ORIENT_MF);
+  rfModeSource->SetInputFrameSize(nfo->lines, nfo->samples, 1);
+  rfModeSource->SetPixelType(pixelType);
+  rfModeSource->SetImageType(US_IMG_RF_REAL);
+  rfModeSource->SetOutputImageOrientation(US_IMG_ORIENT_MF);
 
   int frameSizeInBytes = nfo->lines * nfo->samples * frameBufferBytesPerSample;
 
@@ -914,11 +944,11 @@ void vtkPlusClarius::RawImageCallback(const void* newImage, const ClariusRawImag
   memcpy(imageData.data(), newImage, static_cast<size_t>(frameSizeInBytes));
 
   double convertedTimestamp = device->SystemStartTimestamp + (device->ClariusLastTimestamp - device->ClariusStartTimestamp);
-  rfDataSource->AddItem(
+  rfModeSource->AddItem(
     (void*)newImage, // pointer to char array
-    rfDataSource->GetInputImageOrientation(), // refer to this url: http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/UltrasoundImageOrientation.html for reference;
+    rfModeSource->GetInputImageOrientation(), // refer to this url: http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/UltrasoundImageOrientation.html for reference;
                                               // Set to UN to keep the orientation of the image the same as on tablet
-    rfDataSource->GetInputFrameSize(),
+    rfModeSource->GetInputFrameSize(),
     pixelType,
     1,
     US_IMG_RF_REAL,

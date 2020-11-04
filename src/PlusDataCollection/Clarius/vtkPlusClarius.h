@@ -36,7 +36,7 @@ This class talks with a Clarius Scanner over the Clarius API.
 Requires PLUS_USE_CLARIUS option in CMake.
  \ingroup PlusLibDataCollection
 */
-class vtkPlusDataCollectionExport vtkPlusClarius : public vtkPlusDevice
+class vtkPlusDataCollectionExport vtkPlusClarius : public vtkPlusUsDevice
   /*vtkPlusCLARIUS is a subclass of vtkPlusDevice*/
 {
 public:
