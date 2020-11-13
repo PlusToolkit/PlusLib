@@ -139,12 +139,12 @@ public:
   float GetCurrentTemperature();
 
   /*! Paths to additive and multiplicative bias correction images. */
-  PlusStatus SetBiasCorrectionImage(std::string biasFilePath);
+  PlusStatus SetBiasCorrectionImage(const std::string biasFilePath);
   std::string GetBiasCorrectionImage()
   {
     return biasCorrection;
   }
-  PlusStatus SetFlatCorrectionImage(std::string flatFilePath);
+  PlusStatus SetFlatCorrectionImage(const std::string flatFilePath);
   std::string GetFlatCorrectionImage()
   {
     return flatCorrection;
