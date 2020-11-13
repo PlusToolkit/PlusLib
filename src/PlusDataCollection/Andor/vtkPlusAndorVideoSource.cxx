@@ -55,7 +55,8 @@ PlusStatus vtkPlusAndorVideoSource::ReadConfiguration(vtkXMLDataElement* rootCon
   // Must initialize the system before setting parameters
   checkStatus(Initialize(""), "Initialize");
 
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Shutter, deviceConfig);
+  Shutter = static_cast<ShutterMode>(std::atoi(deviceConfig->GetAttribute("Shutter")));
+  // XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Shutter, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, ExposureTime, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, PreAmpGain, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, AcquisitionMode, deviceConfig);
@@ -338,7 +339,7 @@ void vtkPlusAndorVideoSource::WaitForWarmup()
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::AcquireFrame(float exposure, int shutterMode, int binning, int vsSpeed, int hsSpeed)
+PlusStatus vtkPlusAndorVideoSource::AcquireFrame(float exposure, ShutterMode shutterMode, int binning, int vsSpeed, int hsSpeed)
 {
   unsigned rawFrameSize = frameSize[0] * frameSize[1];
   rawFrame.resize(rawFrameSize, 0);
@@ -422,7 +423,7 @@ void vtkPlusAndorVideoSource::ApplyFrameCorrections()
 PlusStatus vtkPlusAndorVideoSource::AcquireBLIFrame(int binning, int vsSpeed, int hsSpeed, float exposureTime)
 {
   WaitForCooldown();
-  AcquireFrame(exposureTime, 0, binning, vsSpeed, hsSpeed);
+  AcquireFrame(exposureTime, ShutterMode::FullyAuto, binning, vsSpeed, hsSpeed);
   ++this->FrameNumber;
   AddFrameToDataSource(BLIraw);
 
@@ -439,7 +440,7 @@ PlusStatus vtkPlusAndorVideoSource::AcquireBLIFrame(int binning, int vsSpeed, in
 PlusStatus vtkPlusAndorVideoSource::AcquireGrayscaleFrame(int binning, int vsSpeed, int hsSpeed, float exposureTime)
 {
   WaitForCooldown();
-  AcquireFrame(exposureTime, 0, binning, vsSpeed, hsSpeed);
+  AcquireFrame(exposureTime, ShutterMode::FullyAuto, binning, vsSpeed, hsSpeed);
   ++this->FrameNumber;
   AddFrameToDataSource(GrayRaw);
 
@@ -455,7 +456,7 @@ PlusStatus vtkPlusAndorVideoSource::AcquireGrayscaleFrame(int binning, int vsSpe
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusAndorVideoSource::AcquireBiasFrame(std::string biasFilePath, int binning, int vsSpeed, int hsSpeed)
 {
-  AcquireFrame(0, 2, binning, vsSpeed, hsSpeed);
+  AcquireFrame(0, ShutterMode::PermanentlyClosed, binning, vsSpeed, hsSpeed);
   ++this->FrameNumber;
   cv::Mat saveImage(frameSize[0], frameSize[1], CV_16UC1, &rawFrame[0]);
   cv::imwrite(biasFilePath, saveImage);
@@ -501,7 +502,7 @@ PlusStatus vtkPlusAndorVideoSource::SetFlatCorrectionImage(std::string flatFileP
 // Setup the Andor camera parameters ----------------------------------------------
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::SetShutter(int shutter)
+PlusStatus vtkPlusAndorVideoSource::SetShutter(ShutterMode shutter)
 {
   this->Shutter = shutter;
   checkStatus(::SetShutter(1, this->Shutter, 0, 0), "SetShutter");
@@ -509,7 +510,7 @@ PlusStatus vtkPlusAndorVideoSource::SetShutter(int shutter)
 }
 
 // ----------------------------------------------------------------------------
-int vtkPlusAndorVideoSource::GetShutter()
+ShutterMode vtkPlusAndorVideoSource::GetShutter()
 {
   return this->Shutter;
 }

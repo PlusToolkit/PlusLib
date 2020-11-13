@@ -46,16 +46,18 @@ public:
   virtual std::string GetSdkVersion();
 
   /*! Shutter mode:
-   * 0 Fully Auto
-   * 1 Permanently Open
-   * 2 Permanently Closed
-   * 4 Open for FVB series
-   * 5 Open for any series
-   *
    * For an external shutter: Output TTL high signal to open shutter.
    */
-  PlusStatus SetShutter(int shutter);
-  int GetShutter();
+  enum ShutterMode : int
+  {
+    FullyAuto = 0,
+    PermanentlyOpen = 1,
+    PermanentlyClosed = 2,
+    OpenForFVBSeries = 4,
+    OpenForAnySeries = 5
+  };
+  PlusStatus SetShutter(ShutterMode shutter);
+  ShutterMode GetShutter();
 
   /*! Frame exposure time, seconds. Sets to the nearest valid value not less than the given value. */
   PlusStatus SetExposureTime(float exposureTime);
@@ -183,7 +185,7 @@ protected:
   void InitializePort(DataSourceArray& port);
 
   /*! Acquire a single frame using current parameters. Data is put in the frameBuffer ivar. */
-  PlusStatus AcquireFrame(float exposure, int shutterMode, int binning, int vsSpeed, int hsSpeed);
+  PlusStatus AcquireFrame(float exposure, ShutterMode shutterMode, int binning, int vsSpeed, int hsSpeed);
 
   /*! Data from the frameBuffer ivar is added to the provided data source. */
   void AddFrameToDataSource(DataSourceArray& ds);
@@ -216,7 +218,7 @@ protected:
   PlusStatus TurnCoolerON();
   PlusStatus TurnCoolerOFF();
 
-  int Shutter = 0;
+  vtkPlusAndorVideoSource::ShutterMode Shutter = ShutterMode::FullyAuto;
   float ExposureTime = 1.0; // seconds
   int HorizontalBins = 1;
   int VerticalBins = 1;
