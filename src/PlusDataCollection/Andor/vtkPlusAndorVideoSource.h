@@ -82,8 +82,16 @@ public:
    * 4 Fast Kinetics
    * 5 Run till abort
    */
-  PlusStatus SetAcquisitionMode(int acquisitionMode);
-  int GetAcquisitionMode();
+  enum AcquisitionMode : int
+  {
+    SingleScan = 1,
+    Accumulate = 2,
+    Kinetics = 3,
+    FastKinetics = 4,
+    RunTillAbort = 5
+  };
+  PlusStatus SetAcquisitionMode(AcquisitionMode acquisitionMode);
+  AcquisitionMode GetAcquisitionMode();
 
   /*! Readout mode. Valid values:
    * 0 Full Vertical Binning
@@ -230,7 +238,7 @@ protected:
   // TODO: Need to handle differet cases for read/acquisiton modes?
 
   /*! From AndorSDK:=> 1: Single Scan   2: Accumulate   3: Kinetics   4: Fast Kinetics   5: Run till abort  */
-  int AcquisitionMode = 1;
+  AcquisitionMode m_AcquisitionMode = AcquisitionMode::SingleScan;
 
   /*! From AndorSDK:=> 0: Full Vertical Binning   1: Multi-Track   2: Random-Track   3: Single-Track   4: Image */
   int ReadMode = 4;
