@@ -33,7 +33,7 @@ void vtkPlusAndorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "VSSpeed: " << VSSpeed << std::endl;
   os << indent << "PreAmpGain: " << PreAmpGain << std::endl;
   os << indent << "AcquisitionMode: " << m_AcquisitionMode << std::endl;
-  os << indent << "ReadMode: " << ReadMode << std::endl;
+  os << indent << "ReadMode: " << m_ReadMode << std::endl;
   os << indent << "TriggerMode: " << TriggerMode << std::endl;
   os << indent << "UseCooling: " << UseCooling << std::endl;
   os << indent << "CoolTemperature: " << CoolTemperature << std::endl;
@@ -57,9 +57,9 @@ PlusStatus vtkPlusAndorVideoSource::ReadConfiguration(vtkXMLDataElement* rootCon
 
   Shutter = static_cast<ShutterMode>(std::atoi(deviceConfig->GetAttribute("Shutter")));
   m_AcquisitionMode = static_cast<vtkPlusAndorVideoSource::AcquisitionMode>(std::atoi(deviceConfig->GetAttribute("AcquisitionMode")));
+  m_ReadMode = static_cast<vtkPlusAndorVideoSource::ReadMode>(std::atoi(deviceConfig->GetAttribute("ReadMode")));
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, ExposureTime, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, PreAmpGain, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ReadMode, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, TriggerMode, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, CoolTemperature, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SafeTemperature, deviceConfig);
@@ -93,7 +93,7 @@ PlusStatus vtkPlusAndorVideoSource::WriteConfiguration(vtkXMLDataElement* rootCo
   deviceConfig->SetFloatAttribute("ExposureTime", this->ExposureTime);
   deviceConfig->SetIntAttribute("PreAmpGain", this->PreAmpGain);
   deviceConfig->SetIntAttribute("AcquisitionMode", this->m_AcquisitionMode);
-  deviceConfig->SetIntAttribute("ReadMode", this->ReadMode);
+  deviceConfig->SetIntAttribute("ReadMode", this->m_ReadMode);
   deviceConfig->SetIntAttribute("TriggerMode", this->TriggerMode);
   deviceConfig->SetIntAttribute("CoolTemperature", this->CoolTemperature);
   deviceConfig->SetIntAttribute("SafeTemperature", this->SafeTemperature);
@@ -622,17 +622,17 @@ vtkPlusAndorVideoSource::AcquisitionMode vtkPlusAndorVideoSource::GetAcquisition
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::SetReadMode(int readMode)
+PlusStatus vtkPlusAndorVideoSource::SetReadMode(ReadMode readMode)
 {
-  this->ReadMode = readMode;
-  checkStatus(::SetReadMode(this->ReadMode), "SetReadMode");
+  this->m_ReadMode = readMode;
+  checkStatus(::SetReadMode(this->m_ReadMode), "SetReadMode");
   return PLUS_SUCCESS;
 }
 
 // ----------------------------------------------------------------------------
-int vtkPlusAndorVideoSource::GetReadMode()
+vtkPlusAndorVideoSource::ReadMode vtkPlusAndorVideoSource::GetReadMode()
 {
-  return this->ReadMode;
+  return this->m_ReadMode;
 }
 
 // ----------------------------------------------------------------------------

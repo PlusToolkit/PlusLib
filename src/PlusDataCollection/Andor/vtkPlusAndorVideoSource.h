@@ -93,15 +93,17 @@ public:
   PlusStatus SetAcquisitionMode(AcquisitionMode acquisitionMode);
   AcquisitionMode GetAcquisitionMode();
 
-  /*! Readout mode. Valid values:
-   * 0 Full Vertical Binning
-   * 1 Multi-Track
-   * 2 Random-Track
-   * 3 Single-Track
-   * 4 Image
-   */
-  PlusStatus SetReadMode(int setReadMode);
-  int GetReadMode();
+  /*! Readout mode. */
+  enum ReadMode : int
+  {
+    FullVerticalBinning = 0,
+    MultiTrack = 1,
+    RandomTrack = 2,
+    SingleTrack = 3,
+    Image = 4
+  };
+  PlusStatus SetReadMode(ReadMode setReadMode);
+  ReadMode GetReadMode();
 
   /*! Trigger mode. Valid values:
    * 0. Internal
@@ -241,7 +243,7 @@ protected:
   AcquisitionMode m_AcquisitionMode = AcquisitionMode::SingleScan;
 
   /*! From AndorSDK:=> 0: Full Vertical Binning   1: Multi-Track   2: Random-Track   3: Single-Track   4: Image */
-  int ReadMode = 4;
+  ReadMode m_ReadMode = ReadMode::Image;
 
   /*! From AndorSDK:=> 0. Internal   1. External  6. External Start  7. External Exposure(Bulb)  9. External FVB EM(only valid for EM Newton models in FVB mode) 10. Software Trigger  12. External Charge Shifting */
   int TriggerMode = 0;
