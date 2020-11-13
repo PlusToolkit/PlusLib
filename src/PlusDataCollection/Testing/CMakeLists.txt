@@ -578,17 +578,17 @@ IF(PLUS_TEST_TextRecognizer)
     )
 ENDIF()
 
-#*************************** vtkAndorCameraTest.cxx ***************************
+#*************************** vtkAndorVideoSourceTest.cxx ***************************
 IF(PLUS_USE_ANDOR_CAMERA)
-  ADD_EXECUTABLE(vtkAndorCameraTest vtkAndorCameraTest.cxx )
-  SET_TARGET_PROPERTIES(vtkAndorCameraTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkAndorCameraTest vtkPlusDataCollection vtkInteractionImage) 
-  ADD_TEST(NAME vtkAndorCameraTest 
-    COMMAND $<TARGET_FILE:vtkAndorCameraTest>
+  ADD_EXECUTABLE(vtkAndorVideoSourceTest vtkAndorVideoSourceTest.cxx )
+  SET_TARGET_PROPERTIES(vtkAndorVideoSourceTest PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(vtkAndorVideoSourceTest vtkPlusDataCollection vtkInteractionImage) 
+  ADD_TEST(NAME vtkAndorVideoSourceTest 
+    COMMAND $<TARGET_FILE:vtkAndorVideoSourceTest>
     --rendering-off 
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_AndorCameraTest.xml
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_AndorVideoSourceTest.xml
     )
-  SET_TESTS_PROPERTIES(vtkAndorCameraTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  SET_TESTS_PROPERTIES(vtkAndorVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 ENDIF()
 
 #*************************** LeapMotionTest1 ***************************

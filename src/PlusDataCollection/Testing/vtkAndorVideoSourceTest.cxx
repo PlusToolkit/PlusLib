@@ -5,7 +5,7 @@
 =========================================================Plus=header=end*/
 
 /*!
-  \file vtkAndorCameraTest.cxx
+  \file vtkAndorVideoSourceTest.cxx
   \brief Test basic connection to the Andor camera
 
   If the --rendering-off switch is defined then the connection is established, images are
