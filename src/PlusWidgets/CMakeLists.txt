@@ -30,7 +30,7 @@ MARK_AS_ADVANCED(PLUSLIB_WIDGETS_QRC)
 SET(${PROJECT_NAME}_LIBS 
   Qt5::Xml
   Qt5::Widgets
-  vtkGUISupportQt
+  ${PLUSLIB_VTK_PREFIX}GUISupportQt
   vtkPlusCalibration
   vtkPlusCommon
   vtkPlusDataCollection

@@ -27,7 +27,7 @@ ADD_EXECUTABLE(vtkDataCollectorTest1 vtkDataCollectorTest1.cxx)
 SET_TARGET_PROPERTIES(vtkDataCollectorTest1 PROPERTIES FOLDER Tests)
 SET(LIBRARIES vtkDataCollectorTest1 vtkPlusDataCollection)
 IF(PLUS_RENDERING_ENABLED)
-  LIST(APPEND LIBRARIES vtkInteractionImage)
+  LIST(APPEND LIBRARIES ${PLUSLIB_VTK_PREFIX}InteractionImage)
 ENDIF()
 TARGET_LINK_LIBRARIES(${LIBRARIES})
 
@@ -157,7 +157,7 @@ SET_TESTS_PROPERTIES(vtkFcsvWriterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERRO
 IF(PLUS_USE_ULTRASONIX_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkSonixVideoSourceTest1 vtkSonixVideoSourceTest1.cxx )
   SET_TARGET_PROPERTIES(vtkSonixVideoSourceTest1 PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkSonixVideoSourceTest1 vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
+  TARGET_LINK_LIBRARIES(vtkSonixVideoSourceTest1 vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
 
   IF(PLUS_TEST_ULTRASONIX)
     ADD_TEST(vtkSonixVideoSourceTest1
@@ -191,7 +191,7 @@ ENDIF()
 IF(PLUS_USE_INTERSONSDKCXX_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkIntersonSDKCxxVideoSourceTest vtkintersonSDKCxxVideoSourceTest.cxx)
   SET_TARGET_PROPERTIES(vtkIntersonSDKCxxVideoSourceTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkIntersonSDKCxxVideoSourceTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
+  TARGET_LINK_LIBRARIES(vtkIntersonSDKCxxVideoSourceTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
   ADD_TEST(NAME vtkIntersonSDKCxxVideoSourceTest 
     COMMAND $<TARGET_FILE:vtkIntersonSDKCxxVideoSourceTest>
     --rendering-off 
@@ -230,7 +230,7 @@ ENDIF()
 IF(PLUS_USE_INTERSONARRAYSDKCXX_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkIntersonArraySDKCxxVideoSourceTest vtkintersonArraySDKCxxVideoSourceTest.cxx)
   SET_TARGET_PROPERTIES(vtkIntersonArraySDKCxxVideoSourceTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkIntersonArraySDKCxxVideoSourceTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
+  TARGET_LINK_LIBRARIES(vtkIntersonArraySDKCxxVideoSourceTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
   ADD_TEST(NAME vtkIntersonArraySDKCxxVideoSourceTest
     COMMAND $<TARGET_FILE:vtkIntersonArraySDKCxxVideoSourceTest>
     --rendering-off
@@ -294,7 +294,7 @@ ENDIF()
 IF(PLUS_USE_ICCAPTURING_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkICCapturingSourceTest1 vtkICCapturingSourceTest1.cxx )
   SET_TARGET_PROPERTIES(vtkICCapturingSourceTest1 PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkICCapturingSourceTest1 vtkPlusDataCollection vtkInteractionImage)
+  TARGET_LINK_LIBRARIES(vtkICCapturingSourceTest1 vtkPlusDataCollection ${PLUSLIB_VTK_PREFIX}InteractionImage)
   # ADD_TEST(vtkICCapturingSourceTest1 
   #   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkICCapturingSourceTest1
   #   --rendering-off
@@ -334,7 +334,7 @@ ENDIF()
 IF(PLUS_USE_CAPISTRANO_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkCapistranoVideoSourceTest vtkCapistranoVideoSourceTest.cxx )
   SET_TARGET_PROPERTIES(vtkCapistranoVideoSourceTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkCapistranoVideoSourceTest vtkPlusDataCollection vtkInteractionImage) 
+  TARGET_LINK_LIBRARIES(vtkCapistranoVideoSourceTest vtkPlusDataCollection ${PLUSLIB_VTK_PREFIX}InteractionImage) 
   ADD_TEST(NAME vtkCapistranoVideoSourceTest 
     COMMAND $<TARGET_FILE:vtkCapistranoVideoSourceTest>
     --rendering-off
@@ -346,7 +346,7 @@ ENDIF()
 IF(PLUS_USE_WINPROBE_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkWinProbeVideoSourceTest vtkWinProbeVideoSourceTest.cxx )
   SET_TARGET_PROPERTIES(vtkWinProbeVideoSourceTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkWinProbeVideoSourceTest vtkPlusDataCollection vtkInteractionImage) 
+  TARGET_LINK_LIBRARIES(vtkWinProbeVideoSourceTest vtkPlusDataCollection ${PLUSLIB_VTK_PREFIX}InteractionImage) 
   ADD_TEST(NAME vtkWinProbeVideoSourceTest 
     COMMAND $<TARGET_FILE:vtkWinProbeVideoSourceTest>
     --rendering-off
@@ -361,14 +361,14 @@ ENDIF()
 IF(PLUS_USE_INTERSON_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkIntersonVideoSourceTest vtkIntersonVideoSourceTest.cxx )
   SET_TARGET_PROPERTIES(vtkIntersonVideoSourceTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkIntersonVideoSourceTest vtkPlusDataCollection vtkInteractionImage) 
+  TARGET_LINK_LIBRARIES(vtkIntersonVideoSourceTest vtkPlusDataCollection ${PLUSLIB_VTK_PREFIX}InteractionImage) 
 ENDIF()
 
 #*************************** vtkTelemedVideoSourceTest.cxx ***************************
 IF(PLUS_USE_TELEMED_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkTelemedVideoSourceTest vtkTelemedVideoSourceTest.cxx )
   SET_TARGET_PROPERTIES(vtkTelemedVideoSourceTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkTelemedVideoSourceTest vtkPlusDataCollection vtkInteractionImage)
+  TARGET_LINK_LIBRARIES(vtkTelemedVideoSourceTest vtkPlusDataCollection ${PLUSLIB_VTK_PREFIX}InteractionImage)
 
   IF(PLUS_TEST_TELEMED)
     ADD_TEST(vtkTelemedVideoSourceTest
@@ -395,7 +395,7 @@ ENDIF()
 IF(PLUS_USE_ULTRASONIX_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkSonixPortaVideoSourceTest vtkSonixPortaVideoSourceTest.cxx )
   SET_TARGET_PROPERTIES(vtkSonixPortaVideoSourceTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkSonixPortaVideoSourceTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
+  TARGET_LINK_LIBRARIES(vtkSonixPortaVideoSourceTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
   # ADD_TEST(vtkSonixPortaVideoSourceTest 
   # ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkSonixPortaVideoSourceTest
   # To be added if the 3D probe is attached to the machine
@@ -412,7 +412,7 @@ ENDIF()
 IF(PLUS_USE_ULTRASONIX_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkURFSavedVideoSourceTest1 vtkURFSavedVideoSourceTest1.cxx )
   SET_TARGET_PROPERTIES(vtkURFSavedVideoSourceTest1 PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkURFSavedVideoSourceTest1 vtkPlusDataCollection vtkInteractionImage)
+  TARGET_LINK_LIBRARIES(vtkURFSavedVideoSourceTest1 vtkPlusDataCollection ${PLUSLIB_VTK_PREFIX}InteractionImage)
 ENDIF()
 #Test is to be added.
 
@@ -420,14 +420,14 @@ ENDIF()
 IF(PLUS_USE_VFW_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkWin32VideoSourceTest vtkWin32VideoSourceTest.cxx)
   SET_TARGET_PROPERTIES(vtkWin32VideoSourceTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkWin32VideoSourceTest vtkPlusDataCollection vtkInteractionImage)
+  TARGET_LINK_LIBRARIES(vtkWin32VideoSourceTest vtkPlusDataCollection ${PLUSLIB_VTK_PREFIX}InteractionImage)
 ENDIF()
 
 #*************************** vtkMmfVideoSourceTest.cxx ***************************
 IF(PLUS_USE_MMF_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkMmfVideoSourceTest vtkMmfVideoSourceTest.cxx )
   SET_TARGET_PROPERTIES(vtkMmfVideoSourceTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkMmfVideoSourceTest vtkPlusDataCollection vtkInteractionImage)
+  TARGET_LINK_LIBRARIES(vtkMmfVideoSourceTest vtkPlusDataCollection ${PLUSLIB_VTK_PREFIX}InteractionImage)
 
   IF(PLUS_TEST_MMF_VIDEO)
     ADD_TEST(MmfVideoSourceTest 
@@ -442,28 +442,28 @@ ENDIF()
 IF(PLUS_USE_EPIPHAN AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkEpiphanVideoSourceTest vtkEpiphanVideoSourceTest.cxx )
   SET_TARGET_PROPERTIES(vtkEpiphanVideoSourceTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkEpiphanVideoSourceTest vtkPlusDataCollection vtkInteractionImage)
+  TARGET_LINK_LIBRARIES(vtkEpiphanVideoSourceTest vtkPlusDataCollection ${PLUSLIB_VTK_PREFIX}InteractionImage)
 ENDIF()
 
 #*************************** MicronTrackerTest ***************************
 IF(PLUS_USE_MICRONTRACKER AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkMicronTrackerTest vtkMicronTrackerTest.cxx)
   SET_TARGET_PROPERTIES(vtkMicronTrackerTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkMicronTrackerTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)    
+  TARGET_LINK_LIBRARIES(vtkMicronTrackerTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)    
 ENDIF() 
 
 #*************************** IntelRealSenseTrackerTest ***************************
 IF(PLUS_USE_INTELREALSENSE AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkIntelRealSenseTrackerTest vtkIntelRealSenseTrackerTest.cxx)
   SET_TARGET_PROPERTIES(vtkIntelRealSenseTrackerTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkIntelRealSenseTrackerTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
+  TARGET_LINK_LIBRARIES(vtkIntelRealSenseTrackerTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
 ENDIF()
 
 #*************************** IntelRealSenseCamTest ***************************
 IF(PLUS_USE_INTELREALSENSE_CAM AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkIntelRealSenseCamTest vtkIntelRealSenseCamTest.cxx)
   SET_TARGET_PROPERTIES(vtkIntelRealSenseCamTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkIntelRealSenseCamTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
+  TARGET_LINK_LIBRARIES(vtkIntelRealSenseCamTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
 ENDIF()
 
 #*************************** vtkNVidiaDVPVideoSourceTest ***************************
@@ -497,14 +497,14 @@ ENDIF()
 IF(PLUS_USE_INFRARED_SEEK_CAM AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkInfraredSeekCamTest vtkInfraredSeekCamTest.cxx)
   SET_TARGET_PROPERTIES(vtkInfraredSeekCamTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkInfraredSeekCamTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
+  TARGET_LINK_LIBRARIES(vtkInfraredSeekCamTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
 ENDIF()
 
 #*********************** InfraredTEQ1CameraDeviceTest *****************************
 IF(PLUS_USE_INFRARED_TEQ1_CAM AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkInfraredTEQ1CamTest vtkInfraredTEQ1CamTest.cxx)
   SET_TARGET_PROPERTIES(vtkInfraredTEQ1CamTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkInfraredTEQ1CamTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
+  TARGET_LINK_LIBRARIES(vtkInfraredTEQ1CamTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
 ENDIF()
 
 #*************************** vtkOvrvisionProVideoSourceTest ***************************

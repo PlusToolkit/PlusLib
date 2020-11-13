@@ -63,9 +63,9 @@ SET(External_Libraries_Install)
 
 SET(${PROJECT_NAME}_LIBS
   vtkPlusCommon
-  vtkImagingStatistics
-  vtkImagingGeneral
-  vtkImagingMorphological
+  ${PLUSLIB_VTK_PREFIX}ImagingStatistics
+  ${PLUSLIB_VTK_PREFIX}ImagingGeneral
+  ${PLUSLIB_VTK_PREFIX}ImagingMorphological
   )
 
 IF(PLUS_USE_INTEL_MKL)

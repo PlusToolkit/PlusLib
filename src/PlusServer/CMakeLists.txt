@@ -92,7 +92,7 @@ SET(${PROJECT_NAME}_LIBS
   vtkPlusCommon
   vtkPlusDataCollection
   vtkPlusVolumeReconstruction
-  vtkIOPLY
+  ${PLUSLIB_VTK_PREFIX}IOPLY
   )
 SET(${PROJECT_NAME}_PRIVATE_LIBS
   igtlioConverter

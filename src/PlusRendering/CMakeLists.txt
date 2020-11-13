@@ -24,16 +24,16 @@ SET(${PROJECT_NAME}_INCLUDE_DIRS
 # Build the library
 SET(${PROJECT_NAME}_LIBS 
   vtkPlusCommon
-  vtkCommonCore
-  vtkFiltersSources
-  vtkChartsCore
-  vtkViewsContext2D
-  vtkIOCore
-  vtkInteractionStyle
-  vtkRenderingFreeType
-  vtkRenderingAnnotation
-  vtkRendering${VTK_RENDERING_BACKEND}
-  vtkRenderingContext${VTK_RENDERING_BACKEND}
+  ${PLUSLIB_VTK_PREFIX}CommonCore
+  ${PLUSLIB_VTK_PREFIX}FiltersSources
+  ${PLUSLIB_VTK_PREFIX}ChartsCore
+  ${PLUSLIB_VTK_PREFIX}ViewsContext2D
+  ${PLUSLIB_VTK_PREFIX}IOCore
+  ${PLUSLIB_VTK_PREFIX}InteractionStyle
+  ${PLUSLIB_VTK_PREFIX}RenderingFreeType
+  ${PLUSLIB_VTK_PREFIX}RenderingAnnotation
+  ${PLUSLIB_VTK_PREFIX}Rendering${VTK_RENDERING_BACKEND}
+  ${PLUSLIB_VTK_PREFIX}RenderingContext2D
   )
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtk${PROJECT_NAME})
@@ -56,7 +56,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   #--------------------------------------------------------------------------------------------
   ADD_EXECUTABLE(ModelRenderer Tools/ModelRenderer.cxx )
   SET_TARGET_PROPERTIES(ModelRenderer PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES(ModelRenderer vtkPlusCommon vtk${PROJECT_NAME} vtkIOGeometry)
+  TARGET_LINK_LIBRARIES(ModelRenderer vtkPlusCommon vtk${PROJECT_NAME} ${PLUSLIB_VTK_PREFIX}IOGeometry)
 
   INSTALL(TARGETS ModelRenderer
     RUNTIME DESTINATION bin COMPONENT RuntimeExecutables

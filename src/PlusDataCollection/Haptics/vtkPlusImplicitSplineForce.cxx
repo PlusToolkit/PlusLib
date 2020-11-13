@@ -622,7 +622,7 @@ int vtkPlusImplicitSplineForce::ReadFile3DBSplineKnots(const std::string& fname)
   {
     return -1;
   }
-  ifstream fpInKnot;
+  std::ifstream fpInKnot;
   fpInKnot.open(fname.c_str());
 
   if( !fpInKnot.is_open() )
@@ -672,7 +672,7 @@ int vtkPlusImplicitSplineForce::ReadFileControlPoints(const std::string& fname)
   {
     return -1;
   }
-  ifstream fpInKnot;
+  std::ifstream fpInKnot;
   fpInKnot.open(fname.c_str());
 
   if( !fpInKnot.is_open() )

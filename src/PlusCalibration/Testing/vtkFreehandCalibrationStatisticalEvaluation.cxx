@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
   SubSequenceMetafile(calibrationTrackedFrameList, segmentedCalibrationFramesIndices);
 
 
-  ofstream outputFile;
+  std::ofstream outputFile;
   outputFile.open(saveResultsFilename.c_str(), std::ios_base::app);
 
 

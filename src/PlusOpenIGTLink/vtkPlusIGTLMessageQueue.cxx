@@ -2,22 +2,28 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
+// Local includes
 #include "PlusConfigure.h"
-
 #include "vtkPlusIGTLMessageQueue.h"
 
+// IGSIO includes
 #include "vtkIGSIORecursiveCriticalSection.h"
-#include "vtkObjectFactory.h"
+
+// VTK includes
+#include <vtkObjectFactory.h>
 #include <vtksys/SystemTools.hxx>
 
+// STL includes
 #include <string>
 
-#include "igtlMessageBase.h"
+// IGT includes
+#include <igtlMessageBase.h>
 
+//----------------------------------------------------------------------------
 
-vtkStandardNewMacro( vtkPlusIGTLMessageQueue );
+vtkStandardNewMacro(vtkPlusIGTLMessageQueue);
 
 //----------------------------------------------------------------------------
 void vtkPlusIGTLMessageQueue::PrintSelf(ostream& os, vtkIndent indent)
@@ -26,10 +32,10 @@ void vtkPlusIGTLMessageQueue::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusIGTLMessageQueue::PushMessage( igtl::MessageBase* message )
+void vtkPlusIGTLMessageQueue::PushMessage(igtl::MessageBase* message)
 {
   this->Mutex->Lock();
-  this->DataBuffer.push_back( message );
+  this->DataBuffer.push_back(message);
   this->Mutex->Unlock();
 }
 
@@ -38,9 +44,9 @@ igtl::MessageBase* vtkPlusIGTLMessageQueue::PullMessage()
 {
   this->Mutex->Lock();
   igtl::MessageBase* ret = NULL;
-  if ( this->DataBuffer.size() > 0 )
+  if (this->DataBuffer.size() > 0)
   {
-    this->DataBuffer.front();
+    ret = this->DataBuffer.front();
     this->DataBuffer.pop_front();
   }
   this->Mutex->Unlock();

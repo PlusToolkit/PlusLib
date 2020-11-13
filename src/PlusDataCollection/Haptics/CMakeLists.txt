@@ -28,9 +28,9 @@ SET_SOURCE_FILES_PROPERTIES(
 )
 
 SET(${PROJECT_NAME}_LIBS
-  vtkCommonCore
-  vtkCommonDataModel
-  vtksys
+  ${PLUSLIB_VTK_PREFIX}CommonCore
+  ${PLUSLIB_VTK_PREFIX}CommonDataModel
+  ${PLUSLIB_VTKSYS}
   )
 
 # -----------------------------------------------------------------

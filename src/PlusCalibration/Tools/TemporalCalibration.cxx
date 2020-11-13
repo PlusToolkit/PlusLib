@@ -108,7 +108,7 @@ void SaveMetricPlot(const char* filename, vtkTable* videoPositionMetric, vtkTabl
 //----------------------------------------------------------------------------
 void WriteCalibrationResultToFile(const std::string& outputFileName, const TemporalCalibrationResult& calibResult)
 {
-  ofstream myfile;
+  std::ofstream myfile;
   myfile.open(outputFileName.c_str());
   myfile << "<TemporalCalibrationResults TrackerLagSec=\"" << calibResult.trackerLagSec
          << "\" CalibrationError=\"" << calibResult.calibrationError
