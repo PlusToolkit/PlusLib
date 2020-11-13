@@ -206,7 +206,7 @@ See License.txt for details.
 #endif
 
 #ifdef PLUS_USE_ANDOR_CAMERA
-#include "vtkPlusAndorCamera.h"
+#include "vtkPlusAndorVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_INFRARED_TEQ1_CAM
@@ -386,7 +386,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 #endif
 
 #ifdef PLUS_USE_ANDOR_CAMERA
-  RegisterDevice("AndorCamera", "vtkPlusAndorCamera", (PointerToDevice)&vtkPlusAndorCamera::New);
+  RegisterDevice("AndorCamera", "vtkPlusAndorVideoSource", (PointerToDevice)&vtkPlusAndorVideoSource::New);
 #endif
 
 #ifdef PLUS_USE_INFRARED_TEQ1_CAM

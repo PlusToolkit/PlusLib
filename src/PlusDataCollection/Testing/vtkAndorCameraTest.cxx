@@ -32,7 +32,7 @@
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusAndorCamera.h"
+#include "vtkPlusAndorVideoSource.h"
 #include "vtkPlusDataSource.h"
 #include "igtlOSUtil.h" // for Sleep
 
@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
   if(!args.Parse())
   {
     std::cerr << "Problem parsing arguments" << std::endl;
-    std::cout << "\n\nvtkPlusAndorCameraTest1 help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusAndorVideoSourceTest1 help:" << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -106,12 +106,12 @@ int main(int argc, char* argv[])
 
   if(printHelp)
   {
-    std::cout << "\n\nvtkPlusAndorCameraTest help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusAndorVideoSourceTest help:" << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS);
   }
 
 
-  vtkSmartPointer< vtkPlusAndorCamera > andorCamDevice = vtkSmartPointer< vtkPlusAndorCamera >::New();
+  vtkSmartPointer< vtkPlusAndorVideoSource > andorCamDevice = vtkSmartPointer< vtkPlusAndorVideoSource >::New();
   andorCamDevice->SetDeviceId("BLICamera");
 
 

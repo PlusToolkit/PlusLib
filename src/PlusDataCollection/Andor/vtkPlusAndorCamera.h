@@ -4,14 +4,14 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-#ifndef __vtkPlusAndorCamera_h
-#define __vtkPlusAndorCamera_h
+#ifndef __vtkPlusAndorVideoSource_h
+#define __vtkPlusAndorVideoSource_h
 
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 
 /*!
- \class vtkPlusAndorCamera
+ \class vtkPlusAndorVideoSource
  \brief Class for acquiring images from Andor cameras
 
  Requires PLUS_USE_ANDOR_CAMERA option in CMake.
@@ -19,12 +19,12 @@
 
  \ingroup PlusLibDataCollection.
 */
-class vtkPlusDataCollectionExport vtkPlusAndorCamera: public vtkPlusDevice
+class vtkPlusDataCollectionExport vtkPlusAndorVideoSource: public vtkPlusDevice
 {
 public:
   /*! Constructor for a smart pointer of this class*/
-  static vtkPlusAndorCamera* New();
-  vtkTypeMacro(vtkPlusAndorCamera, vtkPlusDevice);
+  static vtkPlusAndorVideoSource* New();
+  vtkTypeMacro(vtkPlusAndorVideoSource, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Specify the device connected to this class */
@@ -152,15 +152,15 @@ public:
   /*! Check the return status of Andor SDK functions. */
   unsigned int checkStatus(unsigned int returnStatus, std::string functionName);
 
-  vtkPlusAndorCamera(const vtkPlusAndorCamera&) = delete;
-  void operator=(const vtkPlusAndorCamera&) = delete;
+  vtkPlusAndorVideoSource(const vtkPlusAndorVideoSource&) = delete;
+  void operator=(const vtkPlusAndorVideoSource&) = delete;
 
 protected:
   /*! Constructor */
-  vtkPlusAndorCamera();
+  vtkPlusAndorVideoSource();
 
   /*! Destructor */
-  ~vtkPlusAndorCamera();
+  ~vtkPlusAndorVideoSource();
 
   /*! Device-specific connect */
   virtual PlusStatus InternalConnect();
@@ -174,7 +174,7 @@ protected:
   /*! Device-specific recording stop */
   PlusStatus InternalStopRecording() override;
 
-  /*! Initialize vtkPlusAndorCamera */
+  /*! Initialize vtkPlusAndorVideoSource */
   PlusStatus InitializeAndorCamera();
 
   using DataSourceArray = std::vector<vtkPlusDataSource*>;
