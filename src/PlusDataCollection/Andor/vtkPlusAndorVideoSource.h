@@ -114,8 +114,18 @@ public:
    * 10. Software Trigger
    * 12. External Charge Shifting
    */
-  PlusStatus SetTriggerMode(int triggerMode);
-  int GetTriggerMode();
+  enum TriggerMode : int
+  {
+    Internal = 0,
+    External = 1,
+    ExternalStart = 6,
+    ExternalExposure = 7,
+    ExternalFVBEM = 9,
+    SoftwareTrigger = 10,
+    ExternalChargeShifting = 12
+  };
+  PlusStatus SetTriggerMode(TriggerMode triggerMode);
+  TriggerMode GetTriggerMode();
 
   /*! Normal operating temperature (degrees celsius). */
   PlusStatus SetCoolTemperature(int coolTemp);
@@ -246,7 +256,7 @@ protected:
   ReadMode m_ReadMode = ReadMode::Image;
 
   /*! From AndorSDK:=> 0. Internal   1. External  6. External Start  7. External Exposure(Bulb)  9. External FVB EM(only valid for EM Newton models in FVB mode) 10. Software Trigger  12. External Charge Shifting */
-  int TriggerMode = 0;
+  TriggerMode m_TriggerMode = TriggerMode::Internal;
 
   /*! Temperatures are in °C (degrees Celsius) */
   bool UseCooling = true;  // dev param to bypass cooling procedures

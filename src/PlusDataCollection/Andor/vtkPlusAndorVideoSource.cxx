@@ -34,7 +34,7 @@ void vtkPlusAndorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "PreAmpGain: " << PreAmpGain << std::endl;
   os << indent << "AcquisitionMode: " << m_AcquisitionMode << std::endl;
   os << indent << "ReadMode: " << m_ReadMode << std::endl;
-  os << indent << "TriggerMode: " << TriggerMode << std::endl;
+  os << indent << "TriggerMode: " << m_TriggerMode << std::endl;
   os << indent << "UseCooling: " << UseCooling << std::endl;
   os << indent << "CoolTemperature: " << CoolTemperature << std::endl;
   os << indent << "SafeTemperature: " << SafeTemperature << std::endl;
@@ -58,9 +58,9 @@ PlusStatus vtkPlusAndorVideoSource::ReadConfiguration(vtkXMLDataElement* rootCon
   Shutter = static_cast<ShutterMode>(std::atoi(deviceConfig->GetAttribute("Shutter")));
   m_AcquisitionMode = static_cast<vtkPlusAndorVideoSource::AcquisitionMode>(std::atoi(deviceConfig->GetAttribute("AcquisitionMode")));
   m_ReadMode = static_cast<vtkPlusAndorVideoSource::ReadMode>(std::atoi(deviceConfig->GetAttribute("ReadMode")));
+  m_TriggerMode = static_cast<vtkPlusAndorVideoSource::TriggerMode>(std::atoi(deviceConfig->GetAttribute("TriggerMode")));
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, ExposureTime, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, PreAmpGain, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, TriggerMode, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, CoolTemperature, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SafeTemperature, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, VSSpeed, deviceConfig);
@@ -94,7 +94,7 @@ PlusStatus vtkPlusAndorVideoSource::WriteConfiguration(vtkXMLDataElement* rootCo
   deviceConfig->SetIntAttribute("PreAmpGain", this->PreAmpGain);
   deviceConfig->SetIntAttribute("AcquisitionMode", this->m_AcquisitionMode);
   deviceConfig->SetIntAttribute("ReadMode", this->m_ReadMode);
-  deviceConfig->SetIntAttribute("TriggerMode", this->TriggerMode);
+  deviceConfig->SetIntAttribute("TriggerMode", this->m_TriggerMode);
   deviceConfig->SetIntAttribute("CoolTemperature", this->CoolTemperature);
   deviceConfig->SetIntAttribute("SafeTemperature", this->SafeTemperature);
   deviceConfig->SetIntAttribute("VSSpeed", this->VSSpeed);
@@ -636,17 +636,17 @@ vtkPlusAndorVideoSource::ReadMode vtkPlusAndorVideoSource::GetReadMode()
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::SetTriggerMode(int triggerMode)
+PlusStatus vtkPlusAndorVideoSource::SetTriggerMode(TriggerMode triggerMode)
 {
-  this->TriggerMode = triggerMode;
-  checkStatus(::SetTriggerMode(this->TriggerMode), "SetTriggerMode");
+  this->m_TriggerMode = triggerMode;
+  checkStatus(::SetTriggerMode(this->m_TriggerMode), "SetTriggerMode");
   return PLUS_SUCCESS;
 }
 
 // ----------------------------------------------------------------------------
-int vtkPlusAndorVideoSource::GetTriggerMode()
+vtkPlusAndorVideoSource::TriggerMode vtkPlusAndorVideoSource::GetTriggerMode()
 {
-  return this->TriggerMode;
+  return this->m_TriggerMode;
 }
 
 // ----------------------------------------------------------------------------
