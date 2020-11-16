@@ -279,10 +279,8 @@ protected:
 
   DataSourceArray BLIraw;
   DataSourceArray BLIrectified;
-  DataSourceArray BLIdark;
   DataSourceArray GrayRaw;
   DataSourceArray GrayRectified;
-  DataSourceArray GrayDark;
 };
 
 #endif

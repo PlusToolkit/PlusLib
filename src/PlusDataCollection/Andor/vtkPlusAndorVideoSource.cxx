@@ -225,7 +225,7 @@ PlusStatus vtkPlusAndorVideoSource::InternalConnect()
   this->GetVideoSourcesByPortName("GrayRaw", GrayRaw);
   this->GetVideoSourcesByPortName("GrayRectified", GrayRectified);
 
-  if(BLIraw.size() + BLIrectified.size() + BLIdark.size() + GrayRaw.size() + GrayRectified.size() + GrayDark.size() == 0)
+  if(BLIraw.size() + BLICorrected.size() + GrayRaw.size() + GrayCorrected.size() == 0)
   {
     vtkPlusDataSource* aSource = nullptr;
     if(this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS || aSource == nullptr)
