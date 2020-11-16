@@ -10,7 +10,7 @@
 
   If the --rendering-off switch is defined then the connection is established, images are
   transferred for a few seconds, then the connection is closed (useful for automatic testing).
-  If the --rendering-off switch is not defined then the live ultrasound image is displayed
+  If the --rendering-off switch is not defined then the live optical image is displayed
   in a window (useful for quick interactive testing of the image transfer).
   \ingroup PlusLibDataCollection
 */
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
   }
   else
   {
-    // Show the live ultrasound image in a VTK renderer window
+    // Show the live optical image in a VTK renderer window
 
     vtkSmartPointer<vtkImageViewer> viewer = vtkSmartPointer<vtkImageViewer>::New();
     viewer->SetInputConnection(andorCamDevice->GetOutputPort());   //set image to the render and window
