@@ -2580,6 +2580,7 @@ source_group("OpenHaptics" FILES ${OpenHaptics_HDRS} ${OpenHaptics_SRCS})
 source_group("V4L2" FILES ${V4L2_Video_HDRS} ${V4L2_Video_SRCS})
 source_group("InfraredSeekCam" FILES ${Infrared_SeekCam_HDRS} ${Infrared_SeekCam_SRCS})
 source_group("WitMotionTracker" FILES ${WitMotionTracker_HDRS} ${WitMotionTracker_SRCS})
+source_group("Andor" FILES ${Andor_HDRS} ${Andor_SRCS})
 
 source_group("LeapMotion" FILES ${LeapMotion_HDRS} ${LeapMotion_SRCS})
 source_group("ClariusVideo" FILES ${CLARIUS_HDRS} ${CLARIUS_SRCS})
