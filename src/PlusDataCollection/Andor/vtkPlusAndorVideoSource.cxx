@@ -468,6 +468,10 @@ PlusStatus vtkPlusAndorVideoSource::SetBiasCorrectionImage(const std::string bia
   try
   {
     cvBiasCorrection = cv::imread(biasFilePath, cv::IMREAD_GRAYSCALE);
+    if(cvBiasCorrection.empty())
+    {
+      throw "Bias correction image empty!";
+    }
   }
   catch(...)
   {
@@ -482,6 +486,10 @@ PlusStatus vtkPlusAndorVideoSource::SetFlatCorrectionImage(std::string flatFileP
   try
   {
     cvFlatCorrection = cv::imread(flatFilePath, cv::IMREAD_GRAYSCALE);
+    if(cvFlatCorrection.empty())
+    {
+      throw "Flat correction image empty!";
+    }
     double maxVal = 0.0;
     cv::minMaxLoc(cvFlatCorrection, nullptr, &maxVal);
     if(maxVal > 1.0)   // we need to normalize the image to [0.0, 1.0] range
