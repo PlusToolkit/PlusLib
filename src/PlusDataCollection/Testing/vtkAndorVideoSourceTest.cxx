@@ -151,9 +151,9 @@ int main(int argc, char* argv[])
     }
 
     vtkPlusChannel* rectified(nullptr);
-    if(andorCamDevice->GetOutputChannelByName(rectified, "BLIRectStream") != PLUS_SUCCESS)
+    if(andorCamDevice->GetOutputChannelByName(rectified, "BLICorrectedStream") != PLUS_SUCCESS)
     {
-      LOG_WARNING("Unable to locate the channel with Id=\"BLIRectStream\". Additional mode will not be used.");
+      LOG_WARNING("Unable to locate the channel with Id=\"BLICorrectedStream\". Additional mode will not be used.");
     }
 
     LOG_DEBUG("Rendering disabled. Wait for just a few seconds to acquire data before exiting");

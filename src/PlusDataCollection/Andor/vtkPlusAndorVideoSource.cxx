@@ -220,12 +220,12 @@ PlusStatus vtkPlusAndorVideoSource::InternalConnect()
     return PLUS_FAIL;
   }
 
-  this->GetVideoSourcesByPortName("BLIraw", BLIraw);
-  this->GetVideoSourcesByPortName("BLIrectified", BLIrectified);
+  this->GetVideoSourcesByPortName("BLIRaw", BLIRaw);
+  this->GetVideoSourcesByPortName("BLICorrected", BLICorrected);
   this->GetVideoSourcesByPortName("GrayRaw", GrayRaw);
-  this->GetVideoSourcesByPortName("GrayRectified", GrayRectified);
+  this->GetVideoSourcesByPortName("GrayCorrected", GrayCorrected);
 
-  if(BLIraw.size() + BLICorrected.size() + GrayRaw.size() + GrayCorrected.size() == 0)
+  if(BLIRaw.size() + BLICorrected.size() + GrayRaw.size() + GrayCorrected.size() == 0)
   {
     vtkPlusDataSource* aSource = nullptr;
     if(this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS || aSource == nullptr)
@@ -233,13 +233,13 @@ PlusStatus vtkPlusAndorVideoSource::InternalConnect()
       LOG_ERROR("Standard data sources are not defined, and unable to retrieve the video source in the capturing device.");
       return PLUS_FAIL;
     }
-    BLIraw.push_back(aSource); // this is the default port
+    BLIRaw.push_back(aSource); // this is the default port
   }
 
-  this->InitializePort(BLIraw);
-  this->InitializePort(BLIrectified);
+  this->InitializePort(BLIRaw);
+  this->InitializePort(BLICorrected);
   this->InitializePort(GrayRaw);
-  this->InitializePort(GrayRectified);
+  this->InitializePort(GrayCorrected);
 
   return PLUS_SUCCESS;
 }
@@ -424,12 +424,12 @@ PlusStatus vtkPlusAndorVideoSource::AcquireBLIFrame(int binning, int vsSpeed, in
   WaitForCooldown();
   AcquireFrame(exposureTime, ShutterMode::FullyAuto, binning, vsSpeed, hsSpeed);
   ++this->FrameNumber;
-  AddFrameToDataSource(BLIraw);
+  AddFrameToDataSource(BLIRaw);
 
   if(this->UseFrameCorrections)
   {
     ApplyFrameCorrections();
-    AddFrameToDataSource(BLIrectified);
+    AddFrameToDataSource(BLICorrected);
   }
 
   return PLUS_SUCCESS;
@@ -446,7 +446,7 @@ PlusStatus vtkPlusAndorVideoSource::AcquireGrayscaleFrame(int binning, int vsSpe
   if(this->UseFrameCorrections)
   {
     ApplyFrameCorrections();
-    AddFrameToDataSource(GrayRectified);
+    AddFrameToDataSource(GrayCorrected);
   }
 
   return PLUS_SUCCESS;

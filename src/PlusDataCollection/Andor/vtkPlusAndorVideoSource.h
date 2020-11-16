@@ -277,10 +277,10 @@ protected:
   std::string flatCorrection; // filepath to master flat image
   std::string biasCorrection; // filepath to master bias image
 
-  DataSourceArray BLIraw;
-  DataSourceArray BLIrectified;
+  DataSourceArray BLIRaw;
+  DataSourceArray BLICorrected;
   DataSourceArray GrayRaw;
-  DataSourceArray GrayRectified;
+  DataSourceArray GrayCorrected;
 };
 
 #endif
