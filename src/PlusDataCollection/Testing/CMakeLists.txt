@@ -587,6 +587,8 @@ IF(PLUS_USE_ANDOR_CAMERA)
     COMMAND $<TARGET_FILE:vtkAndorVideoSourceTest>
     --rendering-off 
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_AndorVideoSourceTest.xml
+    --flat-correction-image=${TestDataDir}/AndorTestFlat.png
+    --bias-correction-image=${TestDataDir}/AndorTestBias.png
     )
   SET_TESTS_PROPERTIES(vtkAndorVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 ENDIF()
