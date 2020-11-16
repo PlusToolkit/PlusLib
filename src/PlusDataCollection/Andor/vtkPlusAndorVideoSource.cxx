@@ -783,52 +783,52 @@ unsigned int vtkPlusAndorVideoSource::checkStatus(unsigned int returnStatus, std
   }
   else if(returnStatus == DRV_NOT_INITIALIZED)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Driver is not initialized.");
   }
   else if(returnStatus == DRV_ACQUIRING)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Not allowed. Currently acquiring data.");
   }
   else if(returnStatus == DRV_P1INVALID)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Parameter 1 not valid.");
   }
   else if(returnStatus == DRV_P2INVALID)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Parameter 2 not valid.");
   }
   else if(returnStatus == DRV_P3INVALID)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Parameter 3 not valid.");
   }
   else if(returnStatus == DRV_P4INVALID)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Parameter 4 not valid.");
   }
   else if(returnStatus == DRV_P5INVALID)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Parameter 5 not valid.");
   }
   else if(returnStatus == DRV_P6INVALID)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Parameter 6 not valid.");
   }
   else if(returnStatus == DRV_P7INVALID)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Parameter 7 not valid.");
   }
   else if(returnStatus == DRV_ERROR_ACK)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Unable to communicate with card.");
   }
   else if(returnStatus == DRV_TEMP_OFF)
@@ -853,102 +853,102 @@ unsigned int vtkPlusAndorVideoSource::checkStatus(unsigned int returnStatus, std
   }
   else if(returnStatus == DRV_VXDNOTINSTALLED)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; VxD not loaded.");
   }
   else if(returnStatus == DRV_INIERROR)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Unable to load DETECTOR.INI.");
   }
   else if(returnStatus == DRV_COFERROR)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Unable to load *.COF.");
   }
   else if(returnStatus == DRV_FLEXERROR)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Unable to load *.RBF.");
   }
   else if(returnStatus == DRV_ERROR_FILELOAD)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Unable to load *.COF or *.RBF files.");
   }
   else if(returnStatus == DRV_USBERROR)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Unable to detect USB device or not USB 2.0.");
   }
   else if(returnStatus == DRV_ERROR_NOCAMERA)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; No camera found.");
   }
   else if(returnStatus == DRV_GENERAL_ERRORS)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; An error occured while obtaining the number of available cameras.");
   }
   else if(returnStatus == DRV_INVALID_MODE)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Invalid mode or mode not available.");
   }
   else if(returnStatus == DRV_ERROR_PAGELOCK)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Unable to allocate memory.");
   }
   else if(returnStatus == DRV_INVALID_FILTER)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Filter not available for current acquisition.");
   }
   else if(returnStatus == DRV_BINNING_ERROR)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Range not a multiple of horizontal binning.");
   }
   else if(returnStatus == DRV_SPOOLSETUPERROR)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Error with spool settings.");
   }
   else if(returnStatus == DRV_IDLE)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; The system is not currently acquiring.");
   }
   else if(returnStatus == DRV_NO_NEW_DATA)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; There is no new data yet.");
   }
   else if(returnStatus == DRV_ERROR_CODES)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Problem communicating with camera.");
   }
   else if(returnStatus == DRV_LOAD_FIRMWARE_ERROR)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Error loading firmware.");
   }
   else if(returnStatus == DRV_NOT_SUPPORTED)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Feature not supported.");
   }
   else if(returnStatus == DRV_RANDOM_TRACK_ERROR)
   {
-    LOG_ERROR("Failed AndorSDK operation: " << functionName            \
+    LOG_ERROR("Failed AndorSDK operation: " << functionName
               << "; Invalid combination of tracks.");
   }
   else
   {
-    LOG_WARNING("Possible failed AndorSDK operation: " << functionName            \
+    LOG_WARNING("Possible failed AndorSDK operation: " << functionName
                 << "; Unknown return code " << returnStatus << "returned.");
   }
 
