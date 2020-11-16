@@ -408,13 +408,13 @@ void vtkPlusAndorVideoSource::ApplyFrameCorrections()
   cv::subtract(floatImage, cvBiasCorrection, floatImage, cv::noArray(), CV_32FC1);
   LOG_INFO("Applied constant bias correction");
 
-  // Divide the image by the 32-bit floating point correction image
-  cv::divide(floatImage, cvFlatCorrection, floatImage, 1, CV_32FC1);
-  LOG_INFO("Applied multiplicative flat correction");
-
   // OpenCV's lens distortion correction
   cv::undistort(floatImage, result, cvCameraIntrinsics, cvDistanceCoefficients);
   LOG_INFO("Applied lens distortion correction");
+
+  // Divide the image by the 32-bit floating point correction image
+  cv::divide(result, cvFlatCorrection, result, 1, CV_32FC1);
+  LOG_INFO("Applied multiplicative flat correction");
   result.convertTo(cvIMG, CV_16UC1);
 }
 
