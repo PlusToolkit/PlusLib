@@ -55,10 +55,46 @@ PlusStatus vtkPlusAndorVideoSource::ReadConfiguration(vtkXMLDataElement* rootCon
   // Must initialize the system before setting parameters
   checkStatus(Initialize(""), "Initialize");
 
-  Shutter = static_cast<ShutterMode>(std::atoi(deviceConfig->GetAttribute("Shutter")));
-  m_AcquisitionMode = static_cast<vtkPlusAndorVideoSource::AcquisitionMode>(std::atoi(deviceConfig->GetAttribute("AcquisitionMode")));
-  m_ReadMode = static_cast<vtkPlusAndorVideoSource::ReadMode>(std::atoi(deviceConfig->GetAttribute("ReadMode")));
-  m_TriggerMode = static_cast<vtkPlusAndorVideoSource::TriggerMode>(std::atoi(deviceConfig->GetAttribute("TriggerMode")));
+  const char * shutterString = deviceConfig->GetAttribute("Shutter");
+  if(shutterString)
+  {
+    Shutter = static_cast<vtkPlusAndorVideoSource::ShutterMode>(std::atoi(shutterString));
+  }
+  else
+  {
+    Shutter = vtkPlusAndorVideoSource::ShutterMode::FullyAuto;
+  }
+
+  const char * acquisitionModeString = deviceConfig->GetAttribute("AcquisitionMode");
+  if(acquisitionModeString)
+  {
+    m_AcquisitionMode = static_cast<vtkPlusAndorVideoSource::AcquisitionMode>(std::atoi(acquisitionModeString));
+  }
+  else
+  {
+    m_AcquisitionMode = vtkPlusAndorVideoSource::AcquisitionMode::SingleScan;
+  }
+
+  const char * readModeString = deviceConfig->GetAttribute("ReadMode");
+  if(readModeString)
+  {
+    m_ReadMode = static_cast<vtkPlusAndorVideoSource::ReadMode>(std::atoi(readModeString));
+  }
+  else
+  {
+    m_ReadMode = vtkPlusAndorVideoSource::ReadMode::Image;
+  }
+
+  const char * triggerModeString = deviceConfig->GetAttribute("TriggerMode");
+  if(triggerModeString)
+  {
+    m_TriggerMode = static_cast<vtkPlusAndorVideoSource::TriggerMode>(std::atoi(triggerModeString));
+  }
+  else
+  {
+    m_TriggerMode = vtkPlusAndorVideoSource::TriggerMode::Internal;
+  }
+
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, ExposureTime, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, PreAmpGain, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, CoolTemperature, deviceConfig);
