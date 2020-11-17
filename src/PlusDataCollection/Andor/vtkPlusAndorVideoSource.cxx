@@ -514,6 +514,7 @@ PlusStatus vtkPlusAndorVideoSource::SetBiasDarkCorrectionImage(const std::string
     LOG_ERROR("Could not load bias+dark correction image from file: " << biasDarkFilePath);
     return PLUS_FAIL;
   }
+  return PLUS_SUCCESS;
 }
 
 // ----------------------------------------------------------------------------
@@ -540,6 +541,7 @@ PlusStatus vtkPlusAndorVideoSource::SetFlatCorrectionImage(std::string flatFileP
     LOG_ERROR("Could not load flat correction image from file: " << flatFilePath);
     return PLUS_FAIL;
   }
+  return PLUS_SUCCESS;
 }
 
 // Setup the Andor camera parameters ----------------------------------------------
