@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
   std::string inputConfigFileName;
   std::string outputFileName("AndorCameraTest.mha");
   std::string flatCorrectionPath;
-  std::string biasCorrectionPath;
+  std::string biasDarkCorrectionPath;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
   args.AddArgument("--output-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFileName, "Filename of the output video buffer sequence metafile (Default: VideoBufferMetafile)");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level 1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
   args.AddArgument("--flat-correction-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &flatCorrectionPath, "Image file (.png) containing the flat field correction.");
-  args.AddArgument("--bias-correction-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &biasCorrectionPath, "Image file (.png) containing the combined bias and dark correction.");
+  args.AddArgument("--bias-correction-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &biasDarkCorrectionPath, "Image file (.png) containing the combined bias+dark and dark correction.");
 
   if(!args.Parse())
   {
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
 
   andorCamDevice->ReadConfiguration(configRootElement);
   andorCamDevice->SetFlatCorrectionImage(flatCorrectionPath);
-  andorCamDevice->SetBiasCorrectionImage(biasCorrectionPath);
+  andorCamDevice->SetBiasDarkCorrectionImage(biasDarkCorrectionPath);
 
   if(andorCamDevice->Connect() != PLUS_SUCCESS)
   {

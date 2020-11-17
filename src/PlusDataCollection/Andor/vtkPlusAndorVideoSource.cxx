@@ -19,7 +19,7 @@ vtkStandardNewMacro(vtkPlusAndorVideoSource);
 cv::Mat cvCameraIntrinsics;
 cv::Mat cvDistanceCoefficients;
 cv::Mat cvFlatCorrection;
-cv::Mat cvBiasCorrection;
+cv::Mat cvBiasDarkCorrection;
 
 // ----------------------------------------------------------------------------
 void vtkPlusAndorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
@@ -43,7 +43,7 @@ void vtkPlusAndorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "DistanceCoefficients: " << cvDistanceCoefficients << std::endl;
   os << indent << "UseFrameCorrections: " << UseFrameCorrections << std::endl;
   os << indent << "FlatCorrection: " << flatCorrection << std::endl;
-  os << indent << "BiasCorrection: " << biasCorrection << std::endl;
+  os << indent << "BiasDarkCorrection: " << biasDarkCorrection << std::endl;
 }
 
 // ----------------------------------------------------------------------------
@@ -74,12 +74,12 @@ PlusStatus vtkPlusAndorVideoSource::ReadConfiguration(vtkXMLDataElement* rootCon
   deviceConfig->GetVectorAttribute("CameraIntrinsics", 9, cameraIntrinsics);
   deviceConfig->GetVectorAttribute("DistanceCoefficients", 4, distanceCoefficients);
   flatCorrection = deviceConfig->GetAttribute("FlatCorrection");
-  biasCorrection = deviceConfig->GetAttribute("BiasCorrection");
+  biasDarkCorrection = deviceConfig->GetAttribute("BiasDarkCorrection");
 
   cvCameraIntrinsics = cv::Mat(3, 3, CV_64FC1, cameraIntrinsics);
   cvDistanceCoefficients = cv::Mat(1, 4, CV_64FC1, distanceCoefficients);
   this->SetFlatCorrectionImage(flatCorrection); // load and normalize if needed
-  this->SetBiasCorrectionImage(biasCorrection); // load the image
+  this->SetBiasDarkCorrectionImage(biasDarkCorrection); // load the image
 
   return PLUS_SUCCESS;
 }
@@ -105,7 +105,7 @@ PlusStatus vtkPlusAndorVideoSource::WriteConfiguration(vtkXMLDataElement* rootCo
   deviceConfig->SetVectorAttribute("CameraIntrinsics", 9, cameraIntrinsics);
   deviceConfig->SetVectorAttribute("DistanceCoefficients", 4, distanceCoefficients);
   deviceConfig->SetAttribute("FlatCorrection", flatCorrection.c_str());
-  deviceConfig->SetAttribute("BiasCorrection", biasCorrection.c_str());
+  deviceConfig->SetAttribute("BiasDarkCorrection", biasDarkCorrection.c_str());
 
   XML_WRITE_BOOL_ATTRIBUTE(UseCooling, deviceConfig);
   XML_WRITE_BOOL_ATTRIBUTE(UseFrameCorrections, deviceConfig);
@@ -405,8 +405,8 @@ void vtkPlusAndorVideoSource::ApplyFrameCorrections()
   cvIMG.convertTo(floatImage, CV_32FC1);
   cv::Mat result;
 
-  cv::subtract(floatImage, cvBiasCorrection, floatImage, cv::noArray(), CV_32FC1);
-  LOG_INFO("Applied constant bias correction");
+  cv::subtract(floatImage, cvBiasDarkCorrection, floatImage, cv::noArray(), CV_32FC1);
+  LOG_INFO("Applied constant bias+dark correction");
 
   // OpenCV's lens distortion correction
   cv::undistort(floatImage, result, cvCameraIntrinsics, cvDistanceCoefficients);
@@ -453,29 +453,29 @@ PlusStatus vtkPlusAndorVideoSource::AcquireGrayscaleFrame(int binning, int vsSpe
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::AcquireCorrectionFrame(const std::string biasFilePath, ShutterMode shutter, int binning, int vsSpeed, int hsSpeed, float exposureTime)
+PlusStatus vtkPlusAndorVideoSource::AcquireCorrectionFrame(const std::string correctionFilePath, ShutterMode shutter, int binning, int vsSpeed, int hsSpeed, float exposureTime)
 {
   AcquireFrame(exposureTime, shutter, binning, vsSpeed, hsSpeed);
   ++this->FrameNumber;
   cv::Mat saveImage(frameSize[0], frameSize[1], CV_16UC1, &rawFrame[0]);
-  cv::imwrite(biasFilePath, saveImage);
+  cv::imwrite(correctionFilePath, saveImage);
   return PLUS_SUCCESS;
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::SetBiasCorrectionImage(const std::string biasFilePath)
+PlusStatus vtkPlusAndorVideoSource::SetBiasDarkCorrectionImage(const std::string biasDarkFilePath)
 {
   try
   {
-    cvBiasCorrection = cv::imread(biasFilePath, cv::IMREAD_GRAYSCALE);
-    if(cvBiasCorrection.empty())
+    cvBiasDarkCorrection = cv::imread(biasDarkFilePath, cv::IMREAD_GRAYSCALE);
+    if(cvBiasDarkCorrection.empty())
     {
-      throw "Bias correction image empty!";
+      throw "Bias+dark correction image empty!";
     }
   }
   catch(...)
   {
-    LOG_ERROR("Could not load bias correction image from file: " << biasFilePath);
+    LOG_ERROR("Could not load bias+dark correction image from file: " << biasDarkFilePath);
     return PLUS_FAIL;
   }
 }

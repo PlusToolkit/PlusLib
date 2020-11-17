@@ -138,11 +138,11 @@ public:
   /*! Get the current temperature of the camera in degrees celsius. */
   float GetCurrentTemperature();
 
-  /*! Paths to additive and multiplicative bias correction images. */
-  PlusStatus SetBiasCorrectionImage(const std::string biasFilePath);
-  std::string GetBiasCorrectionImage()
+  /*! Paths to additive and multiplicative bias+dark charge correction images. */
+  PlusStatus SetBiasDarkCorrectionImage(const std::string biasDarkFilePath);
+  std::string GetBiasDarkCorrectionImage()
   {
-    return biasCorrection;
+    return biasDarkCorrection;
   }
   PlusStatus SetFlatCorrectionImage(const std::string flatFilePath);
   std::string GetFlatCorrectionImage()
@@ -157,7 +157,7 @@ public:
   PlusStatus AcquireGrayscaleFrame(int binning, int vsSpeed, int hsSpeed, float exposureTime);
 
   /*! Convenience function to save a bias frame for a certain binning/speed configuration. */
-  PlusStatus AcquireCorrectionFrame(std::string biasFilePath, ShutterMode shutter, int binning, int vsSpeed, int hsSpeed, float exposureTime);
+  PlusStatus AcquireCorrectionFrame(std::string correctionFilePath, ShutterMode shutter, int binning, int vsSpeed, int hsSpeed, float exposureTime);
 
   /*! Cooler Mode control. When CoolerMode is set on, the cooler
       will be kept online when the camera is shutdown. This is helpful to
@@ -275,7 +275,7 @@ protected:
   double cameraIntrinsics[9] = { 0 };
   double distanceCoefficients[4] = { 0 }; // k_1, k_2, p_1, p_2
   std::string flatCorrection; // filepath to master flat image
-  std::string biasCorrection; // filepath to master bias image
+  std::string biasDarkCorrection; // filepath to master bias+dark image
 
   DataSourceArray BLIRaw;
   DataSourceArray BLICorrected;
