@@ -157,7 +157,7 @@ public:
   PlusStatus AcquireGrayscaleFrame(int binning, int vsSpeed, int hsSpeed, float exposureTime);
 
   /*! Convenience function to save a bias frame for a certain binning/speed configuration. */
-  PlusStatus AcquireCorrectionFrame(std::string biasFilePath, int binning, int vsSpeed, int hsSpeed, float exposureTime);
+  PlusStatus AcquireCorrectionFrame(std::string biasFilePath, ShutterMode shutter, int binning, int vsSpeed, int hsSpeed, float exposureTime);
 
   /*! Cooler Mode control. When CoolerMode is set on, the cooler
       will be kept online when the camera is shutdown. This is helpful to

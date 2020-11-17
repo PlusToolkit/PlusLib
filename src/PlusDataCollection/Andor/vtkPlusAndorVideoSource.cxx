@@ -453,9 +453,9 @@ PlusStatus vtkPlusAndorVideoSource::AcquireGrayscaleFrame(int binning, int vsSpe
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::AcquireCorrectionFrame(const std::string biasFilePath, int binning, int vsSpeed, int hsSpeed, float exposureTime)
+PlusStatus vtkPlusAndorVideoSource::AcquireCorrectionFrame(const std::string biasFilePath, ShutterMode shutter, int binning, int vsSpeed, int hsSpeed, float exposureTime)
 {
-  AcquireFrame(exposureTime, ShutterMode::PermanentlyClosed, binning, vsSpeed, hsSpeed);
+  AcquireFrame(exposureTime, shutter, binning, vsSpeed, hsSpeed);
   ++this->FrameNumber;
   cv::Mat saveImage(frameSize[0], frameSize[1], CV_16UC1, &rawFrame[0]);
   cv::imwrite(biasFilePath, saveImage);
