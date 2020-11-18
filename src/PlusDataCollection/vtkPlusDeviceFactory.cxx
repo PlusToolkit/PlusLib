@@ -205,6 +205,10 @@ See License.txt for details.
 #include "vtkInfraredSeekCam.h"
 #endif
 
+#ifdef PLUS_USE_ANDOR_CAMERA
+#include "vtkPlusAndorVideoSource.h"
+#endif
+
 #ifdef PLUS_USE_INFRARED_TEQ1_CAM
 #include "vtkInfraredTEQ1Cam.h"
 #endif
@@ -379,6 +383,10 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 
 #ifdef PLUS_USE_INFRARED_SEEK_CAM
   RegisterDevice("InfraredSeekCam", "vtkInfraredSeekCam", (PointerToDevice)&vtkInfraredSeekCam::New);
+#endif
+
+#ifdef PLUS_USE_ANDOR_CAMERA
+  RegisterDevice("AndorCamera", "vtkPlusAndorVideoSource", (PointerToDevice)&vtkPlusAndorVideoSource::New);
 #endif
 
 #ifdef PLUS_USE_INFRARED_TEQ1_CAM
