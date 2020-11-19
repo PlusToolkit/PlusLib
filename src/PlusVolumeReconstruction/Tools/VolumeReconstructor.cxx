@@ -37,6 +37,9 @@ int main(int argc, char* argv[])
 
   bool disableCompression = false;
 
+  std::vector<std::string> customHeaderFieldsToSave;
+  std::vector<std::string> customHeaderValuesToSave;
+
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
 
@@ -48,6 +51,7 @@ int main(int argc, char* argv[])
   cmdargs.AddArgument("--output-frame-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFrameFileName, "A filename that will be used for storing the tracked image frames. Each frame will be exported individually, with the proper position and orientation in the reference coordinate system");
   cmdargs.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
   cmdargs.AddArgument("--disable-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &disableCompression, "Do not compress output image files.");
+  cmdargs.AddArgument("--save-custom-headers", vtksys::CommandLineArguments::MULTI_ARGUMENT, &customHeaderFieldsToSave, "List of custom header fields to pass into the output file.");
   cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
   cmdargs.AddArgument("--importance-mask-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &importanceMaskFileName, "The file to use as the importance mask.");
 
@@ -243,16 +247,32 @@ int main(int argc, char* argv[])
 
   vtkPlusLogger::PrintProgressbar(100);
 
+  if (!customHeaderFieldsToSave.empty())
+  {
+    std::string fieldValue;
+    for (unsigned int i = 0; i < customHeaderFieldsToSave.size(); ++i)
+    {
+      fieldValue = trackedFrameList->GetCustomString(customHeaderFieldsToSave[i]);
+      customHeaderValuesToSave.push_back(fieldValue);
+    }
+  }
+
   trackedFrameList->Clear();
 
   LOG_INFO("Number of frames added to the volume: " << numberOfFramesAddedToVolume << " out of " << numberOfFrames);
 
   LOG_INFO("Saving volume to file...");
-  reconstructor->SaveReconstructedVolumeToFile(outputVolumeFileName, false, !disableCompression);
+  if (!customHeaderValuesToSave.empty())
+  {
+    reconstructor->SaveReconstructedVolumeToFile(outputVolumeFileName, false, !disableCompression, &customHeaderFieldsToSave, &customHeaderValuesToSave);
+  }
+  else{
+    reconstructor->SaveReconstructedVolumeToFile(outputVolumeFileName, false, !disableCompression, nullptr, nullptr);
+  }
 
   if (!outputVolumeAccumulationFileName.empty())
   {
-    reconstructor->SaveReconstructedVolumeToFile(outputVolumeAccumulationFileName, true, !disableCompression);
+    reconstructor->SaveReconstructedVolumeToFile(outputVolumeAccumulationFileName, true, !disableCompression, &customHeaderFieldsToSave, &customHeaderValuesToSave);
   }
 
   return EXIT_SUCCESS;
