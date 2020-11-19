@@ -164,7 +164,7 @@ PlusStatus MixTrackedFrameLists(vtkIGSIOTrackedFrameList* trackedFrameList, std:
 
 //----------------------------------------------------------------------------
 // Append tracked frame list (one after the other)
-PlusStatus AppendTrackedFrameLists(vtkIGSIOTrackedFrameList* trackedFrameList, std::vector<std::string> inputFileNames, bool incrementTimestamps)
+PlusStatus AppendTrackedFrameLists(vtkIGSIOTrackedFrameList* trackedFrameList, std::vector<std::string> inputFileNames, bool incrementTimestamps, std::vector<std::string> customHeaderFields)
 {
   double lastTimestamp = 0;
   for (unsigned int i = 0; i < inputFileNames.size(); i++)
@@ -187,6 +187,16 @@ PlusStatus AppendTrackedFrameLists(vtkIGSIOTrackedFrameList* trackedFrameList, s
       }
 
       lastTimestamp = tfList->GetTrackedFrame(tfList->GetNumberOfTrackedFrames() - 1)->GetTimestamp();
+    }
+
+    if (!customHeaderFields.empty())
+    {
+      std::string fieldValue;
+      for (unsigned int i = 0; i < customHeaderFields.size(); ++i)
+      {
+        fieldValue = timestampFrameList->GetCustomString(customHeaderFields[i]);
+        trackedFrameList->SetCustomString(customHeaderFields[i], fieldValue);
+      }
     }
 
     if (trackedFrameList->AddTrackedFrameList(timestampFrameList) != PLUS_SUCCESS)
@@ -220,6 +230,8 @@ int main(int argc, char** argv)
   std::string                     fieldName; // Field name to edit
   std::string                     updatedFieldName;  // Updated field name after edit
   std::string                     updatedFieldValue;  // Updated field value after edit
+
+  std::vector<std::string>        customHeaderFieldsToMaintain; // Custom header field list to maintain from input to output
 
   int                             frameScalarDecimalDigits = 5;  // Number of digits saved for frame field value into sequence file (Default: 5)
 
@@ -269,6 +281,8 @@ int main(int argc, char** argv)
   args.AddArgument("--field-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &fieldName, "Field name to edit");
   args.AddArgument("--updated-field-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &updatedFieldName, "Updated field name after edit");
   args.AddArgument("--updated-field-value", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &updatedFieldValue, "Updated field value after edit");
+
+  args.AddArgument("--maintain-custom-headers", vtksys::CommandLineArguments::MULTI_ARGUMENT, &customHeaderFieldsToMaintain, "List of custom header fields to pass through to output file.");
 
   args.AddArgument("--frame-scalar-start", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarStart, "Frame scalar field value starting index (Default: 0.0)");
   args.AddArgument("--frame-scalar-increment", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarIncrement, "Frame scalar field value increment (Default: 1.0)");
@@ -470,7 +484,7 @@ int main(int argc, char** argv)
   }
   else
   {
-    status = AppendTrackedFrameLists(trackedFrameList, inputFileNames, incrementTimestamps);
+    status = AppendTrackedFrameLists(trackedFrameList, inputFileNames, incrementTimestamps, customHeaderFieldsToMaintain);
   }
   if (status == PLUS_FAIL)
   {
