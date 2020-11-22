@@ -2065,7 +2065,7 @@ IF(PLUS_USE_TextRecognizer)
   LIST(APPEND ${PROJECT_NAME}_PRIVATE_LIBS
     ${tesseract_LIBRARIES}
     ${PlusZLib}
-    vtkpng
+    ${PLUSLIB_VTK_PREFIX}png
     )
 ENDIF()
 
