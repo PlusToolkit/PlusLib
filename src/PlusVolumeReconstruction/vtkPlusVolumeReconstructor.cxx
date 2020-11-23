@@ -35,6 +35,12 @@ void vtkPlusVolumeReconstructor::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 igsioStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(const std::string& filename, bool accumulation/*=false*/, bool useCompression/*=true*/)
 {
+  return vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(filename, accumulation, useCompression, nullptr, nullptr);
+}
+
+//----------------------------------------------------------------------------
+igsioStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(const std::string& filename, bool accumulation/*=false*/, bool useCompression/*=true*/, std::vector<std::string>* customFields/*=nullptr*/, std::vector<std::string>* customValues/*=nullptr*/)
+{
   vtkSmartPointer<vtkImageData> volumeToSave = vtkSmartPointer<vtkImageData>::New();
   if (accumulation)
   {
@@ -52,11 +58,11 @@ igsioStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(const std:
       return PLUS_FAIL;
     }
   }
-  return vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(volumeToSave, filename, useCompression);
+  return vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(volumeToSave, filename, useCompression, customFields, customValues);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(vtkImageData* volumeToSave, const std::string& filename, bool useCompression/*=true*/)
+PlusStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(vtkImageData* volumeToSave, const std::string& filename, bool useCompression/*=true*/, std::vector<std::string>* customFields/*=nullptr*/, std::vector<std::string>* customValues/*=nullptr*/)
 {
   if (volumeToSave == NULL)
   {
@@ -77,6 +83,13 @@ PlusStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(vtkImageDat
   image.SetImageType(US_IMG_BRIGHTNESS);
   frame.SetImageData(image);
   list->AddTrackedFrame(&frame);
+  if (customFields != nullptr && customValues != nullptr)
+  {
+    for (unsigned i=0; i < customFields->size(); ++i)
+    {
+      list->SetCustomString(customFields->at(i), customValues->at(i));
+    }
+  }
   if (vtkPlusSequenceIO::Write(filename, list.GetPointer(), US_IMG_ORIENT_MF, useCompression) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to save reconstructed volume in sequence metafile!");

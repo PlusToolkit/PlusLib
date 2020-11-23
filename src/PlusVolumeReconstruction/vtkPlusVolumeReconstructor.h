@@ -54,18 +54,23 @@ public:
     \param filename Path and filename of the output file
     \accumulation True if accumulation buffer needs to be saved, false if gray levels (default)
     \useCompression True if compression is turned on (default), false otherwise
+    \customFields List of custom header fields to insert into the output file
+    \customValues List of custom header values corresponding to customFields to insert into the output file
   */
   virtual PlusStatus SaveReconstructedVolumeToFile(const std::string& filename, bool accumulation = false, bool useCompression = true) override;
-  virtual PlusStatus SaveReconstructedVolumeToMetafile(const std::string& filename, bool accumulation = false, bool useCompression = true) { return SaveReconstructedVolumeToFile(filename, accumulation, useCompression); }
+  virtual PlusStatus SaveReconstructedVolumeToFile(const std::string& filename, bool accumulation = false, bool useCompression = true, std::vector<std::string>* customFields = nullptr, std::vector<std::string>* customValues = nullptr);
+  virtual PlusStatus SaveReconstructedVolumeToMetafile(const std::string& filename, bool accumulation = false, bool useCompression = true, std::vector<std::string>* customFields = nullptr, std::vector<std::string>* customValues = nullptr) { return SaveReconstructedVolumeToFile(filename, accumulation, useCompression, customFields, customValues); }
 
   /*!
     Save reconstructed volume to file
     \param volumeToSave Reconstructed volume to be saved
     \param filename Path and filename of the output file
     \useCompression True if compression is turned on (default), false otherwise
+    \customFields List of custom header fields to insert into the output file
+    \customValues List of custom header values corresponding to customFields to insert into the output file
   */
-  static PlusStatus SaveReconstructedVolumeToFile(vtkImageData* volumeToSave, const std::string& filename, bool useCompression = true);
-  static PlusStatus SaveReconstructedVolumeToMetafile(vtkImageData* volumeToSave, const std::string& filename, bool useCompression = true) { return vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(volumeToSave, filename, useCompression); }
+  static PlusStatus SaveReconstructedVolumeToFile(vtkImageData* volumeToSave, const std::string& filename, bool useCompression = true, std::vector<std::string>* customFields = nullptr, std::vector<std::string>* customValues = nullptr);
+  static PlusStatus SaveReconstructedVolumeToMetafile(vtkImageData* volumeToSave, const std::string& filename, bool useCompression = true, std::vector<std::string>* customFields = nullptr, std::vector<std::string>* customValues = nullptr) { return vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(volumeToSave, filename, useCompression, customFields, customValues); }
 
 protected:
   vtkPlusVolumeReconstructor();
