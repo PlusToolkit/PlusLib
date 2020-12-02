@@ -31,6 +31,7 @@ void vtkPlusAndorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "Binning: " << HorizontalBins << " " << VerticalBins << std::endl;
   os << indent << "HSSpeed: " << HSSpeed[0] << HSSpeed[1] << std::endl;
   os << indent << "VSSpeed: " << VSSpeed << std::endl;
+  os << indent << "OutputSpacing: " << OutputSpacing[0] << " " << OutputSpacing[1] << std::endl;
   os << indent << "PreAmpGain: " << PreAmpGain << std::endl;
   os << indent << "AcquisitionMode: " << m_AcquisitionMode << std::endl;
   os << indent << "ReadMode: " << m_ReadMode << std::endl;
@@ -107,6 +108,7 @@ PlusStatus vtkPlusAndorVideoSource::ReadConfiguration(vtkXMLDataElement* rootCon
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UseFrameCorrections, deviceConfig);
 
   deviceConfig->GetVectorAttribute("HSSpeed", 2, HSSpeed);
+  deviceConfig->GetVectorAttribute("OutputSpacing", 3, OutputSpacing);
   deviceConfig->GetVectorAttribute("CameraIntrinsics", 9, cameraIntrinsics);
   deviceConfig->GetVectorAttribute("DistanceCoefficients", 4, distanceCoefficients);
   flatCorrection = deviceConfig->GetAttribute("FlatCorrection");
@@ -138,6 +140,7 @@ PlusStatus vtkPlusAndorVideoSource::WriteConfiguration(vtkXMLDataElement* rootCo
   deviceConfig->SetIntAttribute("VerticalBins", this->VerticalBins);
 
   deviceConfig->SetVectorAttribute("HSSpeed", 2, HSSpeed);
+  deviceConfig->SetVectorAttribute("OutputSpacing", 3, OutputSpacing);
   deviceConfig->SetVectorAttribute("CameraIntrinsics", 9, cameraIntrinsics);
   deviceConfig->SetVectorAttribute("DistanceCoefficients", 4, distanceCoefficients);
   deviceConfig->SetAttribute("FlatCorrection", flatCorrection.c_str());
@@ -217,6 +220,10 @@ PlusStatus vtkPlusAndorVideoSource::InitializeAndorCamera()
     LOG_ERROR("Requested temperature for Andor camera is out of range");
     return PLUS_FAIL;
   }
+
+  /// Initialize custom fields of this data source
+  this->CustomFields.clear();
+  AdjustSpacing(this->HorizontalBins, this->VerticalBins);
 
   int x, y;
   checkStatus(GetDetector(&x, &y), "GetDetector");
@@ -350,6 +357,28 @@ void vtkPlusAndorVideoSource::AdjustBuffers(int horizontalBins, int verticalBins
 }
 
 // ----------------------------------------------------------------------------
+void vtkPlusAndorVideoSource::AdjustSpacing(int horizontalBins, int verticalBins)
+{
+  std::ostringstream spacingStream;
+  spacingStream << this->OutputSpacing[0] * horizontalBins << " ";
+  spacingStream << this->OutputSpacing[1] * verticalBins << " ";
+  spacingStream << this->OutputSpacing[2];
+
+  this->CustomFields["ElementSpacing"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->CustomFields["ElementSpacing"].second = spacingStream.str();
+  LOG_DEBUG("Adjusted spacing: " << spacingStream.str());
+}
+
+// ----------------------------------------------------------------------------
+std::vector<double> vtkPlusAndorVideoSource::GetSpacing(int horizontalBins, int verticalBins)
+{
+  std::vector<double> spacing = { 0.0, 0.0, 1.0 };
+  spacing[0] = this->OutputSpacing[0] * horizontalBins;
+  spacing[1] = this->OutputSpacing[1] * verticalBins;
+  return spacing;
+}
+
+// ----------------------------------------------------------------------------
 float vtkPlusAndorVideoSource::GetCurrentTemperature()
 {
   checkStatus(GetTemperatureF(&this->CurrentTemperature), "GetTemperatureF");
@@ -410,6 +439,8 @@ PlusStatus vtkPlusAndorVideoSource::AcquireFrame(float exposure, ShutterMode shu
   checkStatus(::SetImage(hbin, vbin, 1, 1024, 1, 1024), "Binning");
   AdjustBuffers(hbin, vbin);
 
+  AdjustSpacing(hbin, vbin);
+
   int vsInd = vsSpeed >= 0 ? vsSpeed : this->VSSpeed;
   checkStatus(::SetVSSpeed(vsInd), "SetVSSpeed");
 
@@ -448,7 +479,8 @@ void vtkPlusAndorVideoSource::AddFrameToDataSource(DataSourceArray& ds)
                       this->FrameNumber,
                       currentTime,
                       UNDEFINED_TIMESTAMP,
-                      nullptr) != PLUS_SUCCESS)
+                      &this->CustomFields
+                     ) != PLUS_SUCCESS)
     {
       LOG_WARNING("Error adding item to AndorCamera video source " << ds[i]->GetSourceId());
     }
