@@ -322,6 +322,32 @@ PlusStatus vtkPlusAndorVideoSource::InternalStopRecording()
   return PLUS_SUCCESS;
 }
 
+// ----------------------------------------------------------------------------
+void vtkPlusAndorVideoSource::AdjustBuffers(int horizontalBins, int verticalBins)
+{
+  int x, y;
+  checkStatus(GetDetector(&x, &y), "GetDetector");  // full sensor size
+
+  frameSize[0] = x / horizontalBins;
+  frameSize[1] = y / verticalBins;
+
+  for(unsigned i = 0; i < BLIRaw.size(); i++)
+  {
+    BLIRaw[i]->SetInputFrameSize(frameSize);
+  }
+  for(unsigned i = 0; i < BLICorrected.size(); i++)
+  {
+    BLICorrected[i]->SetInputFrameSize(frameSize);
+  }
+  for(unsigned i = 0; i < GrayRaw.size(); i++)
+  {
+    GrayRaw[i]->SetInputFrameSize(frameSize);
+  }
+  for(unsigned i = 0; i < GrayCorrected.size(); i++)
+  {
+    GrayCorrected[i]->SetInputFrameSize(frameSize);
+  }
+}
 
 // ----------------------------------------------------------------------------
 float vtkPlusAndorVideoSource::GetCurrentTemperature()
@@ -376,21 +402,22 @@ void vtkPlusAndorVideoSource::WaitForWarmup()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusAndorVideoSource::AcquireFrame(float exposure, ShutterMode shutterMode, int binning, int vsSpeed, int hsSpeed)
 {
-  unsigned rawFrameSize = frameSize[0] * frameSize[1];
-  rawFrame.resize(rawFrameSize, 0);
-
   checkStatus(::SetExposureTime(exposure), "SetExposureTime");
   checkStatus(::SetShutter(1, shutterMode, 0, 0), "SetShutter");
 
   int hbin = binning > 0 ? binning : this->HorizontalBins;
   int vbin = binning > 0 ? binning : this->VerticalBins;
   checkStatus(::SetImage(hbin, vbin, 1, 1024, 1, 1024), "Binning");
+  AdjustBuffers(hbin, vbin);
 
   int vsInd = vsSpeed >= 0 ? vsSpeed : this->VSSpeed;
   checkStatus(::SetVSSpeed(vsInd), "SetVSSpeed");
 
   int hsInd = hsSpeed >= 0 ? hsSpeed : this->HSSpeed[1];
   checkStatus(::SetHSSpeed(this->HSSpeed[0], hsInd), "SetHSSpeed");
+
+  unsigned rawFrameSize = frameSize[0] * frameSize[1];
+  rawFrame.resize(rawFrameSize, 0);
 
   checkStatus(StartAcquisition(), "StartAcquisition");
   unsigned result = checkStatus(WaitForAcquisition(), "WaitForAcquisition");

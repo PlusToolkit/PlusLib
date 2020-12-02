@@ -204,6 +204,8 @@ protected:
   /*! Initialize all data sources of the provided port */
   void InitializePort(DataSourceArray& port);
 
+  void AdjustBuffers(int horizontalBins, int verticalBins);
+
   /*! Acquire a single frame using current parameters. Data is put in the frameBuffer ivar. */
   PlusStatus AcquireFrame(float exposure, ShutterMode shutterMode, int binning, int vsSpeed, int hsSpeed);
 
