@@ -127,6 +127,8 @@ public:
   PlusStatus SetTriggerMode(TriggerMode triggerMode);
   TriggerMode GetTriggerMode();
 
+  std::vector<double> GetSpacing(int horizontalBins, int verticalBins);
+
   /*! Normal operating temperature (degrees celsius). */
   PlusStatus SetCoolTemperature(int coolTemp);
   int GetCoolTemperature();
@@ -203,6 +205,9 @@ protected:
 
   /*! Initialize all data sources of the provided port */
   void InitializePort(DataSourceArray& port);
+
+  void AdjustBuffers(int horizontalBins, int verticalBins);
+  void AdjustSpacing(int horizontalBins, int verticalBins);
 
   /*! Acquire a single frame using current parameters. Data is put in the frameBuffer ivar. */
   PlusStatus AcquireFrame(float exposure, ShutterMode shutterMode, int binning, int vsSpeed, int hsSpeed);
@@ -281,6 +286,10 @@ protected:
   DataSourceArray BLICorrected;
   DataSourceArray GrayRaw;
   DataSourceArray GrayCorrected;
+
+  double OutputSpacing[3] = { 0 };
+
+  igsioFieldMapType CustomFields;
 };
 
 #endif
