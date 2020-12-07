@@ -85,6 +85,8 @@ void SendTrackingData(igtl::Socket::Pointer& socket, igtl::TrackingDataMessage::
     ptr->SetMatrix(matrix);
   }
 
+  static igtlUint32 messageID = 0;
+  trackingMsg->SetMessageID(messageID++);
   trackingMsg->Pack();
   socket->Send(trackingMsg->GetBufferPointer(), trackingMsg->GetBufferSize());
 
@@ -248,7 +250,7 @@ int main(int argc, char* argv[])
         }
 
         // Check data type and receive data body
-        if ( typeid(bodyMsg) == typeid(igtl::StartTrackingDataMessage) )
+        if (dynamic_cast<igtl::StartTrackingDataMessage*>(bodyMsg.GetPointer()))
         {
           std::cerr << "Received a STT_TDATA message." << std::endl;
 
@@ -266,7 +268,7 @@ int main(int argc, char* argv[])
             threadID    = threader->SpawnThread((igtl::ThreadFunctionType) &ThreadFunction, &td);
           }
         }
-        else if ( typeid(bodyMsg) == typeid(igtl::StopTrackingDataMessage) )
+        else if (dynamic_cast<igtl::StopTrackingDataMessage*>(bodyMsg.GetPointer()))
         {
           socket->Skip(headerMsg->GetBodySizeToRead(), 0);
           std::cerr << "Received a STP_TDATA message." << std::endl;
