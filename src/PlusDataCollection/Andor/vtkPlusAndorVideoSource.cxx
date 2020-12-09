@@ -233,6 +233,20 @@ PlusStatus vtkPlusAndorVideoSource::InitializeAndorCamera()
     return PLUS_FAIL;
   }
 
+  char headModel[_MAX_PATH];
+  unsigned headModelResult = checkStatus(GetHeadModel(headModel), "GetHeadModel");
+  if(headModelResult == DRV_SUCCESS)
+  {
+    LOG_INFO("Andor Camera Model: " << headModel);
+  }
+
+  int serialNumber;
+  unsigned cameraSNResult = checkStatus(GetCameraSerialNumber(&serialNumber), "GetCameraSerialNumber");
+  if(cameraSNResult == DRV_SUCCESS)
+  {
+    LOG_INFO("Andor Camera Serial Number: " << serialNumber);
+  }
+
   // Check the safe temperature, and the maximum allowable temperature on the camera.
   // Use the min of the two as the safe temp.
   int MinTemp, MaxTemp;
