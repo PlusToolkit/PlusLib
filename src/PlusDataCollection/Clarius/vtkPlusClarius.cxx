@@ -709,6 +709,8 @@ void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const ClariusP
     }
   }
 
+  igsioFieldMapType customField;
+  customField["micronsPerPixel"]= std::make_pair(igsioFrameFieldFlags::FRAMEFIELD_FORCE_SERVER_SEND,std::to_string(nfo->micronsPerPixel));
   bModeSource->AddItem(
     _image.data(), // pointer to char array
     bModeSource->GetInputImageOrientation(), // refer to this url: http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/UltrasoundImageOrientation.html for reference;
@@ -720,7 +722,9 @@ void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const ClariusP
     0,
     device->FrameNumber,
     converted_timestamp,
-    converted_timestamp);
+    converted_timestamp,
+    &customField
+);
 
   for (int i = 0; i < npos; i++)
   {
