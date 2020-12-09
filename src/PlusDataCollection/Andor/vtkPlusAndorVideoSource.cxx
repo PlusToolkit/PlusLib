@@ -53,8 +53,23 @@ PlusStatus vtkPlusAndorVideoSource::ReadConfiguration(vtkXMLDataElement* rootCon
   LOG_TRACE("vtkPlusAndorVideoSource::ReadConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
+  long totalCameras = 0;
+  // It is possible to call GetAvailableCameras before any of the cameras are initialized.
+  unsigned availableCamerasResult = checkStatus(GetAvailableCameras(&totalCameras), "GetAvailableCameras");
+  if(availableCamerasResult == DRV_SUCCESS)
+  {
+    if(totalCameras == 0)
+    {
+      LOG_ERROR("Unable to find any Andor cameras devices installed.");
+    }
+  }
+
   // Must initialize the system before setting parameters
-  checkStatus(Initialize(""), "Initialize");
+  unsigned initializeResult = checkStatus(Initialize(""), "Initialize");
+  if(initializeResult != DRV_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
 
   const char * shutterString = deviceConfig->GetAttribute("Shutter");
   if(shutterString)
@@ -200,7 +215,37 @@ vtkPlusAndorVideoSource::~vtkPlusAndorVideoSource()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusAndorVideoSource::InitializeAndorCamera()
 {
-  checkStatus(Initialize(""), "Initialize");
+  long totalCameras = 0;
+  // It is possible to call GetAvailableCameras before any of the cameras are initialized.
+  unsigned availableCamerasResult = checkStatus(GetAvailableCameras(&totalCameras), "GetAvailableCameras");
+  if(availableCamerasResult == DRV_SUCCESS)
+  {
+    if(totalCameras == 0)
+    {
+      LOG_ERROR("Unable to find any Andor cameras devices installed.");
+      return PLUS_FAIL;
+    }
+  }
+
+  unsigned initializeResult = checkStatus(Initialize(""), "Initialize");
+  if(initializeResult != DRV_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+
+  char headModel[_MAX_PATH];
+  unsigned headModelResult = checkStatus(GetHeadModel(headModel), "GetHeadModel");
+  if(headModelResult == DRV_SUCCESS)
+  {
+    LOG_INFO("Andor Camera Model: " << headModel);
+  }
+
+  int serialNumber;
+  unsigned cameraSNResult = checkStatus(GetCameraSerialNumber(&serialNumber), "GetCameraSerialNumber");
+  if(cameraSNResult == DRV_SUCCESS)
+  {
+    LOG_INFO("Andor Camera Serial Number: " << serialNumber);
+  }
 
   // Check the safe temperature, and the maximum allowable temperature on the camera.
   // Use the min of the two as the safe temp.
@@ -296,14 +341,18 @@ PlusStatus vtkPlusAndorVideoSource::InternalDisconnect()
     this->InternalStopRecording();
   }
 
-  int status;
-  checkStatus(::IsCoolerOn(&status), "IsCoolerOn");
+  // // From Andor Employee:
+  // // Only Classic, ICCD and cameras with a fibre attached must have their cooling and warming up controlled at a particular rate.
+  // // For everything else you can just call ShutDown and the camera will safely return to room temperature.
+  // // Classic systems are cameras that use our original PCI controller cards eg CCI-010 or CCI-001.
+  // int status;
+  // checkStatus(::IsCoolerOn(&status), "IsCoolerOn");
 
-  if(status && this->CoolerMode == 0)
-  {
-    LOG_INFO("CoolerMode 0 and Cooler is still ON. Turning off the cooler and waiting for warmup. Do not unplug the camera from power.");
-    WaitForWarmup();
-  }
+  // if(status && this->CoolerMode == 0)
+  // {
+  //   LOG_INFO("CoolerMode 0 and Cooler is still ON. Turning off the cooler and waiting for warmup. Do not unplug the camera from power.");
+  //   WaitForWarmup();
+  // }
 
   checkStatus(FreeInternalMemory(), "FreeInternalMemory");
 
