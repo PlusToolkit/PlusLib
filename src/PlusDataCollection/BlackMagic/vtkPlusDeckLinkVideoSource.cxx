@@ -11,6 +11,7 @@ See License.txt for details.
 #include "vtkIGSIOAccurateTimer.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDeckLinkVideoSource.h"
+#include <PixelCodec.h>
 
 // VTK includes
 #include <vtkImageAppendComponents.h>
@@ -57,11 +58,8 @@ public:
 
   PlusOutputVideoFrame*     OutputFrame = nullptr;
 
-  vtkSmartPointer<vtkImageImport> ImageImport;
-  vtkSmartPointer<vtkImageExtractComponents> BlueComponent;
-  vtkSmartPointer<vtkImageExtractComponents> GreenComponent;
-  vtkSmartPointer<vtkImageExtractComponents> RedComponent;
-  vtkSmartPointer<vtkImageAppendComponents> AppendComponent;
+  unsigned char*            RGBBytes = nullptr;
+  unsigned char*            GrayBytes = nullptr;
 
   std::atomic_bool          COMInitialized = false;
 
@@ -120,11 +118,6 @@ vtkPlusDeckLinkVideoSource::vtkPlusDeckLinkVideoSource::vtkInternal* vtkPlusDeck
   vtkPlusDeckLinkVideoSource::vtkInternal* result = new vtkPlusDeckLinkVideoSource::vtkInternal();
   result->InitializeObjectBase();
   result->External = _arg;
-  result->ImageImport = vtkSmartPointer<vtkImageImport>::New();
-  result->BlueComponent = vtkSmartPointer<vtkImageExtractComponents>::New();
-  result->GreenComponent = vtkSmartPointer<vtkImageExtractComponents>::New();
-  result->RedComponent = vtkSmartPointer<vtkImageExtractComponents>::New();
-  result->AppendComponent = vtkSmartPointer<vtkImageAppendComponents>::New();
   return result;
 }
 
@@ -382,7 +375,7 @@ PlusStatus vtkPlusDeckLinkVideoSource::InternalConnect()
           double frameRate = (double)timeScale / (double)frameDuration;
           if (deckLinkDisplayMode->GetWidth() == this->Internal->RequestedFrameSize[0] &&
               deckLinkDisplayMode->GetHeight() == this->Internal->RequestedFrameSize[1] &&
-            AreSame(frameRate, this->AcquisitionRate))
+              AreSame(frameRate, this->AcquisitionRate))
           {
             BOOL supported;
             if (deckLinkInput->DoesSupportVideoMode(bmdVideoConnectionUnspecified, deckLinkDisplayMode->GetDisplayMode(), bmdFormatUnspecified, bmdSupportedVideoModeDefault, &supported) && supported)
@@ -428,27 +421,17 @@ out:
     this->GetFirstVideoSource(source);
     source->SetInputFrameSize(this->Internal->RequestedFrameSize);
     source->SetPixelType(VTK_UNSIGNED_CHAR);
-    source->SetNumberOfScalarComponents(3);
 
-    this->Internal->ImageImport->SetDataSpacing(1, 1, 1);
-    this->Internal->ImageImport->SetDataOrigin(0, 0, 0);
-    this->Internal->ImageImport->SetWholeExtent(0, this->Internal->RequestedFrameSize[0] - 1, 0, this->Internal->RequestedFrameSize[1] - 1, 0, 0);
-    this->Internal->ImageImport->SetDataExtentToWholeExtent();
-    this->Internal->ImageImport->SetDataScalarTypeToUnsignedChar();
-    this->Internal->ImageImport->SetNumberOfScalarComponents(4);
-
-    this->Internal->BlueComponent->SetInputConnection(this->Internal->ImageImport->GetOutputPort());
-    this->Internal->BlueComponent->SetComponents(0);
-
-    this->Internal->GreenComponent->SetInputConnection(this->Internal->ImageImport->GetOutputPort());
-    this->Internal->GreenComponent->SetComponents(1);
-
-    this->Internal->RedComponent->SetInputConnection(this->Internal->ImageImport->GetOutputPort());
-    this->Internal->RedComponent->SetComponents(2);
-
-    this->Internal->AppendComponent->SetInputConnection(0, this->Internal->RedComponent->GetOutputPort());
-    this->Internal->AppendComponent->AddInputConnection(0, this->Internal->GreenComponent->GetOutputPort());
-    this->Internal->AppendComponent->AddInputConnection(0, this->Internal->BlueComponent->GetOutputPort());
+    if (source->GetImageType() == US_IMG_RGB_COLOR)
+    {
+      source->SetNumberOfScalarComponents(3);
+      this->Internal->RGBBytes = (unsigned char*)malloc(this->Internal->RequestedFrameSize[0] * this->Internal->RequestedFrameSize[1] * 3 * sizeof(unsigned char));
+    }
+    else
+    {
+      source->SetNumberOfScalarComponents(1);
+      this->Internal->GrayBytes = (unsigned char*)malloc(this->Internal->RequestedFrameSize[0] * this->Internal->RequestedFrameSize[1] * 1 * sizeof(unsigned char));
+    }
 
     this->Internal->DeckLinkInput->SetCallback(this);
     this->Internal->DeckLinkInput->SetScreenPreviewCallback(nullptr);
@@ -480,6 +463,9 @@ out:
 PlusStatus vtkPlusDeckLinkVideoSource::InternalDisconnect()
 {
   LOG_TRACE("vtkPlusDeckLinkVideoSource::InternalDisconnect");
+
+  free(this->Internal->RGBBytes);
+  free(this->Internal->GrayBytes);
 
   this->Internal->DeckLinkVideoConversion->Release();
   this->Internal->DeckLinkVideoConversion = nullptr;
@@ -654,15 +640,23 @@ HRESULT STDMETHODCALLTYPE vtkPlusDeckLinkVideoSource::VideoInputFrameArrived(IDe
           vtkPlusDataSource* source;
           this->GetFirstVideoSource(source);
 
-          // Flip BGRA to RGB
-          this->Internal->ImageImport->SetImportVoidPointer(buffer);
-          this->Internal->ImageImport->Modified();
+          if (source->GetImageType() == US_IMG_RGB_COLOR)
+          {
+            // Flip BGRA to RGB
+            PixelCodec::BGRA32ToRGB24(this->Internal->RequestedFrameSize[0], this->Internal->RequestedFrameSize[1], (unsigned char*)buffer, this->Internal->RGBBytes);
+          }
+          else
+          {
+            PixelCodec::RGBA32ToGray(this->Internal->RequestedFrameSize[0], this->Internal->RequestedFrameSize[1], (unsigned char*)buffer, this->Internal->GrayBytes);
+          }
 
-          this->Internal->AppendComponent->Update();
-
-          vtkImageData* image = vtkImageData::SafeDownCast(this->Internal->AppendComponent->GetOutputDataObject(0));
-
-          if (source->AddItem(image->GetScalarPointer(), source->GetInputImageOrientation(), this->Internal->RequestedFrameSize, VTK_UNSIGNED_CHAR, 3, US_IMG_RGB_COLOR, 0, this->FrameNumber) != PLUS_SUCCESS)
+          if (source->AddItem(source->GetImageType() == US_IMG_RGB_COLOR ? this->Internal->RGBBytes : this->Internal->GrayBytes,
+                              source->GetInputImageOrientation(),
+                              this->Internal->RequestedFrameSize,
+                              VTK_UNSIGNED_CHAR, source->GetNumberOfScalarComponents(),
+                              source->GetImageType(),
+                              0,
+                              this->FrameNumber) != PLUS_SUCCESS)
           {
             LOG_ERROR("Unable to add video item to buffer.");
             return PLUS_FAIL;
