@@ -54,7 +54,11 @@ PlusStatus vtkPlusAndorVideoSource::ReadConfiguration(vtkXMLDataElement* rootCon
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   // Must initialize the system before setting parameters
-  checkStatus(Initialize(""), "Initialize");
+  unsigned initializeResult = checkStatus(Initialize(""), "Initialize");
+  if(initializeResult != DRV_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
 
   const char * shutterString = deviceConfig->GetAttribute("Shutter");
   if(shutterString)
@@ -200,7 +204,11 @@ vtkPlusAndorVideoSource::~vtkPlusAndorVideoSource()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusAndorVideoSource::InitializeAndorCamera()
 {
-  checkStatus(Initialize(""), "Initialize");
+  unsigned initializeResult = checkStatus(Initialize(""), "Initialize");
+  if(initializeResult != DRV_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
 
   // Check the safe temperature, and the maximum allowable temperature on the camera.
   // Use the min of the two as the safe temp.
