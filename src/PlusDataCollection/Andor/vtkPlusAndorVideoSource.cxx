@@ -53,6 +53,17 @@ PlusStatus vtkPlusAndorVideoSource::ReadConfiguration(vtkXMLDataElement* rootCon
   LOG_TRACE("vtkPlusAndorVideoSource::ReadConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
+  long totalCameras = 0;
+  // It is possible to call GetAvailableCameras before any of the cameras are initialized.
+  unsigned availableCamerasResult = checkStatus(GetAvailableCameras(&totalCameras), "GetAvailableCameras");
+  if(availableCamerasResult == DRV_SUCCESS)
+  {
+    if(totalCameras == 0)
+    {
+      LOG_ERROR("Unable to find any Andor cameras devices installed.");
+    }
+  }
+
   // Must initialize the system before setting parameters
   unsigned initializeResult = checkStatus(Initialize(""), "Initialize");
   if(initializeResult != DRV_SUCCESS)
@@ -204,6 +215,18 @@ vtkPlusAndorVideoSource::~vtkPlusAndorVideoSource()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusAndorVideoSource::InitializeAndorCamera()
 {
+  long totalCameras = 0;
+  // It is possible to call GetAvailableCameras before any of the cameras are initialized.
+  unsigned availableCamerasResult = checkStatus(GetAvailableCameras(&totalCameras), "GetAvailableCameras");
+  if(availableCamerasResult == DRV_SUCCESS)
+  {
+    if(totalCameras == 0)
+    {
+      LOG_ERROR("Unable to find any Andor cameras devices installed.");
+      return PLUS_FAIL;
+    }
+  }
+
   unsigned initializeResult = checkStatus(Initialize(""), "Initialize");
   if(initializeResult != DRV_SUCCESS)
   {
