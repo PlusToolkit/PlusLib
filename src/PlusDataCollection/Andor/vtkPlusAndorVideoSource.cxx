@@ -341,14 +341,18 @@ PlusStatus vtkPlusAndorVideoSource::InternalDisconnect()
     this->InternalStopRecording();
   }
 
-  int status;
-  checkStatus(::IsCoolerOn(&status), "IsCoolerOn");
+  // // From Andor Employee:
+  // // Only Classic, ICCD and cameras with a fibre attached must have their cooling and warming up controlled at a particular rate.
+  // // For everything else you can just call ShutDown and the camera will safely return to room temperature.
+  // // Classic systems are cameras that use our original PCI controller cards eg CCI-010 or CCI-001.
+  // int status;
+  // checkStatus(::IsCoolerOn(&status), "IsCoolerOn");
 
-  if(status && this->CoolerMode == 0)
-  {
-    LOG_INFO("CoolerMode 0 and Cooler is still ON. Turning off the cooler and waiting for warmup. Do not unplug the camera from power.");
-    WaitForWarmup();
-  }
+  // if(status && this->CoolerMode == 0)
+  // {
+  //   LOG_INFO("CoolerMode 0 and Cooler is still ON. Turning off the cooler and waiting for warmup. Do not unplug the camera from power.");
+  //   WaitForWarmup();
+  // }
 
   checkStatus(FreeInternalMemory(), "FreeInternalMemory");
 

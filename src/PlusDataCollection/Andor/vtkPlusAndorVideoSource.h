@@ -170,7 +170,13 @@ public:
 
   /*! Wait for the camera to reach operating temperature (e.g. -70°C). */
   void WaitForCooldown();
-  /*! Wait for the camera to reach safe temperature for poweroff (e.g. 10°C). */
+
+  /*! Wait for the camera to reach safe temperature for poweroff (e.g. -20°C).
+      From Andor Employee:
+      Only Classic, ICCD and cameras with a fibre attached must have their cooling and warming up controlled at a particular rate.
+      For everything else you can just call ShutDown and the camera will safely return to room temperature.
+      Classic systems are cameras that use our original PCI controller cards eg CCI-010 or CCI-001.
+  */
   void WaitForWarmup();
 
   /*! Check the return status of Andor SDK functions. */
