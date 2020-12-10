@@ -36,7 +36,7 @@ void vtkPlusAndorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "AcquisitionMode: " << m_AcquisitionMode << std::endl;
   os << indent << "ReadMode: " << m_ReadMode << std::endl;
   os << indent << "TriggerMode: " << m_TriggerMode << std::endl;
-  os << indent << "UseCooling: " << UseCooling << std::endl;
+  os << indent << "RequireCoolTemp: " << RequireCoolTemp << std::endl;
   os << indent << "CoolerMode: " << CoolerMode << std::endl;
   os << indent << "CoolTemperature: " << CoolTemperature << std::endl;
   os << indent << "SafeTemperature: " << SafeTemperature << std::endl;
@@ -121,7 +121,8 @@ PlusStatus vtkPlusAndorVideoSource::ReadConfiguration(vtkXMLDataElement* rootCon
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, HorizontalBins, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, VerticalBins, deviceConfig);
 
-  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UseCooling, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(InitializeCoolerState, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(RequireCoolTemp, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UseFrameCorrections, deviceConfig);
 
   deviceConfig->GetVectorAttribute("HSSpeed", 2, HSSpeed);
@@ -164,7 +165,6 @@ PlusStatus vtkPlusAndorVideoSource::WriteConfiguration(vtkXMLDataElement* rootCo
   deviceConfig->SetAttribute("FlatCorrection", flatCorrection.c_str());
   deviceConfig->SetAttribute("BiasDarkCorrection", biasDarkCorrection.c_str());
 
-  XML_WRITE_BOOL_ATTRIBUTE(UseCooling, deviceConfig);
   XML_WRITE_BOOL_ATTRIBUTE(UseFrameCorrections, deviceConfig);
 
   return PLUS_SUCCESS;
@@ -440,7 +440,7 @@ float vtkPlusAndorVideoSource::GetCurrentTemperature()
 // ----------------------------------------------------------------------------
 void vtkPlusAndorVideoSource::WaitForCooldown()
 {
-  if(this->UseCooling == false)
+  if(this->RequireCoolTemp == false)
   {
     return;
   }
@@ -459,10 +459,6 @@ void vtkPlusAndorVideoSource::WaitForCooldown()
 // ----------------------------------------------------------------------------
 void vtkPlusAndorVideoSource::WaitForWarmup()
 {
-  if(this->UseCooling == false)
-  {
-    return;
-  }
   int status;
   checkStatus(::IsCoolerOn(&status), "IsCoolerOn");
   if(status)
@@ -820,16 +816,31 @@ bool vtkPlusAndorVideoSource::GetUseFrameCorrections()
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::SetUseCooling(bool useCooling)
+PlusStatus vtkPlusAndorVideoSource::SetRequireCoolTemp(bool requireCoolTemp)
 {
-  int coolerStatus = 1;
-  unsigned result = checkStatus(::IsCoolerOn(&coolerStatus), "IsCoolerOn");
-  this->UseCooling = useCooling;
-  if(useCooling && coolerStatus == 0)
+  this->RequireCoolTemp = requireCoolTemp;
+  return PLUS_SUCCESS;
+}
+
+// ----------------------------------------------------------------------------
+PlusStatus vtkPlusAndorVideoSource::SetInitializeCoolerState(bool InitializeCoolerState)
+{
+  if(InitializeCoolerState)
+  {
+    SetCoolerState(InitializeCoolerState);
+  }
+  return PLUS_SUCCESS;
+}
+
+// ----------------------------------------------------------------------------
+PlusStatus vtkPlusAndorVideoSource::SetCoolerState(bool coolerState)
+{
+  int coolerStatus = IsCoolerOn();
+  if(coolerState && coolerStatus == 0)  // Wanting to turn cooler on and cooler is currently off
   {
     TurnCoolerON();
   }
-  else if(useCooling == false && coolerStatus == 1)
+  else if(coolerState == false && coolerStatus == 1)  // Wanting to turn cooler off and cooler is currently on
   {
     TurnCoolerOFF();
   }
@@ -838,19 +849,13 @@ PlusStatus vtkPlusAndorVideoSource::SetUseCooling(bool useCooling)
 }
 
 // ----------------------------------------------------------------------------
-bool vtkPlusAndorVideoSource::GetUseCooling()
-{
-  return this->UseCooling;
-}
-
-// ----------------------------------------------------------------------------
-int vtkPlusAndorVideoSource::IsCoolerOn()
+bool vtkPlusAndorVideoSource::IsCoolerOn()
 {
   int coolerStatus = 1;
   unsigned result = checkStatus(::IsCoolerOn(&coolerStatus), "IsCoolerOn");
   if(result == DRV_SUCCESS)
   {
-    return coolerStatus;
+    return bool(coolerStatus);
   }
   return -1;
 }
