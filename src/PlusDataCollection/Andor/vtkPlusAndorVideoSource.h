@@ -169,6 +169,10 @@ public:
   PlusStatus SetCoolerMode(int mode);
   int GetCoolerMode();
 
+  /*! Turn the cooler on/off. */
+  PlusStatus SetCoolerState(bool coolerState);
+  bool IsCoolerOn();
+
   /*! Wait for the camera to reach operating temperature (e.g. -70°C). */
   void WaitForCooldown();
 
@@ -240,13 +244,19 @@ protected:
     return PLUS_SUCCESS;
   }
 
-  /*! Dev flag whether to use the cooler during acquisition.
-      It is better for the camera to undergo fewer temperature changes, so use sparingly.
-   */
-  PlusStatus SetUseCooling(bool useCooling);
-  bool GetUseCooling();
+  /*! Setting to true means cooler turns on at startup.
+      Setting to false means cooler state doesn't change on start.
+      Therefore use false if your previous session was set to maintain temperature on ShutDown.
+  */
+  PlusStatus SetInitializeCoolerState(bool InitializeCoolerState);
+  bool InitializeCoolerState = true;
 
-  int IsCoolerOn();
+  /*! Dev flag whether to require the Camera to be at the Cool Temperature to acquire frames.
+      It can be set to false to acquire frames even though not at the cool temperature.
+  */
+  PlusStatus SetRequireCoolTemp(bool RequireCoolTemp);
+  bool RequireCoolTemp = true;
+
   PlusStatus TurnCoolerON();
   PlusStatus TurnCoolerOFF();
 
@@ -271,7 +281,6 @@ protected:
   TriggerMode m_TriggerMode = TriggerMode::Internal;
 
   /*! Temperatures are in °C (degrees Celsius) */
-  bool UseCooling = true;  // dev param to bypass cooling procedures
   int CoolerMode = 0;  // whether to return to ambient temperature on ShutDown
   int CoolTemperature = -50;
   int SafeTemperature = 5;
