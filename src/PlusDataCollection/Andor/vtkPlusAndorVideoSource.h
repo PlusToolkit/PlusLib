@@ -162,11 +162,12 @@ public:
   PlusStatus AcquireCorrectionFrame(std::string correctionFilePath, ShutterMode shutter, int binning, int vsSpeed, int hsSpeed, float exposureTime);
 
   /*! Cooler Mode control. When CoolerMode is set on, the cooler
-      will be kept online when the camera is shutdown. This is helpful to
-      reduce the cooling cycles the camera undergoes. Turning the Cooler ON
-      and OFF should be done sparingly for the same reason.
+      will be kept on when the camera is shutdown. This is helpful to
+      reduce the number of cooling cycles the camera undergoes. Power loss to the camera
+      will result in the camera returning to ambient temperature.
   */
   PlusStatus SetCoolerMode(int mode);
+  int GetCoolerMode();
 
   /*! Wait for the camera to reach operating temperature (e.g. -70°C). */
   void WaitForCooldown();

@@ -37,6 +37,7 @@ void vtkPlusAndorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "ReadMode: " << m_ReadMode << std::endl;
   os << indent << "TriggerMode: " << m_TriggerMode << std::endl;
   os << indent << "UseCooling: " << UseCooling << std::endl;
+  os << indent << "CoolerMode: " << CoolerMode << std::endl;
   os << indent << "CoolTemperature: " << CoolTemperature << std::endl;
   os << indent << "SafeTemperature: " << SafeTemperature << std::endl;
   os << indent << "CurrentTemperature: " << CurrentTemperature << std::endl;
@@ -113,6 +114,7 @@ PlusStatus vtkPlusAndorVideoSource::ReadConfiguration(vtkXMLDataElement* rootCon
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, ExposureTime, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, PreAmpGain, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, CoolerMode, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, CoolTemperature, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SafeTemperature, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, VSSpeed, deviceConfig);
@@ -148,6 +150,7 @@ PlusStatus vtkPlusAndorVideoSource::WriteConfiguration(vtkXMLDataElement* rootCo
   deviceConfig->SetIntAttribute("AcquisitionMode", this->m_AcquisitionMode);
   deviceConfig->SetIntAttribute("ReadMode", this->m_ReadMode);
   deviceConfig->SetIntAttribute("TriggerMode", this->m_TriggerMode);
+  deviceConfig->SetIntAttribute("CoolerMode", this->CoolerMode);
   deviceConfig->SetIntAttribute("CoolTemperature", this->CoolTemperature);
   deviceConfig->SetIntAttribute("SafeTemperature", this->SafeTemperature);
   deviceConfig->SetIntAttribute("VSSpeed", this->VSSpeed);
@@ -888,7 +891,7 @@ PlusStatus vtkPlusAndorVideoSource::SetCoolerMode(int mode)
     this->CoolerMode = mode;
     if(mode == 1)
     {
-      LOG_INFO("Cooler mode set to 1. Temperature will be maintained on ShutDown.");
+      LOG_INFO("Cooler mode set to 1. If the cooler is ON, temperature will be maintained on Shutdown, otherwise Camera will return to ambient temperature.");
     }
     else
     {
@@ -898,6 +901,12 @@ PlusStatus vtkPlusAndorVideoSource::SetCoolerMode(int mode)
   }
   LOG_ERROR("SetCoolerMode command failed to execute.");
   return PLUS_FAIL;
+}
+
+// ----------------------------------------------------------------------------
+int vtkPlusAndorVideoSource::GetCoolerMode()
+{
+  return this->CoolerMode;
 }
 
 // ----------------------------------------------------------------------------
