@@ -18,6 +18,7 @@ vtkStandardNewMacro(vtkPlusAndorVideoSource);
 // put these here so there is no public dependence on OpenCV
 cv::Mat cvCameraIntrinsics;
 cv::Mat cvDistanceCoefficients;
+cv::Mat cvBadPixelImage;
 cv::Mat cvFlatCorrection;
 cv::Mat cvBiasDarkCorrection;
 
@@ -46,6 +47,7 @@ void vtkPlusAndorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "UseFrameCorrections: " << UseFrameCorrections << std::endl;
   os << indent << "FlatCorrection: " << flatCorrection << std::endl;
   os << indent << "BiasDarkCorrection: " << biasDarkCorrection << std::endl;
+  os << indent << "BadPixelCorrection: " << badPixelCorrection << std::endl;
 }
 
 // ----------------------------------------------------------------------------
@@ -129,11 +131,13 @@ PlusStatus vtkPlusAndorVideoSource::ReadConfiguration(vtkXMLDataElement* rootCon
   deviceConfig->GetVectorAttribute("OutputSpacing", 3, OutputSpacing);
   deviceConfig->GetVectorAttribute("CameraIntrinsics", 9, cameraIntrinsics);
   deviceConfig->GetVectorAttribute("DistanceCoefficients", 4, distanceCoefficients);
+  badPixelCorrection = deviceConfig->GetAttribute("BadPixelCorrection");
   flatCorrection = deviceConfig->GetAttribute("FlatCorrection");
   biasDarkCorrection = deviceConfig->GetAttribute("BiasDarkCorrection");
 
   cvCameraIntrinsics = cv::Mat(3, 3, CV_64FC1, cameraIntrinsics);
   cvDistanceCoefficients = cv::Mat(1, 4, CV_64FC1, distanceCoefficients);
+  this->SetBadPixelCorrectionImage(badPixelCorrection); // load the image
   this->SetFlatCorrectionImage(flatCorrection); // load and normalize if needed
   this->SetBiasDarkCorrectionImage(biasDarkCorrection); // load the image
 
@@ -164,6 +168,7 @@ PlusStatus vtkPlusAndorVideoSource::WriteConfiguration(vtkXMLDataElement* rootCo
   deviceConfig->SetVectorAttribute("DistanceCoefficients", 4, distanceCoefficients);
   deviceConfig->SetAttribute("FlatCorrection", flatCorrection.c_str());
   deviceConfig->SetAttribute("BiasDarkCorrection", biasDarkCorrection.c_str());
+  deviceConfig->SetAttribute("BadPixelCorrection", badPixelCorrection.c_str());
 
   XML_WRITE_BOOL_ATTRIBUTE(UseFrameCorrections, deviceConfig);
 
@@ -539,11 +544,114 @@ void vtkPlusAndorVideoSource::AddFrameToDataSource(DataSourceArray& ds)
   }
 }
 
+// ----------------------------------------------------------------------------
+void vtkPlusAndorVideoSource::CorrectBadPixels(int binning, cv::Mat& cvIMG)
+{
+    std::vector<cv::Point> badIndicesXY;
+    cv::findNonZero(cvBadPixelImage, badIndicesXY);
+
+    std::vector<uint> resolutionCellsWithBadPixels, resolutionCellsToCorrect;
+    uint resolutionCellIndex, badIndices;
+    uint resolutionCellIndexX, resolutionCellIndexY, minX, maxX, minY, maxY, badPixelCount;
+    for (int i = 0; i < badIndicesXY.size(); i++)
+    {
+      badPixelCount = 0;
+      resolutionCellIndexX = badIndicesXY[i].x / binning;
+      resolutionCellIndexY = badIndicesXY[i].y / binning;
+      resolutionCellIndex = frameSize[1] * resolutionCellIndexY + resolutionCellIndexX;
+
+      if (std::find(resolutionCellsWithBadPixels.begin(), resolutionCellsWithBadPixels.end(), resolutionCellIndex) == resolutionCellsWithBadPixels.end())
+      {
+        resolutionCellsWithBadPixels.push_back(resolutionCellIndex);
+
+        if (binning > 1)
+        {
+          minX = resolutionCellIndexX * binning;
+          maxX = (resolutionCellIndexX + 1) * binning - 1;
+          minY = resolutionCellIndexY * binning;
+          maxY = (resolutionCellIndexY + 1) * binning - 1;
+
+          for (int j = 0; j < badIndicesXY.size(); j++)
+          {
+            if (badIndicesXY[j].x >= minX && badIndicesXY[j].x <= maxX)
+            {
+              if (badIndicesXY[j].y >= minY && badIndicesXY[j].y <= maxY)
+              {
+                badPixelCount++;
+              }
+            }
+          }
+        }
+        else
+        {
+          badPixelCount++;
+        }
+
+        if ((((binning * binning) / badPixelCount < 5)) || (binning == 1))
+        {
+          resolutionCellsToCorrect.push_back(resolutionCellIndex);
+        }
+      }
+    }
+
+    std::vector<uint> valuesForMedian, correctedCells;
+    uint medianValue;
+    int startX, startY, endX, endY;
+    int numCellsToCorrect = resolutionCellsToCorrect.size();
+    for (uint cell : resolutionCellsToCorrect)
+	  {
+      resolutionCellIndexX = cell - frameSize[0] * (cell / frameSize[0]);
+      resolutionCellIndexY = cell / frameSize[0];
+      startX = resolutionCellIndexX - 1;
+      endX = resolutionCellIndexX + 1;
+      startY = resolutionCellIndexY - 1;
+      endY = resolutionCellIndexY + 1;
+      if (startX < 0) { startX = 0; }
+      if (startY < 0) { startY = 0; }
+      if (endX > frameSize[0]) { endX = frameSize[0]; }
+      if (endY > frameSize[0]) { endY = frameSize[0]; }
+
+      for (uint x = startX; x <= endX; x++)
+      {
+        for (uint y = startY; y <= endY; y++)
+        {
+          if (std::find(resolutionCellsToCorrect.begin(), resolutionCellsToCorrect.end(), frameSize[0] * y + x) != resolutionCellsToCorrect.end())
+          {
+            if (std::find(correctedCells.begin(), correctedCells.end(), frameSize[0] * y + x) != correctedCells.end())
+              {
+                valuesForMedian.push_back(cvIMG.at<ushort>(y, x));
+              }
+          }
+          else
+          {
+            valuesForMedian.push_back(cvIMG.at<ushort>(y, x));
+          }
+        }
+      }
+
+      sort(valuesForMedian.begin(), valuesForMedian.end());
+      if (valuesForMedian.size() % 2 == 0)
+      {
+        medianValue = (valuesForMedian[valuesForMedian.size() / 2 - 1] + valuesForMedian[valuesForMedian.size() / 2]) / 2;
+      }
+      else
+      {
+        medianValue = valuesForMedian[valuesForMedian.size() / 2];
+      }
+
+      cvIMG.at<ushort>(resolutionCellIndexY, resolutionCellIndexX) = medianValue;
+      correctedCells.push_back(cell);
+      valuesForMedian.clear();
+    }
+}
 
 // ----------------------------------------------------------------------------
-void vtkPlusAndorVideoSource::ApplyFrameCorrections()
+void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning)
 {
   cv::Mat cvIMG(frameSize[0], frameSize[1], CV_16UC1, &rawFrame[0]); // uses rawFrame as buffer
+  CorrectBadPixels(binning, cvIMG);
+  LOG_INFO("Applied bad pixel correction");
+
   cv::Mat floatImage;
   cvIMG.convertTo(floatImage, CV_32FC1);
   cv::Mat result;
@@ -571,7 +679,7 @@ PlusStatus vtkPlusAndorVideoSource::AcquireBLIFrame(int binning, int vsSpeed, in
 
   if(this->UseFrameCorrections)
   {
-    ApplyFrameCorrections();
+    ApplyFrameCorrections(binning);
     AddFrameToDataSource(BLICorrected);
   }
 
@@ -588,7 +696,7 @@ PlusStatus vtkPlusAndorVideoSource::AcquireGrayscaleFrame(int binning, int vsSpe
 
   if(this->UseFrameCorrections)
   {
-    ApplyFrameCorrections();
+    ApplyFrameCorrections(binning);
     AddFrameToDataSource(GrayCorrected);
   }
 
@@ -600,8 +708,34 @@ PlusStatus vtkPlusAndorVideoSource::AcquireCorrectionFrame(const std::string cor
 {
   AcquireFrame(exposureTime, shutter, binning, vsSpeed, hsSpeed);
   ++this->FrameNumber;
-  cv::Mat saveImage(frameSize[0], frameSize[1], CV_16UC1, &rawFrame[0]);
-  cv::imwrite(correctionFilePath, saveImage);
+
+  cv::Mat cvIMG(frameSize[0], frameSize[1], CV_16UC1, &rawFrame[0]); // uses rawFrame as buffer
+  if(this->UseFrameCorrections)
+  {
+    CorrectBadPixels(binning, cvIMG);
+    LOG_INFO("Applied bad pixel correction");
+  }
+
+  cv::imwrite(correctionFilePath, cvIMG);
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkPlusAndorVideoSource::SetBadPixelCorrectionImage(const std::string badPixelFilePath)
+{
+  try
+  {
+    cvBadPixelImage = cv::imread(badPixelFilePath, cv::IMREAD_GRAYSCALE);
+    if (cvBadPixelImage.empty())
+    {
+        throw "Bad pixel image empty!";
+    }
+  }
+  catch (...)
+  {
+    LOG_ERROR("Could not load bad pixel image from file: " << badPixelFilePath);
+    return PLUS_FAIL;
+  }
   return PLUS_SUCCESS;
 }
 
