@@ -9,6 +9,8 @@
 
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
+#include "opencv2/imgproc.hpp"
+#include "opencv2/imgcodecs.hpp"
 
 /*!
  \class vtkPlusAndorVideoSource
@@ -140,7 +142,12 @@ public:
   /*! Get the current temperature of the camera in degrees celsius. */
   float GetCurrentTemperature();
 
-  /*! Paths to additive and multiplicative bias+dark charge correction images. */
+  /*! Paths to correction images for dead pixels, additive and multiplicative bias. */
+  PlusStatus SetBadPixelCorrectionImage(const std::string badPixelFilePath);
+  std::string GetBadPixelCorrectionImage()
+  {
+    return badPixelCorrection;
+  }
   PlusStatus SetBiasDarkCorrectionImage(const std::string biasDarkFilePath);
   std::string GetBiasDarkCorrectionImage()
   {
@@ -226,8 +233,14 @@ protected:
   /*! Data from the frameBuffer ivar is added to the provided data source. */
   void AddFrameToDataSource(DataSourceArray& ds);
 
+  /*! Calculates which cells need bad-pixel correction for the given binning level. */
+  void FindBadCells(int binning);
+
+  /*! Applies correction for bad pixels. */
+  void CorrectBadPixels(int binning, cv::Mat& cvIMG);
+
   /*! Applies bias correction for dark current, flat correction and lens distortion. */
-  void ApplyFrameCorrections();
+  void ApplyFrameCorrections(int binning);
 
   /*! Flag whether to call ApplyFrameCorrections on the raw acquired frame on acquisition
       or to skip frame corrections.
@@ -295,6 +308,7 @@ protected:
   // {0}{0}{1}
   double cameraIntrinsics[9] = { 0 };
   double distanceCoefficients[4] = { 0 }; // k_1, k_2, p_1, p_2
+  std::string badPixelCorrection; //filepath to bad pixel image
   std::string flatCorrection; // filepath to master flat image
   std::string biasDarkCorrection; // filepath to master bias+dark image
 
