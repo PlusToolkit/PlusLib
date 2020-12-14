@@ -43,10 +43,6 @@
   #include <vtkType.h>
 #endif
 
-#ifndef VTK_HAS_MTIME_TYPE
-typedef unsigned long int vtkMTimeType;
-#endif
-
 #define PLUSLIB_VERSION "@PLUSLIB_VERSION@"
 #define PLUSLIB_VERSION_MAJOR @PLUSLIB_VERSION_MAJOR@
 #define PLUSLIB_VERSION_MINOR @PLUSLIB_VERSION_MINOR@

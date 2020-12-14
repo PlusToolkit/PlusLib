@@ -88,6 +88,8 @@ SET(${PROJECT_NAME}_LIBS
   ITKIOImageBase
   ITKOptimizers
   ITKTransform
+  MGHIO
+  ITKIODCMTK
   ${PLUSLIB_VTK_PREFIX}InteractionStyle
   ${PLUSLIB_VTK_PREFIX}RenderingFreeType
   ${PLUSLIB_VTK_PREFIX}FiltersStatistics
