@@ -22,9 +22,9 @@ See License.txt for details.
 #include <math.h>
 
 #ifdef _WIN32
-#include <io.h> // for findnext
+  #include <io.h> // for findnext
 #else
-#include <dirent.h>
+  #include <dirent.h>
 #endif
 
 
@@ -380,7 +380,7 @@ PlusStatus vtkPlusChRoboticsTracker::FindDataItemDescriptor(const std::string it
 PlusStatus vtkPlusChRoboticsTracker::LoadFirmwareDescriptionForConnectedDevice()
 {
   LOG_TRACE("vtkPlusChRoboticsTracker::LoadFirmwareDescriptionForConnectedDevice");
-  this->FirmwareVersionId.empty();
+  this->FirmwareVersionId.clear();
 
   ChrSerialPacket fwRequest;
   fwRequest.SetHasData(false);
