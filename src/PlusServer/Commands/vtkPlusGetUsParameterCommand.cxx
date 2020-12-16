@@ -171,7 +171,7 @@ PlusStatus vtkPlusGetUsParameterCommand::Execute()
       {
         std::stringstream ss;
         std::vector<double> numbers = imagingParameters->GetTimeGainCompensation();
-        for (std::vector<double>::iterator numberIt; numberIt != numbers.begin(); numberIt != numbers.end())
+        for (std::vector<double>::iterator numberIt = numbers.begin(); numberIt != numbers.end(); numberIt++)
         {
           ss << *numberIt << " ";
         }
