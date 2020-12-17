@@ -366,7 +366,7 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::InternalUpdate()
     {
       // we received color image
       this->Internal->DecodedImageFrame->AllocateScalars(VTK_UNSIGNED_CHAR, 3);
-      PlusStatus status = PixelCodec::ConvertToBmp24(PixelCodec::ComponentOrder_RGB, PixelCodec::PixelEncoding_BGR24, this->UltrasoundWindowSize[0], this->UltrasoundWindowSize[1],
+      PlusStatus status = PixelCodec::ConvertToBGR24(PixelCodec::ComponentOrder_RGB, PixelCodec::PixelEncoding_BGR24, this->UltrasoundWindowSize[0], this->UltrasoundWindowSize[1],
         (unsigned char*) & (this->Internal->OemMessage[numBytesProcessed]),
         (unsigned char*)this->Internal->DecodedImageFrame->GetScalarPointer());
     }
