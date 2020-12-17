@@ -994,6 +994,36 @@ bool vtkPlusAndorVideoSource::GetUseCosmicRayCorrection()
 }
 
 // ----------------------------------------------------------------------------
+PlusStatus vtkPlusAndorVideoSource::SetCameraIntrinsics(std::array<double, 9> intrinsics)
+{
+  std::copy(std::begin(intrinsics), std::end(intrinsics), this->cameraIntrinsics);
+  return PLUS_SUCCESS;
+}
+
+// ----------------------------------------------------------------------------
+std::array<double, 9> vtkPlusAndorVideoSource::GetCameraIntrinsics()
+{
+  std::array<double, 9> returnIntrinsics;
+  std::copy(this->cameraIntrinsics, this->cameraIntrinsics + 9, std::begin(returnIntrinsics));
+  return returnIntrinsics;
+}
+
+// ----------------------------------------------------------------------------
+PlusStatus vtkPlusAndorVideoSource::SetDistanceCoefficients(std::array<double, 4> coefficients)
+{
+  std::copy(std::begin(coefficients), std::end(coefficients), this->distanceCoefficients);
+  return PLUS_SUCCESS;
+}
+
+// ----------------------------------------------------------------------------
+std::array<double, 4> vtkPlusAndorVideoSource::GetDistanceCoefficients()
+{
+  std::array<double, 4> returnCoefficients;
+  std::copy(this->distanceCoefficients, this->distanceCoefficients + 4, std::begin(returnCoefficients));
+  return returnCoefficients;
+}
+
+// ----------------------------------------------------------------------------
 PlusStatus vtkPlusAndorVideoSource::SetRequireCoolTemp(bool requireCoolTemp)
 {
   this->RequireCoolTemp = requireCoolTemp;
