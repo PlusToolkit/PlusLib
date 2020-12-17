@@ -16,7 +16,7 @@ namespace tesseract
 {
   class TessBaseAPI;
 }
-//class vtkIGSIOTrackedFrameList;
+
 typedef struct Pix PIX;
 
 /*!

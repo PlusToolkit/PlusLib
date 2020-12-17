@@ -139,10 +139,6 @@ SET(Miscellaneous_SRCS
   )
 
 IF(PLUS_USE_TextRecognizer)
-  CONFIGURE_FILE(
-    ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices/tesseractDataDir.h.in
-    ${CMAKE_CURRENT_BINARY_DIR}/VirtualDevices/tesseractDataDir.h
-    )
   SET(Virtual_SRCS ${Virtual_SRCS}
     VirtualDevices/vtkPlusVirtualTextRecognizer.cxx
     )
@@ -2066,6 +2062,13 @@ IF(PLUS_USE_TextRecognizer)
     ${tesseract_LIBRARIES}
     ${PlusZLib}
     ${PLUSLIB_VTK_PREFIX}png
+    )
+  FILE(GLOB _tessdata_files
+    LIST_DIRECTORIES false
+    ${tesseract_DATA_DIR}/*
+    )
+  INSTALL(FILES ${_tessdata_files}
+    DESTINATION "${PLUSLIB_DATA_INSTALL}/tessdata" COMPONENT LanguageData
     )
 ENDIF()
 

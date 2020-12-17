@@ -60,6 +60,7 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
 
   IF(PLUS_USE_TextRecognizer)
     SET(tesseract_DIR "@tesseract_DIR@")
+    SET(tesseract_DATA_DIR "@tesseract_DATA_DIR@")
     FIND_PACKAGE(tesseract NO_MODULE)
   ENDIF()
 

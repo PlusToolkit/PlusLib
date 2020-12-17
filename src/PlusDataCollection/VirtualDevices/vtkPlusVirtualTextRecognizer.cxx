@@ -19,9 +19,6 @@ See License.txt for details.
 #include <tesseract/strngs.h>
 #include <allheaders.h>
 
-// Configuration includes
-#include "tesseractDataDir.h"
-
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusVirtualTextRecognizer);
@@ -236,14 +233,13 @@ PlusStatus vtkPlusVirtualTextRecognizer::InternalConnect()
   {
     if (!vtksys::SystemTools::GetEnv("TESSDATA_PREFIX", this->TessdataDirectory))
     {
-      this->SetTessdataDirectory(tesseract_data_dir);
+      this->SetTessdataDirectory(vtkPlusConfig::GetInstance()->GetImagePath("tessdata"));
+      std::stringstream ss;
+      ss << "TESSDATA_PREFIX=" << this->TessdataDirectory;
+      vtksys::SystemTools::PutEnv(ss.str());
     }
   }
   LOG_DEBUG("Using tessdata directory: " << this->TessdataDirectory);
-
-  std::stringstream ss;
-  ss << "TESSDATA_PREFIX=" << this->TessdataDirectory;
-  vtksys::SystemTools::PutEnv(ss.str());
 
   this->TesseractAPI = new tesseract::TessBaseAPI();
   if (this->TesseractAPI->Init(NULL, Language.c_str(), tesseract::OEM_TESSERACT_CUBE_COMBINED) != 0)
@@ -292,7 +288,7 @@ PlusStatus vtkPlusVirtualTextRecognizer::ReadConfiguration(vtkXMLDataElement* ro
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(TessdataDirectory, deviceConfig);
 
   XML_FIND_NESTED_ELEMENT_OPTIONAL(screenFields, deviceConfig, PARAMETER_LIST_TAG_NAME);
- 
+
   for (int i = 0; i < screenFields->GetNumberOfNestedElements(); ++i)
   {
     vtkXMLDataElement* fieldElement = screenFields->GetNestedElement(i);
