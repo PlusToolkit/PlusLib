@@ -47,6 +47,7 @@ void vtkPlusAndorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "CameraIntrinsics: " << cvCameraIntrinsics << std::endl;
   os << indent << "DistanceCoefficients: " << cvDistanceCoefficients << std::endl;
   os << indent << "UseFrameCorrections: " << UseFrameCorrections << std::endl;
+  os << indent << "UseCosmicRayCorrection: " << UseCosmicRayCorrection << std::endl;
   os << indent << "FlatCorrection: " << flatCorrection << std::endl;
   os << indent << "BiasDarkCorrection: " << biasDarkCorrection << std::endl;
   os << indent << "BadPixelCorrection: " << badPixelCorrection << std::endl;
@@ -128,6 +129,7 @@ PlusStatus vtkPlusAndorVideoSource::ReadConfiguration(vtkXMLDataElement* rootCon
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(InitializeCoolerState, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(RequireCoolTemp, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UseFrameCorrections, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UseCosmicRayCorrection, deviceConfig)
 
   deviceConfig->GetVectorAttribute("HSSpeed", 2, HSSpeed);
   deviceConfig->GetVectorAttribute("OutputSpacing", 3, OutputSpacing);
@@ -173,6 +175,7 @@ PlusStatus vtkPlusAndorVideoSource::WriteConfiguration(vtkXMLDataElement* rootCo
   deviceConfig->SetAttribute("BadPixelCorrection", badPixelCorrection.c_str());
 
   XML_WRITE_BOOL_ATTRIBUTE(UseFrameCorrections, deviceConfig);
+  XML_WRITE_BOOL_ATTRIBUTE(UseCosmicRayCorrection, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -680,8 +683,11 @@ void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning)
   cv::subtract(floatImage, cvBiasDarkCorrection, floatImage, cv::noArray(), CV_32FC1);
   LOG_INFO("Applied constant bias+dark correction");
 
-  ApplyCosmicRayCorrection(binning, floatImage);
-  LOG_INFO("Applied cosmic ray correction");
+  if(this->UseCosmicRayCorrection)
+  {
+    ApplyCosmicRayCorrection(binning, floatImage);
+    LOG_INFO("Applied cosmic ray correction");
+  }
 
   // OpenCV's lens distortion correction
   cv::undistort(floatImage, result, cvCameraIntrinsics, cvDistanceCoefficients);
@@ -972,6 +978,19 @@ PlusStatus vtkPlusAndorVideoSource::SetUseFrameCorrections(bool useFrameCorrecti
 bool vtkPlusAndorVideoSource::GetUseFrameCorrections()
 {
   return this->UseFrameCorrections;
+}
+
+// ----------------------------------------------------------------------------
+PlusStatus vtkPlusAndorVideoSource::SetUseCosmicRayCorrection(bool useCosmicRayCorrection)
+{
+  this->UseCosmicRayCorrection = useCosmicRayCorrection;
+  return PLUS_SUCCESS;
+}
+
+// ----------------------------------------------------------------------------
+bool vtkPlusAndorVideoSource::GetUseCosmicRayCorrection()
+{
+  return this->UseCosmicRayCorrection;
 }
 
 // ----------------------------------------------------------------------------

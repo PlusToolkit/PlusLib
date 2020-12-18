@@ -251,6 +251,10 @@ protected:
   PlusStatus SetUseFrameCorrections(bool UseFrameCorrections);
   bool GetUseFrameCorrections();
 
+  /*! Flag whether to call ApplyCosmicRayCorrection of BLI acquisitions or not. */
+  PlusStatus SetUseCosmicRayCorrection(bool UseCosmicRayCorrection);
+  bool GetUseCosmicRayCorrection();
+
   /*! This will be triggered regularly if this->StartThreadForInternalUpdates is true.
    * Framerate is controlled by this->AcquisitionRate. This is meant for debugging.
    */
@@ -284,6 +288,7 @@ protected:
   int VSSpeed = 0;  // index
   int PreAmpGain = 0;
   bool UseFrameCorrections = true;
+  bool UseCosmicRayCorrection = true;
 
   // TODO: Need to handle differet cases for read/acquisiton modes?
 
