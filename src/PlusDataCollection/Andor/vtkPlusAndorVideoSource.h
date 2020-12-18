@@ -239,6 +239,9 @@ protected:
   /*! Applies correction for bad pixels. */
   void CorrectBadPixels(int binning, cv::Mat& cvIMG);
 
+  /*! Applies cosmic ray correction. */
+  void ApplyCosmicRayCorrection(int binning, cv::Mat& floatImage);
+
   /*! Applies bias correction for dark current, flat correction and lens distortion. */
   void ApplyFrameCorrections(int binning);
 
