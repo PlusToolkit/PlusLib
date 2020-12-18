@@ -778,7 +778,7 @@ PlusStatus vtkPlusAndorVideoSource::SetBiasDarkCorrectionImage(const std::string
 {
   try
   {
-    cvBiasDarkCorrection = cv::imread(biasDarkFilePath, cv::IMREAD_GRAYSCALE);
+    cvBiasDarkCorrection = cv::imread(biasDarkFilePath, cv::IMREAD_UNCHANGED);
     if(cvBiasDarkCorrection.empty())
     {
       throw "Bias+dark correction image empty!";
@@ -797,7 +797,7 @@ PlusStatus vtkPlusAndorVideoSource::SetFlatCorrectionImage(std::string flatFileP
 {
   try
   {
-    cvFlatCorrection = cv::imread(flatFilePath, cv::IMREAD_GRAYSCALE);
+    cvFlatCorrection = cv::imread(flatFilePath, cv::IMREAD_UNCHANGED);
     if(cvFlatCorrection.empty())
     {
       throw "Flat correction image empty!";
