@@ -670,7 +670,7 @@ void vtkPlusAndorVideoSource::ApplyCosmicRayCorrection(int bin, cv::Mat& floatIm
 }
 
 // ----------------------------------------------------------------------------
-void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning)
+void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning, float exposureTime)
 {
   cv::Mat cvIMG(frameSize[0], frameSize[1], CV_16UC1, &rawFrame[0]); // uses rawFrame as buffer
   CorrectBadPixels(binning, cvIMG);
@@ -696,6 +696,9 @@ void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning)
   // Divide the image by the 32-bit floating point correction image
   cv::divide(result, cvFlatCorrection, result, 1, CV_32FC1);
   LOG_INFO("Applied multiplicative flat correction");
+
+  // Convert image from count to counts/seconds
+  cv::divide(result, exposureTime, result, 1, CV_32FC1);
   result.convertTo(cvIMG, CV_16UC1);
 }
 
@@ -709,7 +712,7 @@ PlusStatus vtkPlusAndorVideoSource::AcquireBLIFrame(int binning, int vsSpeed, in
 
   if(this->UseFrameCorrections)
   {
-    ApplyFrameCorrections(binning);
+    ApplyFrameCorrections(binning, exposureTime);
     AddFrameToDataSource(BLICorrected);
   }
 
@@ -726,7 +729,7 @@ PlusStatus vtkPlusAndorVideoSource::AcquireGrayscaleFrame(int binning, int vsSpe
 
   if(this->UseFrameCorrections)
   {
-    ApplyFrameCorrections(binning);
+    ApplyFrameCorrections(binning, exposureTime);
     AddFrameToDataSource(GrayCorrected);
   }
 

@@ -253,7 +253,7 @@ protected:
   void ApplyCosmicRayCorrection(int binning, cv::Mat& floatImage);
 
   /*! Applies bias correction for dark current, flat correction and lens distortion. */
-  void ApplyFrameCorrections(int binning);
+  void ApplyFrameCorrections(int binning, float exposureTime);
 
   /*! Flag whether to call ApplyFrameCorrections on the raw acquired frame on acquisition
       or to skip frame corrections.
