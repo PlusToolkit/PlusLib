@@ -47,6 +47,7 @@ void vtkPlusAndorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "CameraIntrinsics: " << cvCameraIntrinsics << std::endl;
   os << indent << "DistanceCoefficients: " << cvDistanceCoefficients << std::endl;
   os << indent << "UseFrameCorrections: " << UseFrameCorrections << std::endl;
+  os << indent << "UseCosmicRayCorrection: " << UseCosmicRayCorrection << std::endl;
   os << indent << "FlatCorrection: " << flatCorrection << std::endl;
   os << indent << "BiasDarkCorrection: " << biasDarkCorrection << std::endl;
   os << indent << "BadPixelCorrection: " << badPixelCorrection << std::endl;
@@ -128,6 +129,7 @@ PlusStatus vtkPlusAndorVideoSource::ReadConfiguration(vtkXMLDataElement* rootCon
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(InitializeCoolerState, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(RequireCoolTemp, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UseFrameCorrections, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UseCosmicRayCorrection, deviceConfig)
 
   deviceConfig->GetVectorAttribute("HSSpeed", 2, HSSpeed);
   deviceConfig->GetVectorAttribute("OutputSpacing", 3, OutputSpacing);
@@ -173,6 +175,7 @@ PlusStatus vtkPlusAndorVideoSource::WriteConfiguration(vtkXMLDataElement* rootCo
   deviceConfig->SetAttribute("BadPixelCorrection", badPixelCorrection.c_str());
 
   XML_WRITE_BOOL_ATTRIBUTE(UseFrameCorrections, deviceConfig);
+  XML_WRITE_BOOL_ATTRIBUTE(UseCosmicRayCorrection, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -588,7 +591,7 @@ void vtkPlusAndorVideoSource::CorrectBadPixels(int binning, cv::Mat& cvIMG)
     unsigned endX, endY;
     int numCellsToCorrect = resolutionCellsToCorrect.size();
     for (uint cell : resolutionCellsToCorrect)
-	  {
+      {
       resolutionCellIndexX = cell - frameSize[0] * (cell / frameSize[0]);
       resolutionCellIndexY = cell / frameSize[0];
       startX = resolutionCellIndexX - 1;
@@ -635,6 +638,38 @@ void vtkPlusAndorVideoSource::CorrectBadPixels(int binning, cv::Mat& cvIMG)
 }
 
 // ----------------------------------------------------------------------------
+void vtkPlusAndorVideoSource::ApplyCosmicRayCorrection(int bin, cv::Mat& floatImage)
+{
+  int kernelSize = 3;
+  if (bin < 3)
+  {
+    kernelSize = 5;
+  }
+
+  // find and subtract background
+  cv::Mat meanCols, medianImage, diffImage, medianPixels;
+  cv::reduce(floatImage, meanCols, 0, cv::REDUCE_AVG, CV_32FC1);
+  ushort background = (ushort)meanCols.at<float>(0, 0);
+  cv::subtract(floatImage, background, floatImage);
+
+  // idenfify cosmice ray indices
+  cv::medianBlur(floatImage, medianImage, kernelSize);
+  cv::subtract(floatImage, medianImage, diffImage);
+  cv::Mat cosmicInd = (diffImage > 50) & (diffImage > 4 * medianImage);
+  cv::Mat notCosmicInd = ~cosmicInd;
+  cosmicInd.convertTo(cosmicInd, floatImage.type());
+  notCosmicInd.convertTo(notCosmicInd, floatImage.type());
+  cosmicInd /= 255;
+  notCosmicInd /= 255;
+
+  // use maskes to replace cosmic ray indices with values from median image
+  medianImage.convertTo(medianImage, floatImage.type());
+  cv::multiply(notCosmicInd, floatImage, floatImage);
+  cv::multiply(cosmicInd, medianImage, medianPixels);
+  floatImage += medianPixels;
+}
+
+// ----------------------------------------------------------------------------
 void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning)
 {
   cv::Mat cvIMG(frameSize[0], frameSize[1], CV_16UC1, &rawFrame[0]); // uses rawFrame as buffer
@@ -647,6 +682,12 @@ void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning)
 
   cv::subtract(floatImage, cvBiasDarkCorrection, floatImage, cv::noArray(), CV_32FC1);
   LOG_INFO("Applied constant bias+dark correction");
+
+  if(this->UseCosmicRayCorrection)
+  {
+    ApplyCosmicRayCorrection(binning, floatImage);
+    LOG_INFO("Applied cosmic ray correction");
+  }
 
   // OpenCV's lens distortion correction
   cv::undistort(floatImage, result, cvCameraIntrinsics, cvDistanceCoefficients);
@@ -937,6 +978,19 @@ PlusStatus vtkPlusAndorVideoSource::SetUseFrameCorrections(bool useFrameCorrecti
 bool vtkPlusAndorVideoSource::GetUseFrameCorrections()
 {
   return this->UseFrameCorrections;
+}
+
+// ----------------------------------------------------------------------------
+PlusStatus vtkPlusAndorVideoSource::SetUseCosmicRayCorrection(bool useCosmicRayCorrection)
+{
+  this->UseCosmicRayCorrection = useCosmicRayCorrection;
+  return PLUS_SUCCESS;
+}
+
+// ----------------------------------------------------------------------------
+bool vtkPlusAndorVideoSource::GetUseCosmicRayCorrection()
+{
+  return this->UseCosmicRayCorrection;
 }
 
 // ----------------------------------------------------------------------------
