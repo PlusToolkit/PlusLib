@@ -2,7 +2,13 @@ PROJECT(PlusLib)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.3.0)
 
-SET(CMAKE_CXX_STANDARD 11)
+# Cache C++ standard to allow setting externally
+SET(_minimum_cxx_standard "11")
+SET(CMAKE_CXX_STANDARD "${_minimum_cxx_standard}" CACHE STRING "C++ standard")
+IF("${CMAKE_CXX_STANDARD}" LESS "${_minimum_cxx_standard}")
+  MESSAGE(FATAL_ERROR "CMAKE_CXX_STANDARD must be equal or larger than ${_minimum_cxx_standard}")
+ENDIF()
+SET(CMAKE_CXX_STANDARD_REQUIRED ON CACHE STRING "C++ standard required")
 
 INCLUDE(CMake/PlusLibMacros.cmake)
 

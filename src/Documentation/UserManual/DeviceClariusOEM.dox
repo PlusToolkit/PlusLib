@@ -1,0 +1,165 @@
+/*!
+\page DeviceClariusOEM Clarius ultrasound systems (OEM API)
+
+\section OemVsCast ClariusOEM Device vs. Clarius Device
+
+PLUS supports two different interfaces to Clarius probes. This documentation is for the OEM API based PLUS device, which connects directly with the probe using the Bluetooth Low Energy (BLE) and Wi-Fi interfaces of the PC running PLUS. This device also exposes US controls for the Clarius, and real-time battery / button state streaming accessible as MRML node attributes on the Image node in 3D Slicer. The primary limitation of this interface is that for now it's only available on Windows.
+
+In contrast, the original Clarius support uses the Clarius Cast API. Using this approach, a phone/tablet is connected to the probe, and the PC running PLUS retrieves images indirectly via this phone/tablet. Documentation for the Cast API based PLUS device is available at \ref DeviceClarius
+
+\section ClariusOEMSupportedHwDevices Supported hardware devices
+
+- This device is used for image acquisition from Clarius ultrasound systems using the OEM API.
+- Link to manufacturer's website: https://clarius.com
+- Link to OEM API: https://github.com/clariusdev/oem
+
+\section ClariusOEMSupportedPlatforms Supported platforms
+
+- \ref PackageWin64
+
+\section SetupUpdateProbe Updating Clarius probe
+
+The current version of the ClariusOEM device is built to use Clarius device software v9.1.0. Updating of the Clarius probe software should be done using the Clarius phone app.
+
+\section SetupGeneral How to setup your probe with ClariusOEM
+
+This section outlines the general steps required to setup a new PC to use PLUS with the ClariusOEM device. Each step is covered in more detail in the following sections.
+
+-# Download Clarius probe certificate, used to validate your device during connection to the probe. See \ref SetupDownloadCert
+-# Connect to the Clarius probe's Wi-Fi network. The Wi-Fi connection is used for streaming all data between the probe and your PC. See \ref SetupWiFi
+-# Enable Windows "Developer Mode". See \ref SetupDevMode
+-# Connect to the Clarius probe's Bluetooth LE network. This network is used for controlling the probe power state (on/off) as well as in the process of initiating connections to the probe. See \ref SetupBluetooth
+-# Edit the ClariusOEM config file to reflect the info for your probe, and your desired settings. See \ref SetupConfigFile
+
+\section SetupDownloadCert Download Clarius certificate
+
+To connect to the Clarius probe we need to provide a certificate to authenticate our application. We can generate
+this certificate by following these steps:
+-# Connect to your Clarius probe using an Android or Apple device
+-# Open the Clarius app status page
+  - Exit the current scan using the exit icon on the top left of the screen
+  - Tap on the three horizontal lines on the top left of the screen
+  - Tap on “Status”
+-# Tap on the “Retrieve Certificate” button
+-# This should show your Clarius certificate text, copy this to your device’s clipboard
+-# Email yourself the complete certificate text
+-# On your PC, copy & paste the certificate text into an empty text file (it is recommended to name this file <probe_serialnum>.cert). The file MUST include the begin/end certificate lines.
+-# Save this to the ClariusCert folder in your PLUS config directory (you may need to create this folder)
+
+\section SetupWiFi Connect to Clarius Wi-Fi
+
+The second step is setting up the Clarius probe using Windows Wi-Fi.
+This step only needs to be completed once. During regular use switching to the probe’s network after bootup is
+automatically handled by PLUS.
+-# Retrieve your Clarius scanners Wi-Fi SSID and password:
+  - Open the Clarius app
+  - Exit the current scan
+  - Tap on the three horizontal lines on the top of the screen
+  - Tap on “Status”
+  - Record the Serial Number, SSID and Network Password for your probe
+-# Close the Clarius Ultrasound App on your phone, but leave the probe powered on
+-# Click on the “Wifi” icon on the Windows taskbar
+-# Click on the network name matching your probe’s SSID
+-# Enter the password and ensure you’re connected.
+It’s normal to see you are connected to the DIRECT_C***######## network, but that it does not have internet
+access.
+
+\section SetupDevMode Enable Windows Developer Mode
+
+The third step is to enable Windows Developer Mode, so that PLUS can communicate with the Clarius probe over Bluetooth LE. This step only needs to be completed once. To do this:
+-# Open Windows Settings
+-# Click on "Update & Security"
+-# Click the "For developers" tab
+-# Toggle the "Developer Mode" setting to ON
+
+\section SetupBluetooth Connect to Clarius Bluetooth LE
+
+The next step to connecting to the Clarius probe is to pair it using Windows Bluetooth. This step only needs to be completed once. To do this:
+-# Open Windows Settings
+-# Click on “Devices” then “Bluetooth & other devices”
+-# Click “Add Bluetooth or other device”
+-# Click “Bluetooth: Mice, keyboards, pens, or audio and other kinds of Bluetooth devices”
+-# Wait for your Clarius probe to appear in the list of devices, and initiate pairing
+-# Check the probe appears in the list of paired devices in Windows Bluetooth. If not, re-pair following steps
+3-5.
+
+\section SetupConfigFile Edit ClariusOEM config file
+
+Finally, we need to edit the default Clarius OEM PLUS configuration file to reflect the specific Clarius probe we
+want to connect to and our desired options. The list below is the minimum number of attributes that must be edited, a complete reference and sample config can be found at the bottom of this page in the \ref ClariusOEMConfigSettings and \ref ClariusOEMExampleConfigFile sections.
+
+-# ProbeSerialNum: This is easy to find in your Bluetooth settings, the serial number of your probe should be
+the name of your connected Clarius device
+-# PathToCert: This must be set to the path to the certificate file you created earlier, relative to the PLUS
+config file
+-# ProbeType: Must match the type of Clarius probe you are trying to connect to (it’s also the first 4
+characters of the serial number)
+-# ImagingApplication: Options are listed by PLUS if you leave this field blank or enter an invalid option
+-# UsImagingParameters: PLUS support setting a number of ultrasound parameters, provided as a reference in \ref UsImagingParameters. The ClariusOEM device supports the following parameters:
+  - Depth (mm)
+  - Gain (%)
+  - Dynamic Range (%)
+  - Time Gain Compensation (dB)
+
+\section ChangingDepths Physically correct US frame size and handling changing depths
+
+The Clarius OEM interface is able to maintain correct physical image size automatically, even when the US depth changes. It is able to provide an \c ImageToTransd transform, between the Image coordinates (0,0 corner of the ultrasound frame) and the Transd coordinates (center of the probe element). When calibrating the Clarius, you may use a rigid transform between the Transd coordinate system and the coordinate system of the probe mounted marker. During calibrating, changes in depth are possible and recommended as it should enhance the accuracy of your calibration across the imaging depths supported by Clarius. There are two ways to utilize the automatic depth feature.
+
+\section ChangingDepthsMethod1 Method 1: Transform hierarchy with the ImageToTransd transform
+
+- Using this method, the Image_Image US frame is sent with an embedded identity transform
+- A separate transform named ImageToTransd is also sent
+- In 3D Slicer, to make the US image physically correct you must place Image_Image under ImageToTransd in the transform hierarchy. This can be done within the "Data" module. For more information about 3D Slicer, please see it's website and tutorials at https://www.slicer.org/
+
+This is the configuration demonstrated in the \ClariusOEMExampleConfigFile
+
+\section ChangingDepthsMethod2 Method 2: Embed the transform directly in the image
+
+- In contrast to Method 1, this method includes the ImageToTransd transform embedded within the sent image.
+- If you choose this approach no further steps are needed in 3D Slicer to achieve physically correct US frame size
+- The only changes from the provided sample configuration file are to the PlusOpenIGTLinkServer element:
+
+```
+  <PlusOpenIGTLinkServer
+    MaxNumberOfIgtlMessagesToSend="1"
+    MaxTimeSpentWithProcessingMs="50"
+    ListeningPort="18944"
+    SendValidTransformsOnly="false"
+    OutputChannelId="VideoStream" >
+    <DefaultClientInfo>
+      <MessageTypes>
+        <Message Type="IMAGE" />
+      </MessageTypes>
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="Transd" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+```
+
+\section ClariusOEMConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "ClariusOEM" \RequiredAtt
+- \xmlAtt \ref ToolReferenceFrame = \c "Transd" \RequiredAtt
+- \xmlAtt \c \b ProbeSerialNum The probe's serial number \RequiredAtt
+- \xmlAtt \c \b PathToCert Path to the certificate retrieved in \ref SetupDownloadCert \RequiredAtt
+- \xmlAtt \c \b ProbeType Type of Clarius probe in use (first 4 chars of serial number) \RequiredAtt
+- \xmlAtt \c \b ImagingApplication Imaging application type to load. Launching with an invalid / empty application type will list available types in the PLUS log file. \RequiredAtt
+- \xmlAtt \c \b FrameSize Desired size of the Clarius image frame \OptionalAtt{512, 512}
+- \xmlAtt \c \b EnableAutoGain Should automatic imaging gain be used? \OptionalAtt{FALSE}
+- \xmlAtt \c \b Enable5v Should the external 5V rail on the probe be powered? \OptionalAtt{FALSE}
+- \xmlAtt \c \b FreezeOnPoorWifiSignal Should the probe automatically freeze when the wifi signal is poor? \OptionalAtt{TRUE}
+- \xmlAtt \c \b ContactDetectionTimeoutSec Probe framerate is reduced after no contact is detected for this number of seconds. Valid range 0-30. A value of 0 turns the timeout off. \OptionalAtt{15}
+- \xmlAtt \c \b AutoFreezeTimeoutSec Acquisition of image data is frozen after no contact is detected for this number of seconds. Valid range 0-120. A value of 0 turns the timeout off. \OptionalAtt{60}
+- \xmlAtt \c \b KeepAwakeTimeoutMin Probe will automatically power off after no contact is detected for this number of minutes. Valid range 0-120. A value of 0 turns the timeout off. \OptionalAtt{60}
+- \xmlAtt \c \b UpButtonMode What should the up button on the probe do? \OptionalAtt{DISABLED} Options:
+  - \c \b DISABLED up button fully disabled
+  - \c \b FREEZE up button freezes and un-freezes ultrasound image acquisition
+  - \c \b USER up button sends metadata to Slicer over OpenIGTLink indicating the button was clicked, and how many times in a row (1, 2, 3 or 4). This can be retrieved as a MRML node attribute of the Clarius image node.
+- \xmlAtt \c \b DownButtonMode What should the down button on the probe do? See \c \b UpButtonMode for options. \OptionalAtt{FREEZE}
+
+\section ClariusOEMExampleConfigFile Example configuration file PlusDeviceSet_Server_ClariusOEMVideoCapture.xml
+
+\include "ConfigFiles/PlusDeviceSet_Server_ClariusOEMVideoCapture.xml"
+
+*/

@@ -1,10 +1,17 @@
 /*!
-\page DeviceClarius Clarius ultrasound systems
+\page DeviceClarius Clarius ultrasound systems (CAST API)
+
+\section OemVsCast Clarius Device vs. ClariusOEM Device
+
+PLUS supports two different interfaces to Clarius probes. This documentation is for the CAST API based PLUS device. Using this approach, a phone/tablet is connected to the probe, and the PC running PLUS retrieves images indirectly via this phone/tablet.
+
+In contrast, the (relatively newer) Clarius support uses the Clarius OEM API which connects directly with the probe using the Bluetooth Low Energy (BLE) and Wi-Fi interfaces of the PC running PLUS. This device also exposes US controls for the Clarius, and real-time battery / button state streaming accessible as MRML node attributes on the Image node in 3D Slicer. The primary limitation of this interface is that for now it's only available on Windows. If possible, we recommend using this device. Documentation for the OEM API based PLUS device is available at \ref DeviceClariusOEM
 
 \section ClariusSupportedHwDevices Supported hardware devices
 
-- This device is used for image acquisition from Clarius ultrasound systems.
+- This device is used for image acquisition from Clarius ultrasound systems using the CAST API.
 - Link to manufacturer's website: https://clarius.com
+- Link to the CAST API: https://github.com/clariusdev/cast
 
 \section ClariusSupportedPlatforms Supported platforms
 

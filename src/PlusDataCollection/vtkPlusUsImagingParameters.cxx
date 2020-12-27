@@ -16,6 +16,9 @@ vtkStandardNewMacro(vtkPlusUsImagingParameters);
 //----------------------------------------------------------------------------
 
 const char* vtkPlusUsImagingParameters::XML_ELEMENT_TAG   = "UsImagingParameters";
+const char* vtkPlusUsImagingParameters::US_PARAMETER_TAG  = "UsParameter";
+const char* vtkPlusUsImagingParameters::NAME_TAG          = "name";
+const char* vtkPlusUsImagingParameters::VALUE_TAG         = "value";
 const char* vtkPlusUsImagingParameters::KEY_CONTRAST      = "Contrast";
 const char* vtkPlusUsImagingParameters::KEY_DEPTH         = "DepthMm";
 const char* vtkPlusUsImagingParameters::KEY_FOCUS_DEPTH   = "FocusDepthPercent";
@@ -466,8 +469,8 @@ PlusStatus vtkPlusUsImagingParameters::ReadConfiguration(vtkXMLDataElement* devi
   for (int i = 0; i < parameterList->GetNumberOfNestedElements(); ++i)
   {
     vtkXMLDataElement* element = parameterList->GetNestedElement(i);
-    std::string name = element->GetAttribute("name") ? element->GetAttribute("name") : "";
-    std::string value = element->GetAttribute("value") ? element->GetAttribute("value") : "";
+    std::string name = element->GetAttribute(NAME_TAG) ? element->GetAttribute(NAME_TAG) : "";
+    std::string value = element->GetAttribute(VALUE_TAG) ? element->GetAttribute(VALUE_TAG) : "";
     if (name.empty())
     {
       continue;
@@ -512,9 +515,9 @@ PlusStatus vtkPlusUsImagingParameters::WriteConfiguration(vtkXMLDataElement* dev
     }
 
     vtkSmartPointer<vtkXMLDataElement> parameter = vtkSmartPointer<vtkXMLDataElement>::New();
-    parameter->SetName("UsParameter");
-    parameter->SetAttribute("name", it->first.c_str());
-    parameter->SetAttribute("value", it->second.Value.c_str());
+    parameter->SetName(US_PARAMETER_TAG);
+    parameter->SetAttribute(NAME_TAG, it->first.c_str());
+    parameter->SetAttribute(VALUE_TAG, it->second.Value.c_str());
 
     parameterList->AddNestedElement(parameter);
   }

@@ -20,7 +20,7 @@ Current devices include
     - \xmlAtt \b DynRangeDb DynRange \c [dB] of B-mode ultrasound. If not specified the current value is kept. \OptionalAtt{ }
     - \xmlAtt \b FrequencyMhz Ultrasound transmitter frequency \c [MHz] If not specified then the current setting is used.\OptionalAtt{ }
     - \xmlAtt \b GainPercent \c [%] of B-mode ultrasound; valid range: 0-100. If not specified then the current setting is used.\OptionalAtt{ }
-    - \xmlAtt \b TimeGainCompensation Time gain compensation \c [N int values] If not specified then the current setting is used.\OptionalAtt{ }
+    - \xmlAtt \b TimeGainCompensation \c [dB] Time gain compensation \c [N int values] If not specified then the current setting is used.\OptionalAtt{ }
     - \xmlAtt \b Intensity Is the intensity of B-mode ultrasound that is used to create the LUT. \OptionalAtt{128}
     - \xmlAtt \b Sector \c [%] of B-mode ultrasound; valid range: 0-100. If not specified the current value is kept. \OptionalAtt{ }
     - \xmlAtt \b ZoomFactor Zoom \c [%] of B-mode ultrasound; valid range: 0-100. If not specified then the current setting is used. \OptionalAtt{ }
