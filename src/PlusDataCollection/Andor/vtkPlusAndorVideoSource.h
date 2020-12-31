@@ -197,6 +197,10 @@ public:
   vtkPlusAndorVideoSource(const vtkPlusAndorVideoSource&) = delete;
   void operator=(const vtkPlusAndorVideoSource&) = delete;
 
+  /*! Flag whether to call ApplyCosmicRayCorrection of BLI acquisitions or not. */
+  PlusStatus SetUseCosmicRayCorrection(bool UseCosmicRayCorrection);
+  bool GetUseCosmicRayCorrection();
+
 protected:
   /*! Constructor */
   vtkPlusAndorVideoSource();
@@ -250,10 +254,6 @@ protected:
    */
   PlusStatus SetUseFrameCorrections(bool UseFrameCorrections);
   bool GetUseFrameCorrections();
-
-  /*! Flag whether to call ApplyCosmicRayCorrection of BLI acquisitions or not. */
-  PlusStatus SetUseCosmicRayCorrection(bool UseCosmicRayCorrection);
-  bool GetUseCosmicRayCorrection();
 
   /*! This will be triggered regularly if this->StartThreadForInternalUpdates is true.
    * Framerate is controlled by this->AcquisitionRate. This is meant for debugging.
