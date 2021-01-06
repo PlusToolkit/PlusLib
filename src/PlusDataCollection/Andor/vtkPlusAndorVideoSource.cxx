@@ -670,7 +670,7 @@ void vtkPlusAndorVideoSource::ApplyCosmicRayCorrection(int bin, cv::Mat& floatIm
 }
 
 // ----------------------------------------------------------------------------
-void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning)
+void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning, float exposureTime)
 {
   cv::Mat cvIMG(frameSize[0], frameSize[1], CV_16UC1, &rawFrame[0]); // uses rawFrame as buffer
   CorrectBadPixels(binning, cvIMG);
@@ -696,6 +696,9 @@ void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning)
   // Divide the image by the 32-bit floating point correction image
   cv::divide(result, cvFlatCorrection, result, 1, CV_32FC1);
   LOG_INFO("Applied multiplicative flat correction");
+
+  // Convert image from count to counts/seconds
+  cv::divide(result, exposureTime, result, 1, CV_32FC1);
   result.convertTo(cvIMG, CV_16UC1);
 }
 
@@ -709,7 +712,7 @@ PlusStatus vtkPlusAndorVideoSource::AcquireBLIFrame(int binning, int vsSpeed, in
 
   if(this->UseFrameCorrections)
   {
-    ApplyFrameCorrections(binning);
+    ApplyFrameCorrections(binning, exposureTime);
     AddFrameToDataSource(BLICorrected);
   }
 
@@ -726,7 +729,7 @@ PlusStatus vtkPlusAndorVideoSource::AcquireGrayscaleFrame(int binning, int vsSpe
 
   if(this->UseFrameCorrections)
   {
-    ApplyFrameCorrections(binning);
+    ApplyFrameCorrections(binning, exposureTime);
     AddFrameToDataSource(GrayCorrected);
   }
 
@@ -775,7 +778,7 @@ PlusStatus vtkPlusAndorVideoSource::SetBiasDarkCorrectionImage(const std::string
 {
   try
   {
-    cvBiasDarkCorrection = cv::imread(biasDarkFilePath, cv::IMREAD_GRAYSCALE);
+    cvBiasDarkCorrection = cv::imread(biasDarkFilePath, cv::IMREAD_UNCHANGED);
     if(cvBiasDarkCorrection.empty())
     {
       throw "Bias+dark correction image empty!";
@@ -794,7 +797,7 @@ PlusStatus vtkPlusAndorVideoSource::SetFlatCorrectionImage(std::string flatFileP
 {
   try
   {
-    cvFlatCorrection = cv::imread(flatFilePath, cv::IMREAD_GRAYSCALE);
+    cvFlatCorrection = cv::imread(flatFilePath, cv::IMREAD_UNCHANGED);
     if(cvFlatCorrection.empty())
     {
       throw "Flat correction image empty!";
@@ -991,6 +994,36 @@ PlusStatus vtkPlusAndorVideoSource::SetUseCosmicRayCorrection(bool useCosmicRayC
 bool vtkPlusAndorVideoSource::GetUseCosmicRayCorrection()
 {
   return this->UseCosmicRayCorrection;
+}
+
+// ----------------------------------------------------------------------------
+PlusStatus vtkPlusAndorVideoSource::SetCameraIntrinsics(std::array<double, 9> intrinsics)
+{
+  std::copy(std::begin(intrinsics), std::end(intrinsics), this->cameraIntrinsics);
+  return PLUS_SUCCESS;
+}
+
+// ----------------------------------------------------------------------------
+std::array<double, 9> vtkPlusAndorVideoSource::GetCameraIntrinsics()
+{
+  std::array<double, 9> returnIntrinsics;
+  std::copy(this->cameraIntrinsics, this->cameraIntrinsics + 9, std::begin(returnIntrinsics));
+  return returnIntrinsics;
+}
+
+// ----------------------------------------------------------------------------
+PlusStatus vtkPlusAndorVideoSource::SetDistanceCoefficients(std::array<double, 4> coefficients)
+{
+  std::copy(std::begin(coefficients), std::end(coefficients), this->distanceCoefficients);
+  return PLUS_SUCCESS;
+}
+
+// ----------------------------------------------------------------------------
+std::array<double, 4> vtkPlusAndorVideoSource::GetDistanceCoefficients()
+{
+  std::array<double, 4> returnCoefficients;
+  std::copy(this->distanceCoefficients, this->distanceCoefficients + 4, std::begin(returnCoefficients));
+  return returnCoefficients;
 }
 
 // ----------------------------------------------------------------------------

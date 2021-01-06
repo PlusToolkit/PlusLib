@@ -159,6 +159,12 @@ public:
     return flatCorrection;
   }
 
+  /*! Data for setting undistortion coefficients. */
+  PlusStatus SetCameraIntrinsics(std::array<double, 9> intrinsics);
+  std::array<double, 9> GetCameraIntrinsics();
+  PlusStatus SetDistanceCoefficients(std::array<double, 4> coefficients);
+  std::array<double, 4> GetDistanceCoefficients();
+
   /*! -1 uses currently active settings. */
   PlusStatus AcquireBLIFrame(int binning, int vsSpeed, int hsSpeed, float exposureTime);
 
@@ -247,7 +253,7 @@ protected:
   void ApplyCosmicRayCorrection(int binning, cv::Mat& floatImage);
 
   /*! Applies bias correction for dark current, flat correction and lens distortion. */
-  void ApplyFrameCorrections(int binning);
+  void ApplyFrameCorrections(int binning, float exposureTime);
 
   /*! Flag whether to call ApplyFrameCorrections on the raw acquired frame on acquisition
       or to skip frame corrections.
