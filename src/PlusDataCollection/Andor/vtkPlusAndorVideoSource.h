@@ -211,6 +211,12 @@ public:
   PlusStatus SetUseCosmicRayCorrection(bool UseCosmicRayCorrection);
   bool GetUseCosmicRayCorrection();
 
+  /*! Check the status of the SDK. */
+  unsigned int GetCCDStatus();
+
+  /*! Check if the Andor CCD is acquiring. */
+  bool IsCCDAcquiring();
+
 protected:
   /*! Constructor */
   vtkPlusAndorVideoSource();

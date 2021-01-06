@@ -1247,6 +1247,22 @@ int vtkPlusAndorVideoSource::GetSafeTemperature()
 }
 
 // ----------------------------------------------------------------------------
+unsigned int vtkPlusAndorVideoSource::GetCCDStatus()
+{
+	int status;
+	GetStatus(&status);
+
+	return status;
+}
+
+// ----------------------------------------------------------------------------
+bool vtkPlusAndorVideoSource::IsCCDAcquiring()
+{
+	int status = GetCCDStatus();
+	return status == DRV_ACQUIRING;
+}
+
+// ----------------------------------------------------------------------------
 unsigned int vtkPlusAndorVideoSource::checkStatus(unsigned int returnStatus, std::string functionName)
 {
   if(returnStatus == DRV_SUCCESS)
