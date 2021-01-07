@@ -367,6 +367,10 @@ PlusStatus vtkPlusAndorVideoSource::InternalDisconnect()
   //   WaitForWarmup();
   // }
 
+  // in case we quit before an acquisition is complete, close the acquisition thread
+  checkStatus(::CancelWait(), "CancelWait");
+  checkStatus(::AbortAcquisition(), "AbortAcquisition");
+
   checkStatus(FreeInternalMemory(), "FreeInternalMemory");
 
   unsigned result = checkStatus(ShutDown(), "ShutDown");
@@ -487,32 +491,26 @@ void vtkPlusAndorVideoSource::WaitForWarmup()
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::AcquireFrame(float exposure, ShutterMode shutterMode, int binning, int vsSpeed, int hsSpeed)
+PlusStatus vtkPlusAndorVideoSource::AcquireFrame()
 {
-  checkStatus(::SetExposureTime(exposure), "SetExposureTime");
-  checkStatus(::SetShutter(1, shutterMode, 0, 0), "SetShutter");
+  checkStatus(::SetExposureTime(this->effectiveExpTime), "SetExposureTime");
+  checkStatus(::SetShutter(1, this->effectiveShutter, 0, 0), "SetShutter");
+  checkStatus(::SetImage(this->effectiveHBins, this->effectiveVBins, 1, 1024, 1, 1024), "Binning");
+  checkStatus(::SetVSSpeed(this->effectiveVSInd), "SetVSSpeed");
+  checkStatus(::SetHSSpeed(this->HSSpeed[0], this->effectiveHSInd), "SetHSSpeed");
 
-  int hbin = binning > 0 ? binning : this->HorizontalBins;
-  int vbin = binning > 0 ? binning : this->VerticalBins;
-  checkStatus(::SetImage(hbin, vbin, 1, 1024, 1, 1024), "Binning");
-  AdjustBuffers(hbin, vbin);
-
-  AdjustSpacing(hbin, vbin);
-
-  int vsInd = vsSpeed >= 0 ? vsSpeed : this->VSSpeed;
-  checkStatus(::SetVSSpeed(vsInd), "SetVSSpeed");
-
-  int hsInd = hsSpeed >= 0 ? hsSpeed : this->HSSpeed[1];
-  checkStatus(::SetHSSpeed(this->HSSpeed[0], hsInd), "SetHSSpeed");
+  AdjustBuffers(this->effectiveHBins, this->effectiveVBins);
+  AdjustSpacing(this->effectiveHBins, this->effectiveVBins);
 
   unsigned rawFrameSize = frameSize[0] * frameSize[1];
   rawFrame.resize(rawFrameSize, 0);
 
   checkStatus(StartAcquisition(), "StartAcquisition");
   unsigned result = checkStatus(WaitForAcquisition(), "WaitForAcquisition");
-  if(result == DRV_NO_NEW_DATA)   // Log a more specific log message for WaitForAcquisition
+  if(result != DRV_SUCCESS)
   {
-    LOG_ERROR("Non-Acquisition Event occurred.(e.g. CancelWait() called)");
+    LOG_ERROR("Acquisition failed or cancelled.");
+    return PLUS_FAIL;
   }
   this->currentTime = vtkIGSIOAccurateTimer::GetSystemTime();
 
@@ -703,54 +701,137 @@ void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning, float exposureT
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::AcquireBLIFrame(int binning, int vsSpeed, int hsSpeed, float exposureTime)
+PlusStatus vtkPlusAndorVideoSource::StartBLIFrameAcquisition(int binning, int vsSpeed, int hsSpeed, float exposureTime)
 {
-  WaitForCooldown();
-  AcquireFrame(exposureTime, ShutterMode::FullyAuto, binning, vsSpeed, hsSpeed);
-  ++this->FrameNumber;
-  AddFrameToDataSource(BLIRaw);
-
-  if(this->UseFrameCorrections)
+  if (this->threadID > -1)
   {
-    ApplyFrameCorrections(binning, exposureTime);
-    AddFrameToDataSource(BLICorrected);
+    LOG_ERROR("An acquisition thread is already running!");
+    return PLUS_FAIL;
   }
 
+  this->effectiveHBins = binning > 0 ? binning : this->HorizontalBins;
+  this->effectiveVBins = binning > 0 ? binning : this->VerticalBins;
+  this->effectiveVSInd = vsSpeed > -1 ? vsSpeed : this->VSSpeed;
+  this->effectiveHSInd = hsSpeed > -1 ? hsSpeed : this->HSSpeed[1];
+  this->effectiveExpTime = exposureTime > -1 ? exposureTime : this->ExposureTime;
+  this->effectiveShutter = ShutterMode::FullyAuto;
+
+  this->threadID = this->Threader->SpawnThread((vtkThreadFunctionType)&vtkPlusAndorVideoSource::AcquireBLIFrameThread, this);
   return PLUS_SUCCESS;
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::AcquireGrayscaleFrame(int binning, int vsSpeed, int hsSpeed, float exposureTime)
+void* vtkPlusAndorVideoSource::AcquireBLIFrameThread(vtkMultiThreader::ThreadInfo* info)
 {
-  WaitForCooldown();
-  AcquireFrame(exposureTime, ShutterMode::FullyAuto, binning, vsSpeed, hsSpeed);
-  ++this->FrameNumber;
-  AddFrameToDataSource(GrayRaw);
+  vtkPlusAndorVideoSource* device = static_cast<vtkPlusAndorVideoSource*>(info->UserData);
 
-  if(this->UseFrameCorrections)
+  device->WaitForCooldown();
+  if (device->AcquireFrame() == PLUS_FAIL)
   {
-    ApplyFrameCorrections(binning, exposureTime);
-    AddFrameToDataSource(GrayCorrected);
+    device->threadID = -1;
+    return NULL;
+  }
+  ++device->FrameNumber;
+  device->AddFrameToDataSource(device->BLIRaw);
+
+  if(device->UseFrameCorrections)
+  {
+    device->ApplyFrameCorrections(device->effectiveHBins, device->effectiveExpTime);
+    device->AddFrameToDataSource(device->BLICorrected);
   }
 
+  device->threadID = -1;
+  return NULL;
+}
+
+// ----------------------------------------------------------------------------
+PlusStatus vtkPlusAndorVideoSource::StartGrayscaleFrameAcquisition(int binning, int vsSpeed, int hsSpeed, float exposureTime)
+{
+  if (this->threadID > -1)
+  {
+    LOG_ERROR("An acquisition thread is already running!");
+    return PLUS_FAIL;
+  }
+
+  this->effectiveHBins = binning > 0 ? binning : this->HorizontalBins;
+  this->effectiveVBins = binning > 0 ? binning : this->VerticalBins;
+  this->effectiveVSInd = vsSpeed > -1 ? vsSpeed : this->VSSpeed;
+  this->effectiveHSInd = hsSpeed > -1 ? hsSpeed : this->HSSpeed[1];
+  this->effectiveExpTime = exposureTime > -1 ? exposureTime : this->ExposureTime;
+  this->effectiveShutter = ShutterMode::FullyAuto;
+
+  this->threadID = this->Threader->SpawnThread((vtkThreadFunctionType)&vtkPlusAndorVideoSource::AcquireGrayscaleFrameThread, this);
+  return PLUS_SUCCESS;
+
+}
+
+// ----------------------------------------------------------------------------
+void* vtkPlusAndorVideoSource::AcquireGrayscaleFrameThread(vtkMultiThreader::ThreadInfo* info)
+{
+  vtkPlusAndorVideoSource* device = static_cast<vtkPlusAndorVideoSource*>(info->UserData);
+
+  device->WaitForCooldown();
+  if (device->AcquireFrame() == PLUS_FAIL)
+  {
+    device->threadID = -1;
+    return NULL;
+  }
+  ++device->FrameNumber;
+  device->AddFrameToDataSource(device->GrayRaw);
+
+  if(device->UseFrameCorrections)
+  {
+    device->ApplyFrameCorrections(device->effectiveHBins, device->effectiveExpTime);
+    device->AddFrameToDataSource(device->GrayCorrected);
+  }
+
+  device->threadID = -1;
+  return NULL;
+}
+
+// ----------------------------------------------------------------------------
+PlusStatus vtkPlusAndorVideoSource::StartCorrectionFrameAcquisition(const std::string correctionFilePath, ShutterMode shutter, int binning, int vsSpeed, int hsSpeed, float exposureTime)
+{
+  if (this->threadID > -1)
+  {
+    LOG_ERROR("An acquisition thread is already running!");
+    return PLUS_FAIL;
+  }
+
+  this->effectiveHBins = binning > 0 ? binning : this->HorizontalBins;
+  this->effectiveVBins = binning > 0 ? binning : this->VerticalBins;
+  this->effectiveVSInd = vsSpeed > -1 ? vsSpeed : this->VSSpeed;
+  this->effectiveHSInd = hsSpeed > -1 ? hsSpeed : this->HSSpeed[1];
+  this->effectiveExpTime = exposureTime > -1 ? exposureTime : this->ExposureTime;
+  this->effectiveShutter = ShutterMode::FullyAuto;
+  this->saveCorrectionPath = correctionFilePath;
+
+  this->threadID = this->Threader->SpawnThread((vtkThreadFunctionType)&vtkPlusAndorVideoSource::AcquireCorrectionFrameThread, this);
   return PLUS_SUCCESS;
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::AcquireCorrectionFrame(const std::string correctionFilePath, ShutterMode shutter, int binning, int vsSpeed, int hsSpeed, float exposureTime)
+void* vtkPlusAndorVideoSource::AcquireCorrectionFrameThread(vtkMultiThreader::ThreadInfo* info)
 {
-  AcquireFrame(exposureTime, shutter, binning, vsSpeed, hsSpeed);
-  ++this->FrameNumber;
+  vtkPlusAndorVideoSource* device = static_cast<vtkPlusAndorVideoSource*>(info->UserData);
 
-  cv::Mat cvIMG(frameSize[0], frameSize[1], CV_16UC1, &rawFrame[0]); // uses rawFrame as buffer
-  if(this->UseFrameCorrections)
+  if (device->AcquireFrame() == PLUS_FAIL)
   {
-    CorrectBadPixels(binning, cvIMG);
+    device->threadID = -1;
+    return NULL;
+  }
+  ++device->FrameNumber;
+
+  cv::Mat cvIMG(device->frameSize[0], device->frameSize[1], CV_16UC1, &(device->rawFrame[0])); // uses rawFrame as buffer
+  if(device->UseFrameCorrections)
+  {
+    device->CorrectBadPixels(device->effectiveHBins, cvIMG);
     LOG_INFO("Applied bad pixel correction");
   }
 
-  cv::imwrite(correctionFilePath, cvIMG);
-  return PLUS_SUCCESS;
+  cv::imwrite(device->saveCorrectionPath, cvIMG);
+  device->threadID = -1;
+  return NULL;
 }
 
 //-----------------------------------------------------------------------------

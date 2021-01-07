@@ -9,6 +9,7 @@
 
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
+#include "vtkMultiThreader.h"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/imgcodecs.hpp"
 
@@ -166,13 +167,13 @@ public:
   std::array<double, 4> GetDistanceCoefficients();
 
   /*! -1 uses currently active settings. */
-  PlusStatus AcquireBLIFrame(int binning, int vsSpeed, int hsSpeed, float exposureTime);
+  PlusStatus StartBLIFrameAcquisition(int binning, int vsSpeed, int hsSpeed, float exposureTime);
 
   /*! -1 uses currently active settings. */
-  PlusStatus AcquireGrayscaleFrame(int binning, int vsSpeed, int hsSpeed, float exposureTime);
+  PlusStatus StartGrayscaleFrameAcquisition(int binning, int vsSpeed, int hsSpeed, float exposureTime);
 
   /*! Convenience function to save a bias frame for a certain binning/speed configuration. */
-  PlusStatus AcquireCorrectionFrame(std::string correctionFilePath, ShutterMode shutter, int binning, int vsSpeed, int hsSpeed, float exposureTime);
+  PlusStatus StartCorrectionFrameAcquisition(std::string correctionFilePath, ShutterMode shutter, int binning, int vsSpeed, int hsSpeed, float exposureTime);
 
   /*! Cooler Mode control. When CoolerMode is set on, the cooler
       will be kept on when the camera is shutdown. This is helpful to
@@ -238,7 +239,7 @@ protected:
   void AdjustSpacing(int horizontalBins, int verticalBins);
 
   /*! Acquire a single frame using current parameters. Data is put in the frameBuffer ivar. */
-  PlusStatus AcquireFrame(float exposure, ShutterMode shutterMode, int binning, int vsSpeed, int hsSpeed);
+  PlusStatus AcquireFrame();
 
   /*! Data from the frameBuffer ivar is added to the provided data source. */
   void AddFrameToDataSource(DataSourceArray& ds);
@@ -255,6 +256,10 @@ protected:
   /*! Applies bias correction for dark current, flat correction and lens distortion. */
   void ApplyFrameCorrections(int binning, float exposureTime);
 
+  static void* AcquireBLIFrameThread(vtkMultiThreader::ThreadInfo* info);
+  static void* AcquireGrayscaleFrameThread(vtkMultiThreader::ThreadInfo* info);
+  static void* AcquireCorrectionFrameThread(vtkMultiThreader::ThreadInfo* info);
+
   /*! Flag whether to call ApplyFrameCorrections on the raw acquired frame on acquisition
       or to skip frame corrections.
    */
@@ -266,7 +271,7 @@ protected:
    */
   PlusStatus InternalUpdate() override
   {
-    AcquireGrayscaleFrame(-1, -1, -1, -1);
+    StartGrayscaleFrameAcquisition(-1, -1, -1, -1);
     return PLUS_SUCCESS;
   }
 
@@ -286,6 +291,7 @@ protected:
   PlusStatus TurnCoolerON();
   PlusStatus TurnCoolerOFF();
 
+  /*! Internal variables. */
   vtkPlusAndorVideoSource::ShutterMode Shutter = ShutterMode::FullyAuto;
   float ExposureTime = 1.0; // seconds
   int HorizontalBins = 1;
@@ -295,6 +301,14 @@ protected:
   int PreAmpGain = 0;
   bool UseFrameCorrections = true;
   bool UseCosmicRayCorrection = true;
+
+  /*! Acquisition parameters used in the acquisition thread. */
+  float effectiveExpTime = 1.0; // seconds
+  int effectiveHBins = 1;
+  int effectiveVBins = 1;
+  int effectiveHSInd = 1;  // index
+  int effectiveVSInd = 1;  // index
+  vtkPlusAndorVideoSource::ShutterMode effectiveShutter = ShutterMode::FullyAuto;
 
   // TODO: Need to handle differet cases for read/acquisiton modes?
 
@@ -325,6 +339,7 @@ protected:
   std::string badPixelCorrection; //filepath to bad pixel image
   std::string flatCorrection; // filepath to master flat image
   std::string biasDarkCorrection; // filepath to master bias+dark image
+  std::string saveCorrectionPath; // filepath to save new correction images
 
   DataSourceArray BLIRaw;
   DataSourceArray BLICorrected;
@@ -334,6 +349,10 @@ protected:
   double OutputSpacing[3] = { 0 };
 
   igsioFieldMapType CustomFields;
+
+  /*! Use a separate thread for acquisition tasks. */
+  vtkMultiThreader* Threader = vtkMultiThreader::New();
+  int threadID = -1;
 };
 
 #endif
