@@ -17,7 +17,7 @@ vtkStandardNewMacro(vtkPlusAndorVideoSource);
 
 // put these here so there is no public dependence on OpenCV
 cv::Mat cvCameraIntrinsics;
-cv::Mat cvDistanceCoefficients;
+cv::Mat cvDistortionCoefficients;
 cv::Mat cvBadPixelImage;
 cv::Mat cvFlatCorrection;
 cv::Mat cvBiasDarkCorrection;
@@ -45,7 +45,7 @@ void vtkPlusAndorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "SafeTemperature: " << SafeTemperature << std::endl;
   os << indent << "CurrentTemperature: " << CurrentTemperature << std::endl;
   os << indent << "CameraIntrinsics: " << cvCameraIntrinsics << std::endl;
-  os << indent << "DistanceCoefficients: " << cvDistanceCoefficients << std::endl;
+  os << indent << "DistortionCoefficients: " << cvDistortionCoefficients << std::endl;
   os << indent << "UseFrameCorrections: " << UseFrameCorrections << std::endl;
   os << indent << "UseCosmicRayCorrection: " << UseCosmicRayCorrection << std::endl;
   os << indent << "FlatCorrection: " << flatCorrection << std::endl;
@@ -134,13 +134,13 @@ PlusStatus vtkPlusAndorVideoSource::ReadConfiguration(vtkXMLDataElement* rootCon
   deviceConfig->GetVectorAttribute("HSSpeed", 2, HSSpeed);
   deviceConfig->GetVectorAttribute("OutputSpacing", 3, OutputSpacing);
   deviceConfig->GetVectorAttribute("CameraIntrinsics", 9, cameraIntrinsics);
-  deviceConfig->GetVectorAttribute("DistanceCoefficients", 4, distanceCoefficients);
+  deviceConfig->GetVectorAttribute("DistortionCoefficients", 4, distortionCoefficients);
   badPixelCorrection = deviceConfig->GetAttribute("BadPixelCorrection");
   flatCorrection = deviceConfig->GetAttribute("FlatCorrection");
   biasDarkCorrection = deviceConfig->GetAttribute("BiasDarkCorrection");
 
   cvCameraIntrinsics = cv::Mat(3, 3, CV_64FC1, cameraIntrinsics);
-  cvDistanceCoefficients = cv::Mat(1, 4, CV_64FC1, distanceCoefficients);
+  cvDistortionCoefficients = cv::Mat(1, 4, CV_64FC1, distortionCoefficients);
   this->SetBadPixelCorrectionImage(badPixelCorrection); // load the image
   this->SetFlatCorrectionImage(flatCorrection); // load and normalize if needed
   this->SetBiasDarkCorrectionImage(biasDarkCorrection); // load the image
@@ -169,7 +169,7 @@ PlusStatus vtkPlusAndorVideoSource::WriteConfiguration(vtkXMLDataElement* rootCo
   deviceConfig->SetVectorAttribute("HSSpeed", 2, HSSpeed);
   deviceConfig->SetVectorAttribute("OutputSpacing", 3, OutputSpacing);
   deviceConfig->SetVectorAttribute("CameraIntrinsics", 9, cameraIntrinsics);
-  deviceConfig->SetVectorAttribute("DistanceCoefficients", 4, distanceCoefficients);
+  deviceConfig->SetVectorAttribute("DistortionCoefficients", 4, distortionCoefficients);
   deviceConfig->SetAttribute("FlatCorrection", flatCorrection.c_str());
   deviceConfig->SetAttribute("BiasDarkCorrection", biasDarkCorrection.c_str());
   deviceConfig->SetAttribute("BadPixelCorrection", badPixelCorrection.c_str());
@@ -687,7 +687,7 @@ void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning, float exposureT
   }
 
   // OpenCV's lens distortion correction
-  cv::undistort(floatImage, result, cvCameraIntrinsics, cvDistanceCoefficients);
+  cv::undistort(floatImage, result, cvCameraIntrinsics, cvDistortionCoefficients);
   LOG_INFO("Applied lens distortion correction");
 
   // Divide the image by the 32-bit floating point correction image
@@ -1105,17 +1105,17 @@ std::array<double, 9> vtkPlusAndorVideoSource::GetCameraIntrinsics()
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::SetDistanceCoefficients(std::array<double, 4> coefficients)
+PlusStatus vtkPlusAndorVideoSource::SetDistortionCoefficients(std::array<double, 4> coefficients)
 {
-  std::copy(std::begin(coefficients), std::end(coefficients), this->distanceCoefficients);
+  std::copy(std::begin(coefficients), std::end(coefficients), this->distortionCoefficients);
   return PLUS_SUCCESS;
 }
 
 // ----------------------------------------------------------------------------
-std::array<double, 4> vtkPlusAndorVideoSource::GetDistanceCoefficients()
+std::array<double, 4> vtkPlusAndorVideoSource::GetDistortionCoefficients()
 {
   std::array<double, 4> returnCoefficients;
-  std::copy(this->distanceCoefficients, this->distanceCoefficients + 4, std::begin(returnCoefficients));
+  std::copy(this->distortionCoefficients, this->distortionCoefficients + 4, std::begin(returnCoefficients));
   return returnCoefficients;
 }
 

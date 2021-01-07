@@ -163,8 +163,8 @@ public:
   /*! Data for setting undistortion coefficients. */
   PlusStatus SetCameraIntrinsics(std::array<double, 9> intrinsics);
   std::array<double, 9> GetCameraIntrinsics();
-  PlusStatus SetDistanceCoefficients(std::array<double, 4> coefficients);
-  std::array<double, 4> GetDistanceCoefficients();
+  PlusStatus SetDistortionCoefficients(std::array<double, 4> coefficients);
+  std::array<double, 4> GetDistortionCoefficients();
 
   /*! -1 uses currently active settings. */
   PlusStatus StartBLIFrameAcquisition(int binning, int vsSpeed, int hsSpeed, float exposureTime);
@@ -344,7 +344,7 @@ protected:
   // {0}{f_y}{c_y}
   // {0}{0}{1}
   double cameraIntrinsics[9] = { 0 };
-  double distanceCoefficients[4] = { 0 }; // k_1, k_2, p_1, p_2
+  double distortionCoefficients[4] = { 0 }; // k_1, k_2, p_1, p_2
   std::string badPixelCorrection; //filepath to bad pixel image
   std::string flatCorrection; // filepath to master flat image
   std::string biasDarkCorrection; // filepath to master bias+dark image
