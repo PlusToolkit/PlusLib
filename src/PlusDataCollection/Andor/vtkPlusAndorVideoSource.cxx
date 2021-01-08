@@ -17,7 +17,7 @@ vtkStandardNewMacro(vtkPlusAndorVideoSource);
 
 // put these here so there is no public dependence on OpenCV
 cv::Mat cvCameraIntrinsics;
-cv::Mat cvDistanceCoefficients;
+cv::Mat cvDistortionCoefficients;
 cv::Mat cvBadPixelImage;
 cv::Mat cvFlatCorrection;
 cv::Mat cvBiasDarkCorrection;
@@ -45,7 +45,7 @@ void vtkPlusAndorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "SafeTemperature: " << SafeTemperature << std::endl;
   os << indent << "CurrentTemperature: " << CurrentTemperature << std::endl;
   os << indent << "CameraIntrinsics: " << cvCameraIntrinsics << std::endl;
-  os << indent << "DistanceCoefficients: " << cvDistanceCoefficients << std::endl;
+  os << indent << "DistortionCoefficients: " << cvDistortionCoefficients << std::endl;
   os << indent << "UseFrameCorrections: " << UseFrameCorrections << std::endl;
   os << indent << "UseCosmicRayCorrection: " << UseCosmicRayCorrection << std::endl;
   os << indent << "FlatCorrection: " << flatCorrection << std::endl;
@@ -134,13 +134,13 @@ PlusStatus vtkPlusAndorVideoSource::ReadConfiguration(vtkXMLDataElement* rootCon
   deviceConfig->GetVectorAttribute("HSSpeed", 2, HSSpeed);
   deviceConfig->GetVectorAttribute("OutputSpacing", 3, OutputSpacing);
   deviceConfig->GetVectorAttribute("CameraIntrinsics", 9, cameraIntrinsics);
-  deviceConfig->GetVectorAttribute("DistanceCoefficients", 4, distanceCoefficients);
+  deviceConfig->GetVectorAttribute("DistortionCoefficients", 4, distortionCoefficients);
   badPixelCorrection = deviceConfig->GetAttribute("BadPixelCorrection");
   flatCorrection = deviceConfig->GetAttribute("FlatCorrection");
   biasDarkCorrection = deviceConfig->GetAttribute("BiasDarkCorrection");
 
   cvCameraIntrinsics = cv::Mat(3, 3, CV_64FC1, cameraIntrinsics);
-  cvDistanceCoefficients = cv::Mat(1, 4, CV_64FC1, distanceCoefficients);
+  cvDistortionCoefficients = cv::Mat(1, 4, CV_64FC1, distortionCoefficients);
   this->SetBadPixelCorrectionImage(badPixelCorrection); // load the image
   this->SetFlatCorrectionImage(flatCorrection); // load and normalize if needed
   this->SetBiasDarkCorrectionImage(biasDarkCorrection); // load the image
@@ -169,7 +169,7 @@ PlusStatus vtkPlusAndorVideoSource::WriteConfiguration(vtkXMLDataElement* rootCo
   deviceConfig->SetVectorAttribute("HSSpeed", 2, HSSpeed);
   deviceConfig->SetVectorAttribute("OutputSpacing", 3, OutputSpacing);
   deviceConfig->SetVectorAttribute("CameraIntrinsics", 9, cameraIntrinsics);
-  deviceConfig->SetVectorAttribute("DistanceCoefficients", 4, distanceCoefficients);
+  deviceConfig->SetVectorAttribute("DistortionCoefficients", 4, distortionCoefficients);
   deviceConfig->SetAttribute("FlatCorrection", flatCorrection.c_str());
   deviceConfig->SetAttribute("BiasDarkCorrection", biasDarkCorrection.c_str());
   deviceConfig->SetAttribute("BadPixelCorrection", badPixelCorrection.c_str());
@@ -367,6 +367,9 @@ PlusStatus vtkPlusAndorVideoSource::InternalDisconnect()
   //   WaitForWarmup();
   // }
 
+  // in case we quit before an acquisition is complete, close the acquisition thread
+  AbortAcquisition();
+
   checkStatus(FreeInternalMemory(), "FreeInternalMemory");
 
   unsigned result = checkStatus(ShutDown(), "ShutDown");
@@ -487,32 +490,26 @@ void vtkPlusAndorVideoSource::WaitForWarmup()
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::AcquireFrame(float exposure, ShutterMode shutterMode, int binning, int vsSpeed, int hsSpeed)
+PlusStatus vtkPlusAndorVideoSource::AcquireFrame()
 {
-  checkStatus(::SetExposureTime(exposure), "SetExposureTime");
-  checkStatus(::SetShutter(1, shutterMode, 0, 0), "SetShutter");
+  checkStatus(::SetExposureTime(this->effectiveExpTime), "SetExposureTime");
+  checkStatus(::SetShutter(1, this->effectiveShutter, 0, 0), "SetShutter");
+  checkStatus(::SetImage(this->effectiveHBins, this->effectiveVBins, 1, 1024, 1, 1024), "Binning");
+  checkStatus(::SetVSSpeed(this->effectiveVSInd), "SetVSSpeed");
+  checkStatus(::SetHSSpeed(this->HSSpeed[0], this->effectiveHSInd), "SetHSSpeed");
 
-  int hbin = binning > 0 ? binning : this->HorizontalBins;
-  int vbin = binning > 0 ? binning : this->VerticalBins;
-  checkStatus(::SetImage(hbin, vbin, 1, 1024, 1, 1024), "Binning");
-  AdjustBuffers(hbin, vbin);
-
-  AdjustSpacing(hbin, vbin);
-
-  int vsInd = vsSpeed >= 0 ? vsSpeed : this->VSSpeed;
-  checkStatus(::SetVSSpeed(vsInd), "SetVSSpeed");
-
-  int hsInd = hsSpeed >= 0 ? hsSpeed : this->HSSpeed[1];
-  checkStatus(::SetHSSpeed(this->HSSpeed[0], hsInd), "SetHSSpeed");
+  AdjustBuffers(this->effectiveHBins, this->effectiveVBins);
+  AdjustSpacing(this->effectiveHBins, this->effectiveVBins);
 
   unsigned rawFrameSize = frameSize[0] * frameSize[1];
   rawFrame.resize(rawFrameSize, 0);
 
   checkStatus(StartAcquisition(), "StartAcquisition");
   unsigned result = checkStatus(WaitForAcquisition(), "WaitForAcquisition");
-  if(result == DRV_NO_NEW_DATA)   // Log a more specific log message for WaitForAcquisition
+  if(result != DRV_SUCCESS)
   {
-    LOG_ERROR("Non-Acquisition Event occurred.(e.g. CancelWait() called)");
+    LOG_ERROR("Acquisition failed or cancelled.");
+    return PLUS_FAIL;
   }
   this->currentTime = vtkIGSIOAccurateTimer::GetSystemTime();
 
@@ -690,7 +687,7 @@ void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning, float exposureT
   }
 
   // OpenCV's lens distortion correction
-  cv::undistort(floatImage, result, cvCameraIntrinsics, cvDistanceCoefficients);
+  cv::undistort(floatImage, result, cvCameraIntrinsics, cvDistortionCoefficients);
   LOG_INFO("Applied lens distortion correction");
 
   // Divide the image by the 32-bit floating point correction image
@@ -703,53 +700,149 @@ void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning, float exposureT
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::AcquireBLIFrame(int binning, int vsSpeed, int hsSpeed, float exposureTime)
+PlusStatus vtkPlusAndorVideoSource::StartBLIFrameAcquisition(int binning, int vsSpeed, int hsSpeed, float exposureTime)
 {
-  WaitForCooldown();
-  AcquireFrame(exposureTime, ShutterMode::FullyAuto, binning, vsSpeed, hsSpeed);
-  ++this->FrameNumber;
-  AddFrameToDataSource(BLIRaw);
-
-  if(this->UseFrameCorrections)
+  if (this->threadID > -1)
   {
-    ApplyFrameCorrections(binning, exposureTime);
-    AddFrameToDataSource(BLICorrected);
+    LOG_ERROR("An acquisition thread is already running!");
+    return PLUS_FAIL;
   }
 
+  this->effectiveHBins = binning > 0 ? binning : this->HorizontalBins;
+  this->effectiveVBins = binning > 0 ? binning : this->VerticalBins;
+  this->effectiveVSInd = vsSpeed > -1 ? vsSpeed : this->VSSpeed;
+  this->effectiveHSInd = hsSpeed > -1 ? hsSpeed : this->HSSpeed[1];
+  this->effectiveExpTime = exposureTime > -1 ? exposureTime : this->ExposureTime;
+  this->effectiveShutter = ShutterMode::FullyAuto;
+
+  this->threadID = this->Threader->SpawnThread((vtkThreadFunctionType)&vtkPlusAndorVideoSource::AcquireBLIFrameThread, this);
   return PLUS_SUCCESS;
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::AcquireGrayscaleFrame(int binning, int vsSpeed, int hsSpeed, float exposureTime)
+void* vtkPlusAndorVideoSource::AcquireBLIFrameThread(vtkMultiThreader::ThreadInfo* info)
 {
-  WaitForCooldown();
-  AcquireFrame(exposureTime, ShutterMode::FullyAuto, binning, vsSpeed, hsSpeed);
-  ++this->FrameNumber;
-  AddFrameToDataSource(GrayRaw);
+  vtkPlusAndorVideoSource* device = static_cast<vtkPlusAndorVideoSource*>(info->UserData);
 
-  if(this->UseFrameCorrections)
+  device->WaitForCooldown();
+  if (device->AcquireFrame() == PLUS_FAIL)
   {
-    ApplyFrameCorrections(binning, exposureTime);
-    AddFrameToDataSource(GrayCorrected);
+    device->threadID = -1;
+    return NULL;
+  }
+  ++device->FrameNumber;
+  device->AddFrameToDataSource(device->BLIRaw);
+
+  if(device->UseFrameCorrections)
+  {
+    device->ApplyFrameCorrections(device->effectiveHBins, device->effectiveExpTime);
+    device->AddFrameToDataSource(device->BLICorrected);
   }
 
+  device->threadID = -1;
+  return NULL;
+}
+
+// ----------------------------------------------------------------------------
+PlusStatus vtkPlusAndorVideoSource::StartGrayscaleFrameAcquisition(int binning, int vsSpeed, int hsSpeed, float exposureTime)
+{
+  if (this->threadID > -1)
+  {
+    LOG_ERROR("An acquisition thread is already running!");
+    return PLUS_FAIL;
+  }
+
+  this->effectiveHBins = binning > 0 ? binning : this->HorizontalBins;
+  this->effectiveVBins = binning > 0 ? binning : this->VerticalBins;
+  this->effectiveVSInd = vsSpeed > -1 ? vsSpeed : this->VSSpeed;
+  this->effectiveHSInd = hsSpeed > -1 ? hsSpeed : this->HSSpeed[1];
+  this->effectiveExpTime = exposureTime > -1 ? exposureTime : this->ExposureTime;
+  this->effectiveShutter = ShutterMode::FullyAuto;
+
+  this->threadID = this->Threader->SpawnThread((vtkThreadFunctionType)&vtkPlusAndorVideoSource::AcquireGrayscaleFrameThread, this);
+  return PLUS_SUCCESS;
+
+}
+
+// ----------------------------------------------------------------------------
+void* vtkPlusAndorVideoSource::AcquireGrayscaleFrameThread(vtkMultiThreader::ThreadInfo* info)
+{
+  vtkPlusAndorVideoSource* device = static_cast<vtkPlusAndorVideoSource*>(info->UserData);
+
+  device->WaitForCooldown();
+  if (device->AcquireFrame() == PLUS_FAIL)
+  {
+    device->threadID = -1;
+    return NULL;
+  }
+  ++device->FrameNumber;
+  device->AddFrameToDataSource(device->GrayRaw);
+
+  if(device->UseFrameCorrections)
+  {
+    device->ApplyFrameCorrections(device->effectiveHBins, device->effectiveExpTime);
+    device->AddFrameToDataSource(device->GrayCorrected);
+  }
+
+  device->threadID = -1;
+  return NULL;
+}
+
+// ----------------------------------------------------------------------------
+PlusStatus vtkPlusAndorVideoSource::StartCorrectionFrameAcquisition(const std::string correctionFilePath, ShutterMode shutter, int binning, int vsSpeed, int hsSpeed, float exposureTime)
+{
+  if (this->threadID > -1)
+  {
+    LOG_ERROR("An acquisition thread is already running!");
+    return PLUS_FAIL;
+  }
+
+  this->effectiveHBins = binning > 0 ? binning : this->HorizontalBins;
+  this->effectiveVBins = binning > 0 ? binning : this->VerticalBins;
+  this->effectiveVSInd = vsSpeed > -1 ? vsSpeed : this->VSSpeed;
+  this->effectiveHSInd = hsSpeed > -1 ? hsSpeed : this->HSSpeed[1];
+  this->effectiveExpTime = exposureTime > -1 ? exposureTime : this->ExposureTime;
+  this->effectiveShutter = ShutterMode::FullyAuto;
+  this->saveCorrectionPath = correctionFilePath;
+
+  this->threadID = this->Threader->SpawnThread((vtkThreadFunctionType)&vtkPlusAndorVideoSource::AcquireCorrectionFrameThread, this);
   return PLUS_SUCCESS;
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::AcquireCorrectionFrame(const std::string correctionFilePath, ShutterMode shutter, int binning, int vsSpeed, int hsSpeed, float exposureTime)
+void* vtkPlusAndorVideoSource::AcquireCorrectionFrameThread(vtkMultiThreader::ThreadInfo* info)
 {
-  AcquireFrame(exposureTime, shutter, binning, vsSpeed, hsSpeed);
-  ++this->FrameNumber;
+  vtkPlusAndorVideoSource* device = static_cast<vtkPlusAndorVideoSource*>(info->UserData);
 
-  cv::Mat cvIMG(frameSize[0], frameSize[1], CV_16UC1, &rawFrame[0]); // uses rawFrame as buffer
-  if(this->UseFrameCorrections)
+  if (device->AcquireFrame() == PLUS_FAIL)
   {
-    CorrectBadPixels(binning, cvIMG);
+    device->threadID = -1;
+    return NULL;
+  }
+  ++device->FrameNumber;
+
+  cv::Mat cvIMG(device->frameSize[0], device->frameSize[1], CV_16UC1, &(device->rawFrame[0])); // uses rawFrame as buffer
+  if(device->UseFrameCorrections)
+  {
+    device->CorrectBadPixels(device->effectiveHBins, cvIMG);
     LOG_INFO("Applied bad pixel correction");
   }
 
-  cv::imwrite(correctionFilePath, cvIMG);
+  cv::imwrite(device->saveCorrectionPath, cvIMG);
+  device->threadID = -1;
+  return NULL;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkPlusAndorVideoSource::AbortAcquisition()
+{
+  checkStatus(::CancelWait(), "CancelWait");
+  unsigned result = checkStatus(::AbortAcquisition(), "AbortAcquisition");
+  if ((result != DRV_SUCCESS) && (result != DRV_IDLE))
+  {
+    LOG_ERROR("Unable to abort acquisition.");
+    return PLUS_FAIL;
+  }
   return PLUS_SUCCESS;
 }
 
@@ -1012,17 +1105,17 @@ std::array<double, 9> vtkPlusAndorVideoSource::GetCameraIntrinsics()
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::SetDistanceCoefficients(std::array<double, 4> coefficients)
+PlusStatus vtkPlusAndorVideoSource::SetDistortionCoefficients(std::array<double, 4> coefficients)
 {
-  std::copy(std::begin(coefficients), std::end(coefficients), this->distanceCoefficients);
+  std::copy(std::begin(coefficients), std::end(coefficients), this->distortionCoefficients);
   return PLUS_SUCCESS;
 }
 
 // ----------------------------------------------------------------------------
-std::array<double, 4> vtkPlusAndorVideoSource::GetDistanceCoefficients()
+std::array<double, 4> vtkPlusAndorVideoSource::GetDistortionCoefficients()
 {
   std::array<double, 4> returnCoefficients;
-  std::copy(this->distanceCoefficients, this->distanceCoefficients + 4, std::begin(returnCoefficients));
+  std::copy(this->distortionCoefficients, this->distortionCoefficients + 4, std::begin(returnCoefficients));
   return returnCoefficients;
 }
 
@@ -1151,6 +1244,22 @@ PlusStatus vtkPlusAndorVideoSource::SetSafeTemperature(int safeTemp)
 int vtkPlusAndorVideoSource::GetSafeTemperature()
 {
   return this->SafeTemperature;
+}
+
+// ----------------------------------------------------------------------------
+unsigned int vtkPlusAndorVideoSource::GetCCDStatus()
+{
+	int status;
+	GetStatus(&status);
+
+	return status;
+}
+
+// ----------------------------------------------------------------------------
+bool vtkPlusAndorVideoSource::IsCCDAcquiring()
+{
+	int status = GetCCDStatus();
+	return status == DRV_ACQUIRING;
 }
 
 // ----------------------------------------------------------------------------
