@@ -368,8 +368,7 @@ PlusStatus vtkPlusAndorVideoSource::InternalDisconnect()
   // }
 
   // in case we quit before an acquisition is complete, close the acquisition thread
-  checkStatus(::CancelWait(), "CancelWait");
-  checkStatus(::AbortAcquisition(), "AbortAcquisition");
+  AbortAcquisition();
 
   checkStatus(FreeInternalMemory(), "FreeInternalMemory");
 
@@ -832,6 +831,19 @@ void* vtkPlusAndorVideoSource::AcquireCorrectionFrameThread(vtkMultiThreader::Th
   cv::imwrite(device->saveCorrectionPath, cvIMG);
   device->threadID = -1;
   return NULL;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkPlusAndorVideoSource::AbortAcquisition()
+{
+  checkStatus(::CancelWait(), "CancelWait");
+  unsigned result = checkStatus(::AbortAcquisition(), "AbortAcquisition");
+  if ((result != DRV_SUCCESS) && (result != DRV_IDLE))
+  {
+    LOG_ERROR("Unable to abort acquisition.");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------

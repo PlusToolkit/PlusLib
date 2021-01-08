@@ -175,6 +175,9 @@ public:
   /*! Convenience function to save a bias frame for a certain binning/speed configuration. */
   PlusStatus StartCorrectionFrameAcquisition(std::string correctionFilePath, ShutterMode shutter, int binning, int vsSpeed, int hsSpeed, float exposureTime);
 
+  /*! Abort the running acquisition process and thread. */
+  PlusStatus AbortAcquisition();
+
   /*! Cooler Mode control. When CoolerMode is set on, the cooler
       will be kept on when the camera is shutdown. This is helpful to
       reduce the number of cooling cycles the camera undergoes. Power loss to the camera
