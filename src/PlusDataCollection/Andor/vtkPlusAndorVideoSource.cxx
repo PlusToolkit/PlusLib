@@ -802,7 +802,7 @@ PlusStatus vtkPlusAndorVideoSource::StartCorrectionFrameAcquisition(const std::s
   this->effectiveVSInd = vsSpeed > -1 ? vsSpeed : this->VSSpeed;
   this->effectiveHSInd = hsSpeed > -1 ? hsSpeed : this->HSSpeed[1];
   this->effectiveExpTime = exposureTime > -1 ? exposureTime : this->ExposureTime;
-  this->effectiveShutter = ShutterMode::FullyAuto;
+  this->effectiveShutter = shutter;
   this->saveCorrectionPath = correctionFilePath;
 
   this->threadID = this->Threader->SpawnThread((vtkThreadFunctionType)&vtkPlusAndorVideoSource::AcquireCorrectionFrameThread, this);
