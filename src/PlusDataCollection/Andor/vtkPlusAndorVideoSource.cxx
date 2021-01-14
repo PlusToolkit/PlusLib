@@ -435,6 +435,13 @@ void vtkPlusAndorVideoSource::AdjustSpacing(int horizontalBins, int verticalBins
 }
 
 // ----------------------------------------------------------------------------
+PlusStatus vtkPlusAndorVideoSource::SetFrameFieldImageToReferenceTransform(std::array<float, 16> transform)
+{
+  this->imageToReferenceTransform = transform;
+  return PLUS_SUCCESS;
+}
+
+// ----------------------------------------------------------------------------
 std::vector<double> vtkPlusAndorVideoSource::GetSpacing(int horizontalBins, int verticalBins)
 {
   std::vector<double> spacing = { 0.0, 0.0, 1.0 };

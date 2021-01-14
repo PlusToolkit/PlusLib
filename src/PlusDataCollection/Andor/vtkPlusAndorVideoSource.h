@@ -130,6 +130,7 @@ public:
   PlusStatus SetTriggerMode(TriggerMode triggerMode);
   TriggerMode GetTriggerMode();
 
+  PlusStatus SetFrameFieldImageToReferenceTransform(std::array<float, 16> transform);
   std::vector<double> GetSpacing(int horizontalBins, int verticalBins);
 
   /*! Normal operating temperature (degrees celsius). */
@@ -356,6 +357,10 @@ protected:
   DataSourceArray GrayCorrected;
 
   double OutputSpacing[3] = { 0 };
+
+  /*! Frame field for image transform. Since applications of this device are 
+      mainly stationary, don't use a tracker and just set the transform manually. */
+  std::array<float, 16> imageToReferenceTransform = { 0 };
 
   igsioFieldMapType CustomFields;
 
