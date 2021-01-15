@@ -33,7 +33,7 @@ void vtkPlusAndorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "ExposureTime: " << ExposureTime << std::endl;
   os << indent << "Binning: " << HorizontalBins << " " << VerticalBins << std::endl;
   os << indent << "HSSpeed: " << HSSpeed[0] << HSSpeed[1] << std::endl;
-  os << indent << "VSSpeed: " << VSSpeed << std::endl;
+  os << indent << "VSSpeedIndex: " << VSSpeedIndex << std::endl;
   os << indent << "OutputSpacing: " << OutputSpacing[0] << " " << OutputSpacing[1] << std::endl;
   os << indent << "PreAmpGainIndex: " << PreAmpGainIndex << std::endl;
   os << indent << "AcquisitionMode: " << m_AcquisitionMode << std::endl;
@@ -122,7 +122,7 @@ PlusStatus vtkPlusAndorVideoSource::ReadConfiguration(vtkXMLDataElement* rootCon
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, CoolerMode, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, CoolTemperature, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SafeTemperature, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, VSSpeed, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, VSSpeedIndex, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, HorizontalBins, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, VerticalBins, deviceConfig);
 
@@ -162,7 +162,7 @@ PlusStatus vtkPlusAndorVideoSource::WriteConfiguration(vtkXMLDataElement* rootCo
   deviceConfig->SetIntAttribute("CoolerMode", this->CoolerMode);
   deviceConfig->SetIntAttribute("CoolTemperature", this->CoolTemperature);
   deviceConfig->SetIntAttribute("SafeTemperature", this->SafeTemperature);
-  deviceConfig->SetIntAttribute("VSSpeed", this->VSSpeed);
+  deviceConfig->SetIntAttribute("VSSpeedIndex", this->VSSpeedIndex);
   deviceConfig->SetIntAttribute("HorizontalBins", this->HorizontalBins);
   deviceConfig->SetIntAttribute("VerticalBins", this->VerticalBins);
 
@@ -700,7 +700,7 @@ void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning, float exposureT
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::StartBLIFrameAcquisition(int binning, int vsSpeed, int hsSpeed, float exposureTime)
+PlusStatus vtkPlusAndorVideoSource::StartBLIFrameAcquisition(int binning, int vsSpeedIndex, int hsSpeed, float exposureTime)
 {
   if (this->threadID > -1)
   {
@@ -710,7 +710,7 @@ PlusStatus vtkPlusAndorVideoSource::StartBLIFrameAcquisition(int binning, int vs
 
   this->effectiveHBins = binning > 0 ? binning : this->HorizontalBins;
   this->effectiveVBins = binning > 0 ? binning : this->VerticalBins;
-  this->effectiveVSInd = vsSpeed > -1 ? vsSpeed : this->VSSpeed;
+  this->effectiveVSInd = vsSpeedIndex > -1 ? vsSpeedIndex : this->VSSpeedIndex;
   this->effectiveHSInd = hsSpeed > -1 ? hsSpeed : this->HSSpeed[1];
   this->effectiveExpTime = exposureTime > -1 ? exposureTime : this->ExposureTime;
   this->effectiveShutter = ShutterMode::FullyAuto;
@@ -744,7 +744,7 @@ void* vtkPlusAndorVideoSource::AcquireBLIFrameThread(vtkMultiThreader::ThreadInf
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::StartGrayscaleFrameAcquisition(int binning, int vsSpeed, int hsSpeed, float exposureTime)
+PlusStatus vtkPlusAndorVideoSource::StartGrayscaleFrameAcquisition(int binning, int vsSpeedIndex, int hsSpeed, float exposureTime)
 {
   if (this->threadID > -1)
   {
@@ -754,7 +754,7 @@ PlusStatus vtkPlusAndorVideoSource::StartGrayscaleFrameAcquisition(int binning, 
 
   this->effectiveHBins = binning > 0 ? binning : this->HorizontalBins;
   this->effectiveVBins = binning > 0 ? binning : this->VerticalBins;
-  this->effectiveVSInd = vsSpeed > -1 ? vsSpeed : this->VSSpeed;
+  this->effectiveVSInd = vsSpeedIndex > -1 ? vsSpeedIndex : this->VSSpeedIndex;
   this->effectiveHSInd = hsSpeed > -1 ? hsSpeed : this->HSSpeed[1];
   this->effectiveExpTime = exposureTime > -1 ? exposureTime : this->ExposureTime;
   this->effectiveShutter = ShutterMode::FullyAuto;
@@ -789,7 +789,7 @@ void* vtkPlusAndorVideoSource::AcquireGrayscaleFrameThread(vtkMultiThreader::Thr
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::StartCorrectionFrameAcquisition(const std::string correctionFilePath, ShutterMode shutter, int binning, int vsSpeed, int hsSpeed, float exposureTime)
+PlusStatus vtkPlusAndorVideoSource::StartCorrectionFrameAcquisition(const std::string correctionFilePath, ShutterMode shutter, int binning, int vsSpeedIndex, int hsSpeed, float exposureTime)
 {
   if (this->threadID > -1)
   {
@@ -799,7 +799,7 @@ PlusStatus vtkPlusAndorVideoSource::StartCorrectionFrameAcquisition(const std::s
 
   this->effectiveHBins = binning > 0 ? binning : this->HorizontalBins;
   this->effectiveVBins = binning > 0 ? binning : this->VerticalBins;
-  this->effectiveVSInd = vsSpeed > -1 ? vsSpeed : this->VSSpeed;
+  this->effectiveVSInd = vsSpeedIndex > -1 ? vsSpeedIndex : this->VSSpeedIndex;
   this->effectiveHSInd = hsSpeed > -1 ? hsSpeed : this->HSSpeed[1];
   this->effectiveExpTime = exposureTime > -1 ? exposureTime : this->ExposureTime;
   this->effectiveShutter = shutter;
@@ -987,7 +987,7 @@ PlusStatus vtkPlusAndorVideoSource::SetHSSpeed(int type, int index)
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::SetVSSpeed(int index)
+PlusStatus vtkPlusAndorVideoSource::SetVSSpeedIndex(int index)
 {
   unsigned status = checkStatus(::SetVSSpeed(index), "SetVSSpeed");
   if(status != DRV_SUCCESS)
@@ -995,7 +995,7 @@ PlusStatus vtkPlusAndorVideoSource::SetVSSpeed(int index)
     LOG_ERROR("SetVSSpeed command failed.");
     return PLUS_FAIL;
   }
-  this->VSSpeed = index;
+  this->VSSpeedIndex = index;
   return PLUS_SUCCESS;
 }
 

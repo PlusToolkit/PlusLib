@@ -70,9 +70,11 @@ public:
   PlusStatus SetHorizontalBins(int bins);
   PlusStatus SetVerticalBins(int bins);
 
-  /*! Horizontal and vertical shift speed. */
+  /*! Set horizontal shift speed. */
   PlusStatus SetHSSpeed(int type, int index);
-  PlusStatus SetVSSpeed(int index);
+
+  /*! Set index to use in the vertical shift speed table. */
+  PlusStatus SetVSSpeedIndex(int index);
 
   /*! Index of the pre-amp gain, not the actual value. */
   PlusStatus SetPreAmpGainIndex(int preAmpGainIndex);
@@ -309,7 +311,7 @@ protected:
   int HorizontalBins = 1;
   int VerticalBins = 1;
   int HSSpeed[2] = { 0, 1 };  // type, index
-  int VSSpeed = 0;  // index
+  int VSSpeedIndex = 0;
   int PreAmpGainIndex = 0;
   bool UseFrameCorrections = true;
   bool UseCosmicRayCorrection = true;
