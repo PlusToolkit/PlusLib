@@ -987,6 +987,18 @@ PlusStatus vtkPlusAndorVideoSource::SetHSSpeed(int type, int index)
 }
 
 // ----------------------------------------------------------------------------
+float vtkPlusAndorVideoSource::GetHSSpeed()
+{
+  float speed;
+  unsigned status = checkStatus(::GetHSSpeed(0, HSSpeed[0], HSSpeed[1], &speed), "GetHSSpeed");
+  if(status != DRV_SUCCESS)
+  {
+    LOG_ERROR("GetHSSpeed command failed.");
+  }
+  return speed;
+}
+
+// ----------------------------------------------------------------------------
 PlusStatus vtkPlusAndorVideoSource::SetVSSpeedIndex(int index)
 {
   unsigned status = checkStatus(::SetVSSpeed(index), "SetVSSpeed");

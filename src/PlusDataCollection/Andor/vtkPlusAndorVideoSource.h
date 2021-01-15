@@ -73,6 +73,9 @@ public:
   /*! Set horizontal shift speed. */
   PlusStatus SetHSSpeed(int type, int index);
 
+  /*! Get the actual HS Speed in MHz for the current HSSpeed index. */
+  float GetHSSpeed();
+
   /*! Set index to use in the vertical shift speed table. */
   PlusStatus SetVSSpeedIndex(int index);
 
