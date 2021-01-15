@@ -435,6 +435,37 @@ void vtkPlusAndorVideoSource::AdjustSpacing(int horizontalBins, int verticalBins
 }
 
 // ----------------------------------------------------------------------------
+void vtkPlusAndorVideoSource::SetCustomFrameFields()
+{
+  this->CustomFields["ExposureTime"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->CustomFields["ExposureTime"].second = std::to_string(this->effectiveExpTime);
+  this->CustomFields["HorizontalBins"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->CustomFields["HorizontalBins"].second = std::to_string(this->effectiveHBins);
+  this->CustomFields["VerticalBins"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->CustomFields["VerticalBins"].second = std::to_string(this->effectiveVBins);
+
+  std::ostringstream transformStream;
+  float transformValue;
+  for(unsigned i = 0; i < 15; i++)
+  {
+    transformValue = this->imageToReferenceTransform.at(i);
+    if (i == 0)
+    {
+      transformValue = transformValue * this->OutputSpacing[0] * this->effectiveHBins;
+    }
+    else if (i == 5)  // 1,1 in the matrix
+    {
+      transformValue = transformValue * this->OutputSpacing[1] * this->effectiveVBins;
+    }
+    transformStream << this->imageToReferenceTransform.at(i) << " ";
+  }
+  transformStream << this->imageToReferenceTransform.back();
+
+  this->CustomFields["ImageToReferenceTransform"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->CustomFields["ImageToReferenceTransform"].second = transformStream.str();
+}
+
+// ----------------------------------------------------------------------------
 PlusStatus vtkPlusAndorVideoSource::SetFrameFieldImageToReferenceTransform(std::array<float, 16> transform)
 {
   this->imageToReferenceTransform = transform;
@@ -507,6 +538,8 @@ PlusStatus vtkPlusAndorVideoSource::AcquireFrame()
 
   AdjustBuffers(this->effectiveHBins, this->effectiveVBins);
   AdjustSpacing(this->effectiveHBins, this->effectiveVBins);
+
+  SetCustomFrameFields();
 
   unsigned rawFrameSize = frameSize[0] * frameSize[1];
   rawFrame.resize(rawFrameSize, 0);
