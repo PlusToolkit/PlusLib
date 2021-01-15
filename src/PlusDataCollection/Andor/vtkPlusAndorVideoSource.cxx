@@ -1006,11 +1006,8 @@ PlusStatus vtkPlusAndorVideoSource::SetPreAmpGain(int preAmpGain)
   unsigned status = checkStatus(::SetPreAmpGain(this->PreAmpGain), "SetPreAmpGain");
   if(status == DRV_P1INVALID)
   {
-    LOG_ERROR("Minimum threshold outside valid range (1-65535).");
-  }
-  else if(status == DRV_P2INVALID)
-  {
-    LOG_ERROR("Maximum threshold outside valid range.");
+    LOG_ERROR("Index out of range.");
+    return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
 }
