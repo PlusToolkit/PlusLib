@@ -75,8 +75,8 @@ public:
   PlusStatus SetVSSpeed(int index);
 
   /*! Index of the pre-amp gain, not the actual value. */
-  PlusStatus SetPreAmpGain(int preAmptGain);
-  int GetPreAmpGain();
+  PlusStatus SetPreAmpGainIndex(int preAmpGainIndex);
+  int GetPreAmpGainIndex();
 
   /*! Acquisition mode. Valid values:
    * 1 Single Scan
@@ -307,7 +307,7 @@ protected:
   int VerticalBins = 1;
   int HSSpeed[2] = { 0, 1 };  // type, index
   int VSSpeed = 0;  // index
-  int PreAmpGain = 0;
+  int PreAmpGainIndex = 0;
   bool UseFrameCorrections = true;
   bool UseCosmicRayCorrection = true;
 

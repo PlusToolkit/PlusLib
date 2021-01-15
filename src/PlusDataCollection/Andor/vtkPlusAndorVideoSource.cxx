@@ -35,7 +35,7 @@ void vtkPlusAndorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "HSSpeed: " << HSSpeed[0] << HSSpeed[1] << std::endl;
   os << indent << "VSSpeed: " << VSSpeed << std::endl;
   os << indent << "OutputSpacing: " << OutputSpacing[0] << " " << OutputSpacing[1] << std::endl;
-  os << indent << "PreAmpGain: " << PreAmpGain << std::endl;
+  os << indent << "PreAmpGainIndex: " << PreAmpGainIndex << std::endl;
   os << indent << "AcquisitionMode: " << m_AcquisitionMode << std::endl;
   os << indent << "ReadMode: " << m_ReadMode << std::endl;
   os << indent << "TriggerMode: " << m_TriggerMode << std::endl;
@@ -118,7 +118,7 @@ PlusStatus vtkPlusAndorVideoSource::ReadConfiguration(vtkXMLDataElement* rootCon
   }
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, ExposureTime, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, PreAmpGain, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, PreAmpGainIndex, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, CoolerMode, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, CoolTemperature, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SafeTemperature, deviceConfig);
@@ -155,7 +155,7 @@ PlusStatus vtkPlusAndorVideoSource::WriteConfiguration(vtkXMLDataElement* rootCo
 
   deviceConfig->SetIntAttribute("Shutter", this->Shutter);
   deviceConfig->SetFloatAttribute("ExposureTime", this->ExposureTime);
-  deviceConfig->SetIntAttribute("PreAmpGain", this->PreAmpGain);
+  deviceConfig->SetIntAttribute("PreAmpGainIndex", this->PreAmpGainIndex);
   deviceConfig->SetIntAttribute("AcquisitionMode", this->m_AcquisitionMode);
   deviceConfig->SetIntAttribute("ReadMode", this->m_ReadMode);
   deviceConfig->SetIntAttribute("TriggerMode", this->m_TriggerMode);
@@ -1000,10 +1000,10 @@ PlusStatus vtkPlusAndorVideoSource::SetVSSpeed(int index)
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::SetPreAmpGain(int preAmpGain)
+PlusStatus vtkPlusAndorVideoSource::SetPreAmpGainIndex(int PreAmpGainIndex)
 {
-  this->PreAmpGain = preAmpGain;
-  unsigned status = checkStatus(::SetPreAmpGain(this->PreAmpGain), "SetPreAmpGain");
+  this->PreAmpGainIndex = PreAmpGainIndex;
+  unsigned status = checkStatus(::SetPreAmpGain(this->PreAmpGainIndex), "SetPreAmpGain");
   if(status == DRV_P1INVALID)
   {
     LOG_ERROR("Index out of range.");
@@ -1013,9 +1013,9 @@ PlusStatus vtkPlusAndorVideoSource::SetPreAmpGain(int preAmpGain)
 }
 
 // ----------------------------------------------------------------------------
-int vtkPlusAndorVideoSource::GetPreAmpGain()
+int vtkPlusAndorVideoSource::GetPreAmpGainIndex()
 {
-  return this->PreAmpGain;
+  return this->PreAmpGainIndex;
 }
 
 // ----------------------------------------------------------------------------
