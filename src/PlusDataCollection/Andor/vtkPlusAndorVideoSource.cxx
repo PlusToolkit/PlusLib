@@ -1000,6 +1000,18 @@ PlusStatus vtkPlusAndorVideoSource::SetVSSpeedIndex(int index)
 }
 
 // ----------------------------------------------------------------------------
+float vtkPlusAndorVideoSource::GetVSSpeed()
+{
+  float speed;
+  unsigned status = checkStatus(::GetVSSpeed(this->VSSpeedIndex, &speed), "GetVSSpeed");
+  if(status != DRV_SUCCESS)
+  {
+    LOG_ERROR("GetVSSpeed command failed.");
+  }
+  return speed;
+}
+
+// ----------------------------------------------------------------------------
 PlusStatus vtkPlusAndorVideoSource::SetPreAmpGainIndex(int PreAmpGainIndex)
 {
   this->PreAmpGainIndex = PreAmpGainIndex;
