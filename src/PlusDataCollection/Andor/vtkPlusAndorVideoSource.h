@@ -260,6 +260,9 @@ protected:
   void AdjustBuffers(int horizontalBins, int verticalBins);
   void AdjustSpacing(int horizontalBins, int verticalBins);
 
+  /*! Set some acquisition parameters as per-frame header fields */
+  void SetCustomFrameFields();
+
   /*! Acquire a single frame using current parameters. Data is put in the frameBuffer ivar. */
   PlusStatus AcquireFrame();
 
