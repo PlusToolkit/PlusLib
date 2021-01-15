@@ -76,6 +76,9 @@ public:
   /*! Set index to use in the vertical shift speed table. */
   PlusStatus SetVSSpeedIndex(int index);
 
+  /*! Get the actual VS Speed in microseconds per pixel shift for the current VSSpeed index. */
+  float GetVSSpeed();
+
   /*! Index of the pre-amp gain, not the actual value. */
   PlusStatus SetPreAmpGainIndex(int preAmpGainIndex);
   int GetPreAmpGainIndex();
