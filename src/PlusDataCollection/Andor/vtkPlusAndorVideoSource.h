@@ -78,6 +78,9 @@ public:
   PlusStatus SetPreAmpGainIndex(int preAmpGainIndex);
   int GetPreAmpGainIndex();
 
+  /*! Get the actual gain factor for the current pre amp gain index. */
+  float GetPreAmpGain();
+
   /*! Acquisition mode. Valid values:
    * 1 Single Scan
    * 2 Accumulate
