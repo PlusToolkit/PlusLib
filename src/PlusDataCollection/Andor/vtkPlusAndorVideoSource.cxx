@@ -1019,6 +1019,18 @@ int vtkPlusAndorVideoSource::GetPreAmpGainIndex()
 }
 
 // ----------------------------------------------------------------------------
+float vtkPlusAndorVideoSource::GetPreAmpGain()
+{
+  float gain;
+  unsigned status = checkStatus(::GetPreAmpGain(this->PreAmpGainIndex, &gain), "GetPreAmpGain");
+  if(status != DRV_SUCCESS)
+  {
+    LOG_ERROR("GetPreAmpGain command failed.");
+  }
+  return gain;
+}
+
+// ----------------------------------------------------------------------------
 PlusStatus vtkPlusAndorVideoSource::SetAcquisitionMode(AcquisitionMode acquisitionMode)
 {
   this->m_AcquisitionMode = acquisitionMode;
