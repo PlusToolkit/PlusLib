@@ -1012,6 +1012,12 @@ PlusStatus vtkPlusAndorVideoSource::SetVSSpeedIndex(int index)
 }
 
 // ----------------------------------------------------------------------------
+int vtkPlusAndorVideoSource::GetVSSpeedIndex()
+{
+  return this->VSSpeedIndex;
+}
+
+// ----------------------------------------------------------------------------
 float vtkPlusAndorVideoSource::GetVSSpeed()
 {
   float speed;

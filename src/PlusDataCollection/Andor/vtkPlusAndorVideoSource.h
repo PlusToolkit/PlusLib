@@ -78,6 +78,7 @@ public:
 
   /*! Set index to use in the vertical shift speed table. */
   PlusStatus SetVSSpeedIndex(int index);
+  int GetVSSpeedIndex();
 
   /*! Get the actual VS Speed in microseconds per pixel shift for the current VSSpeed index. */
   float GetVSSpeed();
