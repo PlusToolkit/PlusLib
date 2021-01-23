@@ -767,7 +767,7 @@ void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning, float exposureT
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusAndorVideoSource::StartBLIFrameAcquisition(int binning, int vsSpeedIndex, int hsSpeed, float exposureTime)
 {
-  if (this->threadID > -1)
+  if (this->IsAcquisitionThreadRunning())
   {
     LOG_ERROR("An acquisition thread is already running!");
     return PLUS_FAIL;
@@ -815,7 +815,7 @@ void* vtkPlusAndorVideoSource::AcquireBLIFrameThread(vtkMultiThreader::ThreadInf
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusAndorVideoSource::StartGrayscaleFrameAcquisition(int binning, int vsSpeedIndex, int hsSpeed, float exposureTime)
 {
-  if (this->threadID > -1)
+  if (this->IsAcquisitionThreadRunning())
   {
     LOG_ERROR("An acquisition thread is already running!");
     return PLUS_FAIL;
@@ -1415,6 +1415,12 @@ bool vtkPlusAndorVideoSource::WaitForAcquisitionWithTimeout(double maximumWaitTi
     while (now < startOfWait + maximumWaitTimeInSeconds && Threader->IsThreadActive(this->threadID));
   }
   return !Threader->IsThreadActive(this->threadID);
+}
+
+// ----------------------------------------------------------------------------
+bool vtkPlusAndorVideoSource::IsAcquisitionThreadRunning()
+{
+  return this->threadID > -1;
 }
 
 // ----------------------------------------------------------------------------
