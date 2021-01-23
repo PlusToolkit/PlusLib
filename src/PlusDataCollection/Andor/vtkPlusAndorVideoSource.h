@@ -235,6 +235,13 @@ public:
 
   bool WaitForAcquisitionWithTimeout(double maximumWaitTimeInSeconds, int sleepQuantumMilliseconds = 10);
 
+  /*! Check if the acquisition thread is running.
+      Calling StartAcquisition() without calling PrepareAcquisition() beforehand can result
+      in some delays while the device allocates memory for e.g., different binning sizes, so
+      use this check to determine whether the acquisition thread has completed.
+  */
+  bool IsAcquisitionThreadRunning();
+
 protected:
   /*! Constructor */
   vtkPlusAndorVideoSource();
