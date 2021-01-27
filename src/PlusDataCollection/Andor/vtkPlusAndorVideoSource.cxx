@@ -767,7 +767,9 @@ void* vtkPlusAndorVideoSource::AcquireBLIFrameThread(vtkMultiThreader::ThreadInf
   device->WaitForCooldown();
   if (device->AcquireFrame() == PLUS_FAIL)
   {
+    int tempID = device->threadID;
     device->threadID = -1;
+    device->Threader->TerminateThread(tempID);
     return NULL;
   }
   ++device->FrameNumber;
@@ -779,7 +781,9 @@ void* vtkPlusAndorVideoSource::AcquireBLIFrameThread(vtkMultiThreader::ThreadInf
     device->AddFrameToDataSource(device->BLICorrected);
   }
 
+  int tempID = device->threadID;
   device->threadID = -1;
+  device->Threader->TerminateThread(tempID);
   return NULL;
 }
 
@@ -812,7 +816,9 @@ void* vtkPlusAndorVideoSource::AcquireGrayscaleFrameThread(vtkMultiThreader::Thr
   device->WaitForCooldown();
   if (device->AcquireFrame() == PLUS_FAIL)
   {
+    int tempID = device->threadID;
     device->threadID = -1;
+    device->Threader->TerminateThread(tempID);
     return NULL;
   }
   ++device->FrameNumber;
@@ -824,7 +830,9 @@ void* vtkPlusAndorVideoSource::AcquireGrayscaleFrameThread(vtkMultiThreader::Thr
     device->AddFrameToDataSource(device->GrayCorrected);
   }
 
+  int tempID = device->threadID;
   device->threadID = -1;
+  device->Threader->TerminateThread(tempID);
   return NULL;
 }
 
@@ -856,7 +864,9 @@ void* vtkPlusAndorVideoSource::AcquireCorrectionFrameThread(vtkMultiThreader::Th
 
   if (device->AcquireFrame() == PLUS_FAIL)
   {
+    int tempID = device->threadID;
     device->threadID = -1;
+    device->Threader->TerminateThread(tempID);
     return NULL;
   }
   ++device->FrameNumber;
@@ -869,7 +879,9 @@ void* vtkPlusAndorVideoSource::AcquireCorrectionFrameThread(vtkMultiThreader::Th
   }
 
   cv::imwrite(device->saveCorrectionPath, cvIMG);
+  int tempID = device->threadID;
   device->threadID = -1;
+  device->Threader->TerminateThread(tempID);
   return NULL;
 }
 
