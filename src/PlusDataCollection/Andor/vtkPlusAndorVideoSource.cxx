@@ -481,10 +481,12 @@ std::vector<double> vtkPlusAndorVideoSource::GetSpacing(int horizontalBins, int 
 }
 
 // ----------------------------------------------------------------------------
-float vtkPlusAndorVideoSource::GetCurrentTemperature()
+int vtkPlusAndorVideoSource::GetCurrentTemperature(float* temperature)
 {
-  checkStatus(GetTemperatureF(&this->CurrentTemperature), "GetTemperatureF");
-  return this->CurrentTemperature;
+  int status = GetTemperatureF(temperature);
+  this->CurrentTemperature = *temperature;
+  checkStatus(status, "GetTemperatureF");
+  return status;
 }
 
 // ----------------------------------------------------------------------------
@@ -515,13 +517,13 @@ void vtkPlusAndorVideoSource::WaitForWarmup()
   {
     TurnCoolerOFF();
   }
-  GetCurrentTemperature(); // updates this->CurrentTemperature
+  GetCurrentTemperature(&this->CurrentTemperature); // updates this->CurrentTemperature
   if(this->CurrentTemperature < this->SafeTemperature)
   {
     while(this->CurrentTemperature < this->SafeTemperature)
     {
       igtl::Sleep(5000); // wait a bit
-      GetCurrentTemperature(); // logs the status and temperature
+      GetCurrentTemperature(&this->CurrentTemperature); // logs the status and temperature
     }
   }
 }

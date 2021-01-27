@@ -154,7 +154,7 @@ public:
   int GetSafeTemperature();
 
   /*! Get the current temperature of the camera in degrees celsius. */
-  float GetCurrentTemperature();
+  int GetCurrentTemperature(float* temperature);
 
   /*! Paths to correction images for dead pixels, additive and multiplicative bias. */
   PlusStatus SetBadPixelCorrectionImage(const std::string badPixelFilePath);
