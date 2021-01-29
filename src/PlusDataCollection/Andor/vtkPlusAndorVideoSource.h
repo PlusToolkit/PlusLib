@@ -230,6 +230,9 @@ public:
   /*! Check if the Andor CCD is acquiring. */
   bool IsCCDAcquiring();
 
+  /*! Prepare acquisition now, so acquisition itself takes shorter. */
+  void PrepareAcquisition();
+
 protected:
   /*! Constructor */
   vtkPlusAndorVideoSource();
