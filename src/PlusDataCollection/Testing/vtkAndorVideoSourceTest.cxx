@@ -130,8 +130,6 @@ int main(int argc, char* argv[])
   }
 
   andorCamDevice->ReadConfiguration(configRootElement);
-  andorCamDevice->SetFlatCorrectionImage(flatCorrectionPath);
-  andorCamDevice->SetBiasDarkCorrectionImage(biasDarkCorrectionPath);
 
   if(andorCamDevice->Connect() != PLUS_SUCCESS)
   {
@@ -143,8 +141,10 @@ int main(int argc, char* argv[])
   vtkIndent indent;
   andorCamDevice->PrintSelf(std::cout, indent);
 
-  andorCamDevice->AcquireBLIFrame(-1, -1, -1, 2.0);
-  andorCamDevice->AcquireGrayscaleFrame(-1, -1, -1, 2.0);
+  andorCamDevice->StartBLIFrameAcquisition(-1, -1, -1, 2.0);
+  igtl::Sleep(3000);
+  andorCamDevice->StartGrayscaleFrameAcquisition(-1, -1, -1, 2.0);
+  igtl::Sleep(3000);
   andorCamDevice->StartRecording();
 
   if(renderingOff)
@@ -163,10 +163,14 @@ int main(int argc, char* argv[])
     }
 
     LOG_DEBUG("Rendering disabled. Wait for just a few seconds to acquire data before exiting");
-    andorCamDevice->AcquireBLIFrame(-1, -1, -1, 2.0);
-    andorCamDevice->AcquireGrayscaleFrame(-1, -1, -1, 2.0);
-    andorCamDevice->AcquireBLIFrame(-1, -1, -1, 2.0);
-    andorCamDevice->AcquireGrayscaleFrame(-1, -1, -1, 2.0);
+    andorCamDevice->StartBLIFrameAcquisition(-1, -1, -1, 2.0);
+    igtl::Sleep(3000);
+    andorCamDevice->StartGrayscaleFrameAcquisition(-1, -1, -1, 2.0);
+    igtl::Sleep(3000);
+    andorCamDevice->StartBLIFrameAcquisition(-1, -1, -1, 2.0);
+    igtl::Sleep(3000);
+    andorCamDevice->StartGrayscaleFrameAcquisition(-1, -1, -1, 2.0);
+    igtl::Sleep(3000);
 
     vtkPlusDataSource* bSource(nullptr);
     raw->GetVideoSource(bSource);
