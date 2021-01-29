@@ -710,7 +710,7 @@ void vtkPlusAndorVideoSource::ApplyCosmicRayCorrection(int bin, cv::Mat& floatIm
 }
 
 // ----------------------------------------------------------------------------
-void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning, float exposureTime)
+void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning)
 {
   cv::Mat cvIMG(frameSize[0], frameSize[1], CV_16UC1, &rawFrame[0]); // uses rawFrame as buffer
   if (cvBadPixelImage.cols != frameSize[0] || cvBadPixelImage.rows != frameSize[1])
@@ -761,8 +761,6 @@ void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning, float exposureT
     LOG_INFO("Applied multiplicative flat correction");
   }
 
-  // Convert image from count to counts/seconds
-  cv::divide(result, exposureTime, result, 1, CV_32FC1);
   result.convertTo(cvIMG, CV_16UC1);
 }
 
@@ -804,7 +802,7 @@ void* vtkPlusAndorVideoSource::AcquireBLIFrameThread(vtkMultiThreader::ThreadInf
 
   if(device->UseFrameCorrections)
   {
-    device->ApplyFrameCorrections(device->effectiveHBins, device->effectiveExpTime);
+    device->ApplyFrameCorrections(device->effectiveHBins);
     device->AddFrameToDataSource(device->BLICorrected);
   }
 
@@ -853,7 +851,7 @@ void* vtkPlusAndorVideoSource::AcquireGrayscaleFrameThread(vtkMultiThreader::Thr
 
   if(device->UseFrameCorrections)
   {
-    device->ApplyFrameCorrections(device->effectiveHBins, device->effectiveExpTime);
+    device->ApplyFrameCorrections(device->effectiveHBins);
     device->AddFrameToDataSource(device->GrayCorrected);
   }
 
