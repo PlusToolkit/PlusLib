@@ -530,9 +530,11 @@ void vtkPlusAndorVideoSource::WaitForWarmup()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusAndorVideoSource::AcquireFrame()
 {
+  int x, y;
+  checkStatus(GetDetector(&x, &y), "GetDetector");  // full sensor size
   checkStatus(::SetExposureTime(this->effectiveExpTime), "SetExposureTime");
   checkStatus(::SetShutter(1, this->effectiveShutter, 0, 0), "SetShutter");
-  checkStatus(::SetImage(this->effectiveHBins, this->effectiveVBins, 1, 1024, 1, 1024), "Binning");
+  checkStatus(::SetImage(this->effectiveHBins, this->effectiveVBins, 1, x, 1, y), "Binning");
   checkStatus(::SetVSSpeed(this->effectiveVSInd), "SetVSSpeed");
   checkStatus(::SetHSSpeed(this->HSSpeed[0], this->effectiveHSInd), "SetHSSpeed");
 
