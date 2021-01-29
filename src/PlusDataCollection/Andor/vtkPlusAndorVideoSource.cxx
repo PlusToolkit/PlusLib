@@ -547,7 +547,7 @@ PlusStatus vtkPlusAndorVideoSource::AcquireFrame()
   rawFrame.resize(rawFrameSize, 0);
 
   checkStatus(StartAcquisition(), "StartAcquisition");
-  unsigned result = checkStatus(WaitForAcquisition(), "WaitForAcquisition");
+  unsigned result = checkStatus(::WaitForAcquisition(), "WaitForAcquisition");
   if(result != DRV_SUCCESS)
   {
     LOG_ERROR("Acquisition failed or cancelled.");
@@ -1358,6 +1358,22 @@ bool vtkPlusAndorVideoSource::IsCCDAcquiring()
 void vtkPlusAndorVideoSource::PrepareAcquisition()
 {
   checkStatus(::PrepareAcquisition(), "PrepareAcquisition");
+}
+
+bool vtkPlusAndorVideoSource::WaitForAcquisitionWithTimeout(double maximumWaitTimeInSeconds, int sleepQuantumMilliseconds)
+{
+  if (this->threadID > -1)
+  {
+    double startOfWait = vtkIGSIOAccurateTimer::GetSystemTime();
+    double now = 0.0;
+    do
+    {
+      igtl::Sleep(sleepQuantumMilliseconds);
+      now = vtkIGSIOAccurateTimer::GetSystemTime();
+    }
+    while (now < startOfWait + maximumWaitTimeInSeconds && Threader->IsThreadActive(this->threadID));
+  }
+  return !Threader->IsThreadActive(this->threadID);
 }
 
 // ----------------------------------------------------------------------------
