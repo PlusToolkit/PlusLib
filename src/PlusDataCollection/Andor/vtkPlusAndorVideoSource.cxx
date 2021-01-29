@@ -71,8 +71,7 @@ PlusStatus vtkPlusAndorVideoSource::ReadConfiguration(vtkXMLDataElement* rootCon
   }
 
   // Must initialize the system before setting parameters
-  unsigned initializeResult = checkStatus(Initialize(""), "Initialize");
-  if(initializeResult != DRV_SUCCESS)
+  if(this->InitializeAndorCamera() != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
@@ -291,8 +290,6 @@ PlusStatus vtkPlusAndorVideoSource::InitializeAndorCamera()
   // init to binning of 1 (meaning no binning), and full sensor size
   checkStatus(SetImage(this->HorizontalBins, this->VerticalBins, 1, x, 1, y), "SetImage");
 
-  this->PrepareAcquisition();
-
   return PLUS_SUCCESS;
 }
 
@@ -341,6 +338,8 @@ PlusStatus vtkPlusAndorVideoSource::InternalConnect()
   this->InitializePort(BLICorrected);
   this->InitializePort(GrayRaw);
   this->InitializePort(GrayCorrected);
+
+  this->PrepareAcquisition();
 
   return PLUS_SUCCESS;
 }
@@ -712,15 +711,31 @@ void vtkPlusAndorVideoSource::ApplyCosmicRayCorrection(int bin, cv::Mat& floatIm
 void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning, float exposureTime)
 {
   cv::Mat cvIMG(frameSize[0], frameSize[1], CV_16UC1, &rawFrame[0]); // uses rawFrame as buffer
-  CorrectBadPixels(binning, cvIMG);
-  LOG_INFO("Applied bad pixel correction");
+  if (cvBadPixelImage.cols != frameSize[0] || cvBadPixelImage.rows != frameSize[1])
+  {
+    LOG_ERROR("BadPixelCorrectionImage size " << cvBadPixelImage.size()
+      << " does not match the current frame size " << frameSize[0] << " x " << frameSize[1]);
+  }
+  else
+  {
+    CorrectBadPixels(binning, cvIMG);
+    LOG_INFO("Applied bad pixel correction");
+  }
 
   cv::Mat floatImage;
   cvIMG.convertTo(floatImage, CV_32FC1);
   cv::Mat result;
 
-  cv::subtract(floatImage, cvBiasDarkCorrection, floatImage, cv::noArray(), CV_32FC1);
-  LOG_INFO("Applied constant bias+dark correction");
+  if (cvBiasDarkCorrection.cols != frameSize[0] || cvBiasDarkCorrection.rows != frameSize[1])
+  {
+    LOG_ERROR("BiasDarkCorrectionImage size " << cvBiasDarkCorrection.size()
+      << " does not match the current frame size " << frameSize[0] << " x " << frameSize[1]);
+  }
+  else
+  {
+    cv::subtract(floatImage, cvBiasDarkCorrection, floatImage, cv::noArray(), CV_32FC1);
+    LOG_INFO("Applied constant bias+dark correction");
+  }
 
   if(this->UseCosmicRayCorrection)
   {
@@ -732,9 +747,17 @@ void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning, float exposureT
   cv::undistort(floatImage, result, cvCameraIntrinsics, cvDistortionCoefficients);
   LOG_INFO("Applied lens distortion correction");
 
-  // Divide the image by the 32-bit floating point correction image
-  cv::divide(result, cvFlatCorrection, result, 1, CV_32FC1);
-  LOG_INFO("Applied multiplicative flat correction");
+  if (cvFlatCorrection.cols != frameSize[0] || cvFlatCorrection.rows != frameSize[1])
+  {
+    LOG_ERROR("FlatCorrectionImage size " << cvFlatCorrection.size()
+      << " does not the current frame sensor size " << frameSize[0] << " x " << frameSize[1]);
+  }
+  else
+  {
+    // Divide the image by the 32-bit floating point correction image
+    cv::divide(result, cvFlatCorrection, result, 1, CV_32FC1);
+    LOG_INFO("Applied multiplicative flat correction");
+  }
 
   // Convert image from count to counts/seconds
   cv::divide(result, exposureTime, result, 1, CV_32FC1);
@@ -909,7 +932,13 @@ PlusStatus vtkPlusAndorVideoSource::SetBadPixelCorrectionImage(const std::string
     cvBadPixelImage = cv::imread(badPixelFilePath, cv::IMREAD_GRAYSCALE);
     if (cvBadPixelImage.empty())
     {
-        throw "Bad pixel image empty!";
+      throw "Bad pixel image empty!";
+    }
+    if (cvBadPixelImage.cols != frameSize[0] || cvBadPixelImage.rows != frameSize[1])
+    {
+      LOG_INFO("BadPixelCorrectionImage size " << cvBadPixelImage.size()
+        << " does not match the current frame size " << frameSize[0] << " x " << frameSize[1]);
+      return PLUS_FAIL;
     }
   }
   catch (...)
@@ -930,6 +959,12 @@ PlusStatus vtkPlusAndorVideoSource::SetBiasDarkCorrectionImage(const std::string
     {
       throw "Bias+dark correction image empty!";
     }
+    if (cvBiasDarkCorrection.cols != frameSize[0] || cvBiasDarkCorrection.rows != frameSize[1])
+    {
+      LOG_INFO("BiasDarkCorrectionImage size " << cvBiasDarkCorrection.size()
+        << " does not match the current frame size " << frameSize[0] << " x " << frameSize[1]);
+      return PLUS_FAIL;
+    }
   }
   catch(...)
   {
@@ -948,6 +983,12 @@ PlusStatus vtkPlusAndorVideoSource::SetFlatCorrectionImage(std::string flatFileP
     if(cvFlatCorrection.empty())
     {
       throw "Flat correction image empty!";
+    }
+    if (cvFlatCorrection.cols != frameSize[0] || cvFlatCorrection.rows != frameSize[1])
+    {
+      LOG_INFO("FlatCorrectionImage size " << cvFlatCorrection.size()
+        << " does not match the current frame size " << frameSize[0] << " x " << frameSize[1]);
+      return PLUS_FAIL;
     }
     double maxVal = 0.0;
     cv::minMaxLoc(cvFlatCorrection, nullptr, &maxVal);
