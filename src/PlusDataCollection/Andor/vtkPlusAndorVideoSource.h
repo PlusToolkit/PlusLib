@@ -233,6 +233,8 @@ public:
   /*! Prepare acquisition now, so acquisition itself takes shorter. */
   void PrepareAcquisition();
 
+  bool WaitForAcquisitionWithTimeout(double maximumWaitTimeInSeconds, int sleepQuantumMilliseconds = 10);
+
 protected:
   /*! Constructor */
   vtkPlusAndorVideoSource();

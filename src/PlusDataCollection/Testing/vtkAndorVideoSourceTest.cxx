@@ -143,9 +143,9 @@ int main(int argc, char* argv[])
 
   andorCamDevice->PrepareAcquisition();
   andorCamDevice->StartBLIFrameAcquisition(-1, -1, -1, 2.0);
-  igtl::Sleep(3000);
+  andorCamDevice->WaitForAcquisitionWithTimeout(100.0);
   andorCamDevice->StartGrayscaleFrameAcquisition(-1, -1, -1, 2.0);
-  igtl::Sleep(3000);
+  andorCamDevice->WaitForAcquisitionWithTimeout(100.0);
   andorCamDevice->StartRecording();
 
   if(renderingOff)
@@ -165,13 +165,13 @@ int main(int argc, char* argv[])
 
     LOG_DEBUG("Rendering disabled. Wait for just a few seconds to acquire data before exiting");
     andorCamDevice->StartBLIFrameAcquisition(-1, -1, -1, 2.0);
-    igtl::Sleep(3000);
+    andorCamDevice->WaitForAcquisitionWithTimeout(100.0);
     andorCamDevice->StartGrayscaleFrameAcquisition(-1, -1, -1, 2.0);
-    igtl::Sleep(3000);
+    andorCamDevice->WaitForAcquisitionWithTimeout(100.0);
     andorCamDevice->StartBLIFrameAcquisition(-1, -1, -1, 2.0);
-    igtl::Sleep(3000);
+    andorCamDevice->WaitForAcquisitionWithTimeout(100.0);
     andorCamDevice->StartGrayscaleFrameAcquisition(-1, -1, -1, 2.0);
-    igtl::Sleep(3000);
+    andorCamDevice->WaitForAcquisitionWithTimeout(100.0);
 
     vtkPlusDataSource* bSource(nullptr);
     raw->GetVideoSource(bSource);
