@@ -291,7 +291,7 @@ PlusStatus vtkPlusAndorVideoSource::InitializeAndorCamera()
   // init to binning of 1 (meaning no binning), and full sensor size
   checkStatus(SetImage(this->HorizontalBins, this->VerticalBins, 1, x, 1, y), "SetImage");
 
-  checkStatus(PrepareAcquisition(), "PrepareAcquisition");
+  this->PrepareAcquisition();
 
   return PLUS_SUCCESS;
 }
@@ -1340,17 +1340,22 @@ int vtkPlusAndorVideoSource::GetSafeTemperature()
 // ----------------------------------------------------------------------------
 unsigned int vtkPlusAndorVideoSource::GetCCDStatus()
 {
-	int status;
-	GetStatus(&status);
+  int status;
+  GetStatus(&status);
 
-	return status;
+  return status;
 }
 
 // ----------------------------------------------------------------------------
 bool vtkPlusAndorVideoSource::IsCCDAcquiring()
 {
-	int status = GetCCDStatus();
-	return status == DRV_ACQUIRING;
+  int status = GetCCDStatus();
+  return status == DRV_ACQUIRING;
+}
+
+void vtkPlusAndorVideoSource::PrepareAcquisition()
+{
+  checkStatus(::PrepareAcquisition(), "PrepareAcquisition");
 }
 
 // ----------------------------------------------------------------------------

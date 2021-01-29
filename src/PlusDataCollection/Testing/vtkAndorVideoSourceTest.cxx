@@ -141,6 +141,7 @@ int main(int argc, char* argv[])
   vtkIndent indent;
   andorCamDevice->PrintSelf(std::cout, indent);
 
+  andorCamDevice->PrepareAcquisition();
   andorCamDevice->StartBLIFrameAcquisition(-1, -1, -1, 2.0);
   igtl::Sleep(3000);
   andorCamDevice->StartGrayscaleFrameAcquisition(-1, -1, -1, 2.0);
