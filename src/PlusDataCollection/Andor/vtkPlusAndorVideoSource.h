@@ -291,7 +291,7 @@ protected:
   void ApplyCosmicRayCorrection(int binning, cv::Mat& floatImage);
 
   /*! Applies bias correction for dark current, flat correction and lens distortion. */
-  void ApplyFrameCorrections(int binning, float exposureTime);
+  void ApplyFrameCorrections(int binning);
 
   static void* AcquireBLIFrameThread(vtkMultiThreader::ThreadInfo* info);
   static void* AcquireGrayscaleFrameThread(vtkMultiThreader::ThreadInfo* info);
