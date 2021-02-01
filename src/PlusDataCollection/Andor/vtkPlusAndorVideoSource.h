@@ -143,7 +143,7 @@ public:
   TriggerMode GetTriggerMode();
 
   PlusStatus SetFrameFieldImageToReferenceTransform(std::array<float, 16> transform);
-  std::vector<double> GetSpacing(int horizontalBins, int verticalBins);
+  std::vector<double> GetSpacing();
 
   /*! Normal operating temperature (degrees celsius). */
   PlusStatus SetCoolTemperature(int coolTemp);

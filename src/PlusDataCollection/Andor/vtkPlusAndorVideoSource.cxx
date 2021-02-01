@@ -448,14 +448,6 @@ void vtkPlusAndorVideoSource::SetCustomFrameFields()
   for(unsigned i = 0; i < 15; i++)
   {
     transformValue = this->imageToReferenceTransform.at(i);
-    if (i == 0)
-    {
-      transformValue = transformValue * this->OutputSpacing[0] * this->effectiveHBins;
-    }
-    else if (i == 5)  // 1,1 in the matrix
-    {
-      transformValue = transformValue * this->OutputSpacing[1] * this->effectiveVBins;
-    }
     transformStream << this->imageToReferenceTransform.at(i) << " ";
   }
   transformStream << this->imageToReferenceTransform.back();
@@ -472,11 +464,11 @@ PlusStatus vtkPlusAndorVideoSource::SetFrameFieldImageToReferenceTransform(std::
 }
 
 // ----------------------------------------------------------------------------
-std::vector<double> vtkPlusAndorVideoSource::GetSpacing(int horizontalBins, int verticalBins)
+std::vector<double> vtkPlusAndorVideoSource::GetSpacing()
 {
   std::vector<double> spacing = { 0.0, 0.0, 1.0 };
-  spacing[0] = this->OutputSpacing[0] * horizontalBins;
-  spacing[1] = this->OutputSpacing[1] * verticalBins;
+  spacing[0] = this->OutputSpacing[0] * this->effectiveHBins;
+  spacing[1] = this->OutputSpacing[1] * this->effectiveVBins;
   return spacing;
 }
 
