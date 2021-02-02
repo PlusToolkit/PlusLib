@@ -1266,9 +1266,17 @@ PlusStatus vtkPlusAndorVideoSource::SetInitializeCoolerState(bool InitializeCool
 PlusStatus vtkPlusAndorVideoSource::SetCoolerState(bool coolerState)
 {
   int coolerStatus = IsCoolerOn();
-  if(coolerState && coolerStatus == 0)  // Wanting to turn cooler on and cooler is currently off
+  if(coolerState)  // Wanting to turn cooler on
   {
-    TurnCoolerON();
+    if (coolerStatus == 0)
+    {
+      TurnCoolerON();
+    }
+    else
+    {
+      LOG_INFO("Cooler is already on. Setting temperature to configured " << this->CoolTemperature << " °C.");
+      checkStatus(SetTemperature(this->CoolTemperature), "SetTemperature");
+    }
   }
   else if(coolerState == false && coolerStatus == 1)  // Wanting to turn cooler off and cooler is currently on
   {
