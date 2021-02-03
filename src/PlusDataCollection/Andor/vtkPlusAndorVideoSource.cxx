@@ -1361,6 +1361,12 @@ int vtkPlusAndorVideoSource::GetCoolerMode()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusAndorVideoSource::SetCoolTemperature(int coolTemp)
 {
+  unsigned result = checkStatus(SetTemperature(coolTemp), "SetTemperature");
+  if(result != DRV_SUCCESS)
+  {
+    LOG_ERROR("SetCoolTemperature command failed.");
+    return PLUS_FAIL;
+  }
   this->CoolTemperature = coolTemp;
 
   return PLUS_SUCCESS;
