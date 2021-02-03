@@ -1253,6 +1253,12 @@ PlusStatus vtkPlusAndorVideoSource::SetRequireCoolTemp(bool requireCoolTemp)
 }
 
 // ----------------------------------------------------------------------------
+bool vtkPlusAndorVideoSource::GetRequireCoolTemp()
+{
+  return this->RequireCoolTemp;
+}
+
+// ----------------------------------------------------------------------------
 PlusStatus vtkPlusAndorVideoSource::SetInitializeCoolerState(bool InitializeCoolerState)
 {
   if(InitializeCoolerState)
