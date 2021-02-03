@@ -705,16 +705,8 @@ void vtkPlusAndorVideoSource::ApplyCosmicRayCorrection(int bin, cv::Mat& floatIm
 void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning)
 {
   cv::Mat cvIMG(frameSize[0], frameSize[1], CV_16UC1, &rawFrame[0]); // uses rawFrame as buffer
-  if (cvBadPixelImage.cols != frameSize[0] || cvBadPixelImage.rows != frameSize[1])
-  {
-    LOG_ERROR("BadPixelCorrectionImage size " << cvBadPixelImage.size()
-      << " does not match the current frame size " << frameSize[0] << " x " << frameSize[1]);
-  }
-  else
-  {
-    CorrectBadPixels(binning, cvIMG);
-    LOG_INFO("Applied bad pixel correction");
-  }
+  CorrectBadPixels(binning, cvIMG);
+  LOG_INFO("Applied bad pixel correction");
 
   cv::Mat floatImage;
   cvIMG.convertTo(floatImage, CV_32FC1);
