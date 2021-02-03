@@ -203,6 +203,12 @@ public:
   PlusStatus SetCoolerState(bool coolerState);
   bool IsCoolerOn();
 
+  /*! Dev flag whether to require the Camera to be at the Cool Temperature to acquire frames.
+      It can be set to false to acquire frames even though not at the cool temperature.
+  */
+  PlusStatus SetRequireCoolTemp(bool RequireCoolTemp);
+  bool GetRequireCoolTemp();
+
   /*! Wait for the camera to reach operating temperature (e.g. -70°C). */
   void WaitForCooldown();
 
@@ -322,7 +328,6 @@ protected:
   /*! Dev flag whether to require the Camera to be at the Cool Temperature to acquire frames.
       It can be set to false to acquire frames even though not at the cool temperature.
   */
-  PlusStatus SetRequireCoolTemp(bool RequireCoolTemp);
   bool RequireCoolTemp = true;
 
   PlusStatus TurnCoolerON();
