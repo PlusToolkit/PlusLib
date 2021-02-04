@@ -914,6 +914,8 @@ PlusStatus vtkPlusAndorVideoSource::AbortAcquisition()
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusAndorVideoSource::SetBadPixelCorrectionImage(const std::string badPixelFilePath)
 {
+  int x, y;
+  checkStatus(GetDetector(&x, &y), "GetDetector"); // full sensor size
   try
   {
     cellsToCorrect.clear();
@@ -922,11 +924,10 @@ PlusStatus vtkPlusAndorVideoSource::SetBadPixelCorrectionImage(const std::string
     {
       throw "Bad pixel image empty!";
     }
-    if (cvBadPixelImage.cols != frameSize[0] || cvBadPixelImage.rows != frameSize[1])
+    if (cvBadPixelImage.cols != x || cvBadPixelImage.rows != y)
     {
-      LOG_INFO("BadPixelCorrectionImage size " << cvBadPixelImage.size()
-        << " does not match the current frame size " << frameSize[0] << " x " << frameSize[1]);
-      return PLUS_FAIL;
+      LOG_ERROR("BadPixelCorrectionImage size " << cvBadPixelImage.size()
+        << " does not match the detector size " << x << " x " << y);
     }
   }
   catch (...)
