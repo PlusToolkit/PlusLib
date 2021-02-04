@@ -443,6 +443,10 @@ void vtkPlusAndorVideoSource::SetCustomFrameFields()
   this->CustomFields["VerticalBins"].first = FRAMEFIELD_FORCE_SERVER_SEND;
   this->CustomFields["VerticalBins"].second = std::to_string(this->effectiveVBins);
 
+  GetCurrentTemperature(&this->CurrentTemperature);
+  this->CustomFields["Temperature"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->CustomFields["Temperature"].second = std::to_string(this->CurrentTemperature);
+
   std::ostringstream transformStream;
   float transformValue;
   for(unsigned i = 0; i < 15; i++)
