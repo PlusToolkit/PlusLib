@@ -740,7 +740,7 @@ void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning)
   if (cvFlatCorrection.cols != frameSize[0] || cvFlatCorrection.rows != frameSize[1])
   {
     LOG_ERROR("FlatCorrectionImage size " << cvFlatCorrection.size()
-      << " does not the current frame sensor size " << frameSize[0] << " x " << frameSize[1]);
+      << " does not the current frame size " << frameSize[0] << " x " << frameSize[1]);
   }
   else
   {
