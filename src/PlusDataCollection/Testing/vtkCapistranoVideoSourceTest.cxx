@@ -41,6 +41,7 @@
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
 #include "vtkPlusCapistranoVideoSource.h"
+#include "vtkPlusDataSource.h"
 
 #include "vtkTable.h"
 #include "vtkTableAlgorithm.h"
@@ -229,6 +230,7 @@ int main(int argc, char* argv[])
 	bool printParams(false);
 
 	std::string inputConfigFileName;
+	std::string outputFileName("CapistranoTest.mha");
 
 	double depthCm = -1;
 	double dynRangeDb = -1;
@@ -254,6 +256,7 @@ int main(int argc, char* argv[])
 	args.AddArgument("--dynRangeDb", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &dynRangeDb, "BMode Dynamic Range. 1 corresponds to the maximum dynamic range.");
 
 	args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");
+	args.AddArgument("--output-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFileName, "Filename of the output video buffer sequence metafile (Default: CapistranoTest.mha)");
 	args.AddArgument("--print-params", vtksys::CommandLineArguments::NO_ARGUMENT, &printParams, "Print all the supported imaging parameters (for diagnostic purposes only).");
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level 1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
 
@@ -336,9 +339,12 @@ int main(int argc, char* argv[])
 	{
 		// just run the recording for  a few seconds then exit
 		LOG_DEBUG("Rendering disabled. Wait for just a few seconds to acquire data before exiting");
-		Sleep(500); // no need to use accurate timer, it's just an approximate delay
+		Sleep(2500); // no need to use accurate timer, it's just an approximate delay
 		capistranoDevice->StopRecording();
 		capistranoDevice->Disconnect();
+		vtkPlusDataSource* source(nullptr);
+		capistranoDevice->GetVideoSource("Video", source);
+		source->WriteToSequenceFile(outputFileName.c_str());
 	}
 	else
 	{
