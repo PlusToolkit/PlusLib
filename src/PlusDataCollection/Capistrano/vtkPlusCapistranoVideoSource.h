@@ -25,7 +25,7 @@ class vtkPlusDataCollectionExport vtkPlusCapistranoVideoSource: public vtkPlusUs
 public:
   /*! Constructor for a smart pointer of this class*/
   static vtkPlusCapistranoVideoSource* New();
-  vtkTypeMacro(vtkPlusCapistranoVideoSource, vtkPlusDevice);
+  vtkTypeMacro(vtkPlusCapistranoVideoSource, vtkPlusUsDevice);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /*! Specify the device connected to this class */
