@@ -413,6 +413,10 @@ PlusStatus vtkPlusUsImagingParameters::GetImageSize(FrameSizeType& imageSize) co
   {
     imageSize[2] = numbers[2];
   }
+  else
+  {
+    imageSize[2] = 1;
+  }
   return PLUS_SUCCESS;
 }
 
