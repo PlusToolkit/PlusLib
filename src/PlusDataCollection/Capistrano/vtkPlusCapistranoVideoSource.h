@@ -26,22 +26,22 @@ public:
   /*! Constructor for a smart pointer of this class*/
   static vtkPlusCapistranoVideoSource* New();
   vtkTypeMacro(vtkPlusCapistranoVideoSource, vtkPlusDevice);
-  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /*! Specify the device connected to this class */
-  virtual bool IsTracker() const { return false; }
+  bool IsTracker() const override { return false; }
 
   /*! Read configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
+  PlusStatus ReadConfiguration(vtkXMLDataElement* config) override;
 
   /*! Write configuration to xml data */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
+  PlusStatus WriteConfiguration(vtkXMLDataElement* config) override;
 
   /*! Verify the device is correctly configured */
-  virtual PlusStatus NotifyConfigured();
+  PlusStatus NotifyConfigured() override;
 
   /*! Get the version of SDK */
-  virtual std::string GetSdkVersion();
+  std::string GetSdkVersion() override;
 
   /*! Get the hardware version. Only implemented with Capistrano SDK 2018 and newer. */
   PlusStatus GetHardwareVersion(int & HardwareVersion);
@@ -213,16 +213,16 @@ protected:
   ~vtkPlusCapistranoVideoSource();
 
   /*! Device-specific connect */
-  virtual PlusStatus InternalConnect();
+  PlusStatus InternalConnect() override;
 
   /*! Device-specific disconnect */
-  virtual PlusStatus InternalDisconnect();
+  PlusStatus InternalDisconnect() override;
 
   /*! Device-specific recording start */
-  virtual PlusStatus InternalStartRecording();
+  PlusStatus InternalStartRecording() override;
 
   /*! Device-specific recording stop */
-  virtual PlusStatus InternalStopRecording();
+  PlusStatus InternalStopRecording() override;
 
   /*! Initialize vtkPlusCapistranoVideoSource */
   PlusStatus InitializeCapistranoVideoSource(bool probeConnected = false);
