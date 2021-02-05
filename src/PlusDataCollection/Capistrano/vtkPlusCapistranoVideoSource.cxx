@@ -26,7 +26,6 @@ public:
   // ---------------------------------------------------------------------------
   // Public member variables ---------------------------------------------------
   vtkPlusCapistranoVideoSource*   External;
-  vtkPlusUsImagingParameters*     ImagingParameters;
 
   HWND                        ImageWindowHandle;
   HBITMAP                     DataHandle;
@@ -80,7 +79,6 @@ public:
     : External(external)
     , RfDataBuffer(NULL)
     , ProbeHandle(NULL)
-    , ImagingParameters(vtkPlusUsImagingParameters::New())
   {
     this->CreateUSProbeParamsDB();
     this->CreateUSProbePulserParamsDB();
@@ -89,17 +87,10 @@ public:
   /*! Destructor */
   virtual vtkPlusCapistranoVideoSource::vtkInternal::~vtkInternal()
   {
-    this->ImagingParameters->Delete();
     this->USProbeParamsDB.clear();
     this->USProbePulserParamsDB.clear();
 
     this->External = NULL;
-  }
-
-  //----------------------------------------------------------------------------
-  void vtkPlusCapistranoVideoSource::vtkInternal::PrintSelf(ostream& os, vtkIndent indent)
-  {
-    this->ImagingParameters->PrintSelf(os, indent);
   }
 
   /* Clear a linear TGC for US B-Mode image */
@@ -675,7 +666,7 @@ void vtkPlusCapistranoVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 
-  this->Internal->PrintSelf(os, indent);
+  this->ImagingParameters->PrintSelf(os, indent);
 
   os << indent << "Frozen: " << Frozen << std::endl;
   os << indent << "UpdateParameters: " << UpdateParameters << std::endl;
@@ -725,7 +716,7 @@ PlusStatus vtkPlusCapistranoVideoSource::ReadConfiguration(vtkXMLDataElement* ro
 
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, CurrentPixelSpacingMm, deviceConfig);
 
-  this->Internal->ImagingParameters->ReadConfiguration(deviceConfig);
+  this->ImagingParameters->ReadConfiguration(deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -749,7 +740,7 @@ PlusStatus vtkPlusCapistranoVideoSource::WriteConfiguration(vtkXMLDataElement* r
   deviceConfig->SetDoubleAttribute("LutCenter", this->LutCenter);
   deviceConfig->SetDoubleAttribute("LutWindow", this->LutWindow);
 
-  this->Internal->ImagingParameters->WriteConfiguration(deviceConfig);
+  this->ImagingParameters->WriteConfiguration(deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -843,21 +834,21 @@ vtkPlusCapistranoVideoSource::vtkPlusCapistranoVideoSource()
   this->SampleFrequency                        = 40.0f;
   this->PulseFrequency                         = 12.0f;
   this->PositionScale                          = 0; // no function to read it from the SDK, has to be specified
-  this->Internal->ImagingParameters->SetProbeVoltage(30.0f);
-  this->Internal->ImagingParameters->SetSoundVelocity(1532.0f);
-  this->Internal->ImagingParameters->SetDepthMm(36); // mm
+  this->ImagingParameters->SetProbeVoltage(30.0f);
+  this->ImagingParameters->SetSoundVelocity(1532.0f);
+  this->ImagingParameters->SetDepthMm(36); // mm
 
   // Initialize US B-Mode parameters ------------------------------------------
   this->Interpolate                            = true;
   this->AverageMode                            = true;
   this->CurrentBModeViewOption                 = STANDARDVIEW;
   FrameSizeType imageSize = {640, 800, 1};
-  this->Internal->ImagingParameters->SetImageSize(imageSize);
-  this->Internal->ImagingParameters->SetIntensity(128);
-  this->Internal->ImagingParameters->SetContrast(256);
-  this->Internal->ImagingParameters->SetZoomFactor(1.0);
+  this->ImagingParameters->SetImageSize(imageSize);
+  this->ImagingParameters->SetIntensity(128);
+  this->ImagingParameters->SetContrast(256);
+  this->ImagingParameters->SetZoomFactor(1.0);
   double tgc[3] = {-128, -128, -128};
-  this->Internal->ImagingParameters->SetTimeGainCompensation(tgc, 3);
+  this->ImagingParameters->SetTimeGainCompensation(tgc, 3);
   this->LutCenter                              = 128;     //192
   this->LutWindow                              = 256;     //128
 
@@ -932,7 +923,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InitializeCapistranoProbe()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::SetupProbe(int probeID)
 {
-  FrameSizeType imageSize = this->Internal->ImagingParameters->GetImageSize();
+  FrameSizeType imageSize = this->ImagingParameters->GetImageSize();
 
   // Get ProbeID of an attached Capistrano US Probe ------------------------
   this->ProbeID = usbAttachedProbeID();
@@ -991,7 +982,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetupProbe(int probeID)
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::InitializeImageWindow()
 {
-  FrameSizeType imageSize = this->Internal->ImagingParameters->GetImageSize();
+  FrameSizeType imageSize = this->ImagingParameters->GetImageSize();
 
   // Initialize Display -----------------------------------------------------
   HANDLE display = bmInitializeDisplay(imageSize[0] * imageSize[1], 0);
@@ -1070,8 +1061,8 @@ PlusStatus vtkPlusCapistranoVideoSource::InitializeImageWindow()
 PlusStatus vtkPlusCapistranoVideoSource::InitializeLUT()
 {
   BYTE lut[256];
-  double intensity = this->Internal->ImagingParameters->GetIntensity();
-  double contrast = this->Internal->ImagingParameters->GetContrast();
+  double intensity = this->ImagingParameters->GetIntensity();
+  double contrast = this->ImagingParameters->GetContrast();
 
   this->Internal->CreateLUT(lut, intensity, contrast,
                             this->LutCenter, this->LutWindow);
@@ -1085,7 +1076,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InitializeLUT()
 PlusStatus vtkPlusCapistranoVideoSource::InitializeTGC()
 {
   std::vector<double> tgcVec;
-  tgcVec = this->Internal->ImagingParameters->GetTimeGainCompensation();
+  tgcVec = this->ImagingParameters->GetTimeGainCompensation();
   double gain[3] = {tgcVec[0], tgcVec[1], tgcVec[2]};
 
   if (gain[0] >= 0 && gain[1] >= 0 && gain[2] >= 0)
@@ -1112,7 +1103,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InitializeCapistranoVideoSource(bool pr
   // Clear buffer on connect because the new frames that we will
   // acquire might have a different size
   aSource->Clear();
-  FrameSizeType frameSizeInPx = this->Internal->ImagingParameters->GetImageSize();
+  FrameSizeType frameSizeInPx = this->ImagingParameters->GetImageSize();
   //aSource->SetInputImageOrientation(US_IMG_ORIENT_NU);
   aSource->SetImageType(US_IMG_BRIGHTNESS);
   aSource->SetPixelType(VTK_UNSIGNED_CHAR);
@@ -1173,7 +1164,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InitializeCapistranoVideoSource(bool pr
   }
 
   usbSetUnidirectionalMode();
-  usbSetPulseVoltage(this->Internal->ImagingParameters->GetProbeVoltage());
+  usbSetPulseVoltage(this->ImagingParameters->GetProbeVoltage());
 
   // Set the Size of CineBuffer -----------------------------------------------
   // Setup the display offsets now that we have the probe and DISPLAY data
@@ -1269,7 +1260,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
   RETURN_WITH_FAIL_IF(this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS,
                       "Unable to retrieve the video source in the Capistrano device.");
 
-  FrameSizeType frameSizeInPx = this->Internal->ImagingParameters->GetImageSize();
+  FrameSizeType frameSizeInPx = this->ImagingParameters->GetImageSize();
 
   // If the buffer is empty, set the pixel type and frame size
   // to the first received properties
@@ -1625,7 +1616,7 @@ unsigned char vtkPlusCapistranoVideoSource::GetDerivativeCompensation()
 PlusStatus vtkPlusCapistranoVideoSource::SetPulseVoltage(float pv)
 {
   usbSetPulseVoltage(pv);
-  this->Internal->ImagingParameters->SetProbeVoltage(pv);
+  this->ImagingParameters->SetProbeVoltage(pv);
   return PLUS_SUCCESS;
 }
 
@@ -1637,13 +1628,13 @@ float vtkPlusCapistranoVideoSource::GetPulseVoltage()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::SetSoundVelocity(float ss)
 {
-  return this->Internal->ImagingParameters->SetSoundVelocity(ss);
+  return this->ImagingParameters->SetSoundVelocity(ss);
 }
 
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::SetScanDepth(float sd)     // unit cm
 {
-  return this->Internal->ImagingParameters->SetDepthMm(sd * 10);
+  return this->ImagingParameters->SetDepthMm(sd * 10);
 }
 
 // setup USBmode parameters ---------------------------------------------------
@@ -1672,25 +1663,25 @@ PlusStatus vtkPlusCapistranoVideoSource::SetBModeViewOption(unsigned int bModeVi
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::SetImageSize(const FrameSizeType& imageSize)
 {
-  return this->Internal->ImagingParameters->SetImageSize(imageSize[0], imageSize[1], imageSize[2]);
+  return this->ImagingParameters->SetImageSize(imageSize[0], imageSize[1], imageSize[2]);
 }
 
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::SetIntensity(double value)
 {
-  return this->Internal->ImagingParameters->SetIntensity(value);
+  return this->ImagingParameters->SetIntensity(value);
 }
 
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::SetContrast(double value)
 {
-  return this->Internal->ImagingParameters->SetContrast(value);
+  return this->ImagingParameters->SetContrast(value);
 }
 
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::SetZoomFactor(double zoomfactor)
 {
-  return this->Internal->ImagingParameters->SetZoomFactor(zoomfactor);
+  return this->ImagingParameters->SetZoomFactor(zoomfactor);
 }
 
 // ----------------------------------------------------------------------------
@@ -1725,7 +1716,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetLutWindow(double lutwindow)
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::SetGainPercent(double gainPercent[3])
 {
-  this->Internal->ImagingParameters->SetTimeGainCompensation(gainPercent, 3);
+  this->ImagingParameters->SetTimeGainCompensation(gainPercent, 3);
   return PLUS_SUCCESS;
 }
 
@@ -1790,7 +1781,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetDepthMmDevice(float depthMm)
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::SetDepthMm(float depthMm)
 {
-  return this->Internal->ImagingParameters->SetDepthMm(depthMm);
+  return this->ImagingParameters->SetDepthMm(depthMm);
 }
 
 // Update US parameters before acquiring US-BMode images -----------------------
@@ -1821,7 +1812,7 @@ PlusStatus vtkPlusCapistranoVideoSource::UpdateUSProbeParameters()
   }
 
   // Update SoundVelocity --------------------------------------------------
-  this->Internal->USProbeParams.probetype.Velocity = this->Internal->ImagingParameters->GetSoundVelocity();
+  this->Internal->USProbeParams.probetype.Velocity = this->ImagingParameters->GetSoundVelocity();
 
   // Update PulseFrequency
   if (!this->Internal->SetUSProbePulserParamsFromDB(this->PulseFrequency))
@@ -1831,12 +1822,12 @@ PlusStatus vtkPlusCapistranoVideoSource::UpdateUSProbeParameters()
   }
 
   // Update PulseVoltage ----------------------------------------------------
-  this->Internal->USProbeParams.PulseVoltage = this->Internal->ImagingParameters->GetProbeVoltage();
+  this->Internal->USProbeParams.PulseVoltage = this->ImagingParameters->GetProbeVoltage();
   usbSetPulseVoltage(this->Internal->USProbeParams.PulseVoltage);
 
 
   // Setup ScanDpthe  -------------------------------------------------------
-  if (this->SetDepthMmDevice((float)this->Internal->ImagingParameters->GetDepthMm()) == PLUS_FAIL)
+  if (this->SetDepthMmDevice((float)this->ImagingParameters->GetDepthMm()) == PLUS_FAIL)
   {
     LOG_ERROR("Could not setup Scan Depth");
     return PLUS_FAIL;
@@ -1852,7 +1843,7 @@ PlusStatus vtkPlusCapistranoVideoSource::UpdateUSBModeParameters()
   this->InitializeTGC();
 
   // Set zoom factor
-  if (SetDisplayZoomDevice(this->Internal->ImagingParameters->GetZoomFactor()) == PLUS_FAIL)
+  if (SetDisplayZoomDevice(this->ImagingParameters->GetZoomFactor()) == PLUS_FAIL)
   {
     LOG_ERROR("SetDisplayZoomDevice failed");
     return PLUS_FAIL;
@@ -1870,7 +1861,7 @@ PlusStatus vtkPlusCapistranoVideoSource::CalculateDisplay()
 PlusStatus vtkPlusCapistranoVideoSource::CalculateDisplay(unsigned int bBModeViewOption)
 {
   POINT ptCenter; // Points for Zoomed Display
-  FrameSizeType imageSize = this->Internal->ImagingParameters->GetImageSize();
+  FrameSizeType imageSize = this->ImagingParameters->GetImageSize();
   ptCenter.x = imageSize[0] / 2;
   ptCenter.y = imageSize[1] / 2;
 
@@ -1893,7 +1884,7 @@ PlusStatus vtkPlusCapistranoVideoSource::CalculateDisplay(unsigned int bBModeVie
 PlusStatus vtkPlusCapistranoVideoSource::UpdateDepthMode()
 {
   // Update the values of ProbeType structure
-  FrameSizeType imageSize = this->Internal->ImagingParameters->GetImageSize();
+  FrameSizeType imageSize = this->ImagingParameters->GetImageSize();
   Internal->USProbeParams.probetype.OversampleRate  = 2048.0f / imageSize[1];
   Internal->USProbeParams.probetype.SampleFrequency = 80.f / usbSampleClockDivider();
   Internal->USProbeParams.probetype.PivFaceSamples  =
@@ -1982,32 +1973,32 @@ PlusStatus vtkPlusCapistranoVideoSource::GetProbeNameDevice(std::string& probeNa
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::SetNewImagingParametersDevice(const vtkPlusUsImagingParameters& newImagingParameters)
 {
-  if (this->Internal->ImagingParameters->DeepCopy(newImagingParameters) == PLUS_FAIL)
+  if (this->ImagingParameters->DeepCopy(newImagingParameters) == PLUS_FAIL)
   {
     LOG_ERROR("Unable to deep copy new imaging parameters.");
     return PLUS_FAIL;
   }
 
-  if (this->Internal->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_DEPTH))
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_DEPTH))
   {
-    if (this->SetDepthMmDevice(float(this->Internal->ImagingParameters->GetDepthMm()) / 10.0f) == PLUS_FAIL)
+    if (this->SetDepthMmDevice(float(this->ImagingParameters->GetDepthMm()) / 10.0f) == PLUS_FAIL)
     {
       return PLUS_FAIL;
     }
   }
 
-  if (this->Internal->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_FREQUENCY))
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_FREQUENCY))
   {
-    if (this->SetPulseFrequency(this->Internal->ImagingParameters->GetFrequencyMhz()) == PLUS_FAIL)
+    if (this->SetPulseFrequency(this->ImagingParameters->GetFrequencyMhz()) == PLUS_FAIL)
     {
       return PLUS_FAIL;
     }
   }
 
-  if (this->Internal->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_TGC))
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_TGC))
   {
     std::vector<double> tgcVec;
-    this->Internal->ImagingParameters->GetTimeGainCompensation(tgcVec);
+    this->ImagingParameters->GetTimeGainCompensation(tgcVec);
     double tgc[3] = {tgcVec[0], tgcVec[1], tgcVec[2]};
 
     if (this->SetGainPercent(tgc) == PLUS_FAIL)
@@ -2016,10 +2007,10 @@ PlusStatus vtkPlusCapistranoVideoSource::SetNewImagingParametersDevice(const vtk
     }
   }
 
-  if (this->Internal->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_IMAGESIZE))
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_IMAGESIZE))
   {
     FrameSizeType imageSizeVec;
-    this->Internal->ImagingParameters->GetImageSize(imageSizeVec);
+    this->ImagingParameters->GetImageSize(imageSizeVec);
 
     if (this->SetImageSize(imageSizeVec) == PLUS_FAIL)
     {
@@ -2027,41 +2018,41 @@ PlusStatus vtkPlusCapistranoVideoSource::SetNewImagingParametersDevice(const vtk
     }
   }
 
-  if (this->Internal->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_INTENSITY))
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_INTENSITY))
   {
-    if (this->SetIntensity(this->Internal->ImagingParameters->GetIntensity()) == PLUS_FAIL)
+    if (this->SetIntensity(this->ImagingParameters->GetIntensity()) == PLUS_FAIL)
     {
       return PLUS_FAIL;
     }
   }
 
-  if (this->Internal->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_CONTRAST))
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_CONTRAST))
   {
-    if (this->SetContrast(this->Internal->ImagingParameters->GetContrast()) == PLUS_FAIL)
+    if (this->SetContrast(this->ImagingParameters->GetContrast()) == PLUS_FAIL)
     {
       return PLUS_FAIL;
     }
   }
 
-  if (this->Internal->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_ZOOM))
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_ZOOM))
   {
-    if (this->SetZoomFactor(this->Internal->ImagingParameters->GetZoomFactor()) == PLUS_FAIL)
+    if (this->SetZoomFactor(this->ImagingParameters->GetZoomFactor()) == PLUS_FAIL)
     {
       return PLUS_FAIL;
     }
   }
 
-  if (this->Internal->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_SOUNDVELOCITY))
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_SOUNDVELOCITY))
   {
-    if (this->SetSoundVelocity(this->Internal->ImagingParameters->GetSoundVelocity()) == PLUS_FAIL)
+    if (this->SetSoundVelocity(this->ImagingParameters->GetSoundVelocity()) == PLUS_FAIL)
     {
       return PLUS_FAIL;
     }
   }
 
-  if (this->Internal->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_VOLTAGE))
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_VOLTAGE))
   {
-    if (this->SetPulseVoltage(this->Internal->ImagingParameters->GetProbeVoltage()) == PLUS_FAIL)
+    if (this->SetPulseVoltage(this->ImagingParameters->GetProbeVoltage()) == PLUS_FAIL)
     {
       return PLUS_FAIL;
     }
