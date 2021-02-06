@@ -458,6 +458,8 @@ void vtkPlusAndorVideoSource::SetCustomFrameFields()
 
   this->CustomFields["ImageToReferenceTransform"].first = FRAMEFIELD_FORCE_SERVER_SEND;
   this->CustomFields["ImageToReferenceTransform"].second = transformStream.str();
+  this->CustomFields["ImageToReferenceTransformStatus"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->CustomFields["ImageToReferenceTransformStatus"].second = "OK";
 }
 
 // ----------------------------------------------------------------------------
