@@ -1987,7 +1987,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalApplyImagingParameterChange()
 
   if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_DEPTH))
   {
-    if (this->SetDepthMmDevice(float(this->ImagingParameters->GetDepthMm()) / 10.0f) == PLUS_FAIL)
+    if (this->SetDepthMmDevice(float(this->ImagingParameters->GetDepthMm())) == PLUS_FAIL)
     {
       return PLUS_FAIL;
     }
