@@ -1205,7 +1205,13 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalConnect()
   LOG_TRACE("vtkPlusCapistranoVideoSource::InternalConnect");
   LOG_DEBUG("Capistrano Bmode DLL version " << bmDLLVer() << ", USB probe DLL version " << usbDLLVer());
 
-  return this->InitializeCapistranoVideoSource();
+  if (this->InitializeCapistranoVideoSource() != PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+  // some parameters might have changed while we were disconnected
+  this->Connected = true;
+  return this->InternalApplyImagingParameterChange();
 }
 
 // ----------------------------------------------------------------------------
@@ -1973,6 +1979,12 @@ PlusStatus vtkPlusCapistranoVideoSource::GetProbeNameDevice(std::string& probeNa
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::InternalApplyImagingParameterChange()
 {
+  if (!this->Connected)
+  {
+    // trying to apply parameters when not connected leads to crashes
+    return PLUS_SUCCESS;
+  }
+
   if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_DEPTH))
   {
     if (this->SetDepthMmDevice(float(this->ImagingParameters->GetDepthMm()) / 10.0f) == PLUS_FAIL)
