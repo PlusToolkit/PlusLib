@@ -9,6 +9,7 @@ See License.txt for details.
 #include "vtkPlusAndorVideoSource.h"
 #include "ATMCD32D.h"
 #include "igtlOSUtil.h" // for Sleep
+#include "opencv2/core/base.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/imgcodecs.hpp"
 
@@ -751,7 +752,7 @@ void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning)
     LOG_INFO("Applied multiplicative flat correction");
   }
 
-  result.convertTo(cvIMG, CV_16UC1);
+  cv::normalize(result, cvIMG, 0, 65535, cv::NORM_MINMAX, CV_16UC1);
 }
 
 // ----------------------------------------------------------------------------
