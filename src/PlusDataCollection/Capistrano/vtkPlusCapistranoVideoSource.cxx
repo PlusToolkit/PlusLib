@@ -1971,14 +1971,8 @@ PlusStatus vtkPlusCapistranoVideoSource::GetProbeNameDevice(std::string& probeNa
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusCapistranoVideoSource::SetNewImagingParametersDevice(const vtkPlusUsImagingParameters& newImagingParameters)
+PlusStatus vtkPlusCapistranoVideoSource::InternalApplyImagingParameterChange()
 {
-  if (this->ImagingParameters->DeepCopy(newImagingParameters) == PLUS_FAIL)
-  {
-    LOG_ERROR("Unable to deep copy new imaging parameters.");
-    return PLUS_FAIL;
-  }
-
   if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_DEPTH))
   {
     if (this->SetDepthMmDevice(float(this->ImagingParameters->GetDepthMm()) / 10.0f) == PLUS_FAIL)

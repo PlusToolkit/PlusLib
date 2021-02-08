@@ -170,8 +170,8 @@ public:
   /* Set the probe depth in mm */
   PlusStatus SetDepthMm(float depthMm);
 
-  /* Apply a completely new set of imaging parameters to the device */
-  PlusStatus SetNewImagingParametersDevice(const vtkPlusUsImagingParameters& newImagingParameters);
+  /*! Set changed imaging parameter to device */
+  PlusStatus InternalApplyImagingParameterChange() override;
 
   /*! Set Current Pixel Spacing values Of US Image (mm) */
   vtkSetVector3Macro(CurrentPixelSpacingMm, double);
