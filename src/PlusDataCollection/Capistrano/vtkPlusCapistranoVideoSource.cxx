@@ -1762,11 +1762,8 @@ PlusStatus vtkPlusCapistranoVideoSource::SetDepthMmDevice(float depthMm)
 {
   int temp = (int)(depthMm / 18.0f);
 
-  if (temp > 4 || temp < 1)
-  {
-    LOG_ERROR("Wrong Scan Depth");
-    return PLUS_FAIL;
-  }
+  temp = std::max(temp, 1);
+  temp = std::min(temp, 4);
 
   // Update the current scan depth with an available scan depth
   this->SetDepthMm((float)temp * 18.0f);
