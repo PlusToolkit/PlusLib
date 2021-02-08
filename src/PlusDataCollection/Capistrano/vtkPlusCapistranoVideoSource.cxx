@@ -2064,5 +2064,5 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalApplyImagingParameterChange()
     }
   }
 
-  return this->InitializeCapistranoVideoSource(true);
+  return PLUS_SUCCESS;
 }
