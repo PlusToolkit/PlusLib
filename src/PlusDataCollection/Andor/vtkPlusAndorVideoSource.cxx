@@ -684,11 +684,7 @@ void vtkPlusAndorVideoSource::ApplyCosmicRayCorrection(int bin, cv::Mat& floatIm
     kernelSize = 5;
   }
 
-  // find and subtract background
-  cv::Mat meanCols, medianImage, diffImage, medianPixels;
-  cv::reduce(floatImage, meanCols, 0, cv::REDUCE_AVG, CV_32FC1);
-  ushort background = (ushort)meanCols.at<float>(0, 0);
-  cv::subtract(floatImage, background, floatImage);
+  cv::Mat medianImage, diffImage, medianPixels;
 
   // idenfify cosmice ray indices
   cv::medianBlur(floatImage, medianImage, kernelSize);
