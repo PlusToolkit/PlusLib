@@ -62,6 +62,9 @@ public:
   PlusStatus SetShutter(ShutterMode shutter);
   ShutterMode GetShutter();
 
+  PlusStatus SetShutterClosingTimeMilliseconds(int closingTime);
+  PlusStatus SetShutterOpeningTimeMilliseconds(int openingTime);
+
   /*! Frame exposure time, seconds. Sets to the nearest valid value not less than the given value. */
   PlusStatus SetExposureTime(float exposureTime);
   float GetExposureTime();
@@ -180,13 +183,13 @@ public:
   std::array<double, 4> GetDistortionCoefficients();
 
   /*! -1 uses currently active settings. */
-  PlusStatus StartBLIFrameAcquisition(int binning, int vsSpeed, int hsSpeed, float exposureTime);
+  PlusStatus StartBLIFrameAcquisition(int binning, int vsSpeed, int hsSpeed, float exposureTime, int shutterCloseTime=0, int shutterOpenTime=0);
 
   /*! -1 uses currently active settings. */
-  PlusStatus StartGrayscaleFrameAcquisition(int binning, int vsSpeed, int hsSpeed, float exposureTime);
+  PlusStatus StartGrayscaleFrameAcquisition(int binning, int vsSpeed, int hsSpeed, float exposureTime, int shutterCloseTime=0, int shutterOpenTime=0);
 
   /*! Convenience function to save a bias frame for a certain binning/speed configuration. */
-  PlusStatus StartCorrectionFrameAcquisition(std::string correctionFilePath, ShutterMode shutter, int binning, int vsSpeed, int hsSpeed, float exposureTime);
+  PlusStatus StartCorrectionFrameAcquisition(std::string correctionFilePath, ShutterMode shutter, int binning, int vsSpeed, int hsSpeed, float exposureTime, int shutterCloseTime=0, int shutterOpenTime=0);
 
   /*! Abort the running acquisition process and thread. */
   PlusStatus AbortAcquisition();
@@ -338,6 +341,8 @@ protected:
 
   /*! Internal variables. */
   vtkPlusAndorVideoSource::ShutterMode Shutter = ShutterMode::FullyAuto;
+  int ShutterOpeningTimeMilliseconds = 0;
+  int ShutterClosingTimeMilliseconds = 0;
   float ExposureTime = 1.0; // seconds
   int HorizontalBins = 1;
   int VerticalBins = 1;
@@ -354,6 +359,8 @@ protected:
   int effectiveHSInd = 1;  // index
   int effectiveVSInd = 1;  // index
   vtkPlusAndorVideoSource::ShutterMode effectiveShutter = ShutterMode::FullyAuto;
+  int effectiveShutterOpeningTimeMilliseconds = 0;
+  int effectiveShutterClosingTimeMilliseconds = 0;
 
   // TODO: Need to handle differet cases for read/acquisiton modes?
 
