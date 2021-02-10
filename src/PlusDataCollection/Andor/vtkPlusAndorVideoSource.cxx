@@ -126,6 +126,8 @@ PlusStatus vtkPlusAndorVideoSource::ReadConfiguration(vtkXMLDataElement* rootCon
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, VSSpeedIndex, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, HorizontalBins, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, VerticalBins, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ShutterClosingTimeMilliseconds, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ShutterOpeningTimeMilliseconds, deviceConfig);
 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(InitializeCoolerState, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(RequireCoolTemp, deviceConfig);
@@ -166,6 +168,8 @@ PlusStatus vtkPlusAndorVideoSource::WriteConfiguration(vtkXMLDataElement* rootCo
   deviceConfig->SetIntAttribute("VSSpeedIndex", this->VSSpeedIndex);
   deviceConfig->SetIntAttribute("HorizontalBins", this->HorizontalBins);
   deviceConfig->SetIntAttribute("VerticalBins", this->VerticalBins);
+  deviceConfig->SetIntAttribute("ShutterClosingTimeMilliseconds", this->ShutterClosingTimeMilliseconds);
+  deviceConfig->SetIntAttribute("ShutterOpeningTimeMilliseconds", this->ShutterOpeningTimeMilliseconds);
 
   deviceConfig->SetVectorAttribute("HSSpeed", 2, HSSpeed);
   deviceConfig->SetVectorAttribute("OutputSpacing", 3, OutputSpacing);
@@ -534,7 +538,7 @@ PlusStatus vtkPlusAndorVideoSource::AcquireFrame()
   int x, y;
   checkStatus(GetDetector(&x, &y), "GetDetector");  // full sensor size
   checkStatus(::SetExposureTime(this->effectiveExpTime), "SetExposureTime");
-  checkStatus(::SetShutter(1, this->effectiveShutter, 0, 0), "SetShutter");
+  checkStatus(::SetShutter(1, this->effectiveShutter, this->effectiveShutterClosingTimeMilliseconds, this->effectiveShutterOpeningTimeMilliseconds), "SetShutter");
   checkStatus(::SetImage(this->effectiveHBins, this->effectiveVBins, 1, x, 1, y), "Binning");
   checkStatus(::SetVSSpeed(this->effectiveVSInd), "SetVSSpeed");
   checkStatus(::SetHSSpeed(this->HSSpeed[0], this->effectiveHSInd), "SetHSSpeed");
@@ -758,7 +762,7 @@ void vtkPlusAndorVideoSource::ApplyFrameCorrections(int binning)
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::StartBLIFrameAcquisition(int binning, int vsSpeedIndex, int hsSpeed, float exposureTime)
+PlusStatus vtkPlusAndorVideoSource::StartBLIFrameAcquisition(int binning, int vsSpeedIndex, int hsSpeed, float exposureTime, int shutterCloseTime /* =0 */, int shutterOpenTime /* =0 */)
 {
   if (this->IsAcquisitionThreadRunning())
   {
@@ -772,6 +776,8 @@ PlusStatus vtkPlusAndorVideoSource::StartBLIFrameAcquisition(int binning, int vs
   this->effectiveHSInd = hsSpeed > -1 ? hsSpeed : this->HSSpeed[1];
   this->effectiveExpTime = exposureTime > -1 ? exposureTime : this->ExposureTime;
   this->effectiveShutter = ShutterMode::FullyAuto;
+  this->effectiveShutterOpeningTimeMilliseconds = shutterOpenTime > 0 ? shutterOpenTime : this->ShutterOpeningTimeMilliseconds;
+  this->effectiveShutterClosingTimeMilliseconds = shutterCloseTime > 0 ? shutterCloseTime : this->ShutterClosingTimeMilliseconds;
 
   this->threadID = this->Threader->SpawnThread((vtkThreadFunctionType)&vtkPlusAndorVideoSource::AcquireBLIFrameThread, this);
   return PLUS_SUCCESS;
@@ -806,7 +812,7 @@ void* vtkPlusAndorVideoSource::AcquireBLIFrameThread(vtkMultiThreader::ThreadInf
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::StartGrayscaleFrameAcquisition(int binning, int vsSpeedIndex, int hsSpeed, float exposureTime)
+PlusStatus vtkPlusAndorVideoSource::StartGrayscaleFrameAcquisition(int binning, int vsSpeedIndex, int hsSpeed, float exposureTime, int shutterCloseTime /* =0 */, int shutterOpenTime /* =0 */)
 {
   if (this->IsAcquisitionThreadRunning())
   {
@@ -820,6 +826,8 @@ PlusStatus vtkPlusAndorVideoSource::StartGrayscaleFrameAcquisition(int binning, 
   this->effectiveHSInd = hsSpeed > -1 ? hsSpeed : this->HSSpeed[1];
   this->effectiveExpTime = exposureTime > -1 ? exposureTime : this->ExposureTime;
   this->effectiveShutter = ShutterMode::FullyAuto;
+  this->effectiveShutterOpeningTimeMilliseconds = shutterOpenTime > 0 ? shutterOpenTime : this->ShutterOpeningTimeMilliseconds;
+  this->effectiveShutterClosingTimeMilliseconds = shutterCloseTime > 0 ? shutterCloseTime : this->ShutterClosingTimeMilliseconds;
 
   this->threadID = this->Threader->SpawnThread((vtkThreadFunctionType)&vtkPlusAndorVideoSource::AcquireGrayscaleFrameThread, this);
   return PLUS_SUCCESS;
@@ -855,7 +863,7 @@ void* vtkPlusAndorVideoSource::AcquireGrayscaleFrameThread(vtkMultiThreader::Thr
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusAndorVideoSource::StartCorrectionFrameAcquisition(const std::string correctionFilePath, ShutterMode shutter, int binning, int vsSpeedIndex, int hsSpeed, float exposureTime)
+PlusStatus vtkPlusAndorVideoSource::StartCorrectionFrameAcquisition(const std::string correctionFilePath, ShutterMode shutter, int binning, int vsSpeedIndex, int hsSpeed, float exposureTime, int shutterCloseTime /* =0 */, int shutterOpenTime /* =0 */)
 {
   if (this->threadID > -1)
   {
@@ -869,6 +877,8 @@ PlusStatus vtkPlusAndorVideoSource::StartCorrectionFrameAcquisition(const std::s
   this->effectiveHSInd = hsSpeed > -1 ? hsSpeed : this->HSSpeed[1];
   this->effectiveExpTime = exposureTime > -1 ? exposureTime : this->ExposureTime;
   this->effectiveShutter = shutter;
+  this->effectiveShutterOpeningTimeMilliseconds = shutterOpenTime > 0 ? shutterOpenTime : this->ShutterOpeningTimeMilliseconds;
+  this->effectiveShutterClosingTimeMilliseconds = shutterCloseTime > 0 ? shutterCloseTime : this->ShutterClosingTimeMilliseconds;
   this->saveCorrectionPath = correctionFilePath;
 
   this->threadID = this->Threader->SpawnThread((vtkThreadFunctionType)&vtkPlusAndorVideoSource::AcquireCorrectionFrameThread, this);
@@ -1020,8 +1030,34 @@ void vtkPlusAndorVideoSource::ResizeFlatCorrectionImage(int binning)
 PlusStatus vtkPlusAndorVideoSource::SetShutter(ShutterMode shutter)
 {
   this->Shutter = shutter;
-  checkStatus(::SetShutter(1, this->Shutter, 0, 0), "SetShutter");
+  checkStatus(::SetShutter(1, this->Shutter, this->ShutterClosingTimeMilliseconds, this->ShutterOpeningTimeMilliseconds), "SetShutter");
   return PLUS_SUCCESS;
+}
+
+// ----------------------------------------------------------------------------
+PlusStatus vtkPlusAndorVideoSource::SetShutterClosingTimeMilliseconds(int closingTime)
+{
+  unsigned status = checkStatus(::SetShutter(1, this->Shutter, closingTime, this->ShutterOpeningTimeMilliseconds), "SetShutter");
+  if (status != DRV_SUCCESS)
+  {
+    this->ShutterClosingTimeMilliseconds = closingTime;
+    return PLUS_SUCCESS;
+  }
+  LOG_ERROR("SetShutter failed with the given closing time.");
+  return PLUS_FAIL;
+}
+
+// ----------------------------------------------------------------------------
+PlusStatus vtkPlusAndorVideoSource::SetShutterOpeningTimeMilliseconds(int openingTime)
+{
+  unsigned status = checkStatus(::SetShutter(1, this->Shutter, this->ShutterClosingTimeMilliseconds, openingTime), "SetShutter");
+  if (status != DRV_SUCCESS)
+  {
+    this->ShutterOpeningTimeMilliseconds = openingTime;
+    return PLUS_SUCCESS;
+  }
+  LOG_ERROR("SetShutter failed with the given opening time.");
+  return PLUS_FAIL;
 }
 
 // ----------------------------------------------------------------------------
