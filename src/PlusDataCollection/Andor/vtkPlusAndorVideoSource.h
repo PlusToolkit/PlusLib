@@ -309,6 +309,9 @@ protected:
   PlusStatus SetUseFrameCorrections(bool UseFrameCorrections);
   bool GetUseFrameCorrections();
 
+  /*! Resizes flat correction image depeding on the binning */
+  void ResizeFlatCorrectionImage(int binning);
+
   /*! This will be triggered regularly if this->StartThreadForInternalUpdates is true.
    * Framerate is controlled by this->AcquisitionRate. This is meant for debugging.
    */
@@ -390,7 +393,7 @@ protected:
 
   double OutputSpacing[3] = { 0 };
 
-  /*! Frame field for image transform. Since applications of this device are 
+  /*! Frame field for image transform. Since applications of this device are
       mainly stationary, don't use a tracker and just set the transform manually. */
   std::array<float, 16> imageToReferenceTransform = { 0 };
 
