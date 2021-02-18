@@ -1038,7 +1038,7 @@ PlusStatus vtkPlusAndorVideoSource::SetShutter(ShutterMode shutter)
 PlusStatus vtkPlusAndorVideoSource::SetShutterClosingTimeMilliseconds(int closingTime)
 {
   unsigned status = checkStatus(::SetShutter(1, this->Shutter, closingTime, this->ShutterOpeningTimeMilliseconds), "SetShutter");
-  if (status != DRV_SUCCESS)
+  if (status == DRV_SUCCESS)
   {
     this->ShutterClosingTimeMilliseconds = closingTime;
     return PLUS_SUCCESS;
@@ -1051,7 +1051,7 @@ PlusStatus vtkPlusAndorVideoSource::SetShutterClosingTimeMilliseconds(int closin
 PlusStatus vtkPlusAndorVideoSource::SetShutterOpeningTimeMilliseconds(int openingTime)
 {
   unsigned status = checkStatus(::SetShutter(1, this->Shutter, this->ShutterClosingTimeMilliseconds, openingTime), "SetShutter");
-  if (status != DRV_SUCCESS)
+  if (status == DRV_SUCCESS)
   {
     this->ShutterOpeningTimeMilliseconds = openingTime;
     return PLUS_SUCCESS;
