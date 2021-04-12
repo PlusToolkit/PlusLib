@@ -50,6 +50,7 @@ public:
   // Motive Files
 #if MOTIVE_VERSION_MAJOR >= 2
   std::string Profile;
+  std::string Calibration;
 #else
   std::string ProjectFile;
 #endif
@@ -141,6 +142,7 @@ PlusStatus vtkPlusOptiTrack::ReadConfiguration(vtkXMLDataElement* rootConfigElem
 
 #if MOTIVE_VERSION_MAJOR >= 2
   XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(Profile, this->Internal->Profile, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(Calibration, this->Internal->Calibration, deviceConfig);
 #else
   XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(ProjectFile, this->Internal->ProjectFile, deviceConfig);
 #endif
@@ -213,19 +215,36 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
     // pick up recently-arrived cameras
     TT_Update();
 
-    // open project file
+    
 #if MOTIVE_VERSION_MAJOR >= 2
+    // open project file
     std::string profilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->Internal->Profile);
-    NPRESULT ttpLoad = TT_LoadProfile(profilePath.c_str());
+    NPRESULT profileLoad = TT_LoadProfile(profilePath.c_str());
+    if (profileLoad != NPRESULT_SUCCESS)
+    {
+      LOG_ERROR("Failed to load Motive profile. Motive error: " << TT_GetResultString(profileLoad));
+      return PLUS_FAIL;
+    }
+
+    // load calibration
+    std::string calibrationPath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->Internal->Calibration);
+    NPRESULT calLoad = TT_LoadCalibration(calibrationPath.c_str());
+    if (profileLoad != NPRESULT_SUCCESS)
+    {
+      LOG_ERROR("Failed to load Motive calibration. Motive error: " << TT_GetResultString(profileLoad));
+      return PLUS_FAIL;
+    }
 #else
+    // open project file
     std::string projectFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->Internal->ProjectFile);
     NPRESULT ttpLoad = TT_LoadProject(projectFilePath.c_str());
-#endif
     if (ttpLoad != NPRESULT_SUCCESS)
     {
       LOG_ERROR("Failed to load Motive project file. Motive error: " << TT_GetResultString(ttpLoad));
       return PLUS_FAIL;
     }
+#endif
+    
 
     // enforce NatNet streaming enabled, this is required for PLUS tracking
     // this is the equivalent to checking the "Broadcast Frame Data" button in the Motive GUI
@@ -254,6 +273,7 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
     // list project file
 #if MOTIVE_VERSION_MAJOR >= 2
     LOG_INFO("\nUsing Motive profile located at:\n" << profilePath);
+    LOG_INFO("\nUsing Motive calibration located at:\n" << calibrationPath);
 #else
     LOG_INFO("\nUsing Motive project file located at:\n" << projectFilePath);
 #endif
