@@ -205,12 +205,6 @@ SET(${PROJECT_NAME}_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices
   CACHE INTERNAL "" FORCE)
 
-IF(PLUS_USE_TextRecognizer)
-  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
-    ${CMAKE_CURRENT_BINARY_DIR}/VirtualDevices
-    )
-ENDIF()
-
 # --------------------------------------------------------------------------
 # OptiTrack support
 IF(PLUS_USE_OPTITRACK)
