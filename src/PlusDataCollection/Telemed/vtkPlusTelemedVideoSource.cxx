@@ -208,7 +208,7 @@ PlusStatus vtkPlusTelemedVideoSource::InternalUpdate()
   if (aSource->GetImageType() == US_IMG_RGB_COLOR)
   {
     this->UncompressedVideoFrame.AllocateFrame(frameSizeInPix, VTK_UNSIGNED_CHAR, 3);
-    decodingStatus = PixelCodec::ConvertToBmp24(componentOrdering, encoding, frameSizeInPix[0], frameSizeInPix[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
+    decodingStatus = PixelCodec::ConvertToBGR24(componentOrdering, encoding, frameSizeInPix[0], frameSizeInPix[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
   }
   else
   {
