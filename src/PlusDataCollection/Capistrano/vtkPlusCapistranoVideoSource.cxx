@@ -865,6 +865,12 @@ vtkPlusCapistranoVideoSource::vtkPlusCapistranoVideoSource()
   this->CurrentPixelSpacingMm[0]               = 1.0;
   this->CurrentPixelSpacingMm[1]               = 1.0;
   this->CurrentPixelSpacingMm[2]               = 1.0;
+
+  // Initialize Capistrano US Probe ----------------------------------------
+  if (InitializeCapistranoProbe() == PLUS_FAIL)
+  {
+    LOG_ERROR("Failed to initialize Capistrano US Probe");
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -1119,16 +1125,6 @@ PlusStatus vtkPlusCapistranoVideoSource::InitializeCapistranoVideoSource(bool pr
   {
     LOG_ERROR("Failed to initialize Image Window");
     return PLUS_FAIL;
-  }
-
-  // Initialize Capistrano US Probe ----------------------------------------
-  if (!probeConnected)
-  {
-    if (InitializeCapistranoProbe() == PLUS_FAIL)
-    {
-      LOG_ERROR("Failed to initialize Capistrano US Probe");
-      return PLUS_FAIL;
-    }
   }
 
   // Update US parameters --------------------------------------------------
