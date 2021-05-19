@@ -666,8 +666,6 @@ void vtkPlusCapistranoVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 
-  this->ImagingParameters->PrintSelf(os, indent);
-
   os << indent << "Frozen: " << Frozen << std::endl;
   os << indent << "UpdateParameters: " << UpdateParameters << std::endl;
   os << indent << "BidirectionalMode: " << BidirectionalMode << std::endl;
@@ -676,6 +674,13 @@ void vtkPlusCapistranoVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "CineBuffers: " << CineBuffers << std::endl;
   os << indent << "SampleFrequency: " << SampleFrequency << std::endl;
   os << indent << "PulseFrequency: " << PulseFrequency << std::endl;
+  os << indent << "WobbleRate: " << (int)GetWobbleRate() << std::endl;
+  os << indent << "JitterCompensation: " << (int)GetJitterCompensation() << std::endl;
+  os << indent << "PositionScale: " << (int)PositionScale << std::endl;
+  os << indent << "SweepAngle: " << GetSweepAngle() << std::endl;
+  os << indent << "ServoGain: " << (int)GetServoGain() << std::endl;
+  os << indent << "Overscan: " << GetOverscan() << std::endl;
+  os << indent << "DerivativeCompensation: " << (int)GetDerivativeCompensation() << std::endl;
   os << indent << "Interpolate: " << Interpolate << std::endl;
   os << indent << "AverageMode: " << AverageMode << std::endl;
   os << indent << "CurrentBModeViewOption: " << CurrentBModeViewOption << std::endl;

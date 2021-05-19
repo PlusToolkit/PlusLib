@@ -281,6 +281,8 @@ int main(int argc, char* argv[])
 	vtkSmartPointer< vtkPlusCapistranoVideoSource >::New();
 	capistranoDevice->SetDeviceId("VideoDevice");
 
+	vtkIndent indent;
+
 
 	// Read config file
 	if (STRCASECMP(inputConfigFileName.c_str(), "")!=0)
@@ -296,6 +298,7 @@ int main(int argc, char* argv[])
 
 		capistranoDevice->ReadConfiguration(configRootElement);
 	}
+	capistranoDevice->PrintSelf(std::cout, indent);
 
 
 	DisplayMode displayMode = SHOW_IMAGE;
