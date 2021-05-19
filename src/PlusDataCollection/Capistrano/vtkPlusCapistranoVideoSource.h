@@ -29,7 +29,10 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /*! Specify the device connected to this class */
-  bool IsTracker() const override { return false; }
+  bool IsTracker() const override
+  {
+    return false;
+  }
 
   /*! Read configuration from xml data */
   PlusStatus ReadConfiguration(vtkXMLDataElement* config) override;
@@ -44,13 +47,13 @@ public:
   std::string GetSdkVersion() override;
 
   /*! Get the hardware version. Only implemented with Capistrano SDK 2018 and newer. */
-  PlusStatus GetHardwareVersion(int & HardwareVersion);
+  PlusStatus GetHardwareVersion(int& HardwareVersion);
 
   /*! Get the high pass filter. Only implemented with Capistrano SDK 2018 and newer. */
-  PlusStatus GetHighPassFilter(int & HighPassFilter);
+  PlusStatus GetHighPassFilter(int& HighPassFilter);
 
   /*! Get the low pass filter. Only implemented with Capistrano SDK 2018. */
-  PlusStatus GetLowPassFilter(int & LowPassFilter);
+  PlusStatus GetLowPassFilter(int& LowPassFilter);
 
   /* Update Speed of Sound */
   PlusStatus GetProbeVelocityDevice(float& aVel);
@@ -193,7 +196,7 @@ public:
   PlusStatus SetMISMode(bool mode);
 
   /* Get the MIS Mode state. Only implemented with Capistrano SDK 2019.2 and newer. */
-  PlusStatus GetMISMode(bool & MISMode);
+  PlusStatus GetMISMode(bool& MISMode);
 
   /*! Set the pulse period used for the MIS mode.
   * The number written into the register will determine the number of 240 MHz clock periods, plus one.
@@ -203,7 +206,7 @@ public:
   PlusStatus SetMISPulsePeriod(unsigned int val);
 
   /*! Get the pulse period used for the MIS mode. Only implemented with Capistrano SDK 2019.2 and newer. */
-  PlusStatus GetMISPulsePeriod(unsigned int & PulsePeriod);
+  PlusStatus GetMISPulsePeriod(unsigned int& PulsePeriod);
 
 protected:
   /*! Constructor */
