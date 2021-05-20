@@ -1,0 +1,17 @@
+# PLUS Coding Style Options
+--style=allman
+--indent=spaces=2
+--align-pointer=type
+--indent-namespaces
+--indent-col1-comments
+--indent-switches
+--indent-cases
+--indent-preproc-block
+--pad-oper
+--unpad-paren
+--add-brackets
+--add-one-line-brackets
+--keep-one-line-blocks
+--convert-tabs
+--mode=c
+--pad-header
