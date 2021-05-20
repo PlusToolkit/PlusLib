@@ -383,11 +383,12 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   }
   else if(usMode & ARFI)
   {
-    int bSize = m_SSDecimation * m_PrimaryFrameSize[1] * m_PrimaryFrameSize[0];
-    int timeblock = (4 / quadBFCount) * arfiGeometry->LineRepeatCount * sizeof(int32_t) * 30;
-    int arfiDataSize = arfiGeometry->SamplesPerLine * arfiGeometry->LineCount * arfiGeometry->LineRepeatCount * 30 * sizeof(int32_t);
-    assert(length == bSize + arfiDataSize + timeblock);
-    frameSize[0] = (bSize + arfiDataSize + timeblock) / sizeof(int32_t);  // we want to include all data to be saved
+    int bytesPerTimestamp = sizeof(int32_t) * 2;
+    int timestampsPerLineRepeat = (4 / quadBFCount);
+    int timeblock = timestampsPerLineRepeat * arfiGeometry->LineRepeatCount * m_ARFIPushConfigurationCount * bytesPerTimestamp;
+    int arfiDataSize = arfiGeometry->SamplesPerLine * arfiGeometry->LineCount * arfiGeometry->LineRepeatCount * m_ARFIPushConfigurationCount * sizeof(int32_t);
+    assert(length == arfiDataSize + timeblock);
+    frameSize[0] = (arfiDataSize + timeblock) / sizeof(int32_t);  // we want to include all data to be saved
     frameSize[1] = 1;
     frameSize[2] = 1;
     if(frameSize != m_ExtraFrameSize)
@@ -786,6 +787,16 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
     LOG_ERROR("Failed loading default presets!")
     return PLUS_FAIL;
   }
+  if(::GetARFIIsX8BFEnabled())
+  {
+    quadBFCount = 2;
+  }
+  else
+  {
+    quadBFCount = 1;
+  }
+  m_FPGAVersion = GetFPGARevDateString();
+  LOG_INFO("FPGA Version: " << m_FPGAVersion);
 
   m_ADCfrequency = GetADCSamplingRate();
   this->m_CustomFields["SamplingRate"].first = FRAMEFIELD_FORCE_SERVER_SEND;
@@ -869,6 +880,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   SetARFITxTxCycleWidth(m_ARFITxTxCycleWidth);
   SetARFITxCycleCount(m_ARFITxCycleCount);
   SetARFITxCycleWidth(m_ARFITxCycleWidth);
+  SetARFIPushConfigurationString(m_ARFIPushConfigurationString);
 
   this->SetTransmitFrequencyMHz(m_Frequency);
   this->SetVoltage(m_Voltage);
@@ -889,14 +901,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   }
   WPSetSize(m_PrimaryFrameSize[0], m_PrimaryFrameSize[1]);
   SetMaxDmaTransferSize(0x100000);
-  if(::GetARFIIsX8BFEnabled())
-  {
-    quadBFCount = 2;
-  }
-  else
-  {
-    quadBFCount = 1;
-  }
+
   if(!m_UseDeviceFrameReconstruction)
   {
     WPDXSetIsGetSpatialCompoundedTexEnabled(true);
@@ -1447,10 +1452,23 @@ PlusStatus vtkPlusWinProbeVideoSource::SetExtraSourceMode(Mode mode)
   else if(mode == Mode::ARFI)
   {
     m_Mode = Mode::ARFI;
-    unsigned bSize = m_SSDecimation * m_PrimaryFrameSize[1] * m_PrimaryFrameSize[0];
-    unsigned arfiDataSize = 1024 * 16 * 64 * 30;
-    unsigned timeblockSize = (4 / quadBFCount) * 64 * 30;
-    m_ExtraFrameSize = { bSize + arfiDataSize + timeblockSize, 1, 1 };
+    int samplesPerLine = 1024;
+    int lineCount = 16;
+    int lineRepeatCount;
+    if(quadBFCount == 2)
+    {
+      lineRepeatCount = 128;
+    }
+    else
+    {
+      lineRepeatCount = 64;
+    }
+    unsigned arfiDataSize = samplesPerLine * lineCount * lineRepeatCount * m_ARFIPushConfigurationCount;
+
+    int fourByteCountsPerTimestamp = 2;
+    int timestampsPerLineRepeat = (4 / quadBFCount);
+    unsigned timeblockSize = timestampsPerLineRepeat * lineRepeatCount * m_ARFIPushConfigurationCount * fourByteCountsPerTimestamp;
+    m_ExtraFrameSize = { arfiDataSize + timeblockSize, 1, 1 };
     this->AdjustBufferSizes();
     std::vector<int32_t> zeroData(m_ExtraFrameSize[0] * m_ExtraFrameSize[1] * m_ExtraFrameSize[2], 0);
     // add a fake zero-filled frame immediately, because the first frame seems to get lost somehow
@@ -1744,23 +1762,37 @@ int32_t vtkPlusWinProbeVideoSource::GetARFIStopSample()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusWinProbeVideoSource::SetARFIPushOffset(int32_t value)
+PlusStatus vtkPlusWinProbeVideoSource::SetARFIPushConfigurationString(std::string pushConfiguration)
 {
   if(Connected)
   {
-    ::SetARFIPushOffset(value);
+    m_ARFIPushConfigurationCount = std::count(pushConfiguration.begin(), pushConfiguration.end(), ';') + 1;
+    if(quadBFCount == 1 && m_ARFIPushConfigurationCount != 30)
+    {
+      LOG_ERROR("A X4BF requires an ARFI Push Configuration string to have 30 pushes so that the buffers are sized correctly.");
+      return PLUS_FAIL;
+    }
+    WPSetARFIPushConfigurationString(pushConfiguration.c_str());
     SetPendingRecreateTables(true);
+    return PLUS_SUCCESS;
   }
 }
 
 //----------------------------------------------------------------------------
-int32_t vtkPlusWinProbeVideoSource::GetARFIPushOffset()
+std::string vtkPlusWinProbeVideoSource::GetARFIPushConfigurationString()
 {
   if(Connected)
   {
-    m_ARFIPushOffset = ::GetARFIPushOffset();
+    m_ARFIPushConfigurationString = WPGetARFIPushConfigurationString();
   }
-  return m_ARFIPushOffset;
+  return m_ARFIPushConfigurationString;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusWinProbeVideoSource::GetFPGARevDateString()
+{
+  m_FPGAVersion = WPGetFPGARevDateString();
+  return m_FPGAVersion;
 }
 
 //----------------------------------------------------------------------------
@@ -1829,6 +1861,11 @@ PlusStatus vtkPlusWinProbeVideoSource::ARFIPush()
     for(unsigned i = 0; i < m_ExtraSources.size(); i++)
     {
       m_ExtraSources[i]->Clear();  // clear the rf buffer to ensure frames in the buffer are current
+    }
+    if(quadBFCount == 2 && m_FPGAVersion != "2020-10-24 24")
+    {
+      LOG_ERROR("A X8BF requires that the FPGA Version be '2020-10-24 24' to ARFIPush. Current version: " << m_FPGAVersion);
+      return PLUS_FAIL;
     }
     ::ARFIPush();
     Sleep(8000);  // allow some time to buffer frames

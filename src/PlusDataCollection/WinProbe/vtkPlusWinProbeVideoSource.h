@@ -87,10 +87,19 @@ public:
   /* Set the B-Mode focal depth at a specific index, index 0 to 3 */
   PlusStatus SetFocalPointDepth(int index, float depth);
 
-  /* Get the ARFI focal depth at a specific index, index 0 to 5 */
+  /* Get the ARFI focal depth at a specific index, index 0 to 5
+
+  Index 0: Tracking Depth
+  Index 1-5: Push Depth
+  */
   float GetARFIFocalPointDepth(int index);
 
-  /* Set the ARFI focal depth at a specific index, index 0 to 5 */
+  /*
+  Set the ARFI focal depth at a specific index, index 0 to 5
+
+  Index 0: Tracking Depth
+  Index 1-5: Push Depth
+  */
   PlusStatus SetARFIFocalPointDepth(int index, float depth);
 
   /* Get the number of active focal zones for B-Mode, count 1 to 4 */
@@ -146,6 +155,9 @@ public:
 
   /*! Checks whether the device is scanning or not. It could be in the process of resetting the sequencer. */
   bool IsScanning();
+
+  /*! Get the FPGA version string. */
+  std::string GetFPGARevDateString();
 
   /*! Sets GUID of the probe type to be used. */
   PlusStatus SetTransducerID(std::string guid);
@@ -229,10 +241,32 @@ public:
   void SetARFIStopSample(int32_t value);
   int32_t GetARFIStopSample();
 
-  void SetARFIPushOffset(int32_t value);
-  int32_t GetARFIPushOffset();
-
   int GetTransducerInternalID();
+
+  /*!
+  The first number is the push focus depth number in the ARFI focal depths. (Index 1 through 5 are for push focus).
+  The second number is the push line location. (int)
+  The third number is the tracking line location. (int)
+  Then the number of sets determines the number of pushes.
+
+  Examples shown on multiple lines for easier viewing, but it is a single string.
+  Example 1) Push with the same focus at 6 lateral positions and then repeat with a new push focus for total of 5 different push focuses used.
+  "1,40,48;1,48,56;1,56,64;1,64,72;1,72,80;1,80,88;
+   2,40,48;2,48,56;2,56,64;2,64,72;2,72,80;2,80,88;
+   3,40,48;3,48,56;3,56,64;3,64,72;3,72,80;3,80,88;
+   4,40,48;4,48,56;4,56,64;4,64,72;4,72,80;4,80,88;
+   5,40,48;5,48,56;5,56,64;5,64,72;5,72,80;5,80,88"
+
+  Example 2) Repeat the same push 3 times and then move to a new lateral position with 6 different lateral positions total.
+  "1,40,48;1,40,48;1,40,48;
+   1,48,56;1,48,56;1,48,56;
+   1,56,64;1,56,64;1,56,64;
+   1,64,72;1,64,72;1,64,72;
+   1,72,80;1,72,80;1,72,80;
+   1,80,88;1,80,88;1,80,88"
+  */
+  PlusStatus SetARFIPushConfigurationString(std::string pushConfiguration);
+  std::string GetARFIPushConfigurationString();
 
   enum class Mode
   {
@@ -305,6 +339,7 @@ protected:
   float m_Frequency = 10.9; //MHz
   uint8_t m_Voltage = 40;
   std::string m_TransducerID; //GUID
+  std::string m_FPGAVersion;
   double m_ADCfrequency = 60.0e6; //MHz
   double m_TimestampOffset = 0; //difference between program start time and latest internal timer restart
   double first_timestamp = 0;
@@ -332,7 +367,8 @@ protected:
   uint8_t m_ARFITxTxCycleWidth = 10;
   uint16_t m_ARFITxCycleCount = 4096;
   uint8_t m_ARFITxCycleWidth = 15;
-  int32_t m_ARFIPushOffset = -12;
+  std::string m_ARFIPushConfigurationString = "1,40,48;1,48,56;1,56,64;1,64,72;1,72,80;1,80,88";
+  int m_ARFIPushConfigurationCount = 6;
   int32_t m_MPRF = 100;
   int32_t m_MLineIndex = 60;
   int32_t m_MWidth = 256;
