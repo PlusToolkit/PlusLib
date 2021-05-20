@@ -696,6 +696,14 @@ void vtkPlusCapistranoVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkPlusCapistranoVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_TRACE("vtkPlusCapistranoVideoSource::ReadConfiguration");
+  if (!this->Initialized)
+  {
+    if (InitializeCapistranoProbe() == PLUS_FAIL)
+    {
+      LOG_ERROR("Failed to initialize Capistrano US Probe");
+    }
+    this->Initialized = true;
+  }
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   // Load US probe parameters -----------------------------------------------
@@ -869,12 +877,6 @@ vtkPlusCapistranoVideoSource::vtkPlusCapistranoVideoSource()
   this->CurrentPixelSpacingMm[0]               = 1.0;
   this->CurrentPixelSpacingMm[1]               = 1.0;
   this->CurrentPixelSpacingMm[2]               = 1.0;
-
-  // Initialize Capistrano US Probe ----------------------------------------
-  if (InitializeCapistranoProbe() == PLUS_FAIL)
-  {
-    LOG_ERROR("Failed to initialize Capistrano US Probe");
-  }
 }
 
 // ----------------------------------------------------------------------------
@@ -1104,7 +1106,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InitializeTGC()
 
 // Device-specific functions --------------------------------------------------
 
-PlusStatus vtkPlusCapistranoVideoSource::InitializeCapistranoVideoSource(bool probeConnected)
+PlusStatus vtkPlusCapistranoVideoSource::InitializeCapistranoVideoSource()
 {
   // Initialize vtkPlusDataSource ---------------------------------------------
   vtkPlusDataSource* aSource = NULL;
@@ -1129,6 +1131,16 @@ PlusStatus vtkPlusCapistranoVideoSource::InitializeCapistranoVideoSource(bool pr
   {
     LOG_ERROR("Failed to initialize Image Window");
     return PLUS_FAIL;
+  }
+
+  // Initialize Capistrano US Probe ----------------------------------------
+  if (!this->Initialized)
+  {
+    if (InitializeCapistranoProbe() == PLUS_FAIL)
+    {
+      LOG_ERROR("Failed to initialize Capistrano US Probe");
+    }
+    this->Initialized = true;
   }
 
   // Update US parameters --------------------------------------------------

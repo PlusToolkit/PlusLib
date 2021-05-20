@@ -228,7 +228,7 @@ protected:
   PlusStatus InternalStopRecording() override;
 
   /*! Initialize vtkPlusCapistranoVideoSource */
-  PlusStatus InitializeCapistranoVideoSource(bool probeConnected = false);
+  PlusStatus InitializeCapistranoVideoSource();
 
   /*! The internal function which actually does the grab. */
   PlusStatus InternalUpdate();
@@ -286,6 +286,7 @@ protected:
   class        vtkInternal;
   vtkInternal* Internal;
 
+  bool                           Initialized = false;
   bool                           Frozen;
   bool                           UpdateParameters;
   bool                           MISMode;
