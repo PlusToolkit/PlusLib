@@ -438,6 +438,8 @@ void FusionTrackEnumerator(uint64 sn, void* user, ftkDeviceType devType)
   }
 }
 
+// END CODE FROM ATRACSYS
+// 
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::AtracsysInternal::LoadFtkGeometryFromFile(const std::string& filename, ftkGeometry& geom)
 {
@@ -446,31 +448,10 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::AtracsysInternal::LoadFtkGeome
 
   if (!input.fail() && this->LoadIniFile(input, geom))
   {
-    return ERROR_FAILURE_TO_LOAD_INI;
+    return SUCCESS;
   }
-  else
-  {
-    ftkBuffer buffer;
-    buffer.reset();
-    if (ftkGetData(this->FtkLib, this->TrackerSN, FTK_OPT_DATA_DIR, &buffer) != ftkError::FTK_OK || buffer.size < 1u)
-    {
-      return ERROR_FAILURE_TO_LOAD_INI;
-    }
-
-    std::string fullFile(reinterpret_cast< char* >(buffer.data));
-    fullFile += "\\" + filename;
-
-    input.open(fullFile.c_str());
-
-    if (!input.fail() && this->LoadIniFile(input, geom))
-    {
-      return SUCCESS;
-    }
-  }
-
   return ERROR_FAILURE_TO_LOAD_INI;
 }
-// END CODE FROM ATRACSYS
 
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::AtracsysInternal::LoadFtkGeometryFromString(const std::string& geomString, ftkGeometry& geom)
 {
