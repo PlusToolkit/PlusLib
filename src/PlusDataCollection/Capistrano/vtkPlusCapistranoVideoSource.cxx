@@ -877,6 +877,14 @@ vtkPlusCapistranoVideoSource::vtkPlusCapistranoVideoSource()
   this->CurrentPixelSpacingMm[0]               = 1.0;
   this->CurrentPixelSpacingMm[1]               = 1.0;
   this->CurrentPixelSpacingMm[2]               = 1.0;
+
+  // Initialize the rest of standard Plus imaging parameters, which are ignored in Capistrano's implementation
+  // This is to avoid errors in vtkPlusGetUsParameterCommand::Execute()
+  this->ImagingParameters->SetFocusDepthPercent(0.5);
+  this->ImagingParameters->SetSectorPercent(100);
+  this->ImagingParameters->SetGainPercent(100);
+  this->ImagingParameters->SetPowerDb(0.0);
+  this->ImagingParameters->SetDynRangeDb(100);
 }
 
 // ----------------------------------------------------------------------------
