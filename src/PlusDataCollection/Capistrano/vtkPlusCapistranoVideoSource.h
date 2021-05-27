@@ -299,7 +299,6 @@ protected:
   int                            ClockDivider;
   int                            CineBuffers;
   float                          SampleFrequency;
-  float                          PulseFrequency;
   unsigned char                  PositionScale;
   bool                           Interpolate;
   bool                           AverageMode;
