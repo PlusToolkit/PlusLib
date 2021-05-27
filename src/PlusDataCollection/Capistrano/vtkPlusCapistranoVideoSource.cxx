@@ -677,7 +677,6 @@ void vtkPlusCapistranoVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "ClockDivider: " << ClockDivider << std::endl;
   os << indent << "CineBuffers: " << CineBuffers << std::endl;
   os << indent << "SampleFrequency: " << SampleFrequency << std::endl;
-  os << indent << "PulseFrequency: " << PulseFrequency << std::endl;
   os << indent << "WobbleRate: " << (int)GetWobbleRate() << std::endl;
   os << indent << "JitterCompensation: " << (int)GetJitterCompensation() << std::endl;
   os << indent << "PositionScale: " << (int)PositionScale << std::endl;
@@ -711,7 +710,6 @@ PlusStatus vtkPlusCapistranoVideoSource::ReadConfiguration(vtkXMLDataElement* ro
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(BidirectionalMode, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, CineBuffers, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, SampleFrequency, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, PulseFrequency, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, WobbleRate, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, JitterCompensation, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, PositionScale, deviceConfig);
@@ -746,7 +744,6 @@ PlusStatus vtkPlusCapistranoVideoSource::WriteConfiguration(vtkXMLDataElement* r
   deviceConfig->SetAttribute("BidirectionalMode", BidirectionalMode ? "TRUE" : "FALSE");
   deviceConfig->SetAttribute("UpdateParameters", UpdateParameters ? "TRUE" : "FALSE");
   deviceConfig->SetIntAttribute("CurrentBModeViewOption", this->CurrentBModeViewOption);
-  deviceConfig->SetFloatAttribute("PulseFrequency", this->PulseFrequency);
   deviceConfig->SetIntAttribute("WobbleRate", this->GetWobbleRate());
   deviceConfig->SetIntAttribute("JitterCompensation", this->GetJitterCompensation());
   deviceConfig->SetIntAttribute("PositionScale", this->GetPositionScale());
@@ -849,8 +846,8 @@ vtkPlusCapistranoVideoSource::vtkPlusCapistranoVideoSource()
   this->ClockDivider                           = 2;       //1
   this->CineBuffers                            = 32;
   this->SampleFrequency                        = 40.0f;
-  this->PulseFrequency                         = 12.0f;
   this->PositionScale                          = 0; // no function to read it from the SDK, has to be specified
+  this->ImagingParameters->SetFrequencyMhz(12.0f);
   this->ImagingParameters->SetProbeVoltage(30.0f);
   this->ImagingParameters->SetSoundVelocity(1532.0f);
   this->ImagingParameters->SetDepthMm(36); // mm
@@ -1553,8 +1550,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetSampleFrequency(float sf)
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::SetPulseFrequency(float pf)
 {
-  this->PulseFrequency = pf;
-  if (this->Internal->SetUSProbePulserParamsFromDB(this->PulseFrequency)) // this frequency is supported
+  if (this->Internal->SetUSProbePulserParamsFromDB(pf)) // this frequency is supported
   {
     this->ImagingParameters->SetFrequencyMhz(pf);
   }
@@ -1850,7 +1846,7 @@ PlusStatus vtkPlusCapistranoVideoSource::UpdateUSProbeParameters()
   this->Internal->USProbeParams.probetype.Velocity = this->ImagingParameters->GetSoundVelocity();
 
   // Update PulseFrequency
-  if (!this->Internal->SetUSProbePulserParamsFromDB(this->PulseFrequency))
+  if (!this->Internal->SetUSProbePulserParamsFromDB(this->ImagingParameters->GetFrequencyMhz()))
   {
     LOG_ERROR("Invalid pulse frequency. Possible pulse frequencies: 10.0, 12.0, 16.0, 18.0, 20.0, 25.0, 30.0, 35.0, 45.0, 50");
     return PLUS_FAIL;
