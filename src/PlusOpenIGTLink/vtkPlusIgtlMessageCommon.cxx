@@ -140,7 +140,8 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage(igtl::MessageHead
   trackedFrameMsg->SetMessageHeader(headerMsg);
   trackedFrameMsg->AllocateBuffer();
 
-  socket->Receive(trackedFrameMsg->GetBufferBodyPointer(), trackedFrameMsg->GetBufferBodySize());
+  bool timeout(false);
+  socket->Receive(trackedFrameMsg->GetBufferBodyPointer(), trackedFrameMsg->GetBufferBodySize(), timeout);
 
   int c = trackedFrameMsg->Unpack(crccheck);
   if (!(c & igtl::MessageHeader::UNPACK_BODY))
@@ -198,7 +199,8 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackUsMessage(igtl::MessageHeader::Pointe
   usMsg->SetMessageHeader(headerMsg);
   usMsg->AllocateBuffer();
 
-  socket->Receive(usMsg->GetBufferBodyPointer(), usMsg->GetBufferBodySize());
+  bool timeout(false);
+  socket->Receive(usMsg->GetBufferBodyPointer(), usMsg->GetBufferBodySize(), timeout);
 
   int c = usMsg->Unpack(crccheck);
   if (!(c & igtl::MessageHeader::UNPACK_BODY))
@@ -381,7 +383,8 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage(igtl::MessageHeader::Poi
   imgMsg->SetMessageHeader(headerMsg);
   imgMsg->AllocateBuffer();
 
-  socket->Receive(imgMsg->GetBufferBodyPointer(), imgMsg->GetBufferBodySize());
+  bool timeout(false);
+  socket->Receive(imgMsg->GetBufferBodyPointer(), imgMsg->GetBufferBodySize(), timeout);
 
   int c = imgMsg->Unpack(crccheck);
   if (!(c & igtl::MessageHeader::UNPACK_BODY))
@@ -706,7 +709,8 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackingDataMessage(igtl::MessageHead
   tdMsg->SetMessageHeader(headerMsg);
   tdMsg->InitBuffer();
 
-  socket->Receive(tdMsg->GetBufferBodyPointer(), tdMsg->GetBufferBodySize());
+  bool timeout(false);
+  socket->Receive(tdMsg->GetBufferBodyPointer(), tdMsg->GetBufferBodySize(), timeout);
 
   int c = tdMsg->Unpack(crccheck);
   if (!(c & igtl::MessageHeader::UNPACK_BODY))
@@ -802,7 +806,8 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTransformMessage(igtl::MessageHeader:
   transMsg->SetMessageHeader(headerMsg);
   transMsg->AllocateBuffer();
 
-  socket->Receive(transMsg->GetBufferBodyPointer(), transMsg->GetBufferBodySize());
+  bool timeout(false);
+  socket->Receive(transMsg->GetBufferBodyPointer(), transMsg->GetBufferBodySize(), timeout);
 
   int c = transMsg->Unpack(crccheck);
   if (!(c & igtl::MessageHeader::UNPACK_BODY))
@@ -912,7 +917,8 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackPositionMessage(igtl::MessageHeader::
   posMsg->SetMessageHeader(headerMsg);
   posMsg->AllocateBuffer();
 
-  socket->Receive(posMsg->GetBufferBodyPointer(), posMsg->GetBufferBodySize());
+  bool timeout(false);
+  socket->Receive(posMsg->GetBufferBodyPointer(), posMsg->GetBufferBodySize(), timeout);
 
   //  If crccheck is specified it performs CRC check and unpack the data only if CRC passes
   int c = posMsg->Unpack(crccheck);

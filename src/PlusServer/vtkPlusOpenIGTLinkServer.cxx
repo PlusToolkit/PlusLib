@@ -591,7 +591,8 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
     headerMsg->InitBuffer();
 
     // Receive generic header from the socket
-    int bytesReceived = clientSocket->Receive(headerMsg->GetBufferPointer(), headerMsg->GetBufferSize());
+    bool timeout(false);
+    igtlUint64 bytesReceived = clientSocket->Receive(headerMsg->GetBufferPointer(), headerMsg->GetBufferSize(), timeout);
     if (bytesReceived == IGTL_EMPTY_DATA_SIZE || bytesReceived != headerMsg->GetBufferSize())
     {
       vtkIGSIOAccurateTimer::Delay(0.1);
@@ -623,7 +624,8 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       clientInfoMsg->SetMessageHeader(headerMsg);
       clientInfoMsg->AllocateBuffer();
 
-      clientSocket->Receive(clientInfoMsg->GetBufferBodyPointer(), clientInfoMsg->GetBufferBodySize());
+      bool timeout(false);
+      clientSocket->Receive(clientInfoMsg->GetBufferBodyPointer(), clientInfoMsg->GetBufferBodySize(), timeout);
 
       int c = clientInfoMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
       if (c & igtl::MessageHeader::UNPACK_BODY || clientInfoMsg->GetBufferBodySize() == 0)
@@ -650,7 +652,8 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       igtl::StringMessage::Pointer stringMsg = dynamic_cast<igtl::StringMessage*>(bodyMessage.GetPointer());
       stringMsg->SetMessageHeader(headerMsg);
       stringMsg->AllocateBuffer();
-      clientSocket->Receive(stringMsg->GetBufferBodyPointer(), stringMsg->GetBufferBodySize());
+      bool timeout(false);
+      clientSocket->Receive(stringMsg->GetBufferBodyPointer(), stringMsg->GetBufferBodySize(), timeout);
 
       // We are receiving old style commands, handle it
       int c = stringMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
@@ -710,7 +713,8 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       igtl::CommandMessage::Pointer commandMsg = dynamic_cast<igtl::CommandMessage*>(bodyMessage.GetPointer());
       commandMsg->SetMessageHeader(headerMsg);
       commandMsg->AllocateBuffer();
-      clientSocket->Receive(commandMsg->GetBufferBodyPointer(), commandMsg->GetBufferBodySize());
+      bool timeout(false);
+      clientSocket->Receive(commandMsg->GetBufferBodyPointer(), commandMsg->GetBufferBodySize(), timeout);
 
       int c = commandMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
       if (c & igtl::MessageHeader::UNPACK_BODY || commandMsg->GetBufferBodySize() == 0)
@@ -750,8 +754,8 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       igtl::StartTrackingDataMessage::Pointer startTracking = dynamic_cast<igtl::StartTrackingDataMessage*>(bodyMessage.GetPointer());
       startTracking->SetMessageHeader(headerMsg);
       startTracking->AllocateBuffer();
-
-      clientSocket->Receive(startTracking->GetBufferBodyPointer(), startTracking->GetBufferBodySize());
+      bool timeout(false);
+      clientSocket->Receive(startTracking->GetBufferBodyPointer(), startTracking->GetBufferBodySize(), timeout);
 
       int c = startTracking->Unpack(self->IgtlMessageCrcCheckEnabled);
       if (c & igtl::MessageHeader::UNPACK_BODY || startTracking->GetBufferBodySize() == 0)
@@ -776,8 +780,8 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       igtl::StopTrackingDataMessage::Pointer stopTracking = dynamic_cast<igtl::StopTrackingDataMessage*>(bodyMessage.GetPointer());
       stopTracking->SetMessageHeader(headerMsg);
       stopTracking->AllocateBuffer();
-
-      clientSocket->Receive(stopTracking->GetBufferBodyPointer(), stopTracking->GetBufferBodySize());
+      bool timeout(false);
+      clientSocket->Receive(stopTracking->GetBufferBodyPointer(), stopTracking->GetBufferBodySize(), timeout);
 
       client->ClientInfo.SetTDATARequested(false);
       igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("RTS_TDATA", client->ClientInfo.GetClientHeaderVersion());
@@ -791,8 +795,8 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       igtl::GetPolyDataMessage::Pointer polyDataMessage = dynamic_cast<igtl::GetPolyDataMessage*>(bodyMessage.GetPointer());
       polyDataMessage->SetMessageHeader(headerMsg);
       polyDataMessage->AllocateBuffer();
-
-      clientSocket->Receive(polyDataMessage->GetBufferBodyPointer(), polyDataMessage->GetBufferBodySize());
+      bool timeout(false);
+      clientSocket->Receive(polyDataMessage->GetBufferBodyPointer(), polyDataMessage->GetBufferBodySize(), timeout);
 
       int c = polyDataMessage->Unpack(self->IgtlMessageCrcCheckEnabled);
       if (c & igtl::MessageHeader::UNPACK_BODY || polyDataMessage->GetBufferBodySize() == 0)
@@ -869,8 +873,8 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       igtl::GetImageMetaMessage::Pointer getImageMetaMsg = dynamic_cast<igtl::GetImageMetaMessage*>(bodyMessage.GetPointer());
       getImageMetaMsg->SetMessageHeader(headerMsg);
       getImageMetaMsg->AllocateBuffer();
-
-      clientSocket->Receive(getImageMetaMsg->GetBufferBodyPointer(), getImageMetaMsg->GetBufferBodySize());
+      bool timeout(false);
+      clientSocket->Receive(getImageMetaMsg->GetBufferBodyPointer(), getImageMetaMsg->GetBufferBodySize(), timeout);
 
       int c = getImageMetaMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
       if (c & igtl::MessageHeader::UNPACK_BODY || getImageMetaMsg->GetBufferBodySize() == 0)
@@ -894,8 +898,8 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       igtl::GetImageMessage::Pointer getImageMsg = dynamic_cast<igtl::GetImageMessage*>(bodyMessage.GetPointer());
       getImageMsg->SetMessageHeader(headerMsg);
       getImageMsg->AllocateBuffer();
-
-      clientSocket->Receive(getImageMsg->GetBufferBodyPointer(), getImageMsg->GetBufferBodySize());
+      bool timeout(false);
+      clientSocket->Receive(getImageMsg->GetBufferBodyPointer(), getImageMsg->GetBufferBodySize(), timeout);
 
       int c = getImageMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
       if (c & igtl::MessageHeader::UNPACK_BODY || getImageMsg->GetBufferBodySize() == 0)
@@ -924,8 +928,8 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       igtl::GetPointMessage* getPointMsg = dynamic_cast<igtl::GetPointMessage*>(bodyMessage.GetPointer());
       getPointMsg->SetMessageHeader(headerMsg);
       getPointMsg->AllocateBuffer();
-
-      clientSocket->Receive(getPointMsg->GetBufferBodyPointer(), getPointMsg->GetBufferBodySize());
+      bool timeout(false);
+      clientSocket->Receive(getPointMsg->GetBufferBodyPointer(), getPointMsg->GetBufferBodySize(), timeout);
 
       int c = getPointMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
       if (c & igtl::MessageHeader::UNPACK_BODY || getPointMsg->GetBufferBodySize() == 0)
