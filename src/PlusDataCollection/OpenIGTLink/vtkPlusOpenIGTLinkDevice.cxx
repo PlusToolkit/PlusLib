@@ -255,9 +255,10 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ReceiveMessageHeader(igtl::MessageHeader::P
 
   int numOfBytesReceived = 0;
   {
+    bool timeout(false);
     igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
     RETRY_UNTIL_TRUE(
-      (numOfBytesReceived = this->ClientSocket->Receive(headerMsg->GetBufferPointer(), headerMsg->GetBufferSize())) != 0,
+      (numOfBytesReceived = this->ClientSocket->Receive(headerMsg->GetBufferPointer(), headerMsg->GetBufferSize(), timeout)) != 0,
       this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
   }
 

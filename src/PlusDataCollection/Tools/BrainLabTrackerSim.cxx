@@ -220,7 +220,8 @@ int main(int argc, char* argv[])
         headerMsg->InitPack();
 
         // Receive generic header from the socket
-        int rs = socket->Receive(headerMsg->GetBufferPointer(), headerMsg->GetBufferSize());
+        bool timeout(false);
+        int rs = socket->Receive(headerMsg->GetBufferPointer(), headerMsg->GetBufferSize(), timeout);
         if (rs == 0)
         {
           if (threadID >= 0)
@@ -256,7 +257,8 @@ int main(int argc, char* argv[])
 
           igtl::StartTrackingDataMessage::Pointer startTracking = dynamic_cast<igtl::StartTrackingDataMessage*>(bodyMsg.GetPointer());
 
-          socket->Receive(startTracking->GetBufferBodyPointer(), startTracking->GetBufferBodySize());
+          bool timeout(false);
+          socket->Receive(startTracking->GetBufferBodyPointer(), startTracking->GetBufferBodySize(), timeout);
           const int enableCrcCheck=1;
           int unpackSuccess = startTracking->Unpack(enableCrcCheck);
           if (unpackSuccess & igtl::MessageHeader::UNPACK_BODY)

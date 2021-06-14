@@ -319,10 +319,11 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread(vtkMultiThreader::ThreadInfo*
     igtl::MessageHeader::Pointer headerMsg = self->IgtlMessageFactory->CreateHeaderMessage(IGTL_HEADER_VERSION_1);
 
     // Receive generic header from the socket
-    int numOfBytesReceived = 0;
+    igtlUint64 numOfBytesReceived = 0;
     {
+      bool timeout(false);
       igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(self->SocketMutex);
-      numOfBytesReceived = self->ClientSocket->Receive(headerMsg->GetBufferPointer(), headerMsg->GetBufferSize());
+      numOfBytesReceived = self->ClientSocket->Receive(headerMsg->GetBufferPointer(), headerMsg->GetBufferSize(), timeout);
     }
     if (numOfBytesReceived == 0   // No message received
         || numOfBytesReceived != headerMsg->GetPackSize() // Received data is not as we expected
@@ -361,8 +362,9 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       bodyMsg->SetMessageHeader(headerMsg);
       bodyMsg->AllocateBuffer();
       {
+        bool timeout(false);
         igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(self->SocketMutex);
-        self->ClientSocket->Receive(bodyMsg->GetBufferBodyPointer(), bodyMsg->GetBufferBodySize());
+        self->ClientSocket->Receive(bodyMsg->GetBufferBodyPointer(), bodyMsg->GetBufferBodySize(), timeout);
       }
 
       int c = bodyMsg->Unpack(1);
@@ -382,8 +384,9 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       bodyMsg->SetMessageHeader(headerMsg);
       bodyMsg->AllocateBuffer();
       {
+        bool timeout(false);
         igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(self->SocketMutex);
-        self->ClientSocket->Receive(bodyMsg->GetBufferBodyPointer(), bodyMsg->GetBufferBodySize());
+        self->ClientSocket->Receive(bodyMsg->GetBufferBodyPointer(), bodyMsg->GetBufferBodySize(), timeout);
       }
 
       int c = bodyMsg->Unpack(1);
@@ -416,8 +419,9 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread(vtkMultiThreader::ThreadInfo*
 }
 
 //----------------------------------------------------------------------------
-int vtkPlusOpenIGTLinkClient::SocketReceive(void* data, int length)
+igtlUint64 vtkPlusOpenIGTLinkClient::SocketReceive(void* data, igtlUint64 length)
 {
+  bool timeout(false);
   igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
-  return ClientSocket->Receive(data, length);
+  return ClientSocket->Receive(data, length, timeout);
 }

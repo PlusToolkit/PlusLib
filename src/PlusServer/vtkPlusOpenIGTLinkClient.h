@@ -95,7 +95,7 @@ protected:
   virtual ~vtkPlusOpenIGTLinkClient();
 
   /*! Thread-safe method that allows child classes to read data from the socket */
-  int SocketReceive(void* data, int length);
+  igtlUint64 SocketReceive(void* data, igtlUint64 length);
 
   /*! Thread for receiving control data from clients */
   static void* DataReceiverThread(vtkMultiThreader::ThreadInfo* data);

@@ -148,8 +148,9 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalUpdateTData()
   tdataMsg->AllocateBuffer();
 
   {
+    bool timeout(false);
     igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
-    this->ClientSocket->Receive(tdataMsg->GetBufferBodyPointer(), tdataMsg->GetBufferBodySize());
+    this->ClientSocket->Receive(tdataMsg->GetBufferBodyPointer(), tdataMsg->GetBufferBodySize(), timeout);
   }
   int c = tdataMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
   if (!(c & igtl::MessageHeader::UNPACK_BODY))
