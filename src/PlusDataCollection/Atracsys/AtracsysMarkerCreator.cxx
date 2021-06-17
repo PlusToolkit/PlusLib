@@ -331,7 +331,7 @@ PlusStatus WriteGeometryIniFile(const MarkerGeometry geom)
     fileName = geom.destPath + '/' + geom.name + ".ini";
   }
   LOG_INFO("Writing marker geometry to: " << fileName);
-  ofstream file;
+  std::ofstream file;
   file.open(fileName);
 
   // write metadata
