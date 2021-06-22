@@ -223,7 +223,7 @@ namespace igtl
   }
 
   //----------------------------------------------------------------------------
-  int PlusUsMessage::CalculateContentBufferSize()
+  igtlUint64 PlusUsMessage::CalculateContentBufferSize()
   {
     return GetSubVolumeImageSize() + IGTL_IMAGE_HEADER_SIZE + this->m_MessageHeader.GetMessageHeaderSize();
   }

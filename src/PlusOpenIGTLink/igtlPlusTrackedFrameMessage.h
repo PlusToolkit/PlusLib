@@ -115,7 +115,7 @@ namespace igtl
       igtl::Matrix4x4 m_EmbeddedImageTransform; /* matrix representing the IJK to world transformation */
     };
 
-    virtual int  CalculateContentBufferSize();
+    virtual igtlUint64 CalculateContentBufferSize();
     virtual int  PackContent();
     virtual int  UnpackContent();
 

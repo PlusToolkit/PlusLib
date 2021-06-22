@@ -122,7 +122,7 @@ namespace igtl
   }
 
   //----------------------------------------------------------------------------
-  int PlusTrackedFrameMessage::CalculateContentBufferSize()
+  igtlUint64 PlusTrackedFrameMessage::CalculateContentBufferSize()
   {
     return this->m_MessageHeader.GetMessageHeaderSize()
            + this->m_MessageHeader.m_ImageDataSizeInBytes

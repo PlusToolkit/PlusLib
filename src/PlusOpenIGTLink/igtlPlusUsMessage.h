@@ -61,7 +61,7 @@ namespace igtl
       igtl_int32 m_TxOffset;              // For phased array, the number of elements that are offset in the steered image
     };
 
-    virtual int CalculateContentBufferSize();
+    virtual igtlUint64 CalculateContentBufferSize();
     virtual int PackContent();
     virtual int UnpackContent();
 
