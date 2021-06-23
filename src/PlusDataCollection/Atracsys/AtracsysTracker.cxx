@@ -418,6 +418,22 @@ public:
 
     return true;
   }
+
+  uint32_t FTK_OPT_DATA_DIR = -1u;
+
+  // callback function currently only stores option id of the data directory option
+  static void DeviceOptionEnumerator(uint64_t serialNumber, void* userData, ftkOptionsInfo* option) {
+
+      AtracsysTracker::AtracsysInternal* ptr =
+          reinterpret_cast<AtracsysTracker::AtracsysInternal*>(userData);
+      if (!ptr)
+          return;
+      if (strcmp(option->name, "Data Directory") == 0)
+      {
+          ptr->FTK_OPT_DATA_DIR = option->id;
+      }
+  }
+
 };
 
 //----------------------------------------------------------------------------
@@ -593,6 +609,11 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Connect()
     this->Internal->Frame = nullptr;
     return ERROR_CANNOT_INITIALIZE_FRAME;
   }
+
+  if (ftkEnumerateOptions(this->Internal->FtkLib, this->Internal->TrackerSN,
+      &AtracsysTracker::AtracsysInternal::DeviceOptionEnumerator, this->Internal) != ftkError::FTK_OK
+      || this->Internal->FTK_OPT_DATA_DIR == -1u)
+      return ERROR_OPTION_NOT_FOUND;
 
   return SUCCESS;
 }
