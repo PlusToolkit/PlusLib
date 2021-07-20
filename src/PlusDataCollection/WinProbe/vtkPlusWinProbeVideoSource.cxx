@@ -356,15 +356,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   ARFIGeometryStruct* arfiGeometry = (ARFIGeometryStruct*)hGeometry;
   this->FrameNumber = header->TotalFrameCounter;
   InputSourceBindings usMode = header->InputSourceBinding;
-  FrameSizeType frameSize;
-  if(usMode & BFRFALineImage_RFData)
-  {
-    frameSize = { m_PrimaryFrameSize[1]* m_SSDecimation, m_PrimaryFrameSize[0], 1 };
-  }
-  else
-  {
-    frameSize = m_PrimaryFrameSize;
-  }
+  FrameSizeType frameSize = { 1, 1, 1 };
 
   if(usMode & CFD)
   {
@@ -1809,8 +1801,8 @@ std::vector<double> vtkPlusWinProbeVideoSource::GetExtraSourceSpacing()
   {
     if(GetBRFEnabled())
     {
-      spacing[0] = m_ScanDepth / (m_ExtraFrameSize[1] * m_SSDecimation - 1);
-      spacing[1] = this->GetTransducerWidthMm() / (m_ExtraFrameSize[0] - 1);
+      spacing[0] = m_ScanDepth / (m_ExtraFrameSize[0] - 1);
+      spacing[1] = this->GetTransducerWidthMm() / (m_ExtraFrameSize[1] - 1);
     }
     else
     {
