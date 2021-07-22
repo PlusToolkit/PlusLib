@@ -397,7 +397,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
       AdjustBufferSizes();
       AdjustSpacing(true);
     }
-    else if(this->CurrentPixelSpacingMm[0] = m_ScanDepth / (m_ExtraFrameSize[1] * 1)) // we might need approximate equality check
+    else if(this->CurrentPixelSpacingMm[0] != m_ScanDepth / (m_ExtraFrameSize[1] * 1)) // we might need approximate equality check
     {
       LOG_INFO("Scan Depth changed. Adjusting spacing.");
       AdjustSpacing(true);
@@ -416,7 +416,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
       AdjustBufferSizes();
       AdjustSpacing(true);
     }
-    else if(this->CurrentPixelSpacingMm[0] = m_ScanDepth / (m_ExtraFrameSize[1] * m_SSDecimation - 1)) // we might need approximate equality check
+    else if(this->CurrentPixelSpacingMm[0] != m_ScanDepth / (m_ExtraFrameSize[1] * m_SSDecimation - 1)) // we might need approximate equality check
     {
       LOG_INFO("Scan Depth changed. Adjusting spacing.");
       AdjustSpacing(true);
