@@ -793,7 +793,7 @@ IF(PLUS_USE_PICOSCOPE)
     ${CMAKE_CURRENT_SOURCE_DIR}/PicoScope
     ${PicoScopeSDK_INCLUDE_DIR}
     )
-  
+
   IF(WIN32)
     LIST(APPEND ${PROJECT_NAME}_LIBS
       ${PicoScopeSDK_LIBRARY_DIR}/ps2000${CMAKE_STATIC_LIBRARY_SUFFIX}
@@ -807,7 +807,7 @@ IF(PLUS_USE_PICOSCOPE)
   LIST(APPEND External_Libraries_Install
     ${PicoScopeSDK_BINARY_DIR}/ps2000${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
-    
+
 ENDIF()
 
 #--------------------------------------------------------------------------
@@ -927,7 +927,7 @@ IF(PLUS_USE_CLARIUS_OEM)
   LIST(APPEND ${PROJECT_NAME}_PRIVATE_LIBS
     ClariusOEM
     )
-    
+
   LIST(APPEND External_Libraries_Install
     ${ClariusOEM_BINARY_PATH}
   )
@@ -1906,15 +1906,31 @@ IF(PLUS_USE_TELEMED_VIDEO)
   SET(Telemed_SRCS
     Telemed/vtkPlusTelemedVideoSource.cxx
     Telemed/TelemedUltrasound.cxx
-    Telemed/Usgfw2_i.c
-    Telemed/Usgfw2_p.c
-    Telemed/dlldata.c
     )
   SET(Telemed_HDRS
     Telemed/vtkPlusTelemedVideoSource.h
     Telemed/TelemedUltrasound.h
-    Telemed/Usgfw2_h.h
     )
+
+  IF(MSVC AND ${CMAKE_VS_PLATFORM_NAME} MATCHES "x64")
+    LIST(APPEND Telemed_SRCS
+      Telemed/x64/Usgfw2_i.c
+      Telemed/x64/Usgfw2_p.c
+      Telemed/x64/dlldata.c
+      )
+    LIST(APPEND Telemed_SRCS
+      Telemed/x64/Usgfw2.h
+      )
+  ELSE()
+    LIST(APPEND Telemed_SRCS
+      Telemed/x86/Usgfw2_i.c
+      Telemed/x86/Usgfw2_p.c
+      Telemed/x86/dlldata.c
+      )
+    LIST(APPEND Telemed_SRCS
+      Telemed/x86/Usgfw2.h
+      )
+  ENDIF()
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${Telemed_HDRS}
@@ -1930,6 +1946,11 @@ IF(PLUS_USE_TELEMED_VIDEO)
     ${WINDOWS_SDK_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/Telemed
     )
+
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    rpcrt4.lib
+    )
+
 ENDIF()
 
 # --------------------------------------------------------------------------
@@ -2334,7 +2355,7 @@ IF(PLUS_USE_ANDOR_CAMERA)
   SET(Andor_HDRS
     Andor/vtkPlusAndorVideoSource.h
     )
-  
+
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${Andor_HDRS}
     )
@@ -2342,8 +2363,8 @@ IF(PLUS_USE_ANDOR_CAMERA)
   LIST(APPEND ${PROJECT_NAME}_SRCS
     ${Andor_SRCS}
     )
-  
-  LIST(APPEND ${PROJECT_NAME}_LIBS 
+
+  LIST(APPEND ${PROJECT_NAME}_LIBS
     ${ANDOR_LIBRARY_DIR}/${ANDOR_LIBRARY}${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS

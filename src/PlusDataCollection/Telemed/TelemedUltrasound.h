@@ -8,7 +8,7 @@
 #define TelemedUltrasound_h
 
 #include "igsioCommon.h"
-#include "Usgfw2_h.h"
+#include "Usgfw2.h"
 
 // STL includes
 #include <vector>
