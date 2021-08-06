@@ -1774,8 +1774,8 @@ PlusStatus vtkPlusWinProbeVideoSource::SetARFIPushConfigurationString(std::strin
     }
     WPSetARFIPushConfigurationString(pushConfiguration.c_str());
     SetPendingRecreateTables(true);
-    return PLUS_SUCCESS;
   }
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
