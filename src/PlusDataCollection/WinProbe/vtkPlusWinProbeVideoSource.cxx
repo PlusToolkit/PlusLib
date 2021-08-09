@@ -1762,20 +1762,31 @@ int32_t vtkPlusWinProbeVideoSource::GetARFIStopSample()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusWinProbeVideoSource::SetARFIPushConfigurationString(std::string pushConfiguration)
+void vtkPlusWinProbeVideoSource::SetARFIPushConfigurationString(std::string pushConfiguration)
 {
   if(Connected)
   {
     m_ARFIPushConfigurationCount = std::count(pushConfiguration.begin(), pushConfiguration.end(), ';') + 1;
-    if(quadBFCount == 1 && m_ARFIPushConfigurationCount != 30)
+    if(quadBFCount == 1)
     {
-      LOG_ERROR("A X4BF requires an ARFI Push Configuration string to have 30 pushes so that the buffers are sized correctly.");
-      return PLUS_FAIL;
+      if(m_ARFIPushConfigurationCount == 30)
+      {
+        LOG_WARNING("A X4BF will use an API hardcoded 30 push configuration rather than the custom specified configuration that was set.")
+      }
+      else
+      {
+        LOG_ERROR("A X4BF requires an ARFI Push Configuration string to have 30 pushes so that the buffers are sized correctly. "
+                  "An appropriate configuration length will be set instead.");
+        pushConfiguration = "1,40,48;1,48,56;1,56,64;1,64,72;1,72,80;1,80,88;"
+                            "2,40,48;2,48,56;2,56,64;2,64,72;2,72,80;2,80,88;"
+                            "3,40,48;3,48,56;3,56,64;3,64,72;3,72,80;3,80,88;"
+                            "4,40,48;4,48,56;4,56,64;4,64,72;4,72,80;4,80,88;"
+                            "5,40,48;5,48,56;5,56,64;5,64,72;5,72,80;5,80,88";
+      }
     }
     WPSetARFIPushConfigurationString(pushConfiguration.c_str());
     SetPendingRecreateTables(true);
   }
-  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
