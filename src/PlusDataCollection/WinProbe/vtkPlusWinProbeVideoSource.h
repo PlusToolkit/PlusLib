@@ -244,6 +244,8 @@ public:
   int GetTransducerInternalID();
 
   /*!
+  Only for X8BF devices. Set a custom ARFI push configuration.
+
   The first number is the push focus depth number in the ARFI focal depths. (Index 1 through 5 are for push focus).
   The second number is the push line location. (int)
   The third number is the tracking line location. (int)
@@ -265,7 +267,7 @@ public:
    1,72,80;1,72,80;1,72,80;
    1,80,88;1,80,88;1,80,88"
   */
-  PlusStatus SetARFIPushConfigurationString(std::string pushConfiguration);
+  void SetARFIPushConfigurationString(std::string pushConfiguration);
   std::string GetARFIPushConfigurationString();
 
   enum class Mode
