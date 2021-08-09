@@ -1762,6 +1762,34 @@ int32_t vtkPlusWinProbeVideoSource::GetARFIStopSample()
 }
 
 //----------------------------------------------------------------------------
+void vtkPlusWinProbeVideoSource::SetARFIPushOffset(int32_t value)
+{
+  if(Connected)
+  {
+    if(quadBFCount != 1)
+    {
+      LOG_WARNING("ARFI Push offset is only used by X4BF devices. Use SetARFIPushConfigurationString instead.");
+    }
+    ::SetARFIPushOffset(value);
+    SetPendingRecreateTables(true);
+  }
+}
+
+//----------------------------------------------------------------------------
+int32_t vtkPlusWinProbeVideoSource::GetARFIPushOffset()
+{
+  if(Connected)
+  {
+    if(quadBFCount != 1)
+    {
+      LOG_WARNING("ARFI Push offset is only used by X4BF devices. Use SetARFIPushConfigurationString instead.");
+    }
+    m_ARFIPushOffset = ::GetARFIPushOffset();
+  }
+  return m_ARFIPushOffset;
+}
+
+//----------------------------------------------------------------------------
 void vtkPlusWinProbeVideoSource::SetARFIPushConfigurationString(std::string pushConfiguration)
 {
   if(Connected)
