@@ -241,6 +241,10 @@ public:
   void SetARFIStopSample(int32_t value);
   int32_t GetARFIStopSample();
 
+  /*! Only for X4BF devices. Set the push offset for ARFI.*/
+  void SetARFIPushOffset(int32_t value);
+  int32_t GetARFIPushOffset();
+
   int GetTransducerInternalID();
 
   /*!
@@ -367,6 +371,7 @@ protected:
   int32_t m_ARFIMultiTxCount = 1;
   uint16_t m_ARFITxTxCycleCount = 2;
   uint8_t m_ARFITxTxCycleWidth = 10;
+  int32_t m_ARFIPushOffset = -12;
   uint16_t m_ARFITxCycleCount = 4096;
   uint8_t m_ARFITxCycleWidth = 15;
   std::string m_ARFIPushConfigurationString = "1,40,48;1,48,56;1,56,64;1,64,72;1,72,80;1,80,88";
