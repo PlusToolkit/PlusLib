@@ -1907,7 +1907,6 @@ PlusStatus vtkPlusWinProbeVideoSource::ARFIPush()
       return PLUS_FAIL;
     }
     ::ARFIPush();
-    Sleep(8000);  // allow some time to buffer frames
     return PLUS_SUCCESS;
   }
   return PLUS_FAIL;
