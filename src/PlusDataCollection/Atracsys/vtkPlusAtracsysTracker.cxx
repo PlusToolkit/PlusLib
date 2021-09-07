@@ -40,13 +40,13 @@ vtkStandardNewMacro(vtkPlusAtracsysTracker);
 
 //----------------------------------------------------------------------------
 // Define command strings
-const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_SET_FLAG        = "SetFlag";
-const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_ENABLED     = "LedEnabled";
-const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LASER_ENABLED   = "LaserEnabled";
-const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_VIDEO_ENABLED   = "VideoEnabled";
-const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_SET_LED_RGBF    = "SetLED";
-const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_ENABLE_TOOL     = "EnableTool";
-const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_ADD_TOOL        = "AddTool";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_SET_FLAG = "SetFlag";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_ENABLED = "LedEnabled";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LASER_ENABLED = "LaserEnabled";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_VIDEO_ENABLED = "VideoEnabled";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_SET_LED_RGBF = "SetLED";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_ENABLE_TOOL = "EnableTool";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_ADD_TOOL = "AddTool";
 
 
 //----------------------------------------------------------------------------
@@ -58,15 +58,27 @@ public:
   vtkInternal(vtkPlusAtracsysTracker* external)
     : External(external)
   {
+    // stores correspondences between config file option names and atracsys option names
+    DeviceOptionTranslator["MaxMeanRegistrationErrorMm"] = "Registration Mean Error";
+    DeviceOptionTranslator["MaxMissingFiducials"] = "Matching Maximum Missing Points";
+    DeviceOptionTranslator["SymmetriseCoordinates"] = "Symmetrise coordinates";
+    DeviceOptionTranslator["EnableLasers"] = "Enables lasers";
+    DeviceOptionTranslator["EnableUserLED"] = "Enables the user-LED";
   }
 
   virtual ~vtkInternal()
   {
   }
 
-  int MaxMissingFiducials = 0;
-  float MaxMeanRegistrationErrorMm = 2.0;
-  int ActiveMarkerPairingTimeSec = 0;
+  // mapping option names as written in config file to Atracsys option names
+  std::map<std::string, std::string> DeviceOptionTranslator;
+  // the actual options as read in the config file
+  std::map<std::string, std::string> DeviceOptions{};
+
+  // parameters used internally and their default values
+  int ActiveMarkerPairingTimeSec = 0; // pairing time in seconds
+  float MaxMeanRegistrationErrorMm = 2.0; // maximum mean registration error
+  int MaxMissingFiducials = 0; // maximum number of missing fiducials
 
   // matches plus tool id to .ini geometry file names/paths
   std::map<std::string, std::string> PlusIdMappedToGeometryFilename;
@@ -111,35 +123,13 @@ void vtkPlusAtracsysTracker::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusAtracsysTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  LOG_TRACE("vtkPlusAtracsysTracker::ReadConfiguration");
-
+  // Read and store all device options read in the xml config file
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, MaxMissingFiducials, this->Internal->MaxMissingFiducials, deviceConfig);
-  if (this->Internal->MaxMissingFiducials < 0 || this->Internal->MaxMissingFiducials > 3)
+  for (int i = 0; i < deviceConfig->GetNumberOfAttributes(); ++i)
   {
-    LOG_WARNING("Invalid maximum number of missing fiducials provided. Must be between 0 and 3 inclusive. Maximum missing fiducials has been set to its default value of 0.");
-    this->Internal->MaxMissingFiducials = 0;
+    this->Internal->DeviceOptions.emplace(deviceConfig->GetAttributeName(i), deviceConfig->GetAttributeValue(i));
   }
-
-  XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(float, MaxMeanRegistrationErrorMm, this->Internal->MaxMeanRegistrationErrorMm, deviceConfig);
-  if (this->Internal->MaxMeanRegistrationErrorMm < 0.1 || this->Internal->MaxMeanRegistrationErrorMm > 5.0)
-  {
-    LOG_WARNING("Invalid maximum mean registration error provided. Must be between 0.1 and 5 mm inclusive. Maximum mean registration error has been set to its default value of 2.0mm.");
-    this->Internal->MaxMeanRegistrationErrorMm = 2.0;
-  }
-
-  XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, ActiveMarkerPairingTimeSec, this->Internal->ActiveMarkerPairingTimeSec, deviceConfig);
-  if (this->Internal->ActiveMarkerPairingTimeSec > 15)
-  {
-    LOG_WARNING("Marker pairing time is set to " << this->Internal->ActiveMarkerPairingTimeSec << "seconds, tracking will not start until this period is over.");
-  }
-
-  enum TRACKING_TYPE
-  {
-    ACTIVE,
-    PASSIVE
-  };
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
   for (int nestedElementIndex = 0; nestedElementIndex < dataSourcesElement->GetNumberOfNestedElements(); nestedElementIndex++)
@@ -158,10 +148,16 @@ PlusStatus vtkPlusAtracsysTracker::ReadConfiguration(vtkXMLDataElement* rootConf
     std::string toolId(toolDataElement->GetAttribute("Id"));
     if (toolId.empty())
     {
-    // tool doesn't have ID needed to generate transform
-    LOG_ERROR("Failed to initialize Atracsys tool: DataSource Id is missing.");
-    continue;
+      // tool doesn't have ID needed to generate transform
+      LOG_ERROR("Failed to initialize Atracsys tool: DataSource Id is missing.");
+      continue;
     }
+
+    enum TRACKING_TYPE
+    {
+      ACTIVE,
+      PASSIVE
+    };
 
     TRACKING_TYPE toolTrackingType;
     XML_READ_ENUM2_ATTRIBUTE_NONMEMBER_OPTIONAL(TrackingType, toolTrackingType, toolDataElement, "ACTIVE", ACTIVE, "PASSIVE", PASSIVE);
@@ -222,7 +218,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   LOG_TRACE("vtkPlusAtracsysTracker::InternalConnect");
 
   // Connect to tracker
-  ATRACSYS_RESULT result = this->Internal->Tracker.Connect();
+  AtracsysTracker::ATRACSYS_RESULT result = this->Internal->Tracker.Connect();
   if (result != ATR_SUCCESS && result != AtracsysTracker::ATRACSYS_RESULT::WARNING_CONNECTED_IN_USB2)
   {
     LOG_ERROR(this->Internal->Tracker.ResultToString(result));
@@ -235,6 +231,80 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
 
   // get device type
   this->Internal->Tracker.GetDeviceType(this->Internal->DeviceType);
+
+  // helper to translate option names from Plus nomenclature to Atracsys' one
+  auto translateOptionName = [this](const std::string& optionName, std::string& translatedOptionName) {
+    std::map<std::string, std::string>::const_iterator itt =
+      this->Internal->DeviceOptionTranslator.find(optionName);
+    if (itt == this->Internal->DeviceOptionTranslator.cend())
+      return false;
+    else
+    {
+      translatedOptionName = itt->second;
+      return true;
+    }
+  };
+
+  // handling options that are used only internally
+  std::map<std::string, std::string>::const_iterator itd;
+  // ------- time allocated for activer marker pairing
+  itd = this->Internal->DeviceOptions.find("ActiveMarkerPairingTimeSec");
+  if (itd != this->Internal->DeviceOptions.cend())
+  {
+    if (strToInt32(itd->second, this->Internal->ActiveMarkerPairingTimeSec))
+    {
+      if (this->Internal->ActiveMarkerPairingTimeSec > 15)
+      {
+        LOG_WARNING("Marker pairing time is set to " << this->Internal->ActiveMarkerPairingTimeSec << "seconds, tracking will not start until this period is over.");
+      }
+    }
+  }
+
+  // handling options that are used both internally and in the sdk
+  // ------- max registration error in mm
+  itd = this->Internal->DeviceOptions.find("MaxMeanRegistrationErrorMm");
+  if (itd != this->Internal->DeviceOptions.cend())
+  {
+    if (strToFloat32(itd->second, this->Internal->MaxMeanRegistrationErrorMm))
+    {
+      if (this->Internal->MaxMeanRegistrationErrorMm < 0.1 || this->Internal->MaxMeanRegistrationErrorMm > 5.0)
+      {
+        this->Internal->MaxMeanRegistrationErrorMm = 2.0;
+        LOG_WARNING("Invalid maximum mean registration error provided. Must be between 0.1 and 5 mm inclusive. Maximum mean registration error has been set to its default value of " << this->Internal->MaxMeanRegistrationErrorMm << "mm.");
+      }
+    }
+  }
+  else
+  {
+    this->Internal->DeviceOptions.emplace("MaxMeanRegistrationErrorMm",
+      std::to_string(this->Internal->MaxMeanRegistrationErrorMm));
+  }
+  // ------- max number of missing fiducials
+  itd = this->Internal->DeviceOptions.find("MaxMissingFiducials");
+  if (itd != this->Internal->DeviceOptions.cend())
+  {
+    if (strToInt32(itd->second, this->Internal->MaxMissingFiducials))
+    {
+      if (this->Internal->MaxMissingFiducials < 0 || this->Internal->MaxMissingFiducials > 3)
+      {
+        this->Internal->MaxMissingFiducials = 0;
+        LOG_WARNING("Invalid maximum number of missing fiducials provided. Must be between 0 and 3 inclusive. Maximum missing fiducials has been set to its default value of " << this->Internal->MaxMissingFiducials << ".");
+      }
+    }
+  }
+  else
+  {
+    this->Internal->DeviceOptions.emplace("MaxMissingFiducials",
+      std::to_string(this->Internal->MaxMissingFiducials));
+  }
+
+  // set device options
+  for (const auto& i : this->Internal->DeviceOptions)
+  {
+    std::string translatedOptionName;
+    if (translateOptionName(i.first, translatedOptionName))
+      this->Internal->Tracker.SetOption(translatedOptionName, i.second);
+  }
 
   // if spryTrack, setup for onboard processing and disable extraneous marker info streaming
   if (this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::SPRYTRACK_180)
@@ -272,11 +342,6 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
     this->Internal->FtkGeometryIdMappedToToolId.insert(newTool);
   }
 
-  if ((result = this->Internal->Tracker.SetMaxMissingFiducials(this->Internal->MaxMissingFiducials)) != ATR_SUCCESS)
-  {
-    LOG_WARNING(this->Internal->Tracker.ResultToString(result));
-  }
-
   // make LED blue during pairing
   this->Internal->Tracker.SetUserLEDState(0, 0, 255, 0);
 
@@ -298,7 +363,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
     LOG_ERROR(this->Internal->Tracker.ResultToString(result));
     return PLUS_FAIL;
   }
-  
+
   // make LED green, pairing is complete
   this->Internal->Tracker.SetUserLEDState(0, 255, 0, 0);
 
@@ -406,7 +471,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
   }
 
   this->FrameNumber++;
- 
+
   return PLUS_SUCCESS;
 }
 
@@ -461,7 +526,7 @@ PlusStatus vtkPlusAtracsysTracker::SetToolEnabled(std::string toolId, bool enabl
     LOG_ERROR("Tried to disable non-existant tool.");
     return PLUS_FAIL;
   }
-  
+
   this->DisabledToolIds.push_back(toolId);
   return PLUS_SUCCESS;
 }
@@ -512,7 +577,7 @@ PlusStatus vtkPlusAtracsysTracker::AddToolGeometry(std::string toolId, std::stri
   outChannel->AddTool(aDataSource);
 
   // enable tool in Plus
-  
+
 
   // register this tool internally
   std::pair<int, std::string> newTool(geometryId, toolId);
