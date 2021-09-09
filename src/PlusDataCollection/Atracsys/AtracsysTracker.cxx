@@ -542,6 +542,9 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::AtracsysInternal::LoadFtkGeome
 }
 
 //----------------------------------------------------------------------------
+// provided an option name with Atracsys' nomenclature, this method returns the pointer
+// to the corresponding ftkOptionsInfo which contains various information about the option
+// (notably its id and value type)
 bool AtracsysTracker::GetOptionInfo(const std::string& optionName, ftkOptionsInfo* &info)
 {
   std::map<std::string, ftkOptionsInfo*>::const_iterator it = this->Internal->DeviceOptionMap.find(optionName);
@@ -557,6 +560,7 @@ bool AtracsysTracker::GetOptionInfo(const std::string& optionName, ftkOptionsInf
 }
 
 //----------------------------------------------------------------------------
+// this method sets a value to an option in the device. The option name follows Atracsys' nomenclature.
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetOption(const std::string& optionName, const std::string& attributeValue)
 {
   ftkOptionsInfo* info;
