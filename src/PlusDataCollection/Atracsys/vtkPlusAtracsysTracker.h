@@ -22,7 +22,7 @@ Requires PLUS_USE_ATRACSYS option in CMake.
 class vtkPlusDataCollectionExport vtkPlusAtracsysTracker : public vtkPlusDevice
 {
 public:
-  static vtkPlusAtracsysTracker *New();
+  static vtkPlusAtracsysTracker* New();
   vtkTypeMacro(vtkPlusAtracsysTracker, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -49,7 +49,7 @@ public:
   PlusStatus InternalUpdate();
 
 public:
-   // Commands
+  // Commands
   static const char* ATRACSYS_COMMAND_SET_FLAG;
   static const char* ATRACSYS_COMMAND_LED_ENABLED;
   static const char* ATRACSYS_COMMAND_LASER_ENABLED;

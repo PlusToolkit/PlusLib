@@ -101,7 +101,7 @@ public:
     int GeometryId;
     vtkNew<vtkMatrix4x4> ToolToTracker;
     int GeometryPresenceMask; // presence mask of fiducials expressed as their numerical indices
-    float RegistrationErrorMM; // Mean fiducial registration error (unit mm) 
+    float RegistrationErrorMM; // Mean fiducial registration error (unit mm)
   };
 
   /*! Connect to Atracsys tracker, must be called before any other function in this wrapper API. */
