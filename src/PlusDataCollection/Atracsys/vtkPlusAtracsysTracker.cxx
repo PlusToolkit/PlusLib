@@ -59,11 +59,11 @@ public:
     : External(external)
   {
     // stores correspondences between config file option names and atracsys option names
-    DeviceOptionTranslator["MaxMeanRegistrationErrorMm"] = "Registration Mean Error";
-    DeviceOptionTranslator["MaxMissingFiducials"] = "Matching Maximum Missing Points";
-    DeviceOptionTranslator["SymmetriseCoordinates"] = "Symmetrise coordinates";
-    DeviceOptionTranslator["EnableLasers"] = "Enables lasers";
-    DeviceOptionTranslator["EnableUserLED"] = "Enables the user-LED";
+    this->DeviceOptionTranslator["MaxMeanRegistrationErrorMm"] = "Registration Mean Error";
+    this->DeviceOptionTranslator["MaxMissingFiducials"] = "Matching Maximum Missing Points";
+    this->DeviceOptionTranslator["SymmetriseCoordinates"] = "Symmetrise coordinates";
+    this->DeviceOptionTranslator["EnableLasers"] = "Enables lasers";
+    this->DeviceOptionTranslator["EnableUserLED"] = "Enables the user-LED";
   }
 
   virtual ~vtkInternal()
