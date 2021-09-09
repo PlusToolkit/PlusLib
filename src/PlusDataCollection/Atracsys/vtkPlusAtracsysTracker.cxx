@@ -233,11 +233,12 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   this->Internal->Tracker.GetDeviceType(this->Internal->DeviceType);
 
   // helper to translate option names from Plus nomenclature to Atracsys' one
-  auto translateOptionName = [this](const std::string& optionName, std::string& translatedOptionName) {
+  auto translateOptionName = [this](const std::string & optionName, std::string & translatedOptionName)
+  {
     std::map<std::string, std::string>::const_iterator itt =
       this->Internal->DeviceOptionTranslator.find(optionName);
     if (itt == this->Internal->DeviceOptionTranslator.cend())
-      return false;
+    { return false; }
     else
     {
       translatedOptionName = itt->second;
@@ -277,7 +278,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   else
   {
     this->Internal->DeviceOptions.emplace("MaxMeanRegistrationErrorMm",
-      std::to_string(this->Internal->MaxMeanRegistrationErrorMm));
+                                          std::to_string(this->Internal->MaxMeanRegistrationErrorMm));
   }
   // ------- max number of missing fiducials
   itd = this->Internal->DeviceOptions.find("MaxMissingFiducials");
@@ -295,7 +296,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   else
   {
     this->Internal->DeviceOptions.emplace("MaxMissingFiducials",
-      std::to_string(this->Internal->MaxMissingFiducials));
+                                          std::to_string(this->Internal->MaxMissingFiducials));
   }
 
   // set device options
@@ -303,7 +304,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   {
     std::string translatedOptionName;
     if (translateOptionName(i.first, translatedOptionName))
-      this->Internal->Tracker.SetOption(translatedOptionName, i.second);
+    { this->Internal->Tracker.SetOption(translatedOptionName, i.second); }
   }
 
   // if spryTrack, setup for onboard processing and disable extraneous marker info streaming

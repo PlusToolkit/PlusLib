@@ -128,7 +128,7 @@ public:
   // correspondence between atracsys option name and its actual id in the sdk
   // this map is filled automatically by the sdk, DO NOT hardcode/change any id
   std::map<std::string, ftkOptionsInfo*> DeviceOptionMap{};
-  
+
   //----------------------------------------------------------------------------
   // callback function stores all option id
   static void DeviceOptionEnumerator(uint64_t serialNumber, void* userData, ftkOptionsInfo* option)
@@ -164,22 +164,22 @@ public:
     bool parseLine(std::string& line)
     {
       size_t first_bracket = line.find_first_of("["),
-        last_bracket = line.find_last_of("]"),
-        equal = line.find_first_of("=");
+             last_bracket = line.find_last_of("]"),
+             equal = line.find_first_of("=");
 
       if (first_bracket != std::string::npos &&
-        last_bracket != std::string::npos)
+          last_bracket != std::string::npos)
       {
         // Found section
         _currentSection = line.substr(first_bracket + 1,
-          last_bracket - first_bracket - 1);
+                                      last_bracket - first_bracket - 1);
         sections[_currentSection] = KeyValues();
       }
       else if (equal != std::string::npos && _currentSection != "")
       {
         // Found property in a section
         std::string key = line.substr(0, equal),
-          val = line.substr(equal + 1);
+                    val = line.substr(equal + 1);
         sections[_currentSection][key] = val;
       }
       else
@@ -188,7 +188,7 @@ public:
         // skip it
         // as well, otherwise the parsing cannot be done.
         line.erase(remove_if(line.begin(),
-          line.end(), isspace), line.end());
+                             line.end(), isspace), line.end());
         if (!line.empty() && line.substr(0, 1) != ";")
         {
           return false;
@@ -271,7 +271,7 @@ public:
         while (iterK != kw.end())
         {
           fprintf(file, "%s=%s\n",
-            iterK->first.c_str(), iterK->second.c_str());
+                  iterK->first.c_str(), iterK->second.c_str());
           iterK++;
         }
         iterS++;
@@ -304,7 +304,7 @@ public:
         while (iterK != kw.end())
         {
           sprintf(temp, "%s=%s\n",
-            iterK->first.c_str(), iterK->second.c_str());
+                  iterK->first.c_str(), iterK->second.c_str());
           buffer += temp;
           iterK++;
         }
@@ -350,8 +350,8 @@ public:
 
   //----------------------------------------------------------------------------
   bool assignUint32(IniFile& p, const std::string& section,
-    const std::string& key,
-    uint32* variable)
+                    const std::string& key,
+                    uint32* variable)
   {
     if (!checkKey(p, section, key))
     {
@@ -368,8 +368,8 @@ public:
 
   //----------------------------------------------------------------------------
   bool assignFloatXX(IniFile& p, const std::string& section,
-    const std::string& key,
-    floatXX* variable)
+                     const std::string& key,
+                     floatXX* variable)
   {
     if (!checkKey(p, section, key))
     {
@@ -397,7 +397,7 @@ public:
 
     return ParseIniFile(fileContent, geometry);
   }
-  
+
   //----------------------------------------------------------------------------
   // this method from https://thispointer.com/find-and-replace-all-occurrences-of-a-sub-string-in-c/
   void stringFindAndReplaceAll(std::string& data, std::string toSearch, std::string replaceStr)
@@ -414,7 +414,7 @@ public:
       pos = data.find(toSearch, pos + replaceStr.size());
     }
   }
-  
+
   //----------------------------------------------------------------------------
   bool ParseIniFile(std::string fileContent, ftkGeometry& geometry)
   {
@@ -423,7 +423,7 @@ public:
     IniFile parser;
 
     if (!parser.parse(const_cast<char*>(fileContent.c_str()),
-      fileContent.size()))
+                      fileContent.size()))
     {
       return false;
     }
@@ -458,17 +458,17 @@ public:
       }
 
       if (!assignFloatXX(parser, sectionName, "x",
-        &geometry.positions[i].x))
+                         &geometry.positions[i].x))
       {
         return false;
       }
       if (!assignFloatXX(parser, sectionName, "y",
-        &geometry.positions[i].y))
+                         &geometry.positions[i].y))
       {
         return false;
       }
       if (!assignFloatXX(parser, sectionName, "z",
-        &geometry.positions[i].z))
+                         &geometry.positions[i].z))
       {
         return false;
       }
@@ -545,7 +545,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::AtracsysInternal::LoadFtkGeome
 // provided an option name with Atracsys' nomenclature, this method returns the pointer
 // to the corresponding ftkOptionsInfo which contains various information about the option
 // (notably its id and value type)
-bool AtracsysTracker::GetOptionInfo(const std::string& optionName, ftkOptionsInfo* &info)
+bool AtracsysTracker::GetOptionInfo(const std::string& optionName, ftkOptionsInfo*& info)
 {
   std::map<std::string, ftkOptionsInfo*>::const_iterator it = this->Internal->DeviceOptionMap.find(optionName);
   if (it == this->Internal->DeviceOptionMap.cend())
@@ -672,17 +672,17 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Connect()
 
   switch (device.Type)
   {
-  case ftkDeviceType::DEV_SPRYTRACK_180:
-    this->DeviceType = SPRYTRACK_180;
-    break;
-  case ftkDeviceType::DEV_FUSIONTRACK_500:
-    this->DeviceType = FUSIONTRACK_500;
-    break;
-  case ftkDeviceType::DEV_FUSIONTRACK_250:
-    this->DeviceType = FUSIONTRACK_250;
-    break;
-  default:
-    this->DeviceType = UNKNOWN_DEVICE;
+    case ftkDeviceType::DEV_SPRYTRACK_180:
+      this->DeviceType = SPRYTRACK_180;
+      break;
+    case ftkDeviceType::DEV_FUSIONTRACK_500:
+      this->DeviceType = FUSIONTRACK_500;
+      break;
+    case ftkDeviceType::DEV_FUSIONTRACK_250:
+      this->DeviceType = FUSIONTRACK_250;
+      break;
+    default:
+      this->DeviceType = UNKNOWN_DEVICE;
   }
 
   // allocate memory for ftk frame to be used throughout life of the object
@@ -703,8 +703,8 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Connect()
   }
 
   if (ftkEnumerateOptions(this->Internal->FtkLib, this->Internal->TrackerSN,
-    &AtracsysTracker::AtracsysInternal::DeviceOptionEnumerator, this->Internal) != ftkError::FTK_OK
-    || this->Internal->DeviceOptionMap.find("Data Directory") == this->Internal->DeviceOptionMap.cend())
+                          &AtracsysTracker::AtracsysInternal::DeviceOptionEnumerator, this->Internal) != ftkError::FTK_OK
+      || this->Internal->DeviceOptionMap.find("Data Directory") == this->Internal->DeviceOptionMap.cend())
   {
     return ERROR_OPTION_NOT_FOUND;
   }
@@ -807,14 +807,14 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetFiducialsInFrame(std::vecto
 
   switch (this->Internal->Frame->markersStat)
   {
-  case ftkQueryStatus::QS_WAR_SKIPPED:
-    return ERROR_INVALID_FRAME;
-  case ftkQueryStatus::QS_ERR_INVALID_RESERVED_SIZE:
-    return ERROR_INVALID_FRAME;
-  case ftkQueryStatus::QS_OK:
-    break;
-  default:
-    return ERROR_INVALID_FRAME;
+    case ftkQueryStatus::QS_WAR_SKIPPED:
+      return ERROR_INVALID_FRAME;
+    case ftkQueryStatus::QS_ERR_INVALID_RESERVED_SIZE:
+      return ERROR_INVALID_FRAME;
+    case ftkQueryStatus::QS_OK:
+      break;
+    default:
+      return ERROR_INVALID_FRAME;
   }
 
   if (this->Internal->Frame->markersStat == ftkQueryStatus::QS_ERR_OVERFLOW)
@@ -845,14 +845,14 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetMarkersInFrame(std::vector<
 
   switch (this->Internal->Frame->markersStat)
   {
-  case ftkQueryStatus::QS_WAR_SKIPPED:
-    return ERROR_INVALID_FRAME;
-  case ftkQueryStatus::QS_ERR_INVALID_RESERVED_SIZE:
-    return ERROR_INVALID_FRAME;
-  case ftkQueryStatus::QS_OK:
-    break;
-  default:
-    return ERROR_INVALID_FRAME;
+    case ftkQueryStatus::QS_WAR_SKIPPED:
+      return ERROR_INVALID_FRAME;
+    case ftkQueryStatus::QS_ERR_INVALID_RESERVED_SIZE:
+      return ERROR_INVALID_FRAME;
+    case ftkQueryStatus::QS_OK:
+      break;
+    default:
+      return ERROR_INVALID_FRAME;
   }
 
   if (this->Internal->Frame->markersStat == ftkQueryStatus::QS_ERR_OVERFLOW)
@@ -897,19 +897,19 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetUserLEDState(int red, int g
     return ERROR_SET_USER_LED;
   }
   if (!this->GetOptionInfo("User-LED red component", info))
-    return ERROR_OPTION_NOT_FOUND;
+  { return ERROR_OPTION_NOT_FOUND; }
   if (ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, info->id, red) != ftkError::FTK_OK)
   {
     return ERROR_SET_USER_LED;
   }
   if (!this->GetOptionInfo("User-LED green component", info))
-    return ERROR_OPTION_NOT_FOUND;
+  { return ERROR_OPTION_NOT_FOUND; }
   if (ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, info->id, green) != ftkError::FTK_OK)
   {
     return ERROR_SET_USER_LED;
   }
   if (!this->GetOptionInfo("User-LED blue component", info))
-    return ERROR_OPTION_NOT_FOUND;
+  { return ERROR_OPTION_NOT_FOUND; }
   if (ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, info->id, blue) != ftkError::FTK_OK)
   {
     return ERROR_SET_USER_LED;
@@ -1079,10 +1079,10 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetDroppedFrameCount(int& drop
     // get correct device option number
     ftkOptionsInfo* info;
     if (!this->GetOptionInfo("Counter of lost frames", info))
-      return ERROR_OPTION_NOT_FOUND;
+    { return ERROR_OPTION_NOT_FOUND; }
     ftkGetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, info->id, &lost, ftkOptionGetter::FTK_VALUE);
     if (!this->GetOptionInfo("Counter of corrupted frames", info))
-      return ERROR_OPTION_NOT_FOUND;
+    { return ERROR_OPTION_NOT_FOUND; }
     ftkGetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, info->id, &corrupted, ftkOptionGetter::FTK_VALUE);
 
     droppedFrameCount = lost + corrupted;
@@ -1099,7 +1099,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::ResetLostFrameCount()
     // get correct device option number
     ftkOptionsInfo* info;
     if (!this->GetOptionInfo("Resets lost counters", info))
-      return ERROR_OPTION_NOT_FOUND;
+    { return ERROR_OPTION_NOT_FOUND; }
     ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, info->id, RESET_DROPPED_FRAME_COUNT);
     return SUCCESS;
   }
