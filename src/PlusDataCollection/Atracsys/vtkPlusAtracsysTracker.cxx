@@ -254,10 +254,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   {
     if (strToInt32(itd->second, this->Internal->ActiveMarkerPairingTimeSec))
     {
-      if (this->Internal->ActiveMarkerPairingTimeSec > 15)
-      {
-        LOG_WARNING("Marker pairing time is set to " << this->Internal->ActiveMarkerPairingTimeSec << "seconds, tracking will not start until this period is over.");
-      }
+      LOG_INFO("Marker pairing time is set to " << this->Internal->ActiveMarkerPairingTimeSec << " seconds, tracking will not start until this period is over.");
     }
   }
 
@@ -352,7 +349,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
     LOG_ERROR(this->Internal->Tracker.ResultToString(result));
     return PLUS_FAIL;
   }
-  LOG_INFO("Active marker pairing period started.");
+  LOG_INFO("Active marker pairing period started for " << this->Internal->ActiveMarkerPairingTimeSec << " seconds.");
 
   // sleep while waiting for tracker to pair active markers
   vtkIGSIOAccurateTimer::Delay(this->Internal->ActiveMarkerPairingTimeSec);
