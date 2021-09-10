@@ -127,7 +127,7 @@ public:
 
   // correspondence between atracsys option name and its actual id in the sdk
   // this map is filled automatically by the sdk, DO NOT hardcode/change any id
-  std::map<std::string, ftkOptionsInfo*> DeviceOptionMap{};
+  std::map<std::string, ftkOptionsInfo> DeviceOptionMap{};
 
   //----------------------------------------------------------------------------
   // callback function stores all option id
@@ -139,7 +139,7 @@ public:
     {
       return;
     }
-    ptr->DeviceOptionMap.emplace(option->name, option);
+    ptr->DeviceOptionMap.emplace(option->name, *option);
   }
 
   // Code from ATRACSYS
@@ -511,7 +511,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::AtracsysInternal::LoadFtkGeome
   {
     ftkBuffer buffer;
     buffer.reset();
-    if (ftkGetData(this->FtkLib, this->TrackerSN, this->DeviceOptionMap["Data Directory"]->id, &buffer) != ftkError::FTK_OK || buffer.size < 1u)
+    if (ftkGetData(this->FtkLib, this->TrackerSN, this->DeviceOptionMap["Data Directory"].id, &buffer) != ftkError::FTK_OK || buffer.size < 1u)
     {
       return ERROR_FAILURE_TO_LOAD_INI;
     }
@@ -545,16 +545,16 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::AtracsysInternal::LoadFtkGeome
 // provided an option name with Atracsys' nomenclature, this method returns the pointer
 // to the corresponding ftkOptionsInfo which contains various information about the option
 // (notably its id and value type)
-bool AtracsysTracker::GetOptionInfo(const std::string& optionName, ftkOptionsInfo*& info)
+bool AtracsysTracker::GetOptionInfo(const std::string& optionName, const ftkOptionsInfo*& info)
 {
-  std::map<std::string, ftkOptionsInfo*>::const_iterator it = this->Internal->DeviceOptionMap.find(optionName);
+  std::map<std::string, ftkOptionsInfo>::const_iterator it = this->Internal->DeviceOptionMap.find(optionName);
   if (it == this->Internal->DeviceOptionMap.cend())
   {
     return false;
   }
   else
   {
-    info = it->second;
+    info = &(it->second);
     return true;
   }
 }
@@ -563,7 +563,8 @@ bool AtracsysTracker::GetOptionInfo(const std::string& optionName, ftkOptionsInf
 // this method sets a value to an option in the device. The option name follows Atracsys' nomenclature.
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetOption(const std::string& optionName, const std::string& attributeValue)
 {
-  ftkOptionsInfo* info;
+  const ftkOptionsInfo * info;
+
   if (!this->GetOptionInfo(optionName, info))
   {
     return ERROR_OPTION_NOT_FOUND;
@@ -769,7 +770,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::LoadMarkerGeometryFromString(s
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetMarkerInfo(std::string& markerInfo)
 {
   // get correct device option number
-  ftkOptionsInfo* info;
+  const ftkOptionsInfo* info;
   if (!this->GetOptionInfo("Active Wireless Markers info", info))
   {
     return ERROR_OPTION_NOT_FOUND;
@@ -887,7 +888,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetMarkersInFrame(std::vector<
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetUserLEDState(int red, int green, int blue, int frequency, bool enabled /* = true */)
 {
   // get correct device option number
-  ftkOptionsInfo* info;
+  const ftkOptionsInfo* info;
   if (!this->GetOptionInfo("User-LED frequency", info))
   {
     return ERROR_OPTION_NOT_FOUND;
@@ -922,7 +923,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetUserLEDState(int red, int g
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableUserLED(bool enabled)
 {
   // get correct device option number
-  ftkOptionsInfo* info;
+  const ftkOptionsInfo* info;
   if (!this->GetOptionInfo("Enables the user-LED", info))
   {
     return ERROR_OPTION_NOT_FOUND;
@@ -938,7 +939,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableUserLED(bool enabled)
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetLaserEnabled(bool enabled)
 {
   // get correct device option number
-  ftkOptionsInfo* info;
+  const ftkOptionsInfo* info;
   if (!this->GetOptionInfo("Enables lasers", info))
   {
     return ERROR_OPTION_NOT_FOUND;
@@ -957,7 +958,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetLaserEnabled(bool enabled)
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerPairing(bool enabled)
 {
   // get correct device option number
-  ftkOptionsInfo* info;
+  const ftkOptionsInfo* info;
   if (!this->GetOptionInfo("Active Wireless Pairing Enable", info))
   {
     return ERROR_OPTION_NOT_FOUND;
@@ -974,7 +975,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerPairing(bo
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerStatusStreaming(bool enabled)
 {
   // get correct device option number
-  ftkOptionsInfo* info;
+  const ftkOptionsInfo* info;
   if (!this->GetOptionInfo("Active Wireless button statuses streaming", info))
   {
     return ERROR_OPTION_NOT_FOUND;
@@ -991,7 +992,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerStatusStre
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerBatteryStreaming(bool enabled)
 {
   // get correct device option number
-  ftkOptionsInfo* info;
+  const ftkOptionsInfo* info;
   if (!this->GetOptionInfo("Active Wireless battery state streaming", info))
   {
     return ERROR_OPTION_NOT_FOUND;
@@ -1011,7 +1012,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerBatteryStr
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableOnboardProcessing(bool enabled)
 {
   // get correct device option number
-  ftkOptionsInfo* info;
+  const ftkOptionsInfo* info;
   if (!this->GetOptionInfo("Enable embedded processing", info))
   {
     return ERROR_OPTION_NOT_FOUND;
@@ -1028,7 +1029,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableOnboardProcessing(bool e
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableImageStreaming(bool enabled)
 {
   // get correct device option number
-  ftkOptionsInfo* info;
+  const ftkOptionsInfo* info;
   if (!this->GetOptionInfo("Enable images sending", info))
   {
     return ERROR_OPTION_NOT_FOUND;
@@ -1077,7 +1078,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetDroppedFrameCount(int& drop
   {
     int32 lost = 0, corrupted = 0;
     // get correct device option number
-    ftkOptionsInfo* info;
+    const ftkOptionsInfo* info;
     if (!this->GetOptionInfo("Counter of lost frames", info))
     { return ERROR_OPTION_NOT_FOUND; }
     ftkGetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, info->id, &lost, ftkOptionGetter::FTK_VALUE);
@@ -1097,7 +1098,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::ResetLostFrameCount()
   if (this->DeviceType == FUSIONTRACK_250 || this->DeviceType == FUSIONTRACK_500)
   {
     // get correct device option number
-    ftkOptionsInfo* info;
+    const ftkOptionsInfo* info;
     if (!this->GetOptionInfo("Resets lost counters", info))
     { return ERROR_OPTION_NOT_FOUND; }
     ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, info->id, RESET_DROPPED_FRAME_COUNT);

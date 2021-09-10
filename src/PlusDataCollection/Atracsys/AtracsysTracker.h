@@ -174,7 +174,7 @@ public:
   ATRACSYS_RESULT SetOption(const std::string&, const std::string&);
 
 protected:
-  bool GetOptionInfo(const std::string&, ftkOptionsInfo*&);
+  bool GetOptionInfo(const std::string&, const ftkOptionsInfo*&);
 
 private:
   DEVICE_TYPE DeviceType = UNKNOWN_DEVICE;
