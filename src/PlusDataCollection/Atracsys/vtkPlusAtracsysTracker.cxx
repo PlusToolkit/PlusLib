@@ -300,8 +300,20 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   for (const auto& i : this->Internal->DeviceOptions)
   {
     std::string translatedOptionName;
-    if (translateOptionName(i.first, translatedOptionName))
-    { this->Internal->Tracker.SetOption(translatedOptionName, i.second); }
+
+    /* Dirty hack circumventing a nomenclature discrepancy between ftk and stk API's, this will be fixed in the next API release */
+    if (i.first == "EnableLasers" && this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::SPRYTRACK_180)
+    {
+      this->Internal->Tracker.SetOption("Enable lasers", i.second);
+    }
+    else if (i.first == "SymmetriseCoordinates" && this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::SPRYTRACK_180)
+    {
+      this->Internal->Tracker.SetOption("Embedded Symmetrise coordinates", i.second);
+    }
+    else/* end of hack*/ if (translateOptionName(i.first, translatedOptionName))
+    {
+      this->Internal->Tracker.SetOption(translatedOptionName, i.second);
+    }
   }
 
   // if spryTrack, setup for onboard processing and disable extraneous marker info streaming
