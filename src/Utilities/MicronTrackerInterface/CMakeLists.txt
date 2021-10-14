@@ -22,23 +22,21 @@ SET(${PROJECT_NAME}_SRCS
   XPoints.cpp
 )
 
-IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET(${PROJECT_NAME}_HDRS
-    MicronTrackerInterface.h
-    MicronTrackerLogger.h
-    Cameras.h
-    MCamera.h
-    Collection.h
-    Facet.h
-    Marker.h
-    Markers.h
-    MTXPoint.h
-    Persistence.h
-    Vector.h
-    Xform3D.h
-    XPoints.h
+SET(${PROJECT_NAME}_HDRS
+  MicronTrackerInterface.h
+  MicronTrackerLogger.h
+  Cameras.h
+  MCamera.h
+  Collection.h
+  Facet.h
+  Marker.h
+  Markers.h
+  MTXPoint.h
+  Persistence.h
+  Vector.h
+  Xform3D.h
+  XPoints.h
 )
-ENDIF()
 
 SET(Utilities_INCLUDE_DIRS ${Utilities_INCLUDE_DIRS} ${${PROJECT_NAME}_INCLUDE_DIRS} CACHE INTERNAL "")
 

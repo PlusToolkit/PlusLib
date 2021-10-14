@@ -34,38 +34,36 @@ SET(${PROJECT_NAME}_SRCS
   vtkPhantomLinearObjectRegistrationAlgo/References.cxx
   )
 
-IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET(${PROJECT_NAME}_HDRS
-    PatternLocAlgo/PlusFidSegmentation.h
-    PatternLocAlgo/PlusFidLineFinder.h
-    PatternLocAlgo/PlusFidLabeling.h
-    PatternLocAlgo/PlusFidPatternRecognitionCommon.h
-    PatternLocAlgo/PlusFidPatternRecognition.h
-    PatternLocAlgo/PlusPatternLocResultFile.h
-    vtkProbeCalibrationAlgo/vtkPlusProbeCalibrationAlgo.h
-    vtkProbeCalibrationAlgo/vtkPlusProbeCalibrationOptimizerAlgo.h
-    vtkPivotCalibrationAlgo/vtkPlusPivotCalibrationAlgo.h
-    vtkPhantomLandmarkRegistrationAlgo/vtkPlusPhantomLandmarkRegistrationAlgo.h
-    vtkPhantomLandmarkRegistrationAlgo/vtkPlusLandmarkDetectionAlgo.h
-    vtkPhantomLandmarkRegistrationAlgo/vtkPlusReadTrackedSignals.h
-    vtkPhantomLinearObjectRegistrationAlgo/vtkPlusPhantomLinearObjectRegistrationAlgo.h
-    vtkSpacingCalibAlgo/vtkPlusSpacingCalibAlgo.h
-    vtkCenterOfRotationCalibAlgo/vtkPlusCenterOfRotationCalibAlgo.h
-    vtkBrachyStepperPhantomRegistrationAlgo/vtkPlusBrachyStepperPhantomRegistrationAlgo.h
-    vtkTemporalCalibrationAlgo/vtkPlusTemporalCalibrationAlgo.h
-    vtkTemporalCalibrationAlgo/vtkPlusPrincipalMotionDetectionAlgo.h
-    vtkLineSegmentationAlgo/vtkPlusLineSegmentationAlgo.h
-    vtkPhantomLinearObjectRegistrationAlgo/Line.h
-    vtkPhantomLinearObjectRegistrationAlgo/LinearObject.h
-    vtkPhantomLinearObjectRegistrationAlgo/LinearObjectBuffer.h
-    vtkPhantomLinearObjectRegistrationAlgo/Plane.h
-    vtkPhantomLinearObjectRegistrationAlgo/Planes.h
-    vtkPhantomLinearObjectRegistrationAlgo/PointObservation.h
-    vtkPhantomLinearObjectRegistrationAlgo/PointObservationBuffer.h
-    vtkPhantomLinearObjectRegistrationAlgo/Reference.h
-    vtkPhantomLinearObjectRegistrationAlgo/References.h
-    )
-ENDIF()
+SET(${PROJECT_NAME}_HDRS
+  PatternLocAlgo/PlusFidSegmentation.h
+  PatternLocAlgo/PlusFidLineFinder.h
+  PatternLocAlgo/PlusFidLabeling.h
+  PatternLocAlgo/PlusFidPatternRecognitionCommon.h
+  PatternLocAlgo/PlusFidPatternRecognition.h
+  PatternLocAlgo/PlusPatternLocResultFile.h
+  vtkProbeCalibrationAlgo/vtkPlusProbeCalibrationAlgo.h
+  vtkProbeCalibrationAlgo/vtkPlusProbeCalibrationOptimizerAlgo.h
+  vtkPivotCalibrationAlgo/vtkPlusPivotCalibrationAlgo.h
+  vtkPhantomLandmarkRegistrationAlgo/vtkPlusPhantomLandmarkRegistrationAlgo.h
+  vtkPhantomLandmarkRegistrationAlgo/vtkPlusLandmarkDetectionAlgo.h
+  vtkPhantomLandmarkRegistrationAlgo/vtkPlusReadTrackedSignals.h
+  vtkPhantomLinearObjectRegistrationAlgo/vtkPlusPhantomLinearObjectRegistrationAlgo.h
+  vtkSpacingCalibAlgo/vtkPlusSpacingCalibAlgo.h
+  vtkCenterOfRotationCalibAlgo/vtkPlusCenterOfRotationCalibAlgo.h
+  vtkBrachyStepperPhantomRegistrationAlgo/vtkPlusBrachyStepperPhantomRegistrationAlgo.h
+  vtkTemporalCalibrationAlgo/vtkPlusTemporalCalibrationAlgo.h
+  vtkTemporalCalibrationAlgo/vtkPlusPrincipalMotionDetectionAlgo.h
+  vtkLineSegmentationAlgo/vtkPlusLineSegmentationAlgo.h
+  vtkPhantomLinearObjectRegistrationAlgo/Line.h
+  vtkPhantomLinearObjectRegistrationAlgo/LinearObject.h
+  vtkPhantomLinearObjectRegistrationAlgo/LinearObjectBuffer.h
+  vtkPhantomLinearObjectRegistrationAlgo/Plane.h
+  vtkPhantomLinearObjectRegistrationAlgo/Planes.h
+  vtkPhantomLinearObjectRegistrationAlgo/PointObservation.h
+  vtkPhantomLinearObjectRegistrationAlgo/PointObservationBuffer.h
+  vtkPhantomLinearObjectRegistrationAlgo/Reference.h
+  vtkPhantomLinearObjectRegistrationAlgo/References.h
+  )
 
 SET(${PROJECT_NAME}_INCLUDE_DIRS
   ${CMAKE_CURRENT_BINARY_DIR}

@@ -6,12 +6,10 @@ SET(${PROJECT_NAME}_SRCS
     PlusSpatialModel.cxx
     )
 
-IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode") 
-  SET(${PROJECT_NAME}_HDRS
-    vtk${PROJECT_NAME}Algo.h
-    PlusSpatialModel.h
-    )
-ENDIF()
+SET(${PROJECT_NAME}_HDRS
+  vtk${PROJECT_NAME}Algo.h
+  PlusSpatialModel.h
+  )
 
 SET(${PROJECT_NAME}_INCLUDE_DIRS 
   ${CMAKE_CURRENT_SOURCE_DIR}

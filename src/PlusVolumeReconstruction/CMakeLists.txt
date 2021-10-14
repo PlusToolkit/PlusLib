@@ -6,11 +6,9 @@ SET(${PROJECT_NAME}_SRCS
   vtkPlusVolumeReconstructor.cxx
   )
 
-IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET(${PROJECT_NAME}_HDRS
-    vtkPlusVolumeReconstructor.h
-    )
-ENDIF()
+SET(${PROJECT_NAME}_HDRS
+  vtkPlusVolumeReconstructor.h
+  )
 
 SET(${PROJECT_NAME}_INCLUDE_DIRS 
   ${CMAKE_CURRENT_SOURCE_DIR}
