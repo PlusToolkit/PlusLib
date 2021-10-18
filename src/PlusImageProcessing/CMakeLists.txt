@@ -30,18 +30,16 @@ SET(${PROJECT_NAME}_SRCS
   vtkPlusTransverseProcessEnhancer.cxx
   )
 
-IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET(${PROJECT_NAME}_HDRS
-    vtkPlusTrackedFrameProcessor.h
-    vtkPlusBoneEnhancer.h
-    vtkPlusRfToBrightnessConvert.h
-    vtkPlusUsScanConvert.h
-    vtkPlusUsScanConvertLinear.h
-    vtkPlusUsScanConvertCurvilinear.h
-    vtkPlusRfProcessor.h
-    vtkPlusTransverseProcessEnhancer.h
-    )
-ENDIF()
+SET(${PROJECT_NAME}_HDRS
+  vtkPlusTrackedFrameProcessor.h
+  vtkPlusBoneEnhancer.h
+  vtkPlusRfToBrightnessConvert.h
+  vtkPlusUsScanConvert.h
+  vtkPlusUsScanConvertLinear.h
+  vtkPlusUsScanConvertCurvilinear.h
+  vtkPlusRfProcessor.h
+  vtkPlusTransverseProcessEnhancer.h
+  )
 
 SET(${PROJECT_NAME}_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}

@@ -12,17 +12,15 @@ SET(${PROJECT_NAME}_SRCS
   vtkPlusIGTLMessageQueue.cxx
   )
 
-IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET(${PROJECT_NAME}_HDRS
-    igtlPlusClientInfoMessage.h
-    igtlPlusUsMessage.h
-    igtlPlusTrackedFrameMessage.h
-    PlusIgtlClientInfo.h
-    vtkPlusIgtlMessageFactory.h
-    vtkPlusIgtlMessageCommon.h
-    vtkPlusIGTLMessageQueue.h
-    )
-ENDIF()
+SET(${PROJECT_NAME}_HDRS
+  igtlPlusClientInfoMessage.h
+  igtlPlusUsMessage.h
+  igtlPlusTrackedFrameMessage.h
+  PlusIgtlClientInfo.h
+  vtkPlusIgtlMessageFactory.h
+  vtkPlusIgtlMessageCommon.h
+  vtkPlusIGTLMessageQueue.h
+  )
 
 SET(${PROJECT_NAME}_INCLUDE_DIRS 
   ${CMAKE_CURRENT_SOURCE_DIR} 

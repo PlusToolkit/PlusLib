@@ -13,14 +13,12 @@ SET(${PROJECT_NAME}_SRCS
   vtkPlusPolydataForce.cxx
   )
 
-IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET(${PROJECT_NAME}_HDRS 
-    vtkPlusForceFeedback.h 
-    vtkPlusHapticForce.h 
-    vtkPlusImplicitSplineForce.h 
-    vtkPlusPolydataForce.h 
-  )
-ENDIF()
+SET(${PROJECT_NAME}_HDRS
+  vtkPlusForceFeedback.h
+  vtkPlusHapticForce.h
+  vtkPlusImplicitSplineForce.h
+  vtkPlusPolydataForce.h
+)
 
 SET_SOURCE_FILES_PROPERTIES(
   vtkPlusForceFeedback

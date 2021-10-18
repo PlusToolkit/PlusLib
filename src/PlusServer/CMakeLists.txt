@@ -26,58 +26,48 @@ SET(${PROJECT_NAME}_SRCS
   ${${PROJECT_NAME}_CMD_SRCS}
   )
 
-IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET(${PROJECT_NAME}_CMD_HDRS
-    Commands/vtkPlusCommand.h
-    Commands/vtkPlusVersionCommand.h
-    Commands/vtkPlusReconstructVolumeCommand.h
-    Commands/vtkPlusStartStopRecordingCommand.h
-    Commands/vtkPlusRequestIdsCommand.h
-    Commands/vtkPlusUpdateTransformCommand.h
-    Commands/vtkPlusSaveConfigCommand.h
-    Commands/vtkPlusSendTextCommand.h
-    Commands/vtkPlusGetImageCommand.h
-    Commands/vtkPlusGetPolydataCommand.h
-    Commands/vtkPlusGetTransformCommand.h
-    Commands/vtkPlusSetUsParameterCommand.h
-    Commands/vtkPlusGetUsParameterCommand.h
-    Commands/vtkPlusAddRecordingDeviceCommand.h
-    )
-  SET(${PROJECT_NAME}_HDRS
-    vtkPlusOpenIGTLinkServer.h
-    vtkPlusOpenIGTLinkClient.h
-    vtkPlusCommandResponse.h
-    vtkPlusCommandProcessor.h
-    ${${PROJECT_NAME}_CMD_HDRS}
-    )
-ENDIF()
+SET(${PROJECT_NAME}_CMD_HDRS
+  Commands/vtkPlusCommand.h
+  Commands/vtkPlusVersionCommand.h
+  Commands/vtkPlusReconstructVolumeCommand.h
+  Commands/vtkPlusStartStopRecordingCommand.h
+  Commands/vtkPlusRequestIdsCommand.h
+  Commands/vtkPlusUpdateTransformCommand.h
+  Commands/vtkPlusSaveConfigCommand.h
+  Commands/vtkPlusSendTextCommand.h
+  Commands/vtkPlusGetImageCommand.h
+  Commands/vtkPlusGetPolydataCommand.h
+  Commands/vtkPlusGetTransformCommand.h
+  Commands/vtkPlusSetUsParameterCommand.h
+  Commands/vtkPlusGetUsParameterCommand.h
+  Commands/vtkPlusAddRecordingDeviceCommand.h
+  )
+SET(${PROJECT_NAME}_HDRS
+  vtkPlusOpenIGTLinkServer.h
+  vtkPlusOpenIGTLinkClient.h
+  vtkPlusCommandResponse.h
+  vtkPlusCommandProcessor.h
+  ${${PROJECT_NAME}_CMD_HDRS}
+  )
 
 IF (PLUS_USE_ATRACSYS)
   LIST(APPEND ${PROJECT_NAME}_SRCS Commands/vtkPlusAtracsysCommand.cxx)
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    LIST(APPEND ${PROJECT_NAME}_HDRS Commands/vtkPlusAtracsysCommand.h)
-  ENDIF()
+  LIST(APPEND ${PROJECT_NAME}_HDRS Commands/vtkPlusAtracsysCommand.h)
 ENDIF()
 
 IF(PLUS_USE_STEALTHLINK)
   LIST(APPEND ${PROJECT_NAME}_SRCS Commands/vtkPlusStealthLinkCommand.cxx)
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    LIST(APPEND ${PROJECT_NAME}_HDRS Commands/vtkPlusStealthLinkCommand.h)
-  ENDIF()
+  LIST(APPEND ${PROJECT_NAME}_HDRS Commands/vtkPlusStealthLinkCommand.h)
 ENDIF()
 
 IF (PLUS_USE_CLARIUS)
   LIST(APPEND ${PROJECT_NAME}_SRCS Commands/vtkPlusClariusCommand.cxx)
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    LIST(APPEND ${PROJECT_NAME}_HDRS Commands/vtkPlusClariusCommand.h)
-  ENDIF()
+  LIST(APPEND ${PROJECT_NAME}_HDRS Commands/vtkPlusClariusCommand.h)
 ENDIF()
 
 IF(PLUS_USE_OPTIMET_CONOPROBE)
   LIST(APPEND ${PROJECT_NAME}_SRCS Commands/vtkPlusConoProbeLinkCommand.cxx)
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    LIST(APPEND ${PROJECT_NAME}_HDRS Commands/vtkPlusConoProbeLinkCommand.h)
-  ENDIF()
+  LIST(APPEND ${PROJECT_NAME}_HDRS Commands/vtkPlusConoProbeLinkCommand.h)
 ENDIF()
 
 SET(${PROJECT_NAME}_INCLUDE_DIRS 

@@ -14,17 +14,15 @@ SET(${PROJECT_NAME}_SRCS
   MfVideoCaptureLogger.cpp
   )
 
-IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET(${PROJECT_NAME}_HDRS
-    FormatReader.h
-    MediaFoundationVideoCaptureApi.h
-    MediaFoundationVideoDevice.h
-    MediaFoundationVideoDevices.h
-    MediaFoundationCaptureLibrary.h
-    MfVideoCaptureLogger.h
-    MfVideoCaptureLoggerMacros.h
-    )
-endif()
+SET(${PROJECT_NAME}_HDRS
+  FormatReader.h
+  MediaFoundationVideoCaptureApi.h
+  MediaFoundationVideoDevice.h
+  MediaFoundationVideoDevices.h
+  MediaFoundationCaptureLibrary.h
+  MfVideoCaptureLogger.h
+  MfVideoCaptureLoggerMacros.h
+  )
 
 SET(Utilities_INCLUDE_DIRS ${Utilities_INCLUDE_DIRS} ${${PROJECT_NAME}_INCLUDE_DIRS} ${WINDOWS_SDK_INCLUDE_DIRS} CACHE INTERNAL "")
 

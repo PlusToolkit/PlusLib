@@ -11,20 +11,18 @@ SET(${PROJECT_NAME}_SRCS
   vtkPlusLogger.cxx
   )
 
-IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET(${PROJECT_NAME}_HDRS
-    ${PROJECT_NAME}.h
-    vtkPlusHTMLGenerator.h
-    vtkPlusConfig.h
-    vtkPlusMacro.h
-    PlusMath.h
-    PixelCodec.h
-    PlusXmlUtils.h
-    vtkPlusSequenceIO.h
-    vtkPlusLogger.h
-    )
-
-ENDIF()
+SET(${PROJECT_NAME}_HDRS
+  ${PROJECT_NAME}.h
+  ${PROJECT_NAME}.txx
+  vtkPlusHTMLGenerator.h
+  vtkPlusConfig.h
+  vtkPlusMacro.h
+  PlusMath.h
+  PixelCodec.h
+  PlusXmlUtils.h
+  vtkPlusSequenceIO.h
+  vtkPlusLogger.h
+  )
 
 FIND_PACKAGE(IGSIO REQUIRED)
 SET(${PROJECT_NAME}_INCLUDE_DIRS

@@ -150,39 +150,37 @@ LIST(APPEND ${PROJECT_NAME}_SRCS
   ${Miscellaneous_SRCS}
   )
 
-IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET(Common_HDRS
-    vtkPlusDataCollector.h
-    vtkPlusDevice.h
-    vtkPlusUsDevice.h
-    vtkPlusChannel.h
-    vtkPlusDeviceFactory.h
-    vtkPlusDataSource.h
-    vtkPlusTimestampedCircularBuffer.h
-    PlusStreamBufferItem.h
-    vtkPlusGenericSerialDevice.h
-    PlusSerialLine.h
-    vtkFcsvReader.h
-    vtkFcsvWriter.h
-    vtkPlusBuffer.h
-    vtkPlusUsImagingParameters.h
-    )
-  SET(Miscellaneous_HDRS
-    FakeTracking/vtkPlusFakeTracker.h
-    SavedDataSource/vtkPlusSavedDataSource.h
-    ImageProcessor/vtkPlusImageProcessorVideoSource.h
-    UsSimulatorVideo/vtkPlusUsSimulatorVideoSource.h
-    )
-  SET(Virtual_HDRS
-    VirtualDevices/vtkPlusVirtualMixer.h
-    VirtualDevices/vtkPlusVirtualSwitcher.h
-    VirtualDevices/vtkPlusVirtualCapture.h
-    VirtualDevices/vtkPlusVirtualVolumeReconstructor.h
-    VirtualDevices/vtkPlusVirtualDeinterlacer.h
-    )
-  IF(PLUS_USE_TextRecognizer)
-    LIST(APPEND Virtual_HDRS VirtualDevices/vtkPlusVirtualTextRecognizer.h)
-  ENDIF()
+SET(Common_HDRS
+  vtkPlusDataCollector.h
+  vtkPlusDevice.h
+  vtkPlusUsDevice.h
+  vtkPlusChannel.h
+  vtkPlusDeviceFactory.h
+  vtkPlusDataSource.h
+  vtkPlusTimestampedCircularBuffer.h
+  PlusStreamBufferItem.h
+  vtkPlusGenericSerialDevice.h
+  PlusSerialLine.h
+  vtkFcsvReader.h
+  vtkFcsvWriter.h
+  vtkPlusBuffer.h
+  vtkPlusUsImagingParameters.h
+  )
+SET(Miscellaneous_HDRS
+  FakeTracking/vtkPlusFakeTracker.h
+  SavedDataSource/vtkPlusSavedDataSource.h
+  ImageProcessor/vtkPlusImageProcessorVideoSource.h
+  UsSimulatorVideo/vtkPlusUsSimulatorVideoSource.h
+  )
+SET(Virtual_HDRS
+  VirtualDevices/vtkPlusVirtualMixer.h
+  VirtualDevices/vtkPlusVirtualSwitcher.h
+  VirtualDevices/vtkPlusVirtualCapture.h
+  VirtualDevices/vtkPlusVirtualVolumeReconstructor.h
+  VirtualDevices/vtkPlusVirtualDeinterlacer.h
+  )
+IF(PLUS_USE_TextRecognizer)
+  LIST(APPEND Virtual_HDRS VirtualDevices/vtkPlusVirtualTextRecognizer.h)
 ENDIF()
 
 LIST(APPEND ${PROJECT_NAME}_HDRS
@@ -220,11 +218,9 @@ IF(PLUS_USE_OPTITRACK)
   SET(MOTIVE_VERSION_MINOR ${MOTIVE_VERSION_MINOR} CACHE INTERNAL "" FORCE)
   SET(MOTIVE_VERSION_PATCH ${MOTIVE_VERSION_PATCH} CACHE INTERNAL "" FORCE)
 
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(OptiTrack_HDRS
-      OptiTrack/vtkPlusOptiTrack.h
-      )
-  ENDIF()
+  SET(OptiTrack_HDRS
+    OptiTrack/vtkPlusOptiTrack.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${OptiTrack_HDRS}
@@ -328,11 +324,9 @@ IF(PLUS_USE_OPTIMET_CONOPROBE)
     Optimet/vtkPlusOptimetConoProbeMeasurer.cxx
     )
 
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(Optimet_HDRS
-      Optimet/vtkPlusOptimetConoProbeMeasurer.h
-      )
-  ENDIF()
+  SET(Optimet_HDRS
+    Optimet/vtkPlusOptimetConoProbeMeasurer.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${Optimet_HDRS}
@@ -366,11 +360,9 @@ IF(PLUS_USE_NDI_CERTUS)
     NDICertusTracking/vtkPlusNDICertusTracker.cxx
     )
 
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(NDICertus_HDRS
-      NDICertusTracking/vtkPlusNDICertusTracker.h
-      )
-  ENDIF()
+  SET(NDICertus_HDRS
+    NDICertusTracking/vtkPlusNDICertusTracker.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${NDICertus_HDRS}
@@ -417,11 +409,9 @@ IF(PLUS_USE_NDI)
     NDICAPITracking/vtkPlusNDITracker.cxx
     )
 
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(NDICAPI_HDRS
-      NDICAPITracking/vtkPlusNDITracker.h
-      )
-  ENDIF()
+  SET(NDICAPI_HDRS
+    NDICAPITracking/vtkPlusNDITracker.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${NDICAPI_HDRS}
@@ -467,12 +457,9 @@ IF(PLUS_USE_MICRONTRACKER)
   SET(MicronTracking_SRCS
     MicronTracking/vtkPlusMicronTracker.cxx
   )
-
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(MicronTracking_HDRS
-      MicronTracking/vtkPlusMicronTracker.h
-      )
-  ENDIF()
+  SET(MicronTracking_HDRS
+    MicronTracking/vtkPlusMicronTracker.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${MicronTracking_HDRS}
@@ -538,11 +525,9 @@ IF(PLUS_USE_OPENHAPTICS)
     OpenHaptics/vtkPlusOpenHapticsDevice.cxx
   )
 
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(OpenHaptics_HDRS
-      OpenHaptics/vtkPlusOpenHapticsDevice.h
-      )
-  ENDIF()
+  SET(OpenHaptics_HDRS
+    OpenHaptics/vtkPlusOpenHapticsDevice.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${OpenHaptics_HDRS}
@@ -585,15 +570,12 @@ ENDIF()
 # BlackMagic DeckLink support
 IF(PLUS_USE_BLACKMAGIC_DECKLINK)
   FIND_PACKAGE(DeckLinkSDK REQUIRED)
-
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(BlackMagicDeckLink_HDRS
-      BlackMagic/vtkPlusDeckLinkVideoSource.h
-      BlackMagic/DeckLinkAPIWrapper.h
-      BlackMagic/PlusOutputVideoFrame.h
-      ${DeckLinkSDK_INCLUDE_DIR}/DeckLinkAPIVersion.h
-    )
-  ENDIF()
+  SET(BlackMagicDeckLink_HDRS
+    BlackMagic/vtkPlusDeckLinkVideoSource.h
+    BlackMagic/DeckLinkAPIWrapper.h
+    BlackMagic/PlusOutputVideoFrame.h
+    ${DeckLinkSDK_INCLUDE_DIR}/DeckLinkAPIVersion.h
+  )
 
   SET(BlackMagicDeckLink_SRCS
     BlackMagic/vtkPlusDeckLinkVideoSource.cxx
@@ -627,11 +609,9 @@ IF(PLUS_USE_INTELREALSENSE)
     IntelRealSense/vtkPlusIntelRealSense.cxx
   )
 
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(IntelRealSense_HDRS
-      IntelRealSense/vtkPlusIntelRealSense.h
-      )
-  ENDIF()
+  SET(IntelRealSense_HDRS
+    IntelRealSense/vtkPlusIntelRealSense.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${IntelRealSense_HDRS}
@@ -688,11 +668,9 @@ IF(PLUS_USE_OPTICAL_MARKER_TRACKER)
     OpticalMarkerTracking/vtkPlusOpticalMarkerTracker.cxx
     )
 
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(OpticalMarkerTracking_HDRS
-      OpticalMarkerTracking/vtkPlusOpticalMarkerTracker.h
-      )
-  ENDIF()
+  SET(OpticalMarkerTracking_HDRS
+    OpticalMarkerTracking/vtkPlusOpticalMarkerTracker.h
+    )
 
   LIST(APPEND PlusDataCollection_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/OpticalMarkerTracking
@@ -737,12 +715,10 @@ IF(PLUS_USE_ATRACSYS)
     Atracsys/AtracsysTracker.cxx
   )
 
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(Atracsys_HDRS
-      Atracsys/vtkPlusAtracsysTracker.h
-      Atracsys/AtracsysTracker.h
-      )
-  ENDIF()
+  SET(Atracsys_HDRS
+    Atracsys/vtkPlusAtracsysTracker.h
+    Atracsys/AtracsysTracker.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${Atracsys_HDRS}
@@ -804,14 +780,12 @@ IF(PLUS_USE_BRACHY_TRACKER)
     BrachyTracking/PlusCivcoBrachyStepper.cxx
   )
 
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(BrachyTracker_HDRS
-      BrachyTracking/vtkPlusBrachyTracker.h
-      BrachyTracking/PlusCmsBrachyStepper.h
-      BrachyTracking/PlusBrachyStepper.h
-      BrachyTracking/PlusCivcoBrachyStepper.h
-      )
-  ENDIF()
+  SET(BrachyTracker_HDRS
+    BrachyTracking/vtkPlusBrachyTracker.h
+    BrachyTracking/PlusCmsBrachyStepper.h
+    BrachyTracking/PlusBrachyStepper.h
+    BrachyTracking/PlusCivcoBrachyStepper.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${BrachyTracker_HDRS}
@@ -849,11 +823,9 @@ IF(PLUS_USE_CLARIUS)
   SET(CLARIUS_SRCS
     Clarius/vtkPlusClarius.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(CLARIUS_HDRS
-      Clarius/vtkPlusClarius.h
-      )
-  ENDIF()
+  SET(CLARIUS_HDRS
+    Clarius/vtkPlusClarius.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${CLARIUS_HDRS}
@@ -889,11 +861,9 @@ IF(PLUS_USE_USDIGITALENCODERS_TRACKER)
     USDigitalEncodersTracking/vtkPlusUSDigitalEncodersTracker.cxx
   )
 
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(USDigitalEncoders_HDRS
-      USDigitalEncodersTracking/vtkPlusUSDigitalEncodersTracker.h
-      )
-  ENDIF()
+  SET(USDigitalEncoders_HDRS
+    USDigitalEncodersTracking/vtkPlusUSDigitalEncodersTracker.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${USDigitalEncoders_HDRS}
@@ -931,15 +901,13 @@ IF( PLUS_USE_Ascension3DG )
     Ascension3DGTracking/vtkPlusAscension3DGTracker.cxx
     )
 
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(Ascension_HDRS
-      Ascension3DGTracking/vtkPlusAscension3DGTracker.h
-      )
-    # vtkPlusAscension3DGTrackerBase has to be installed as well
-    LIST(APPEND ${PROJECT_NAME}_INSTALL_INCLUDE_FILES
-      Ascension3DGTracking/vtkPlusAscension3DGTrackerBase.h
-      )
-  ENDIF()
+  SET(Ascension_HDRS
+    Ascension3DGTracking/vtkPlusAscension3DGTracker.h
+    )
+  # vtkPlusAscension3DGTrackerBase has to be installed as well
+  LIST(APPEND ${PROJECT_NAME}_INSTALL_INCLUDE_FILES
+    Ascension3DGTracking/vtkPlusAscension3DGTrackerBase.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${Ascension_HDRS}
@@ -978,15 +946,13 @@ IF( PLUS_USE_Ascension3DGm )
   SET(Ascension3DGm_SRCS
     Ascension3DGTracking/vtkAscension3DGmTracker.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(Ascension3DGm_HDRS
-      Ascension3DGTracking/vtkAscension3DGmTracker.h
-      )
-    # vtkPlusAscension3DGTrackerBase has to be installed as well
-    LIST(APPEND ${PROJECT_NAME}_INSTALL_INCLUDE_FILES
-      Ascension3DGTracking/vtkPlusAscension3DGTrackerBase.h
-      )
-  ENDIF()
+  SET(Ascension3DGm_HDRS
+    Ascension3DGTracking/vtkAscension3DGmTracker.h
+    )
+  # vtkPlusAscension3DGTrackerBase has to be installed as well
+  LIST(APPEND ${PROJECT_NAME}_INSTALL_INCLUDE_FILES
+    Ascension3DGTracking/vtkPlusAscension3DGTrackerBase.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${Ascension3DGm_HDRS}
@@ -1020,11 +986,9 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
   SET(PhidgetSpatial_SRCS
     PhidgetSpatialTracking/vtkPlusPhidgetSpatialTracker.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(PhidgetSpatial_HDRS
-      PhidgetSpatialTracking/vtkPlusPhidgetSpatialTracker.h
-      )
-  ENDIF()
+  SET(PhidgetSpatial_HDRS
+    PhidgetSpatialTracking/vtkPlusPhidgetSpatialTracker.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${PhidgetSpatial_HDRS}
@@ -1069,11 +1033,9 @@ IF( PLUS_USE_3dConnexion_TRACKER )
     SET(3dConnexion_SRCS
       3dConnexionTracking/vtkPlus3dConnexionTracker.cxx
       )
-    IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-      SET(3dConnexion_HDRS
-        3dConnexionTracking/vtkPlus3dConnexionTracker.h
-        )
-    ENDIF()
+    SET(3dConnexion_HDRS
+      3dConnexionTracking/vtkPlus3dConnexionTracker.h
+      )
 
     LIST(APPEND ${PROJECT_NAME}_HDRS
       ${3dConnexion_HDRS}
@@ -1094,11 +1056,9 @@ ENDIF()
 SET(ChRobotics_SRCS
   ChRobotics/vtkPlusChRoboticsTracker.cxx
   )
-IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET(ChRobotics_HDRS
-    ChRobotics/vtkPlusChRoboticsTracker.h
-    )
-ENDIF()
+SET(ChRobotics_HDRS
+  ChRobotics/vtkPlusChRoboticsTracker.h
+  )
 
 LIST(APPEND ${PROJECT_NAME}_HDRS
   ${ChRobotics_HDRS}
@@ -1117,11 +1077,9 @@ LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
 SET(MicrochipMARG_SRCS
   MicrochipTracking/vtkPlusMicrochipTracker.cxx
   )
-IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET(MicrochipMARG_HDRS
-    MicrochipTracking/vtkPlusMicrochipTracker.h
-    )
-ENDIF()
+SET(MicrochipMARG_HDRS
+  MicrochipTracking/vtkPlusMicrochipTracker.h
+  )
 
 LIST(APPEND ${PROJECT_NAME}_HDRS
   ${MicrochipMARG_HDRS}
@@ -1144,13 +1102,11 @@ IF( PLUS_USE_OpenIGTLink )
     OpenIGTLink/vtkPlusOpenIGTLinkVideoSource.cxx
     )
 
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(OpenIGTLink_HDRS
-      OpenIGTLink/vtkPlusOpenIGTLinkDevice.h
-      OpenIGTLink/vtkPlusOpenIGTLinkTracker.h
-      OpenIGTLink/vtkPlusOpenIGTLinkVideoSource.h
-      )
-  ENDIF()
+  SET(OpenIGTLink_HDRS
+    OpenIGTLink/vtkPlusOpenIGTLinkDevice.h
+    OpenIGTLink/vtkPlusOpenIGTLinkTracker.h
+    OpenIGTLink/vtkPlusOpenIGTLinkVideoSource.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${OpenIGTLink_HDRS}
@@ -1179,15 +1135,13 @@ IF(PLUS_USE_ULTRASONIX_VIDEO)
     SonixVideo/vtkPlusSonixPortaVideoSource.cxx
     )
 
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(Ultrasonix_HDRS
-      SonixVideo/vtkPlusSonixVideoSource.h
-      SonixVideo/vtkPlusSonixVolumeReader.h
-      SonixVideo/itkUlteriusImageIO.h
-      SonixVideo/itkUlteriusImageIOFactory.h
-      SonixVideo/vtkPlusSonixPortaVideoSource.h
-      )
-  ENDIF()
+  SET(Ultrasonix_HDRS
+    SonixVideo/vtkPlusSonixVideoSource.h
+    SonixVideo/vtkPlusSonixVolumeReader.h
+    SonixVideo/itkUlteriusImageIO.h
+    SonixVideo/itkUlteriusImageIOFactory.h
+    SonixVideo/vtkPlusSonixPortaVideoSource.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${Ultrasonix_HDRS}
@@ -1283,11 +1237,9 @@ IF(PLUS_USE_BKPROFOCUS_VIDEO)
   SET(BKProFocus_SRCS
     BkProFocus/vtkPlusBkProFocusOemVideoSource.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(BKProFocus_HDRS
-      BkProFocus/vtkPlusBkProFocusOemVideoSource.h
-      )
-  ENDIF()
+  SET(BKProFocus_HDRS
+    BkProFocus/vtkPlusBkProFocusOemVideoSource.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${BKProFocus_HDRS}
@@ -1325,16 +1277,14 @@ IF(PLUS_USE_BKPROFOCUS_VIDEO)
       BkProFocus/vtkPlusBkProFocusCameraLinkVideoSource.cxx
       BkProFocus/PlusBkProFocusCameraLinkReceiver.cxx
       )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     LIST(APPEND ${PROJECT_NAME}_HDRS
       BkProFocus/vtkPlusBkProFocusCameraLinkVideoSource.h
       BkProFocus/PlusBkProFocusCameraLinkReceiver.h
       )
-  ENDIF()
-  LIST(APPEND ${PROJECT_NAME}_LIBS
-    GrabbieLib
-    ${DALSASAPERA_LIB_DIR}/SapClassBasic${CMAKE_STATIC_LIBRARY_SUFFIX}
-    )
+    LIST(APPEND ${PROJECT_NAME}_LIBS
+      GrabbieLib
+      ${DALSASAPERA_LIB_DIR}/SapClassBasic${CMAKE_STATIC_LIBRARY_SUFFIX}
+      )
   ENDIF()
 ENDIF()
 
@@ -1345,12 +1295,10 @@ IF(PLUS_USE_ICCAPTURING_VIDEO)
     ICCapturing/vtkPlusICCapturingSource.cxx
     ICCapturing/ICCapturingListener.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(ICCapturing_HDRS
-      ICCapturing/vtkPlusICCapturingSource.h
-      ICCapturing/ICCapturingListener.h
-      )
-  ENDIF()
+  SET(ICCapturing_HDRS
+    ICCapturing/vtkPlusICCapturingSource.h
+    ICCapturing/ICCapturingListener.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${ICCapturing_HDRS}
@@ -1385,11 +1333,9 @@ IF(PLUS_USE_STEALTHLINK)
   SET(StealthLink_SRCS
     StealthLink/vtkPlusStealthLinkTracker.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(StealthLink_HDRS
-      StealthLink/vtkPlusStealthLinkTracker.h
-      )
-  ENDIF()
+  SET(StealthLink_HDRS
+    StealthLink/vtkPlusStealthLinkTracker.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${StealthLink_HDRS}
@@ -1430,12 +1376,10 @@ IF(PLUS_USE_IntuitiveDaVinci)
     IntuitiveDaVinci/IntuitiveDaVinci.cxx
     )
 
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(daVinci_HDRS
-      IntuitiveDaVinci/vtkPlusIntuitiveDaVinciTracker.h
-      IntuitiveDaVinci/IntuitiveDaVinci.h
-    )
-  ENDIF()
+  SET(daVinci_HDRS
+    IntuitiveDaVinci/vtkPlusIntuitiveDaVinciTracker.h
+    IntuitiveDaVinci/IntuitiveDaVinci.h
+  )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${daVinci_HDRS}
@@ -1463,11 +1407,9 @@ IF(PLUS_USE_VFW_VIDEO)
   SET(Vfw_SRCS
     VideoForWindows/vtkPlusWin32VideoSource2.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(Vfw_HDRS
-      VideoForWindows/vtkPlusWin32VideoSource2.h
-      )
-  ENDIF()
+  SET(Vfw_HDRS
+    VideoForWindows/vtkPlusWin32VideoSource2.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${Vfw_HDRS}
@@ -1494,11 +1436,9 @@ IF(PLUS_USE_MMF_VIDEO)
   SET(Mmf_SRCS
     MicrosoftMediaFoundation/vtkPlusMmfVideoSource.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(Mmf_HDRS
-      MicrosoftMediaFoundation/vtkPlusMmfVideoSource.h
-      )
-  ENDIF()
+  SET(Mmf_HDRS
+    MicrosoftMediaFoundation/vtkPlusMmfVideoSource.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${Mmf_HDRS}
@@ -1523,11 +1463,9 @@ IF(PLUS_USE_EPIPHAN)
   SET(Epiphan_SRCS
     Epiphan/vtkPlusEpiphanVideoSource.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(Epiphan_HDRS
-      Epiphan/vtkPlusEpiphanVideoSource.h
-      )
-  ENDIF()
+  SET(Epiphan_HDRS
+    Epiphan/vtkPlusEpiphanVideoSource.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${Epiphan_HDRS}
@@ -1576,11 +1514,9 @@ IF(PLUS_USE_CAPISTRANO_VIDEO)
   SET(Capistrano_SRCS
     Capistrano/vtkPlusCapistranoVideoSource.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(Capistrano_HDRS
-      Capistrano/vtkPlusCapistranoVideoSource.h
-      )
-  ENDIF()
+  SET(Capistrano_HDRS
+    Capistrano/vtkPlusCapistranoVideoSource.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${Capistrano_HDRS}
@@ -1614,11 +1550,9 @@ IF(PLUS_USE_WINPROBE_VIDEO)
   SET(WinProbe_SRCS
     WinProbe/vtkPlusWinProbeVideoSource.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(WinProbe_HDRS
-      WinProbe/vtkPlusWinProbeVideoSource.h
-      )
-  ENDIF()
+  SET(WinProbe_HDRS
+    WinProbe/vtkPlusWinProbeVideoSource.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${WinProbe_HDRS}
@@ -1673,11 +1607,9 @@ IF(PLUS_USE_INTERSON_VIDEO)
   SET(Interson_SRCS
     Interson/vtkPlusIntersonVideoSource.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(Interson_HDRS
-      Interson/vtkPlusIntersonVideoSource.h
-      )
-  ENDIF()
+  SET(Interson_HDRS
+    Interson/vtkPlusIntersonVideoSource.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${Interson_HDRS}
@@ -1724,11 +1656,9 @@ IF(PLUS_USE_INTERSONSDKCXX_VIDEO)
   SET(IntersonCXX_SRCS
     IntersonSDKCxx/vtkPlusIntersonSDKCxxVideoSource.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(IntersonCXX_HDRS
-      IntersonSDKCxx/vtkPlusIntersonSDKCxxVideoSource.h
-      )
-  ENDIF()
+  SET(IntersonCXX_HDRS
+    IntersonSDKCxx/vtkPlusIntersonSDKCxxVideoSource.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${IntersonCXX_HDRS}
@@ -1763,11 +1693,9 @@ IF(PLUS_USE_INTERSONARRAYSDKCXX_VIDEO)
   SET(IntersonArrayCXX_SRCS
     IntersonArraySDKCxx/vtkPlusIntersonArraySDKCxxVideoSource.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(IntersonArrayCXX_HDRS
-      IntersonArraySDKCxx/vtkPlusIntersonArraySDKCxxVideoSource.h
-      )
-  ENDIF()
+  SET(IntersonArrayCXX_HDRS
+    IntersonArraySDKCxx/vtkPlusIntersonArraySDKCxxVideoSource.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${IntersonArrayCXX_HDRS}
@@ -1802,11 +1730,11 @@ IF(PLUS_USE_SPINNAKER_VIDEO)
     PointGrey/vtkPlusSpinnakerVideoSource.cxx
     )
 
-  IF(MSVC)
+  #IF(MSVC)
     SET(Spinnaker_HDRS
       PointGrey/vtkPlusSpinnakerVideoSource.h
       )
-  ENDIF()
+  #ENDIF()
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${Spinnaker_HDRS}
@@ -1904,13 +1832,11 @@ IF(PLUS_USE_TELEMED_VIDEO)
     Telemed/Usgfw2_p.c
     Telemed/dlldata.c
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(Telemed_HDRS
-      Telemed/vtkPlusTelemedVideoSource.h
-      Telemed/TelemedUltrasound.h
-      Telemed/Usgfw2_h.h
-      )
-  ENDIF()
+  SET(Telemed_HDRS
+    Telemed/vtkPlusTelemedVideoSource.h
+    Telemed/TelemedUltrasound.h
+    Telemed/Usgfw2_h.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${Telemed_HDRS}
@@ -1949,11 +1875,9 @@ IF(PLUS_USE_THORLABS_VIDEO)
   SET(ThorLabs_SRCS
     ThorLabs/vtkPlusThorLabsVideoSource.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(ThorLabs_HDRS
-      ThorLabs/vtkPlusThorLabsVideoSource.h
-      )
-  ENDIF()
+  SET(ThorLabs_HDRS
+    ThorLabs/vtkPlusThorLabsVideoSource.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${ThorLabs_HDRS}
@@ -1986,12 +1910,10 @@ IF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
       Philips3D/vtkPlusIEEListener.cxx
       )
 
-    IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-      SET(Philips_HDRS
-        Philips3D/vtkPlusPhilips3DProbeVideoSource.h
-        Philips3D/vtkPlusIEEListener.h
-        )
-    ENDIF()
+    SET(Philips_HDRS
+      Philips3D/vtkPlusPhilips3DProbeVideoSource.h
+      Philips3D/vtkPlusIEEListener.h
+      )
 
     LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
       ${CMAKE_CURRENT_SOURCE_DIR}/Philips3D
@@ -2028,11 +1950,9 @@ IF(PLUS_USE_AGILENT)
   SET(Agilent_SRCS
     Agilent/vtkPlusAgilentScopeTracker.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(Agilent_HDRS
-      Agilent/vtkPlusAgilentScopeTracker.h
-      )
-  ENDIF()
+  SET(Agilent_HDRS
+    Agilent/vtkPlusAgilentScopeTracker.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS ${Agilent_HDRS})
   LIST(APPEND ${PROJECT_NAME}_SRCS ${Agilent_SRCS})
@@ -2103,16 +2023,14 @@ IF(PLUS_USE_NVIDIA_DVP)
     NVidiaDVP/nvSDIutil.cpp
     )
 
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    LIST(APPEND NVidiaDVP_HDRS
-      NVidiaDVP/nvGPUutil.h
-      NVidiaDVP/nvSDIin.h
-      NVidiaDVP/nvSDIout.h
-      NVidiaDVP/glExtensions.h
-      NVidiaDVP/nvSDIutil.h
-      NVidiaDVP/nvCommon.h
-      )
-  ENDIF()
+  LIST(APPEND NVidiaDVP_HDRS
+    NVidiaDVP/nvGPUutil.h
+    NVidiaDVP/nvSDIin.h
+    NVidiaDVP/nvSDIout.h
+    NVidiaDVP/glExtensions.h
+    NVidiaDVP/nvSDIutil.h
+    NVidiaDVP/nvCommon.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${NVidiaDVP_HDRS}
@@ -2168,11 +2086,9 @@ IF(PLUS_USE_OvrvisionPro)
     OvrvisionPro/vtkPlusOvrvisionProVideoSource.cxx
     )
 
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(OvrvisionPro_HDRS
-      OvrvisionPro/vtkPlusOvrvisionProVideoSource.h
-      )
-  ENDIF()
+  SET(OvrvisionPro_HDRS
+    OvrvisionPro/vtkPlusOvrvisionProVideoSource.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/OvrvisionPro
@@ -2204,11 +2120,9 @@ IF(PLUS_USE_OpenCV_VIDEO)
   SET(OpenCV_Video_SRCS
     OpenCVVideo/vtkPlusOpenCVCaptureVideoSource.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(OpenCV_Video_HDRS
-      OpenCVVideo/vtkPlusOpenCVCaptureVideoSource.h
-      )
-  ENDIF()
+  SET(OpenCV_Video_HDRS
+    OpenCVVideo/vtkPlusOpenCVCaptureVideoSource.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${OpenCV_Video_HDRS}
@@ -2232,11 +2146,9 @@ IF(PLUS_USE_INFRARED_SEEK_CAM)
   SET(Infrared_SeekCam_SRCS
       InfraredSeekCam/vtkInfraredSeekCam.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(Infrared_SeekCam_HDRS
-     InfraredSeekCam/vtkInfraredSeekCam.h
-    )
-  ENDIF()
+  SET(Infrared_SeekCam_HDRS
+    InfraredSeekCam/vtkInfraredSeekCam.h
+  )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${Infrared_SeekCam_HDRS}
@@ -2269,11 +2181,9 @@ IF(PLUS_USE_INFRARED_TEQ1_CAM)
   SET(Infrared_TEQ1_SRCS
     InfraredTEQ1Cam/vtkInfraredTEQ1Cam.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(Infrared_TEQ1_HDRS
-        InfraredTEQ1Cam/vtkInfraredTEQ1Cam.h
-    )
-  ENDIF()
+  SET(Infrared_TEQ1_HDRS
+      InfraredTEQ1Cam/vtkInfraredTEQ1Cam.h
+  )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${Infrared_TEQ1_HDRS}
@@ -2313,11 +2223,9 @@ IF(PLUS_USE_V4L2)
   SET(V4L2_Video_SRCS
     V4L2/vtkPlusV4L2VideoSource.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(V4L2_Video_HDRS
-      V4L2/vtkPlusV4L2VideoSource.h
-      )
-  ENDIF()
+  SET(V4L2_Video_HDRS
+    V4L2/vtkPlusV4L2VideoSource.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${V4L2_Video_HDRS}
@@ -2345,11 +2253,9 @@ IF(PLUS_USE_ANDOR_CAMERA)
   SET(Andor_SRCS
     Andor/vtkPlusAndorVideoSource.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(Andor_HDRS
-      Andor/vtkPlusAndorVideoSource.h
-      )
-  ENDIF()
+  SET(Andor_HDRS
+    Andor/vtkPlusAndorVideoSource.h
+    )
   
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${Andor_HDRS}
@@ -2382,11 +2288,9 @@ IF(PLUS_USE_WITMOTIONTRACKER)
   SET(WitMotionTracker_SRCS
     WitMotionTracker/vtkPlusWitMotionTracker.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(WitMotionTracker_HDRS
-      WitMotionTracker/vtkPlusWitMotionTracker.h
-      )
-  ENDIF()
+  SET(WitMotionTracker_HDRS
+    WitMotionTracker/vtkPlusWitMotionTracker.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${WitMotionTracker_HDRS}
@@ -2408,11 +2312,9 @@ IF(PLUS_USE_LEAPMOTION)
   SET(LeapMotion_SRCS
     LeapMotion/vtkPlusLeapMotion.cxx
     )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(LeapMotion_HDRS
-      LeapMotion/vtkPlusLeapMotion.h
-      )
-  ENDIF()
+  SET(LeapMotion_HDRS
+    LeapMotion/vtkPlusLeapMotion.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${LeapMotion_HDRS}
@@ -2448,11 +2350,9 @@ IF(PLUS_USE_STEAMVR)
     SteamVR/vtkPlusSteamVRTracker.cxx
     )
 
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(STEAMVR_HDRS
-      SteamVR/vtkPlusSteamVRTracker.h
-      )
-  ENDIF()
+  SET(STEAMVR_HDRS
+    SteamVR/vtkPlusSteamVRTracker.h
+    )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${STEAMVR_HDRS}
