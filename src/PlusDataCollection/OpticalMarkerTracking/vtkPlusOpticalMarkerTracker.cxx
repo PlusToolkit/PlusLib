@@ -308,7 +308,9 @@ PlusStatus vtkPlusOpticalMarkerTracker::vtkInternal::BuildTransformMatrix(vtkSma
 
   for (int x = 0; x <= 2; x++)
   {
-    transformMatrix->SetElement(x, 3, MM_PER_M * Tvec.at<float>(x, 0));
+    // Depending on aruco version (and likely opencv version), the translation vector is either a column
+    // or a row vector
+    transformMatrix->SetElement(x, 3, MM_PER_M * ((Tvec.rows == 3) ? Tvec.at<float>(x, 0) : Tvec.at<float>(0, x)));
     for (int y = 0; y <= 2; y++)
     {
       transformMatrix->SetElement(x, y, Rmat.at<float>(x, y));
