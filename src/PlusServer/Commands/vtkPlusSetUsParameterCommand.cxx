@@ -246,6 +246,11 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
     metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
   } // For each parameter
   resultString += "</CommandReply>";
+
+  if (status != PLUS_SUCCESS)
+  {
+    LOG_WARNING("Failed to set US parameter, result string was: " << resultString);
+  }
   
   vtkSmartPointer<vtkPlusCommandRTSCommandResponse> commandResponse = vtkSmartPointer<vtkPlusCommandRTSCommandResponse>::New();
   commandResponse->UseDefaultFormatOff();
