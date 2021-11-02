@@ -251,6 +251,11 @@ PlusStatus vtkPlusGetUsParameterCommand::Execute()
   } // For each parameter
   resultString += "</CommandReply>";
 
+  if (status != PLUS_SUCCESS)
+    {
+    LOG_WARNING("Failed to get US parameter, result string was: " << resultString);
+    }
+
   vtkSmartPointer<vtkPlusCommandRTSCommandResponse> commandResponse = vtkSmartPointer<vtkPlusCommandRTSCommandResponse>::New();
   commandResponse->UseDefaultFormatOff();
   commandResponse->SetClientId(this->ClientId);
