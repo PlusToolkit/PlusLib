@@ -113,12 +113,74 @@ PlusStatus vtkPlusTelemedVideoSource::InternalConnect()
   }
   this->ConnectedToDevice = true;
 
-  if (this->FrequencyMhz > 0) {SetFrequencyMhz(this->FrequencyMhz); }
-  if (this->DepthMm > 0) {SetDepthMm(this->DepthMm); }
-  if (this->GainPercent >= 0) {SetGainPercent(this->GainPercent); }
-  if (this->DynRangeDb > 0) {SetDynRangeDb(this->DynRangeDb); }
-  if (this->PowerDb >= 0) {SetPowerDb(this->PowerDb); }
-  if (this->FocusDepthPercent >= 0 && this->FocusDepthPercent <= 1) { SetFocusDepthPercent(this->FocusDepthPercent); }
+  // Updating imaging parameters from config file.
+  // We should consider removing the parameters from this class, and rely on
+  // vtkPlusUsImagingParameters to read parameters from config file.
+  if (this->FrequencyMhz > 0)
+  {
+    this->ImagingParameters->SetFrequencyMhz(this->FrequencyMhz);
+  }
+  if (this->DepthMm > 0)
+  {
+    this->ImagingParameters->SetDepthMm(this->DepthMm);
+  }
+  if (this->GainPercent >= 0)
+  {
+    this->ImagingParameters->SetGainPercent(this->GainPercent);
+  }
+  if (this->DynRangeDb > 0)
+  {
+    this->ImagingParameters->SetDynRangeDb(this->DynRangeDb);
+  }
+  if (this->PowerDb >= 0)
+  {
+    this->ImagingParameters->SetPowerDb(this->PowerDb);
+  }
+  if (this->FocusDepthPercent >= 0 && this->FocusDepthPercent <= 1)
+  {
+    this->ImagingParameters->SetFocusDepthPercent(this->FocusDepthPercent);
+  }
+
+  // For the parameters not set from the config file or in the imaging parameters, we should try to read them from the current device settings
+  if (!this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_FREQUENCY))
+  {
+    double deviceFrequencyMhz;
+    this->GetFrequencyMhz(deviceFrequencyMhz);
+    this->ImagingParameters->SetFrequencyMhz(deviceFrequencyMhz);
+  }
+  if (!this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_DEPTH))
+  {
+    double deviceDepthMM;
+    this->GetDepthMm(deviceDepthMM);
+    this->ImagingParameters->SetDepthMm(deviceDepthMM);
+  }
+  if (!this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_GAIN))
+  {
+    double deviceGainPercent;
+    this->GetGainPercent(deviceGainPercent);
+    this->ImagingParameters->SetGainPercent(deviceGainPercent);
+  }
+  if (!this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_DYNRANGE))
+  {
+    double deviceDynRangeDb;
+    this->GetDynRangeDb(deviceDynRangeDb);
+    this->ImagingParameters->SetDynRangeDb(deviceDynRangeDb);
+  }
+  if (!this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_POWER))
+  {
+    double devicePowerDb;
+    this->GetPowerDb(devicePowerDb);
+    this->ImagingParameters->SetPowerDb(devicePowerDb);
+  }
+  if (!this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_FOCUS_DEPTH))
+  {
+    double deviceFocusDepthPercent;
+    this->GetFocusDepthPercent(deviceFocusDepthPercent);
+    this->ImagingParameters->SetFocusDepthPercent(deviceFocusDepthPercent);
+  }
+
+  // Apply all of the parameters
+  this->InternalApplyImagingParameterChange();
 
   return PLUS_SUCCESS;
 }
@@ -154,10 +216,10 @@ PlusStatus vtkPlusTelemedVideoSource::InternalUpdate()
 
   this->FrameNumber++;
 
-  FrameSizeType frameSizeInPix = {0, 0, 1};
+  FrameSizeType frameSizeInPix = { 0, 0, 1 };
   this->Device->GetFrameSize(frameSizeInPix);
   int bufferSize = this->Device->GetBufferSize();
-  if (frameSizeInPix[0]*frameSizeInPix[1] == 0)
+  if (frameSizeInPix[0] * frameSizeInPix[1] == 0)
   {
     LOG_ERROR("Failed to retrieve valid frame size (got " << frameSizeInPix[0] << "x" << frameSizeInPix[1]);
     return PLUS_FAIL;
@@ -198,8 +260,8 @@ PlusStatus vtkPlusTelemedVideoSource::InternalUpdate()
     aSource->SetImageType(US_IMG_BRIGHTNESS);
     aSource->SetInputFrameSize(frameSizeInPix);
     LOG_DEBUG("Frame size: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
-              << ", pixel type: " << vtkImageScalarTypeNameMacro(aSource->GetPixelType())
-              << ", buffer image orientation: " << igsioCommon::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
+      << ", pixel type: " << vtkImageScalarTypeNameMacro(aSource->GetPixelType())
+      << ", buffer image orientation: " << igsioCommon::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
     this->UncompressedVideoFrame.SetImageType(aSource->GetImageType());
     this->UncompressedVideoFrame.SetImageOrientation(aSource->GetInputImageOrientation());
   }
