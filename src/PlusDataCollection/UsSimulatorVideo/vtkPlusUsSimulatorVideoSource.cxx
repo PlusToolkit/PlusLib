@@ -200,7 +200,6 @@ PlusStatus vtkPlusUsSimulatorVideoSource::InternalConnect()
       this->ImagingParameters->SetDepthMm(
         curvilinearScanConverter->GetRadiusStopMm() - curvilinearScanConverter->GetRadiusStartMm());
     }
-    this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_DEPTH, false);
   }
   if (!this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_INTENSITY))
   {
