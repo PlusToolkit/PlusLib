@@ -216,6 +216,10 @@ See License.txt for details.
 #include "vtkInfraredTEQ1Cam.h"
 #endif
 
+#ifdef PLUS_USE_AZUREKINECT
+#include "vtkPlusAzureKinect.h"
+#endif
+
 #ifdef PLUS_USE_CLARIUS
 #include "vtkPlusClarius.h"
 #endif
@@ -405,6 +409,10 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 
 #ifdef PLUS_USE_STEAMVR
   RegisterDevice("SteamVRTracker", "vtkPlusSteamVRTracker", (PointerToDevice)& vtkPlusSteamVRTracker::New);
+#endif
+
+#ifdef PLUS_USE_AZUREKINECT
+  RegisterDevice("AzureKinect", "vtkPlusAzureKinect", (PointerToDevice)& vtkPlusAzureKinect::New);
 #endif
 
   // Virtual Devices

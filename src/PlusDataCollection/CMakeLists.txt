@@ -65,6 +65,7 @@ ENDIF()
 OPTION(PLUS_USE_CLARIUS "Provide support for Clarius ultrasound probes" OFF)
 OPTION(PLUS_USE_STEAMVR "Provide support for the SteamVR tracking system" OFF)
 OPTION(PLUS_USE_PICOSCOPE "Provide support for PicoScope 2xxx series oscilloscopes" OFF)
+OPTION(PLUS_USE_AZUREKINECT "Provide support the Kinect Azure RGB-D camera " OFF)
 
 OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF(PLUS_TEST_ULTRASONIX)
@@ -2424,6 +2425,41 @@ IF(PLUS_USE_STEAMVR)
   LIST(APPEND External_Libraries_Install
     ${_install_file}
     )
+ENDIF()
+
+# --------------------------------------------------------------------------
+# Azure Kinect
+IF(PLUS_USE_AZUREKINECT)
+  SET(AzureKinect_SRCS
+    AzureKinect/vtkPlusAzureKinect.cxx
+    )
+  SET(AzureKinect_HDRS
+    AzureKinect/vtkPlusAzureKinect.h
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${AzureKinect_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${AzureKinect_SRCS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/AzureKinect
+    ${K4A_INCLUDE_DIR}
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_PRIVATE_LIBS
+    ${K4A_LIBRARY}
+  )
+
+  IF(WIN32)
+    LIST(APPEND External_Libraries_Install
+      ${K4A_BINARY_DIR}/k4a${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${K4A_BINARY_DIR}/depthengine_2_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+  ENDIF()
 ENDIF()
 
 # --------------------------------------------------------------------------
