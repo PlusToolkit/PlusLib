@@ -182,6 +182,35 @@ PlusStatus vtkPlusUsSimulatorVideoSource::InternalConnect()
   }
   aSource->SetInputFrameSize(frameSize);
 
+  if (!this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_FREQUENCY))
+  {
+    this->ImagingParameters->SetFrequencyMhz(this->UsSimulator->GetFrequencyMhz());
+  }
+  if (!this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_DEPTH))
+  {
+    vtkPlusUsScanConvert* scanConverter = this->UsSimulator->GetRfProcessor()->GetScanConverter();
+    vtkPlusUsScanConvertLinear* linearScanConverter = vtkPlusUsScanConvertLinear::SafeDownCast(scanConverter);
+    vtkPlusUsScanConvertCurvilinear* curvilinearScanConverter = vtkPlusUsScanConvertCurvilinear::SafeDownCast(scanConverter);
+    if (linearScanConverter)
+    {
+      this->ImagingParameters->SetDepthMm(linearScanConverter->GetImagingDepthMm());
+    }
+    else if (curvilinearScanConverter)
+    {
+      this->ImagingParameters->SetDepthMm(
+        curvilinearScanConverter->GetRadiusStopMm() - curvilinearScanConverter->GetRadiusStartMm());
+    }
+    this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_DEPTH, false);
+  }
+  if (!this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_INTENSITY))
+  {
+    this->ImagingParameters->SetIntensity(this->UsSimulator->GetIncomingIntensityMwPerCm2());
+  }
+  if (!this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_CONTRAST))
+  {
+    this->ImagingParameters->SetContrast(this->UsSimulator->GetBrightnessConversionGamma());
+  }
+
   this->LastProcessedTrackingDataTimestamp = 0;
 
   return PLUS_SUCCESS;
