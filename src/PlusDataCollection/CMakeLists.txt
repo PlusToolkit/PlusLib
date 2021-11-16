@@ -64,6 +64,7 @@ IF(PLUS_USE_LEAPMOTION)
 ENDIF()
 OPTION(PLUS_USE_CLARIUS "Provide support for Clarius ultrasound probes" OFF)
 OPTION(PLUS_USE_STEAMVR "Provide support for the SteamVR tracking system" OFF)
+OPTION(PLUS_USE_PICOSCOPE "Provide support for PicoScope 2xxx series oscilloscopes" OFF)
 
 OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF(PLUS_TEST_ULTRASONIX)
@@ -769,6 +770,48 @@ IF(PLUS_USE_ATRACSYS)
     ENDIF()
   ENDIF()
 
+ENDIF()
+
+#--------------------------------------------------------------------------
+# PicoScope 2xxx series oscilloscope support
+IF(PLUS_USE_PICOSCOPE)
+  SET(PicoScope_SRCS
+    PicoScope/vtkPlusPicoScopeDataSource.cxx
+  )
+
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(PicoScope_HDRS
+      PicoScope/vtkPlusPicoScopeDataSource.cxx
+      )
+  ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+  ${PicoScope_SRCS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${PicoScope_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/PicoScope
+    ${PicoScopeSDK_INCLUDE_DIR}
+    )
+  
+  IF(WIN32)
+    LIST(APPEND ${PROJECT_NAME}_LIBS
+      ${PicoScopeSDK_LIBRARY_DIR}/ps2000${CMAKE_STATIC_LIBRARY_SUFFIX}
+      )
+  ELSE()
+    LIST(APPEND ${PROJECT_NAME}_LIBS
+      ${PicoScopeSDK_LIBRARY_DIR}/ps2000${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+  ENDIF()
+
+  LIST(APPEND External_Libraries_Install
+    ${PicoScopeSDK_BINARY_DIR}/ps2000${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+    
 ENDIF()
 
 #--------------------------------------------------------------------------
@@ -2465,6 +2508,7 @@ source_group("IntelRealSense" FILES ${IntelRealSense_HDRS} ${IntelRealSense_SRCS
 source_group("MicronTracking" FILES ${MicronTracking_HDRS} ${MicronTracking_SRCS})
 source_group("NDICAPI" FILES ${NDICAPI_HDRS} ${NDICAPI_SRCS})
 source_group("Atracsys" FILES ${Atracsys_HDRS} ${Atracsys_SRCS})
+source_group("PicoScope" FILES ${PicoScope_HDRS} ${PicoScope_SRCS})
 source_group("NDICertus" FILES ${NDICertus_HDRS} ${NDICertus_SRCS})
 source_group("Optimet" FILES ${Optimet_HDRS} ${Optimet_SRCS})
 source_group("OptiTrack" FILES ${OptiTrack_HDRS} ${OptiTrack_SRCS})

@@ -93,6 +93,9 @@ See License.txt for details.
 #ifdef PLUS_USE_STEAMVR
 #include "vtkPlusSteamVRTracker.h"
 #endif
+#ifdef PLUS_USE_PICOSCOPE
+  #include "vtkPlusPicoScopeDataSource.h"
+#endif
 
 //----------------------------------------------------------------------------
 // Video sources
@@ -368,6 +371,9 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 #endif
 #ifdef PLUS_USE_AGILENT
   RegisterDevice("AgilentScope", "vtkPlusAgilentScopeTracker", (PointerToDevice)&vtkPlusAgilentScopeTracker::New);
+#endif
+#ifdef PLUS_USE_PICOSCOPE
+  RegisterDevice("PicoScope", "vtkPlusPicoScopeDataSource", (PointerToDevice)&vtkPlusPicoScopeDataSource::New);
 #endif
 #ifdef PLUS_USE_OpenCV_VIDEO
   RegisterDevice("OpenCVVideo", "vtkPlusOpenCVCaptureVideoSource", (PointerToDevice)&vtkPlusOpenCVCaptureVideoSource::New);
