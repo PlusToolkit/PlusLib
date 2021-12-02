@@ -385,8 +385,9 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   {
     int bytesPerTimestamp = sizeof(int32_t) * 2;
     int timestampsPerLineRepeat = (4 / quadBFCount);
-    int timeblock = timestampsPerLineRepeat * arfiGeometry->LineRepeatCount * m_ARFIPushConfigurationCount * bytesPerTimestamp;
-    int arfiDataSize = arfiGeometry->SamplesPerLine * arfiGeometry->LineCount * arfiGeometry->LineRepeatCount * m_ARFIPushConfigurationCount * sizeof(int32_t);
+    int lineRepeatCount = arfiGeometry->PrePushLineRepeatCount + arfiGeometry->PostPushLineRepeatCount;
+    int timeblock = timestampsPerLineRepeat * lineRepeatCount * m_ARFIPushConfigurationCount * bytesPerTimestamp;
+    int arfiDataSize = arfiGeometry->SamplesPerLine * arfiGeometry->LineCount * lineRepeatCount * m_ARFIPushConfigurationCount * sizeof(int32_t);
     assert(length == arfiDataSize + timeblock);
     frameSize[0] = (arfiDataSize + timeblock) / sizeof(int32_t);  // we want to include all data to be saved
     frameSize[1] = 1;
@@ -869,18 +870,23 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
     m_FocalPointDepth[i] = ::GetFocalPointDepth(i);
   }
 
-  // SetARFIMultiFocalZoneCount(m_ARFIMultiTxCount);
-  for(int i = 0; i < 6; i++)
+  if (quadBFCount == 2)
   {
-    SetARFIFocalPointDepth(i, m_ARFIFocalPointDepth[i]);
-    m_ARFIFocalPointDepth[i] = GetARFIFocalPointDepth(i);
-  }
+    for(int i = 0; i < 6; i++)
+    {
+      SetARFIFocalPointDepth(i, m_ARFIFocalPointDepth[i]);
+      m_ARFIFocalPointDepth[i] = GetARFIFocalPointDepth(i);
+    }
 
-  SetARFITxTxCycleCount(m_ARFITxTxCycleCount);
-  SetARFITxTxCycleWidth(m_ARFITxTxCycleWidth);
-  SetARFITxCycleCount(m_ARFITxCycleCount);
-  SetARFITxCycleWidth(m_ARFITxCycleWidth);
-  SetARFIPushConfigurationString(m_ARFIPushConfigurationString);
+    SetARFITxTxCycleCount(m_ARFITxTxCycleCount);
+    SetARFITxTxCycleWidth(m_ARFITxTxCycleWidth);
+    SetARFITxCycleCount(m_ARFITxCycleCount);
+    SetARFITxCycleWidth(m_ARFITxCycleWidth);
+    SetARFILineTimer(m_ARFILineTimer);
+    SetARFIPrePushLineRepeatCount(m_ARFIPrePushLineRepeatCount);
+    SetARFIPostPushLineRepeatCount(m_ARFIPostPushLineRepeatCount);
+    SetARFIPushConfigurationString(m_ARFIPushConfigurationString);
+  }
 
   this->SetTransmitFrequencyMHz(m_Frequency);
   this->SetVoltage(m_Voltage);
@@ -1234,29 +1240,6 @@ PlusStatus vtkPlusWinProbeVideoSource::SetBMultiFocalZoneCount(int32_t count)
   return PLUS_SUCCESS;
 }
 
-//----------------------------------------------------------------------------
-int32_t vtkPlusWinProbeVideoSource::GetARFIMultiFocalZoneCount()
-{
-  if(Connected)
-  {
-    m_ARFIMultiTxCount = GetARFIMultiTxCount();
-  }
-  return m_ARFIMultiTxCount;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusWinProbeVideoSource::SetARFIMultiFocalZoneCount(int32_t count)
-{
-  assert(count > 0 && count <= 6);
-  m_ARFIMultiTxCount = count;
-  if(Connected)
-  {
-    SetARFIMultiTxCount(count);
-    SetPendingRecreateTables(true);
-  }
-  return PLUS_SUCCESS;
-}
-
 bool vtkPlusWinProbeVideoSource::GetARFIIsX8BFEnabled()
 {
   if(Connected)
@@ -1454,15 +1437,7 @@ PlusStatus vtkPlusWinProbeVideoSource::SetExtraSourceMode(Mode mode)
     m_Mode = Mode::ARFI;
     int samplesPerLine = 1024;
     int lineCount = 16;
-    int lineRepeatCount;
-    if(quadBFCount == 2)
-    {
-      lineRepeatCount = 128;
-    }
-    else
-    {
-      lineRepeatCount = 64;
-    }
+    int lineRepeatCount = m_ARFIPrePushLineRepeatCount + m_ARFIPostPushLineRepeatCount;
     unsigned arfiDataSize = samplesPerLine * lineCount * lineRepeatCount * m_ARFIPushConfigurationCount;
 
     int fourByteCountsPerTimestamp = 2;
@@ -1491,7 +1466,6 @@ PlusStatus vtkPlusWinProbeVideoSource::SetExtraSourceMode(Mode mode)
         LOG_WARNING("Success adding fake zeros item to ARFI video source ");
       }
     }
-    LOG_DEBUG("GetARFIIsRFSampleDataCaptureEnabled: " << GetARFIIsRFSampleDataCaptureEnabled());
   }
   SetPendingRecreateTables(true);
   LOG_INFO("Mode changed to: " << this->ModeToString(mode));
@@ -1762,31 +1736,70 @@ int32_t vtkPlusWinProbeVideoSource::GetARFIStopSample()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusWinProbeVideoSource::SetARFIPushOffset(int32_t value)
+PlusStatus vtkPlusWinProbeVideoSource::SetARFILineTimer(uint16_t propertyValue)
+{
+
+  if(Connected)
+  {
+    m_ARFILineTimer = propertyValue;
+    ::SetARFILineTimer(propertyValue);
+    SetPendingRecreateTables(true);
+    return PLUS_SUCCESS;
+  }
+  return PLUS_FAIL;
+}
+
+uint16_t vtkPlusWinProbeVideoSource::GetARFILineTimer()
 {
   if(Connected)
   {
-    if(quadBFCount != 1)
-    {
-      LOG_WARNING("ARFI Push offset is only used by X4BF devices. Use SetARFIPushConfigurationString instead.");
-    }
-    ::SetARFIPushOffset(value);
-    SetPendingRecreateTables(true);
+    m_ARFILineTimer = ::GetARFILineTimer();
   }
+  return m_ARFILineTimer;
 }
 
 //----------------------------------------------------------------------------
-int32_t vtkPlusWinProbeVideoSource::GetARFIPushOffset()
+PlusStatus vtkPlusWinProbeVideoSource::SetARFIPrePushLineRepeatCount(int32_t propertyValue)
 {
   if(Connected)
   {
-    if(quadBFCount != 1)
-    {
-      LOG_WARNING("ARFI Push offset is only used by X4BF devices. Use SetARFIPushConfigurationString instead.");
-    }
-    m_ARFIPushOffset = ::GetARFIPushOffset();
+    m_ARFIPrePushLineRepeatCount = propertyValue;
+    ::SetARFIPrePushLineRepeatCount(propertyValue);
+    SetPendingRecreateTables(true);
+    return PLUS_SUCCESS;
   }
-  return m_ARFIPushOffset;
+  return PLUS_FAIL;
+}
+
+int32_t vtkPlusWinProbeVideoSource::GetARFIPrePushLineRepeatCount()
+{
+  if(Connected)
+  {
+    m_ARFIPrePushLineRepeatCount = ::GetARFIPrePushLineRepeatCount();
+  }
+  return m_ARFIPrePushLineRepeatCount;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusWinProbeVideoSource::SetARFIPostPushLineRepeatCount(int32_t propertyValue)
+{
+  if(Connected)
+  {
+    m_ARFIPostPushLineRepeatCount = propertyValue;
+    ::SetARFIPostPushLineRepeatCount(propertyValue);
+    SetPendingRecreateTables(true);
+    return PLUS_SUCCESS;
+  }
+  return PLUS_FAIL;
+}
+
+int32_t vtkPlusWinProbeVideoSource::GetARFIPostPushLineRepeatCount()
+{
+  if(Connected)
+  {
+    m_ARFIPostPushLineRepeatCount = ::GetARFIPostPushLineRepeatCount();
+  }
+  return m_ARFIPostPushLineRepeatCount;
 }
 
 //----------------------------------------------------------------------------
@@ -1797,20 +1810,7 @@ void vtkPlusWinProbeVideoSource::SetARFIPushConfigurationString(std::string push
     m_ARFIPushConfigurationCount = std::count(pushConfiguration.begin(), pushConfiguration.end(), ';') + 1;
     if(quadBFCount == 1)
     {
-      if(m_ARFIPushConfigurationCount == 30)
-      {
-        LOG_WARNING("A X4BF will use an API hardcoded 30 push configuration rather than the custom specified configuration that was set.")
-      }
-      else
-      {
-        LOG_ERROR("A X4BF requires an ARFI Push Configuration string to have 30 pushes so that the buffers are sized correctly. "
-                  "An appropriate configuration length will be set instead.");
-        pushConfiguration = "1,40,48;1,48,56;1,56,64;1,64,72;1,72,80;1,80,88;"
-                            "2,40,48;2,48,56;2,56,64;2,64,72;2,72,80;2,80,88;"
-                            "3,40,48;3,48,56;3,56,64;3,64,72;3,72,80;3,80,88;"
-                            "4,40,48;4,48,56;4,56,64;4,64,72;4,72,80;4,80,88;"
-                            "5,40,48;5,48,56;5,56,64;5,64,72;5,72,80;5,80,88";
-      }
+      LOG_ERROR("A X4BF does not support ARFI mode.");
     }
     WPSetARFIPushConfigurationString(pushConfiguration.c_str());
     SetPendingRecreateTables(true);
@@ -1901,9 +1901,9 @@ PlusStatus vtkPlusWinProbeVideoSource::ARFIPush()
     {
       m_ExtraSources[i]->Clear();  // clear the rf buffer to ensure frames in the buffer are current
     }
-    if(quadBFCount == 2 && m_FPGAVersion != "2020-10-24 24")
+    if(m_FPGAVersion != "2020-10-24 24")
     {
-      LOG_ERROR("A X8BF requires that the FPGA Version be '2020-10-24 24' to ARFIPush. Current version: " << m_FPGAVersion);
+      LOG_ERROR("The FPGA version must be '2020-10-24 24' to ARFIPush. Current version: " << m_FPGAVersion);
       return PLUS_FAIL;
     }
     ::ARFIPush();

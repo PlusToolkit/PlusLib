@@ -108,12 +108,6 @@ public:
   /* Set the number of active focal zones for B-Mode, count 1 to 4 */
   PlusStatus SetBMultiFocalZoneCount(int32_t count);
 
-  /* Get the number of active focal zones for ARFI, count 1 to 6 */
-  int32_t GetARFIMultiFocalZoneCount();
-
-  /* Set the number of active focal zones for ARFI, count 1 to 6 */
-  PlusStatus SetARFIMultiFocalZoneCount(int32_t count);
-
   /* Get if the connected engine has an x8 beamformer. */
   bool GetARFIIsX8BFEnabled();
 
@@ -241,9 +235,23 @@ public:
   void SetARFIStopSample(int32_t value);
   int32_t GetARFIStopSample();
 
-  /*! Only for X4BF devices. Set the push offset for ARFI.*/
-  void SetARFIPushOffset(int32_t value);
-  int32_t GetARFIPushOffset();
+  /* Set the time value in microseconds between ARFI tracking lines. Timer Values cannot exceed 2000uS. */
+  PlusStatus SetARFILineTimer(uint16_t propertyValue);
+
+  /* Get the time value in microseconds between ARFI tracking lines. */
+  uint16_t GetARFILineTimer();
+
+  /* Set the number of repeats for the tracking lines before the push. */
+  PlusStatus SetARFIPrePushLineRepeatCount(int32_t propertyValue);
+
+  /* Get the number of repeats for the tracking lines before the push. */
+  int32_t GetARFIPrePushLineRepeatCount();
+
+  /* Set the number of repeats for the tracking lines after the push. */
+  PlusStatus SetARFIPostPushLineRepeatCount(int32_t propertyValue);
+
+  /* Get the number of repeats for the tracking lines after the push. */
+  int32_t GetARFIPostPushLineRepeatCount();
 
   int GetTransducerInternalID();
 
@@ -368,12 +376,13 @@ protected:
   int32_t m_SpatialCompoundCount = 0;
   bool m_MRevolvingEnabled = false;
   int32_t m_BMultiTxCount = 1;
-  int32_t m_ARFIMultiTxCount = 1;
   uint16_t m_ARFITxTxCycleCount = 2;
   uint8_t m_ARFITxTxCycleWidth = 10;
-  int32_t m_ARFIPushOffset = -12;
   uint16_t m_ARFITxCycleCount = 4096;
   uint8_t m_ARFITxCycleWidth = 15;
+  uint16_t m_ARFILineTimer = 75;
+  int32_t m_ARFIPrePushLineRepeatCount = 16;
+  int32_t m_ARFIPostPushLineRepeatCount = 112;
   std::string m_ARFIPushConfigurationString = "1,40,48;1,48,56;1,56,64;1,64,72;1,72,80;1,80,88";
   int m_ARFIPushConfigurationCount = 6;
   int32_t m_MPRF = 100;
