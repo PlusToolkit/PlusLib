@@ -1,0 +1,48 @@
+/*!
+\page DeviceAzureKinect Azure Kinect camera
+This device allow you to process two kind of images. The first image is in RGB and the second image is a Depth image.
+
+\section DeviceAzureKinectSupportedHwDevices Supported hardware devices
+
+- Link to manufacturer's website: https://docs.microsoft.com/en-us/azure/kinect-dk/system-requirements
+
+\section DeviceAzureKinectSupportedPlatforms Supported platforms
+
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageLinux (Ubuntu 18.04 / 20.04)
+
+\section DeviceAzureKinectSDKVersions SDK Tested Versions
+
+- Windows 10: 1.4.1
+- Ubuntu 18.04: 1.4.1
+- Ubuntu 20.04: 1.4.1
+
+\section DeviceAzureKinectCameraLicense License
+
+The Azure Kinect SDK is released under the MIT license (https://github.com/microsoft/Azure-Kinect-Sensor-SDK/blob/release/1.4.x/LICENSE)
+ 
+\section DeviceAzureKinectInstallation Installation
+
+- Install Azure Kinect SDK 1.4.1 (https://docs.microsoft.com/en-us/azure/kinect-dk/sensor-sdk-download)
+- Special tips for Ubuntu 20.04 (not supported by Microsoft): https://github.com/microsoft/Azure-Kinect-Sensor-SDK/issues/1263
+
+\section DeviceAzureKinectConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "AzureKinect" \RequiredAtt
+- \xmlAtt AlignDepthStream Choose whether to align RGB and depth streams. You must have both and RGB and a depth stream in your config to enable this option. \OptionalAtt{FALSE}
+
+- \xmlElem \ref DataSources One \c DataSource child element is required per stream from the Azure Kinect. \RequiredAtt
+  - \xmlElem \ref DataSource \RequiredAtt
+  - \xmlAtt FrameType Type of stream to capture. \RequiredAtt
+    - \c RGB
+    - \c DEPTH
+  - \xmlAtt FrameSize Size of the video/depth stream. This must be the first number of the Color/Depth resolutions shown in the hardware specifications (https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/kinect-dk/hardware-specification.md).
+  - \xmlAtt FrameRate Acquisition frequence for this stream. See hardware specifications (https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/kinect-dk/hardware-specification.md).
+  - \xmlAtt \ref PortUsImageOrientation \OptionalAtt{UN}
+
+\section DeviceAzureKinectExampleConfigFile Example configuration file PlusDeviceSet_Server_AzureKinect.xml
+
+\include "ConfigFiles/PlusDeviceSet_Server_AzureKinect.xml" 
+
+*/

@@ -606,6 +606,19 @@ IF(PLUS_USE_LEAPMOTION AND PLUS_TEST_LEAPMOTION)
   SET_TESTS_PROPERTIES(LeapMotionTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 ENDIF()
 
+#*************************** YourDeviceNameTest1 ***************************
+IF(PLUS_USE_AZUREKINECT)
+  ADD_EXECUTABLE(AzureKinectTest1 vtkAzureKinectTest.cxx)
+  SET_TARGET_PROPERTIES(AzureKinectTest1 PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(AzureKinectTest1 vtkPlusDataCollection) # add any other dependencies to the test executable
+
+  ADD_TEST(AzureKinectTest1 
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/AzureKinectTest1
+    --rendering-off
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_AzureKinect.xml 
+    )
+  SET_TESTS_PROPERTIES(AzureKinectTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
+ENDIF()
 # --------------------------------------------------------------------------
 # Install
 #
