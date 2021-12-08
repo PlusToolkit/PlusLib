@@ -8,7 +8,6 @@ This device allow you to process two kind of images. The first image is in RGB a
 
 \section DeviceAzureKinectSupportedPlatforms Supported platforms
 
-- \ref PackageWin32
 - \ref PackageWin64
 - \ref PackageLinux (Ubuntu 18.04 / 20.04)
 
