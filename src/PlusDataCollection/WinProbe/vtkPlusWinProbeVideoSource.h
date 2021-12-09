@@ -380,10 +380,10 @@ protected:
   uint8_t m_ARFITxTxCycleWidth = 10;
   uint16_t m_ARFITxCycleCount = 4096;
   uint8_t m_ARFITxCycleWidth = 15;
-  uint16_t m_ARFILineTimer = 75;
-  int32_t m_ARFIPrePushLineRepeatCount = 16;
-  int32_t m_ARFIPostPushLineRepeatCount = 112;
-  std::string m_ARFIPushConfigurationString = "1,40,48;1,48,56;1,56,64;1,64,72;1,72,80;1,80,88";
+  uint16_t m_ARFILineTimer = 100;
+  int32_t m_ARFIPrePushLineRepeatCount = 8;
+  int32_t m_ARFIPostPushLineRepeatCount = 56;
+  std::string m_ARFIPushConfigurationString = "1,33,44;1,41,52;1,49,60;1,57,68;1,65,76;1,73,84";
   int m_ARFIPushConfigurationCount = 6;
   int32_t m_MPRF = 100;
   int32_t m_MLineIndex = 60;
