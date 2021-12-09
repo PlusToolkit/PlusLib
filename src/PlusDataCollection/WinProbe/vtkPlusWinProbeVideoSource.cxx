@@ -383,10 +383,9 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   }
   else if(usMode & ARFI)
   {
-    int bytesPerTimestamp = sizeof(int32_t) * 2;
     int timestampsPerLineRepeat = (4 / quadBFCount);
     int lineRepeatCount = arfiGeometry->PrePushLineRepeatCount + arfiGeometry->PostPushLineRepeatCount;
-    int timeblock = timestampsPerLineRepeat * lineRepeatCount * m_ARFIPushConfigurationCount * bytesPerTimestamp;
+    int timeblock = timestampsPerLineRepeat * lineRepeatCount * m_ARFIPushConfigurationCount * sizeof(int32_t);
     int arfiDataSize = arfiGeometry->SamplesPerLine * arfiGeometry->LineCount * lineRepeatCount * m_ARFIPushConfigurationCount * sizeof(int32_t);
     assert(length == arfiDataSize + timeblock);
     frameSize[0] = (arfiDataSize + timeblock) / sizeof(int32_t);  // we want to include all data to be saved
@@ -1440,9 +1439,8 @@ PlusStatus vtkPlusWinProbeVideoSource::SetExtraSourceMode(Mode mode)
     int lineRepeatCount = m_ARFIPrePushLineRepeatCount + m_ARFIPostPushLineRepeatCount;
     unsigned arfiDataSize = samplesPerLine * lineCount * lineRepeatCount * m_ARFIPushConfigurationCount;
 
-    int fourByteCountsPerTimestamp = 2;
     int timestampsPerLineRepeat = (4 / quadBFCount);
-    unsigned timeblockSize = timestampsPerLineRepeat * lineRepeatCount * m_ARFIPushConfigurationCount * fourByteCountsPerTimestamp;
+    unsigned timeblockSize = timestampsPerLineRepeat * lineRepeatCount * m_ARFIPushConfigurationCount;
     m_ExtraFrameSize = { arfiDataSize + timeblockSize, 1, 1 };
     this->AdjustBufferSizes();
     std::vector<int32_t> zeroData(m_ExtraFrameSize[0] * m_ExtraFrameSize[1] * m_ExtraFrameSize[2], 0);
