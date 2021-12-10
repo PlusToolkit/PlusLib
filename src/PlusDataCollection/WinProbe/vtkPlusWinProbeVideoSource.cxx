@@ -386,7 +386,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
     int timestampsPerLineRepeat = (4 / quadBFCount);
     int lineRepeatCount = arfiGeometry->PrePushLineRepeatCount + arfiGeometry->PostPushLineRepeatCount;
     int timeblock = timestampsPerLineRepeat * lineRepeatCount * m_ARFIPushConfigurationCount * sizeof(int32_t);
-    int arfiDataSize = arfiGeometry->SamplesPerLine * arfiGeometry->LineCount * lineRepeatCount * m_ARFIPushConfigurationCount * sizeof(int32_t);
+    int arfiDataSize = (m_ARFIStopSample - m_ARFIStartSample) * arfiGeometry->LineCount * lineRepeatCount * m_ARFIPushConfigurationCount * sizeof(int32_t);
     assert(length == arfiDataSize + timeblock);
     frameSize[0] = (arfiDataSize + timeblock) / sizeof(int32_t);  // we want to include all data to be saved
     frameSize[1] = 1;
@@ -882,6 +882,8 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
     SetARFITxCycleCount(m_ARFITxCycleCount);
     SetARFITxCycleWidth(m_ARFITxCycleWidth);
     SetARFILineTimer(m_ARFILineTimer);
+    SetARFIStartSample(m_ARFIStartSample);
+    SetARFIStopSample(m_ARFIStopSample);
     SetARFIPrePushLineRepeatCount(m_ARFIPrePushLineRepeatCount);
     SetARFIPostPushLineRepeatCount(m_ARFIPostPushLineRepeatCount);
     SetARFIPushConfigurationString(m_ARFIPushConfigurationString);
@@ -1434,7 +1436,7 @@ PlusStatus vtkPlusWinProbeVideoSource::SetExtraSourceMode(Mode mode)
   else if(mode == Mode::ARFI)
   {
     m_Mode = Mode::ARFI;
-    int samplesPerLine = 1024;
+    int samplesPerLine = m_ARFIStopSample - m_ARFIStartSample;
     int lineCount = 16;
     int lineRepeatCount = m_ARFIPrePushLineRepeatCount + m_ARFIPostPushLineRepeatCount;
     unsigned arfiDataSize = samplesPerLine * lineCount * lineRepeatCount * m_ARFIPushConfigurationCount;
@@ -1695,10 +1697,12 @@ int32_t vtkPlusWinProbeVideoSource::GetMDepth()
   return m_MDepth;
 }
 
+//----------------------------------------------------------------------------
 void vtkPlusWinProbeVideoSource::SetARFIStartSample(int32_t value)
 {
   if(Connected)
   {
+    m_ARFIStartSample = value;
     ::SetARFIStartSample(value);
     SetPendingRecreateTables(true);
   }
@@ -1706,18 +1710,19 @@ void vtkPlusWinProbeVideoSource::SetARFIStartSample(int32_t value)
 
 int32_t vtkPlusWinProbeVideoSource::GetARFIStartSample()
 {
-  int32_t startSample = -1;
   if(Connected)
   {
-    startSample = ::GetARFIStartSample();
+    m_ARFIStartSample = ::GetARFIStartSample();
   }
-  return startSample;
+  return m_ARFIStartSample;
 }
 
+//----------------------------------------------------------------------------
 void vtkPlusWinProbeVideoSource::SetARFIStopSample(int32_t value)
 {
   if(Connected)
   {
+    m_ARFIStopSample = value;
     ::SetARFIStopSample(value);
     SetPendingRecreateTables(true);
   }
@@ -1725,12 +1730,11 @@ void vtkPlusWinProbeVideoSource::SetARFIStopSample(int32_t value)
 
 int32_t vtkPlusWinProbeVideoSource::GetARFIStopSample()
 {
-  int32_t stopSample = -1;
   if(Connected)
   {
-    stopSample = ::GetARFIStopSample();
+    m_ARFIStopSample = ::GetARFIStopSample();
   }
-  return stopSample;
+  return m_ARFIStopSample;
 }
 
 //----------------------------------------------------------------------------

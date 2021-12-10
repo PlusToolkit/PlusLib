@@ -380,6 +380,8 @@ protected:
   uint8_t m_ARFITxTxCycleWidth = 10;
   uint16_t m_ARFITxCycleCount = 4096;
   uint8_t m_ARFITxCycleWidth = 15;
+  int32_t m_ARFIStartSample = 0;
+  int32_t m_ARFIStopSample = 1024;
   uint16_t m_ARFILineTimer = 100;
   int32_t m_ARFIPrePushLineRepeatCount = 8;
   int32_t m_ARFIPostPushLineRepeatCount = 56;
