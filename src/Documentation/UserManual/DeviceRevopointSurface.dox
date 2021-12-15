@@ -1,0 +1,43 @@
+/*!
+\page DeviceRevopoint3DCamera Revopoint 3D cameras
+
+This device allows you to process a depth image from Revopoint 3D cameras.
+
+\section DeviceRevopoint3DCameraSupportedHwDevices Supported hardware devices
+
+- Link to manufacturer's website: https://3dcamera.revopoint3d.com/html/areascan/index.html
+
+\section DeviceRevopoint3DCameraSupportedPlatforms Supported platforms
+
+- \ref PackageWin64
+- \ref PackageLinux (Ubuntu >= 18.04)
+
+\section DeviceRevopoint3DCameraSDKVersions SDK Tested Versions
+
+- Windows 10: 2.4.0
+- Ubuntu 18.04: 2.4.0
+ 
+\section DeviceRevopoint3DCameraInstallation Installation
+
+- Install Revopoint 3D Camera SDK (https://3dcamera.revopoint3d.com/html/Areascan2/index.html)
+- On Linux, you might have to add udev rules on your system (https://github.com/latimagine/PlusHelpers/tree/main/udev_rules)
+
+\section DeviceRevopoint3DCameraConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "Revopoint3DCamera" \RequiredAtt
+
+- \xmlElem \ref DataSources A single \c DataSource child element is required. \RequiredAtt
+  - \xmlElem \ref DataSource Unique data source \RequiredAtt
+  - \xmlAtt FrameWidth Width of the depth stream. \RequiredAtt
+    - Check Depth image in hardware specifications (https://3dcamera.revopoint3d.com/html/areascan/index.html).
+  - \xmlAtt FrameRate Acquisition frequence for the depth stream. \RequiredAtt
+    - Check Depth image in hardware specifications (https://3dcamera.revopoint3d.com/html/areascan/index.html).
+  - \xmlAtt DepthRange Depth range of acquisition in mm. \OptionalAtt{5 500}
+    - Check Optimal/Max working distance in hardware specifications (https://3dcamera.revopoint3d.com/html/areascan/index.html).
+  - \xmlAtt \ref PortUsImageOrientation Image orientation \OptionalAtt{UN}
+
+\section DeviceRevopoint3DCameraExampleConfigFile Example configuration file PlusDeviceSet_Server_Revopoint3DCamera.xml
+
+\include "ConfigFiles/PlusDeviceSet_Server_Revopoint3DCamera.xml" 
+
+*/

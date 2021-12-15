@@ -65,7 +65,8 @@ ENDIF()
 OPTION(PLUS_USE_CLARIUS "Provide support for Clarius ultrasound probes" OFF)
 OPTION(PLUS_USE_STEAMVR "Provide support for the SteamVR tracking system" OFF)
 OPTION(PLUS_USE_PICOSCOPE "Provide support for PicoScope 2xxx series oscilloscopes" OFF)
-OPTION(PLUS_USE_AZUREKINECT "Provide support the Kinect Azure RGB-D camera " OFF)
+OPTION(PLUS_USE_AZUREKINECT "Provide support the Kinect Azure RGB-D camera" OFF)
+OPTION(PLUS_USE_REVOPOINT3DCAMERA "Provide support Revopoint 3D cameras" OFF)
 
 OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF(PLUS_TEST_ULTRASONIX)
@@ -2460,6 +2461,39 @@ IF(PLUS_USE_AZUREKINECT)
       ${K4A_BINARY_DIR}/depthengine_2_0${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
   ENDIF()
+ENDIF()
+
+# --------------------------------------------------------------------------
+# Revopoint 3D
+IF(PLUS_USE_REVOPOINT3DCAMERA)
+  SET(Revopoint3DCamera_SRCS
+      Revopoint3DCamera/vtkPlusRevopoint3DCamera.cxx
+    )
+  SET(Revopoint3DCamera_HDRS
+      Revopoint3DCamera/vtkPlusRevopoint3DCamera.h
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${Revopoint3DCamera_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${Revopoint3DCamera_SRCS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Revopoint3DCamera
+    ${REVOPOINT3DSDK_INCLUDE_DIR}
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_PRIVATE_LIBS
+    ${REVOPOINT3DSDK_LIBRARIES}
+  )
+
+  LIST(APPEND External_Libraries_Install
+    ${REVOPOINT3DSDK_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}3DCamera${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${REVOPOINT3DSDK_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}HandEye${CMAKE_SHARED_LIBRARY_SUFFIX}
+  )
 ENDIF()
 
 # --------------------------------------------------------------------------
