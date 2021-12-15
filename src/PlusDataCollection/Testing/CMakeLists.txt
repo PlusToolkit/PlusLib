@@ -606,7 +606,7 @@ IF(PLUS_USE_LEAPMOTION AND PLUS_TEST_LEAPMOTION)
   SET_TESTS_PROPERTIES(LeapMotionTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 ENDIF()
 
-#*************************** YourDeviceNameTest1 ***************************
+#*************************** Azure Kinect ***************************
 IF(PLUS_USE_AZUREKINECT)
   ADD_EXECUTABLE(AzureKinectTest1 vtkAzureKinectTest.cxx)
   SET_TARGET_PROPERTIES(AzureKinectTest1 PROPERTIES FOLDER Tests)
@@ -619,6 +619,21 @@ IF(PLUS_USE_AZUREKINECT)
     )
   SET_TESTS_PROPERTIES(AzureKinectTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 ENDIF()
+
+#*************************** Revopoint 3D Cameras ***************************
+IF(PLUS_USE_REVOPOINT3DCAMERA)
+  ADD_EXECUTABLE(Revopoint3DCameraTest1 vtkRevopoint3DCameraTest.cxx)
+  SET_TARGET_PROPERTIES(Revopoint3DCameraTest1 PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(Revopoint3DCameraTest1 vtkPlusDataCollection)
+
+  ADD_TEST(Revopoint3DCameraTest1
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/Revopoint3DCameraTest1
+    --rendering-off
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_Revopoint3DCamera.xml
+    )
+  SET_TESTS_PROPERTIES(Revopoint3DCameraTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
+ENDIF()
+
 # --------------------------------------------------------------------------
 # Install
 #
