@@ -112,7 +112,6 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(MRevolvingEnabled, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, TransmitFrequencyMHz, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, ScanDepthMm, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, SpatialCompoundAngle, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SpatialCompoundCount, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MPRFrequency, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MLineIndex, deviceConfig);
@@ -1344,14 +1343,12 @@ void vtkPlusWinProbeVideoSource::SetSpatialCompoundEnabled(bool value)
     SetSCIsEnabled(value);
     if(value)
     {
-      SetSCCompoundAngle(m_SpatialCompoundAngle);
-      SetSCCompoundAngleCount(m_SpatialCompoundCount);
+      SetSpatialCompoundCount(m_SpatialCompoundCount);
     }
     else
     {
-      SetSCCompoundAngleCount(0);
+      SetSpatialCompoundCount(0);
     }
-    SetPendingRecreateTables(true);
   }
   m_SpatialCompoundEnabled = value;
 }
@@ -1363,17 +1360,6 @@ bool vtkPlusWinProbeVideoSource::GetSpatialCompoundEnabled()
     m_SpatialCompoundEnabled = GetSCIsEnabled();
   }
   return m_SpatialCompoundEnabled;
-}
-
-void vtkPlusWinProbeVideoSource::SetSpatialCompoundAngle(float value)
-{
-  m_SpatialCompoundAngle = value;
-  if(Connected)
-  {
-    SetSCCompoundAngle(value);
-    SetPendingRecreateTables(true);
-    m_SpatialCompoundAngle = GetSCCompoundAngle(); //in case it was not exactly satisfied
-  }
 }
 
 float vtkPlusWinProbeVideoSource::GetSpatialCompoundAngle()
