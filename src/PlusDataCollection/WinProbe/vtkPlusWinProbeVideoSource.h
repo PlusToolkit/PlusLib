@@ -186,11 +186,25 @@ public:
   void SetSpatialCompoundEnabled(bool value);
   bool GetSpatialCompoundEnabled();
 
-  void SetSpatialCompoundAngle(float value);
-  float GetSpatialCompoundAngle();
+  /*!
+  Sets the number of +/- degree angles to use.
 
+  Spatial Compounding Count of:
+  1 -> 0 degrees and +/- 10 degrees
+  2 -> 0 degrees and +/- 6 degrees and +/- 12 degrees
+  3 -> 0 degrees and +/- 4 degrees and +/- 8 degrees and +/- 12 degrees
+  4 -> 0 degrees and +/- 3 degrees and +/- 6 degrees and +/- 9 degrees and +/- 12 degrees
+  */
   void SetSpatialCompoundCount(int32_t value);
   int32_t GetSpatialCompoundCount();
+
+  /*!
+  Gets the delta between angle values used.
+
+  The beamformers assume a static array of possible angles.
+  Spatial Compounding Count=3 will return a Spatial Compound Angle of 4 degrees.
+  */
+  float GetSpatialCompoundAngle();
 
   void SetBHarmonicEnabled(bool value);
   bool GetBHarmonicEnabled();
