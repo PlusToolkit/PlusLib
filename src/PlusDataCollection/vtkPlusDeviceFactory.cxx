@@ -216,6 +216,12 @@ See License.txt for details.
 #include "vtkInfraredTEQ1Cam.h"
 #endif
 
+#ifdef PLUS_USE_GENERIC_SENSOR_TRACKER
+#if WIN32
+#include "vtkPlusGenericSensorTracker.h"
+#endif
+#endif
+
 #ifdef PLUS_USE_AZUREKINECT
 #include "vtkPlusAzureKinect.h"
 #endif
@@ -413,6 +419,12 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 
 #ifdef PLUS_USE_STEAMVR
     RegisterDevice("SteamVRTracker", "vtkPlusSteamVRTracker", (PointerToDevice)& vtkPlusSteamVRTracker::New);
+#endif
+
+#ifdef PLUS_USE_GENERIC_SENSOR_TRACKER
+#if WIN32
+RegisterDevice("GenericSensor", "vtkPlusGenericSensorTracker", (PointerToDevice)& vtkPlusGenericSensorTracker::New);
+#endif
 #endif
 
 #ifdef PLUS_USE_AZUREKINECT

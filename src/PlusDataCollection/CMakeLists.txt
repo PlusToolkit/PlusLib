@@ -67,6 +67,7 @@ OPTION(PLUS_USE_STEAMVR "Provide support for the SteamVR tracking system" OFF)
 OPTION(PLUS_USE_PICOSCOPE "Provide support for PicoScope 2xxx series oscilloscopes" OFF)
 OPTION(PLUS_USE_AZUREKINECT "Provide support the Kinect Azure RGB-D camera" OFF)
 OPTION(PLUS_USE_REVOPOINT3DCAMERA "Provide support Revopoint 3D cameras" OFF)
+OPTION(PLUS_USE_GENERIC_SENSOR_TRACKER "Provide support for generic sensor data collection" OFF)
 
 OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF(PLUS_TEST_ULTRASONIX)
@@ -2426,6 +2427,36 @@ IF(PLUS_USE_STEAMVR)
   LIST(APPEND External_Libraries_Install
     ${_install_file}
     )
+ENDIF()
+
+# --------------------------------------------------------------------------
+# Generic sensor
+IF(PLUS_USE_GENERIC_SENSOR_TRACKER)
+  IF(WIN32)
+    SET(GenericSensorTracker_SRCS
+      GenericSensor/vtkPlusGenericSensorTracker.cxx
+      )
+    SET(GenericSensorTracker_HDRS
+      GenericSensor/vtkPlusGenericSensorTracker.h
+      )
+
+    LIST(APPEND ${PROJECT_NAME}_HDRS
+      ${GenericSensorTracker_HDRS}
+      )
+
+    LIST(APPEND ${PROJECT_NAME}_SRCS
+      ${GenericSensorTracker_SRCS}
+      )
+
+    LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+      ${CMAKE_CURRENT_SOURCE_DIR}/GenericSensor
+    )
+
+    LIST(APPEND ${PROJECT_NAME}_PRIVATE_LIBS
+      Sensorsapi.lib
+      PortableDeviceGUIDs.lib
+    )
+  ENDIF()
 ENDIF()
 
 # --------------------------------------------------------------------------
