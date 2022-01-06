@@ -124,6 +124,7 @@ protected:
   EncoderListType EncoderList;
   typedef std::map<long, long> IDtoAddressType;
   IDtoAddressType IdAddress;
+  bool coreXY = false;
 
 
 public:
