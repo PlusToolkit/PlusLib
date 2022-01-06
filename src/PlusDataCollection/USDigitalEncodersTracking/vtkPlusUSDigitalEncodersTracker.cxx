@@ -137,6 +137,14 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
   this->IdAddress.clear();
 
   long numberofConnectedEncoders = ::GetNumberOfDevices();
+  if(this->coreXY)
+  {
+    if(numberofConnectedEncoders < 2)
+    {
+      LOG_ERROR("USDigital encoder(s) not connected!");
+      return PLUS_FAIL;
+    }
+  }
   EncoderInfoMapType::iterator encoderInfoPos;
   for(long deviceID = 0; deviceID < numberofConnectedEncoders; ++deviceID)
   {
@@ -465,8 +473,8 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     encoderInfo.PulseSpacing = atof(pulseSpacing);
 
     const char* pulseSpacing2 = encoderInfoElement->GetAttribute("PulseSpacing2");
-    bool coreXY = (pulseSpacing2 != NULL);
-    if(coreXY)
+    this->coreXY = (pulseSpacing2 != NULL);
+    if(this->coreXY)
     {
       encoderInfo.PulseSpacing2 = atof(pulseSpacing2);
     }
@@ -481,7 +489,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
       continue;
     }
 
-    if(coreXY)
+    if(this->coreXY)
     {
       if(!encoderInfoElement->GetVectorAttribute("LocalAxis2", 3, encoderInfo.LocalAxis2.GetData()))
       {
@@ -509,14 +517,14 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     encoderInfo.Resolution = atol(resolution);
 
     encoderInfo.Addr = deviceID++;
-    if(coreXY)
+    if(this->coreXY)
     {
       encoderInfo.Addr2 = deviceID++;
     }
     EncoderList.push_back(encoderInfo);
 
     this->EncoderMap[encoderInfo.Addr] = &EncoderList.back();
-    if(coreXY)  //enter this encoderInfo twice (once for each deviceID)
+    if(this->coreXY)  //enter this encoderInfo twice (once for each deviceID)
     {
       this->EncoderMap[encoderInfo.Addr2] = &EncoderList.back();
     }
