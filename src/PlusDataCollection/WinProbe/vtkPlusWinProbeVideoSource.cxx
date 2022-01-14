@@ -465,13 +465,6 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   {
     return; // ignore this frame
   }
-  if(timestamp < m_LastTimestamp)
-  {
-    double alternativeTime = m_TimestampOffset + m_LastTimestamp;
-    m_TimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime();
-    LOG_INFO("Hardware timestamp counter restarted. Alternative time: " << alternativeTime);
-  }
-  m_LastTimestamp = timestamp;
   timestamp += m_TimestampOffset;
   LOG_DEBUG("Frame: " << FrameNumber << ". Mode: " << std::setw(4) << std::hex << usMode << ". Timestamp: " << timestamp);
 
@@ -527,7 +520,30 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
         if (tLength != frameSize[0] * rowPitch)
         {
           LOG_ERROR("B Mode texture data does not match frame size");
+          return;
         }
+
+        double timestamp = 0;
+        unsigned int temp = 0;
+        temp = (texture[0] & 0xff);
+        timestamp += temp;
+        temp = (texture[1] & 0xff);
+        timestamp += (temp << 8);
+        temp = (texture[2] & 0xff);
+        timestamp += (temp << 16);
+        temp = (texture[3] & 0xff);
+        timestamp += (temp << 24);
+
+        timestamp = (timestamp / 1000) - first_timestamp;
+        if(timestamp < m_LastTimestamp)
+        {
+          double alternativeTime = m_TimestampOffset + m_LastTimestamp;
+          m_TimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime();
+          LOG_INFO("Hardware timestamp counter restarted. Alternative time: " << alternativeTime);
+        }
+        m_LastTimestamp = timestamp;
+        timestamp += m_TimestampOffset;
+
         if(tLength > 0)
         {
           this->FlipTexture(texture, frameSize, rowPitch);
@@ -911,7 +927,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   if(!m_UseDeviceFrameReconstruction)
   {
     WPDXSetIsGetSpatialCompoundedTexEnabled(true);
-    WPDXSetFusedTexBufferMax(1);
+    WPDXSetFusedTexBufferMax(16);
   }
   WPDXSetDrawTextLayer(false);
   WPDXSetDrawScalesAndBars(false);
