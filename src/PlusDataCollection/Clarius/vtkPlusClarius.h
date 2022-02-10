@@ -20,7 +20,7 @@
 #include <fstream>
 
 // Clarius Includes
-#include "listen.h"
+#include "cast.h"
 
 // OpenCV includes
 #include <opencv2/imgproc.hpp>
@@ -168,6 +168,12 @@ protected:
   static void FreezeFn(int val);
   static void ProgressFn(int progress);
   static void ButtonFn(int button, int clicks);
+
+  /*!
+  Callback function used when connecting
+  Input value is the udpPort.
+  */
+  static void ConnectReturnFn(int udpPort);
 
   /*!
   Callback function for raw data request

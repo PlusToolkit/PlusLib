@@ -52,7 +52,7 @@
 #endif
 
 // Clarius API
-#include "listen.h"
+#include "cast.h"
 
 #define BLOCKINGCALL    nullptr
 #define DEFAULT_FRAME_WIDTH 640
@@ -130,10 +130,10 @@ vtkPlusClarius::~vtkPlusClarius()
 
   if (this->Connected)
   {
-    clariusDisconnect(BLOCKINGCALL);
+    cusCastDisconnect(BLOCKINGCALL);
   }
 
-  int destroyed = clariusDestroyListener();
+  int destroyed = cusCastDestroy();
   if (destroyed != 0)
   {
     LOG_ERROR("Error destoying the listener");
@@ -445,14 +445,14 @@ PlusStatus vtkPlusClarius::InternalConnect()
 
     try
     {
-      if (clariusInitListener(argc, argv, path,
+      if (cusCastInit(argc, argv, path,
         processedImageCallbackPtr,
         rawDataCallBackPtr,
+        nullptr, // ClariusSpectralImageInfo
         freezeCallBackFnPtr,
         buttonCallBackFnPtr,
         progressCallBackFnPtr,
         errorCallBackFnPtr,
-        BLOCKINGCALL,
         FrameWidth,
         FrameHeight) < 0)
       {
@@ -478,8 +478,10 @@ PlusStatus vtkPlusClarius::InternalConnect()
     // Attempt to connect;
     int isConnected = -1;
     const char* ip = device->IpAddress.c_str();
-    try {
-      isConnected = clariusConnect(ip, device->TcpPort, BLOCKINGCALL);
+    try
+    {
+      ClariusReturnFn returnFunction = (ClariusReturnFn)(&vtkPlusClarius::ConnectReturnFn);
+      isConnected = cusCastConnect(ip, device->TcpPort, returnFunction);
     }
     catch (const std::runtime_error& re)
     {
@@ -502,24 +504,6 @@ PlusStatus vtkPlusClarius::InternalConnect()
       LOG_ERROR("Could not connect to scanner at Ip = " << ip << " port number= " << device->TcpPort << " isConnected = " << isConnected);
       return PLUS_FAIL;
     }
-
-    device->UdpPort = clariusGetUdpPort();
-    if (device->UdpPort != -1)
-    {
-      LOG_DEBUG("... Clarius device connected, streaming port: " << clariusGetUdpPort());
-      if (clariusSetOutputSize(device->FrameWidth, device->FrameHeight) < 0)
-      {
-        LOG_DEBUG("Clarius Output size can not be set, falling back to default 640*480");
-        device->FrameWidth = DEFAULT_FRAME_WIDTH;
-        device->FrameHeight = DEFAULT_FRAME_HEIGHT;
-      }
-      return PLUS_SUCCESS;
-    }
-    else
-    {
-      LOG_ERROR("... Clarius device connected but could not get valid udp port");
-      return PLUS_FAIL;
-    }
   }
   else
   {
@@ -528,7 +512,30 @@ PlusStatus vtkPlusClarius::InternalConnect()
     device->Connected = 1;
     return PLUS_SUCCESS;
   }
-};
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusClarius::ConnectReturnFn(int udpPort)
+{
+  vtkPlusClarius* device = vtkPlusClarius::GetInstance();
+  device->UdpPort = udpPort;
+  if (device->UdpPort != -1)
+  {
+    LOG_DEBUG("... Clarius device connected, streaming port: " << device->UdpPort);
+    if (cusCastSetOutputSize(device->FrameWidth, device->FrameHeight) < 0)
+    {
+      LOG_DEBUG("Clarius Output size can not be set, falling back to default 640*480");
+      device->FrameWidth = DEFAULT_FRAME_WIDTH;
+      device->FrameHeight = DEFAULT_FRAME_HEIGHT;
+    }
+  }
+  else
+  {
+    LOG_ERROR("... Clarius device connected but could not get valid udp port");
+    device->Disconnect();
+  }
+}
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusClarius::InternalDisconnect()
@@ -537,7 +544,7 @@ PlusStatus vtkPlusClarius::InternalDisconnect()
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
   if (device->GetConnected())
   {
-    if (clariusDisconnect(nullptr) < 0)
+    if (cusCastDisconnect(nullptr) < 0)
     {
       LOG_ERROR("could not disconnect from scanner");
       return PLUS_FAIL;
@@ -710,7 +717,7 @@ void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const ClariusP
   }
 
   igsioFieldMapType customField;
-  customField["micronsPerPixel"]= std::make_pair(igsioFrameFieldFlags::FRAMEFIELD_FORCE_SERVER_SEND,std::to_string(nfo->micronsPerPixel));
+  customField["micronsPerPixel"] = std::make_pair(igsioFrameFieldFlags::FRAMEFIELD_FORCE_SERVER_SEND, std::to_string(nfo->micronsPerPixel));
   bModeSource->AddItem(
     _image.data(), // pointer to char array
     bModeSource->GetInputImageOrientation(), // refer to this url: http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/UltrasoundImageOrientation.html for reference;
@@ -724,7 +731,7 @@ void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const ClariusP
     converted_timestamp,
     converted_timestamp,
     &customField
-);
+  );
 
   for (int i = 0; i < npos; i++)
   {
@@ -1046,7 +1053,7 @@ PlusStatus vtkPlusClarius::RequestRawData(long long startTimestamp, long long en
   this->IsReceivingRawData = true;
 
   ClariusReturnFn returnFunction = (ClariusReturnFn)(&vtkPlusClarius::RawDataRequestFn);
-  clariusRequestRawData(startTimestamp, endTimestamp, returnFunction);
+  cusCastRequestRawData(startTimestamp, endTimestamp, returnFunction);
   return PLUS_SUCCESS;
 }
 
@@ -1079,7 +1086,7 @@ PlusStatus vtkPlusClarius::ReceiveRawData(int dataSize)
 
   ClariusReturnFn returnFunction = (ClariusReturnFn)(&vtkPlusClarius::RawDataWriteFn);
   this->AllocateRawData(dataSize);
-  clariusReadRawData(&this->RawDataPointer, returnFunction);
+  cusCastReadRawData(&this->RawDataPointer, returnFunction);
   return PLUS_SUCCESS;
 }
 
