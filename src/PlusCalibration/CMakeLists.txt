@@ -11,9 +11,7 @@ SET(${PROJECT_NAME}_SRCS
   PatternLocAlgo/PlusPatternLocResultFile.cxx
   vtkProbeCalibrationAlgo/vtkPlusProbeCalibrationAlgo.cxx
   vtkProbeCalibrationAlgo/vtkPlusProbeCalibrationOptimizerAlgo.cxx
-  vtkPivotCalibrationAlgo/vtkPlusPivotCalibrationAlgo.cxx
   vtkPhantomLandmarkRegistrationAlgo/vtkPlusPhantomLandmarkRegistrationAlgo.cxx
-  vtkPhantomLandmarkRegistrationAlgo/vtkPlusLandmarkDetectionAlgo.cxx
   vtkPhantomLandmarkRegistrationAlgo/vtkPlusReadTrackedSignals.cxx
   vtkPhantomLinearObjectRegistrationAlgo/vtkPlusPhantomLinearObjectRegistrationAlgo.cxx
   vtkSpacingCalibAlgo/vtkPlusSpacingCalibAlgo.cxx
@@ -43,9 +41,7 @@ SET(${PROJECT_NAME}_HDRS
   PatternLocAlgo/PlusPatternLocResultFile.h
   vtkProbeCalibrationAlgo/vtkPlusProbeCalibrationAlgo.h
   vtkProbeCalibrationAlgo/vtkPlusProbeCalibrationOptimizerAlgo.h
-  vtkPivotCalibrationAlgo/vtkPlusPivotCalibrationAlgo.h
   vtkPhantomLandmarkRegistrationAlgo/vtkPlusPhantomLandmarkRegistrationAlgo.h
-  vtkPhantomLandmarkRegistrationAlgo/vtkPlusLandmarkDetectionAlgo.h
   vtkPhantomLandmarkRegistrationAlgo/vtkPlusReadTrackedSignals.h
   vtkPhantomLinearObjectRegistrationAlgo/vtkPlusPhantomLinearObjectRegistrationAlgo.h
   vtkSpacingCalibAlgo/vtkPlusSpacingCalibAlgo.h
@@ -73,7 +69,6 @@ SET(${PROJECT_NAME}_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkLineSegmentationAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkPhantomLandmarkRegistrationAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkPhantomLinearObjectRegistrationAlgo
-  ${CMAKE_CURRENT_SOURCE_DIR}/vtkPivotCalibrationAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkProbeCalibrationAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkSpacingCalibAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkTemporalCalibrationAlgo
@@ -90,6 +85,7 @@ SET(${PROJECT_NAME}_LIBS
   ${PLUSLIB_VTK_PREFIX}RenderingFreeType
   ${PLUSLIB_VTK_PREFIX}FiltersStatistics
   vtkPlusCommon
+  vtkIGSIOCalibration
   )
 IF(TARGET MGHIO)
   LIST(APPEND ${PROJECT_NAME}_LIBS
