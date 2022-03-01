@@ -35,6 +35,7 @@ public:
 
   PlusStatus InternalConnect() override;
   PlusStatus InternalDisconnect() override;
+  PlusStatus InternalStartRecording() override;
   PlusStatus Probe() override;
   PlusStatus InternalUpdate() override;
 
@@ -48,6 +49,8 @@ private:
 
   class vtkInternal;
   vtkInternal* Internal;
+
+  unsigned long FrameNumber;
 };
 
 #endif

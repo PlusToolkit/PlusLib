@@ -8,6 +8,7 @@ This device allows you to collect sensor data from sensors with drivers complian
 For now, this device can handle the following type of sensors:
 
 - accelerometer
+- gyrometer
 
 The sensor drivers must be compliant with the Windows Sensor and Location platform.
 
@@ -31,11 +32,13 @@ Install the sensor drivers if not installed by default on the target platform.
 \section DeviceGenericSensorConfigSettings Device configuration settings
 
 - \xmlAtt \ref DeviceType "Type" = \c "GenericSensor" \RequiredAtt
+- \xmlAtt UseReportedTimestamp Choose whether to use timestamp reported by the sensor or timestamp computed according to the update time. \OptionalAtt{FALSE}
 
 - \xmlElem \ref DataSources One \c DataSource child element is required per sensor type. \RequiredAtt
   - \xmlElem \ref DataSource Data source \RequiredAtt
    - \xmlAtt \ref PortName Port name \RequiredAtt
     - \c Accelerometer Raw sensor measurement. The values are stored in the translation part of the transformation matrix. The rotation part is identity.
+    - \c Gyrometer Raw sensor measurement. The values (angular velocity in degrees/s) are stored in the translation part of the transformation matrix. The rotation part is identity.
    - \xmlAtt \ref SerialNumber Serial number \OptionalAtt{ }
     - If specified then connection is made to the device that has a matching SerialNumber. Otherwise, the first detected device is selected. 
 

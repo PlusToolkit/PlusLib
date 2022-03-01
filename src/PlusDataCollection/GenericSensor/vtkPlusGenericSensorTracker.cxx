@@ -63,13 +63,16 @@ namespace
     return safePtr;
   }
 
-  // Rely on the fact the compiler is not allowed to optimize away 
+  // Rely on the fact the compiler is not allowed to optimize away
   // an automatic object whose dtors or ctors has side effects
-  struct SafeComInitializer {
-    SafeComInitializer() {
+  struct SafeComInitializer
+  {
+    SafeComInitializer()
+    {
       CoInitialize(nullptr);
     }
-    ~SafeComInitializer() {
+    ~SafeComInitializer()
+    {
       CoUninitialize();
     }
   };
@@ -81,7 +84,7 @@ namespace
   enum class SensorType
   {
     Accelerometer = 0,
-    Gyrometer,   // Enable in the future
+    Gyrometer,
     Magnetometer // Enable in the future
   };
 
@@ -215,6 +218,7 @@ public:
   UniquePtrType<ISensorManager> SensorManager{nullptr};
   std::vector<SensorStreamConfig> SensorStreams;
   std::vector<SensorUserConfig> SensorUserConfigs;
+  bool UseReportedTimestamp{false};
 
   vtkInternal(vtkPlusGenericSensorTracker* external)
     : External(external)
@@ -253,7 +257,7 @@ public:
 
   PlusStatus PopulateStreams()
   {
-    std::set<SensorType> sensorTypes = {SensorType::Accelerometer};
+    std::set<SensorType> sensorTypes = {SensorType::Accelerometer, SensorType::Gyrometer};
 
     for (const auto& sensorType : sensorTypes)
     {
@@ -271,7 +275,7 @@ public:
 
     if (this->SensorStreams.empty())
     {
-      LOG_ERROR("No data source available: required at least one Accelerometer source");
+      LOG_ERROR("No data source available: required at least one Accelerometer or Gyrometer source");
       return PLUS_FAIL;
     }
 
@@ -493,7 +497,12 @@ public:
 
     if (sensorStream.Type == SensorType::Accelerometer && !CheckForSupportedDataAcc(safeKeys.get(), keysCount))
     {
-      LOG_ERROR("The sensor cannot provide the expected data");
+      LOG_ERROR("The accelerometer sensor cannot provide the expected data");
+      return PLUS_FAIL;
+    }
+    else if (sensorStream.Type == SensorType::Gyrometer && !CheckForSupportedDataGyr(safeKeys.get(), keysCount))
+    {
+      LOG_ERROR("The gyrometer sensor cannot provide the expected data");
       return PLUS_FAIL;
     }
 
@@ -596,7 +605,66 @@ public:
   }
 
   //
-  // TODO: Gyrometer,compass, etc. implementations
+  // Gyrometer specific callback
+  //
+
+  bool CheckForSupportedDataGyr(IPortableDeviceKeyCollection* keys, DWORD keysCount)
+  {
+    PROPERTYKEY pk;
+    std::bitset<3> supported = 0b000;
+
+    for (DWORD i = 0; i < keysCount; i++)
+    {
+      auto hr = keys->GetAt(i, &pk);
+
+      if (FAILED(hr))
+      {
+        continue;
+      }
+
+      if (IsEqualPropertyKey(pk, SENSOR_DATA_TYPE_ANGULAR_VELOCITY_X_DEGREES_PER_SECOND))
+      {
+        supported[0] = 1;
+      }
+      else if (IsEqualPropertyKey(pk, SENSOR_DATA_TYPE_ANGULAR_VELOCITY_Y_DEGREES_PER_SECOND))
+      {
+        supported[1] = 1;
+      }
+      else if (IsEqualPropertyKey(pk, SENSOR_DATA_TYPE_ANGULAR_VELOCITY_Z_DEGREES_PER_SECOND))
+      {
+        supported[2] = 1;
+      }
+    }
+
+    return supported.all();
+  }
+
+  static PlusStatus RetrieveGyrData(ISensorDataReport* report, vtkSmartPointer<vtkMatrix4x4> matrix)
+  {
+    std::array<const PROPERTYKEY, 3> fields = {SENSOR_DATA_TYPE_ANGULAR_VELOCITY_X_DEGREES_PER_SECOND, SENSOR_DATA_TYPE_ANGULAR_VELOCITY_Y_DEGREES_PER_SECOND, SENSOR_DATA_TYPE_ANGULAR_VELOCITY_Z_DEGREES_PER_SECOND};
+    matrix->Identity();
+    for (int i = 0; i < 3; ++i)
+    {
+      PROPVARIANT var = {};
+      auto hr = report->GetSensorValue(fields[i], &var);
+
+      if (!SUCCEEDED(hr) || var.vt != VT_R8)
+      {
+        PropVariantClear(&var);
+        LOG_ERROR("Failed to retrieve angular velocity in " << ((i == 0) ? "x" : ((i == 1) ? "y" : "z")));
+        return PLUS_FAIL;
+      }
+
+      matrix->SetElement(i, 3, var.dblVal);
+      LOG_TRACE("Retrieve angular velocity component " << ((i == 0) ? "x" : ((i == 1) ? "y" : "z")) << ": " << var.dblVal);
+      PropVariantClear(&var);
+    }
+
+    return PLUS_SUCCESS;
+  }
+
+  //
+  // TODO: Compass, etc. implementations
   //
 };
 
@@ -620,6 +688,7 @@ void vtkPlusGenericSensorTracker::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os, indent);
 
   os << indent << "Generic Sensor Configuration:" << std::endl;
+  os << indent << "UseReportedTimestamp: " << this->Internal->UseReportedTimestamp << std::endl;
   for (auto& sensorStream : this->Internal->SensorStreams)
   {
     os << "Sensor type: " << ToString(sensorStream.Type);
@@ -634,6 +703,7 @@ void vtkPlusGenericSensorTracker::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkPlusGenericSensorTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(UseReportedTimestamp, this->Internal->UseReportedTimestamp, deviceConfig);
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
 
   LOG_TRACE("Reading custom configuration fields in " << dataSourcesElement->GetNumberOfNestedElements() << " nested elements");
@@ -715,18 +785,27 @@ PlusStatus vtkPlusGenericSensorTracker::Probe()
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusGenericSensorTracker::InternalStartRecording()
+{
+  this->FrameNumber = 0;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusGenericSensorTracker::InternalUpdate()
-{ 
+{
   static SafeComInitializer safeComInitializer;
   for (auto& sensorStream : this->Internal->SensorStreams)
   {
     LOG_TRACE("Retrieving sensor data for sensor of type: " << ToString(sensorStream.Type));
 
-    if (!sensorStream.UpdateThreadSensorRef) {
+    if (!sensorStream.UpdateThreadSensorRef)
+    {
       ISensor* sensorRef{nullptr};
       auto hr = CoGetInterfaceAndReleaseStream(sensorStream.UpdateThreadSensorMarshallingStream, IID_ISensor, (LPVOID*)&sensorRef);
 
-      if(FAILED(hr)) {
+      if (FAILED(hr))
+      {
         LOG_ERROR("Failed to retrieve sensor handle: " << GetLastErrorAsString());
         return PLUS_FAIL;
       }
@@ -766,37 +845,51 @@ PlusStatus vtkPlusGenericSensorTracker::InternalUpdate()
         return PLUS_FAIL;
       }
     }
-
-    // Get timestamp
-    SYSTEMTIME sysTime;
-    hr = safeReport->GetTimestamp(&sysTime);
-
-    double timestamp{};
-    if (FAILED(hr))
+    else if (sensorStream.Type == SensorType::Gyrometer)
     {
-      LOG_TRACE("Failed to get timestamp. Falling back on current system time.");
-      timestamp = vtkIGSIOAccurateTimer::GetSystemTime();
-    }
-    else
-    {
-      auto sensorTimestampMs = GetSystemTimeInMs(&sysTime);
-      LOG_TRACE("Timestamp is ms: " << sensorTimestampMs);
-      if (!sensorStream.TrackerTimeToSystemTimeComputed)
+      if (vtkInternal::RetrieveGyrData(safeReport.get(), transform) != PLUS_SUCCESS)
       {
-        const double timeSystemSec = vtkIGSIOAccurateTimer::GetSystemTime();
-        LOG_TRACE("System time: " << timeSystemSec);
-        sensorStream.TrackerTimeToSystemTimeSec = timeSystemSec - sensorTimestampMs / 1000.0;
-        sensorStream.TrackerTimeToSystemTimeComputed = true;
+        LOG_ERROR("Failed to get gyrometer data: " << GetLastErrorAsString());
+        return PLUS_FAIL;
+      }
+    }
 
-        LOG_TRACE("Timestamp offset for this sensor: " << sensorStream.TrackerTimeToSystemTimeSec);
+    if (this->Internal->UseReportedTimestamp)
+    {
+      SYSTEMTIME sysTime;
+      hr = safeReport->GetTimestamp(&sysTime);
+
+      double timestamp{};
+      if (FAILED(hr))
+      {
+        LOG_TRACE("Failed to get timestamp. Falling back on current system time.");
+        timestamp = vtkIGSIOAccurateTimer::GetSystemTime();
+      }
+      else
+      {
+        auto sensorTimestampMs = GetSystemTimeInMs(&sysTime);
+        LOG_TRACE("Sensor reported timestamp is ms: " << sensorTimestampMs);
+        if (!sensorStream.TrackerTimeToSystemTimeComputed)
+        {
+          const double timeSystemSec = vtkIGSIOAccurateTimer::GetSystemTime();
+          LOG_TRACE("System time in s: " << timeSystemSec);
+          sensorStream.TrackerTimeToSystemTimeSec = timeSystemSec - sensorTimestampMs / 1000.0;
+          sensorStream.TrackerTimeToSystemTimeComputed = true;
+
+          LOG_TRACE("Timestamp offset for this sensor: " << sensorStream.TrackerTimeToSystemTimeSec);
+        }
+
+        timestamp = sensorTimestampMs / 1000.0 + sensorStream.TrackerTimeToSystemTimeSec;
       }
 
-      timestamp = sensorTimestampMs / 1000.0 + sensorStream.TrackerTimeToSystemTimeSec;
+      LOG_TRACE("Final timestamp in s: " << timestamp);
+      ToolTimeStampedUpdateWithoutFiltering(sensorStream.Tool->GetId(), transform, TOOL_OK, timestamp, timestamp);
+    } else
+    {
+      ToolTimeStampedUpdate(sensorStream.Tool->GetId(), transform, TOOL_OK, this->FrameNumber, vtkIGSIOAccurateTimer::GetSystemTime());
     }
-
-    LOG_TRACE("Final timestamp is ms: " << timestamp);
-    ToolTimeStampedUpdateWithoutFiltering(sensorStream.Tool->GetId(), transform, TOOL_OK, timestamp, timestamp);
   }
+  this->FrameNumber++;
 
   return PLUS_SUCCESS;
 }
