@@ -16,7 +16,7 @@
 #include "vtkPlusDataCollector.h"
 #include "vtkMatrix4x4.h"
 #include "vtkMinimalStandardRandomSequence.h"
-#include "vtkIGSIOPivotCalibrationAlgo.h"
+#include "vtkPlusPivotCalibrationAlgo.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDevice.h"
 #include "vtkSmartPointer.h"
@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
   }
 
   // Initialize stylus calibration
-  vtkSmartPointer<vtkIGSIOPivotCalibrationAlgo> pivotCalibration = vtkSmartPointer<vtkIGSIOPivotCalibrationAlgo>::New();
+  vtkSmartPointer<vtkPlusPivotCalibrationAlgo> pivotCalibration = vtkSmartPointer<vtkPlusPivotCalibrationAlgo>::New();
   if (pivotCalibration == NULL)
   {
     LOG_ERROR("Unable to instantiate pivot calibration algorithm class!");

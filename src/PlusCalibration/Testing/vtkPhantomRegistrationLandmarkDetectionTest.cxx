@@ -22,7 +22,7 @@ compares the results to a baseline
 #include "vtkPlusDataCollector.h"
 #include "vtkDirectory.h"
 #include "vtkDoubleArray.h"
-#include "vtkIGSIOLandmarkDetectionAlgo.h"
+#include "vtkPlusLandmarkDetectionAlgo.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
 #include "vtkPNGWriter.h"
@@ -382,7 +382,7 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
       }
       // Initialize Landmark detection
-      vtkSmartPointer<vtkIGSIOLandmarkDetectionAlgo> landmarkDetection = vtkSmartPointer<vtkIGSIOLandmarkDetectionAlgo>::New();
+      vtkSmartPointer<vtkPlusLandmarkDetectionAlgo> landmarkDetection = vtkSmartPointer<vtkPlusLandmarkDetectionAlgo>::New();
       if (landmarkDetection == NULL)
       {
         LOG_ERROR("Unable to instantiate landmark detection algorithm class!");
