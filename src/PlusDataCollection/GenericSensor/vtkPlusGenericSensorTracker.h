@@ -36,6 +36,7 @@ public:
   PlusStatus InternalConnect() override;
   PlusStatus InternalDisconnect() override;
   PlusStatus InternalStartRecording() override;
+  PlusStatus InternalStopRecording() override;
   PlusStatus Probe() override;
   PlusStatus InternalUpdate() override;
 

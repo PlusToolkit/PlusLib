@@ -225,6 +225,12 @@ public:
   {
   }
 
+  vtkInternal::~vtkInternal()
+  {
+    this->ReleaseStreams();
+    this->ReleaseManager();
+  }
+
   PlusStatus RetrieveSensorManager()
   {
     // Initializing the appartment with COINIT_MULTITHREADED is useless
@@ -509,15 +515,26 @@ public:
     return PLUS_SUCCESS;
   }
 
-  PlusStatus ReleaseAll()
+  void ReleaseStreams()
   {
     for (auto& sensorStream : this->SensorStreams)
     {
+      if (sensorStream.UpdateThreadSensorRef)
+      {
+        sensorStream.UpdateThreadSensorRef.reset(nullptr);
+      }
+      else if (sensorStream.UpdateThreadSensorMarshallingStream)
+      {
+        sensorStream.UpdateThreadSensorMarshallingStream->Release();
+      }
       sensorStream.SensorHandle.reset(nullptr);
     }
+  }
+
+  void ReleaseManager()
+  {
     this->SensorManager.reset(nullptr);
     CoUninitialize();
-    return PLUS_SUCCESS;
   }
 
   PlusStatus CheckSensorState(const SensorType& sensorType, ISensor* sensorHandle)
@@ -755,20 +772,14 @@ PlusStatus vtkPlusGenericSensorTracker::InternalConnect()
     return PLUS_FAIL;
   }
 
-  for (auto& sensorStream : this->Internal->SensorStreams)
-  {
-    if (this->Internal->InitializeStream(sensorStream) != PLUS_SUCCESS)
-    {
-      return PLUS_FAIL;
-    }
-  }
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusGenericSensorTracker::InternalDisconnect()
 {
-  return this->Internal->ReleaseAll();
+  this->Internal->ReleaseManager();
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -787,7 +798,22 @@ PlusStatus vtkPlusGenericSensorTracker::Probe()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusGenericSensorTracker::InternalStartRecording()
 {
+  for (auto& sensorStream : this->Internal->SensorStreams)
+  {
+    if (this->Internal->InitializeStream(sensorStream) != PLUS_SUCCESS)
+    {
+      return PLUS_FAIL;
+    }
+  }
+
   this->FrameNumber = 0;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusGenericSensorTracker::InternalStopRecording()
+{
+  this->Internal->ReleaseStreams();
   return PLUS_SUCCESS;
 }
 
@@ -811,6 +837,7 @@ PlusStatus vtkPlusGenericSensorTracker::InternalUpdate()
       }
 
       sensorStream.UpdateThreadSensorRef.reset(sensorRef);
+      sensorStream.UpdateThreadSensorMarshallingStream = nullptr;
     }
 
     if (Internal->CheckSensorState(sensorStream.Type, sensorStream.UpdateThreadSensorRef.get()) != PLUS_SUCCESS)
@@ -884,7 +911,8 @@ PlusStatus vtkPlusGenericSensorTracker::InternalUpdate()
 
       LOG_TRACE("Final timestamp in s: " << timestamp);
       ToolTimeStampedUpdateWithoutFiltering(sensorStream.Tool->GetId(), transform, TOOL_OK, timestamp, timestamp);
-    } else
+    }
+    else
     {
       ToolTimeStampedUpdate(sensorStream.Tool->GetId(), transform, TOOL_OK, this->FrameNumber, vtkIGSIOAccurateTimer::GetSystemTime());
     }
