@@ -1323,7 +1323,6 @@ PlusStatus vtkPlusDevice::StopRecording()
     return PLUS_SUCCESS;
   }
 
-  this->ThreadId = -1;
   this->Recording = 0;
 
   if (this->GetStartThreadForInternalUpdates())
@@ -1334,7 +1333,9 @@ PlusStatus vtkPlusDevice::StopRecording()
     {
       vtkIGSIOAccurateTimer::Delay(0.1);
     }
+    int tempID = this->ThreadId;
     this->ThreadId = -1;
+    this->Threader->TerminateThread(tempID);
     LOCAL_LOG_DEBUG("Internal update thread terminated");
   }
 
