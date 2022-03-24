@@ -120,6 +120,7 @@ PlusStatus vtkPlusGetUsParameterCommand::WriteConfiguration(vtkXMLDataElement* a
   for (paramIt = this->RequestedParameters.begin(); paramIt != this->RequestedParameters.end(); ++paramIt)
   {
     vtkSmartPointer<vtkXMLDataElement> paramElem = vtkSmartPointer<vtkXMLDataElement>::New();
+    paramElem->SetName("Parameter");
     paramElem->SetAttribute("Name", paramIt->c_str());
     aConfig->AddNestedElement(paramElem);
   }
