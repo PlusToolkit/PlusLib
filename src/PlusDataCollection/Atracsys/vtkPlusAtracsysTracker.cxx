@@ -301,14 +301,24 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   {
     std::string translatedOptionName;
 
-    /* Dirty hack circumventing a nomenclature discrepancy between ftk and stk API's, this will be fixed in the next API release */
-    if (i.first == "EnableLasers" && this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::SPRYTRACK_180)
+    /* Dirty hack circumventing a nomenclature discrepancy between ftk and stk API's, this may be fixed in a future API release */
+    if (i.first == "EnableIRstrobe" && (this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::FUSIONTRACK_500
+      || this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::FUSIONTRACK_250))
     {
-      this->Internal->Tracker.SetOption("Enable lasers", i.second);
-    }
-    else if (i.first == "SymmetriseCoordinates" && this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::SPRYTRACK_180)
-    {
-      this->Internal->Tracker.SetOption("Embedded Symmetrise coordinates", i.second);
+      // for fusiontracks, strobe on is 0 and strobe off is 1 (the opposite of sprytracks)
+      if (i.second == "0") {
+        this->Internal->Tracker.SetOption("Strobe mode", "1");
+      }
+      else if (i.second == "1") {
+        this->Internal->Tracker.SetOption("Strobe mode", "0");
+      }
+      // fusiontracks also supports a mode where the strobe turns on every other frame (unsupported by sprytracks at the moment)
+      else if (i.second == "2") {
+        this->Internal->Tracker.SetOption("Strobe mode", "2");
+      }
+      else {
+        LOG_WARNING("Wrong strobe mode value " << i.second);
+      }
     }
     else/* end of hack*/ if (translateOptionName(i.first, translatedOptionName))
     {
