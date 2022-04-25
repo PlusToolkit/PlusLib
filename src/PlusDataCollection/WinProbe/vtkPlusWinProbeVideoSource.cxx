@@ -126,6 +126,7 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, LogMax, deviceConfig); //implicit type conversion
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, SSDecimation, deviceConfig); //implicit type conversion
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FirstGainValue, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, OverallTimeGainCompensation, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, BFrameRateLimit, deviceConfig);
 
 
@@ -192,6 +193,7 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
   deviceConfig->SetUnsignedLongAttribute("SSDecimation", this->GetSSDecimation());
   deviceConfig->SetAttribute("Mode", ModeToString(this->m_Mode).c_str());
   deviceConfig->SetDoubleAttribute("FirstGainValue", this->GetFirstGainValue());
+  deviceConfig->SetDoubleAttribute("OverallTimeGainCompensation", this->GetOverallTimeGainCompensation());
   deviceConfig->SetIntAttribute("BFrameRateLimit", this->GetBFrameRateLimit());
 
   deviceConfig->SetVectorAttribute("TimeGainCompensation", 8, m_TimeGainCompensation);
@@ -1180,6 +1182,31 @@ PlusStatus vtkPlusWinProbeVideoSource::SetFirstGainValue(double value)
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
+double vtkPlusWinProbeVideoSource::GetOverallTimeGainCompensation()
+{
+  if(Connected)
+  {
+    m_OverallTimeGainCompensation = GetTGCOverallGain();
+  }
+  return m_OverallTimeGainCompensation;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusWinProbeVideoSource::SetOverallTimeGainCompensation(double value)
+{
+  if(Connected)
+  {
+    SetTGCOverallGain(value);
+    SetPendingTGCUpdate(true);
+    //what we requested might be only approximately satisfied
+    for (int tgcIndex=0; tgcIndex < 8; tgcIndex += 1)
+    {
+      m_TimeGainCompensation[tgcIndex] = GetTGC(tgcIndex);
+    }
+  }
+  return PLUS_SUCCESS;
+}
 
 //----------------------------------------------------------------------------
 float vtkPlusWinProbeVideoSource::GetFocalPointDepth(int index)

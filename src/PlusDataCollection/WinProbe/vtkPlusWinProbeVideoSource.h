@@ -81,6 +81,12 @@ public:
   /* Set the TGC First Gain Value near transducer face */
   PlusStatus SetFirstGainValue(double value);
 
+  /* Get the current overall gain value, value 0.0 to 40.0 */
+  double GetOverallTimeGainCompensation();
+
+  /* Set an overall gain value, value 0.0 to 40.0 */
+  PlusStatus SetOverallTimeGainCompensation(double value);
+
   /* Get the B-Mode focal depth at a specific index, index 0 to 3 */
   float GetFocalPointDepth(int index);
 
@@ -379,6 +385,7 @@ protected:
   bool m_UseDeviceFrameReconstruction = true;
   igsioFieldMapType m_CustomFields;
   double m_TimeGainCompensation[8];
+  double m_OverallTimeGainCompensation = 0;
   float m_FocalPointDepth[4];
   float m_ARFIFocalPointDepth[6];
   uint16_t m_MinValue = 16; //noise floor
