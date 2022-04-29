@@ -64,6 +64,9 @@ public:
     this->DeviceOptionTranslator["SymmetriseCoordinates"] = "Symmetrise coordinates";
     this->DeviceOptionTranslator["EnableLasers"] = "Enables lasers";
     this->DeviceOptionTranslator["EnableUserLED"] = "Enables the user-LED";
+    this->DeviceOptionTranslator["EnableIRstrobe"] = "Enables IR strobe";
+    this->DeviceOptionTranslator["ImageCompressionThreshold"] = "Image Compression Threshold";
+    this->DeviceOptionTranslator["ImageIntegrationTime"] = "Image Integration Time";
   }
 
   virtual ~vtkInternal()
