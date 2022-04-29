@@ -443,7 +443,7 @@ PlusStatus vtkPlusV4L2VideoSource::InternalConnect()
   this->NumberOfScalarComponents = this->DeviceFormat->fmt.pix.sizeimage / this->DeviceFormat->fmt.pix.width / this->DeviceFormat->fmt.pix.height;
   this->DataSource->SetNumberOfScalarComponents(this->NumberOfScalarComponents);
 
-  this->FrameFields["pixelformat"] = vtkPlusV4L2VideoSource::PixelFormatToString(this->DeviceFormat->fmt.pix.pixelformat);
+  this->FrameFields["pixelformat"].second = vtkPlusV4L2VideoSource::PixelFormatToString(this->DeviceFormat->fmt.pix.pixelformat);
 
   // Use this->DeviceFormat to initialize data source
   switch (this->IOMethod)
