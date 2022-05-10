@@ -355,9 +355,16 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   MGeometryStruct* mGeometry = (MGeometryStruct*)hGeometry;
   PWGeometryStruct* pwGeometry = (PWGeometryStruct*)hGeometry;
   ARFIGeometryStruct* arfiGeometry = (ARFIGeometryStruct*)hGeometry;
-  this->FrameNumber = header->TotalFrameCounter;
+  int callbackFrameNumber = header->TotalFrameCounter;
   InputSourceBindings usMode = header->InputSourceBinding;
   FrameSizeType frameSize = { 1, 1, 1 };
+
+  if(header->TotalFrameCounter == 0)
+  {
+    first_timestamp = header->TimeStamp / 1000.0;
+    m_TimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime();
+    LOG_DEBUG("First frame timestamp: "<< first_timestamp);
+  }
 
   if(usMode & CFD)
   {
@@ -366,6 +373,10 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   }
   else if(usMode & B || usMode & BFRFALineImage_SampleData)
   {
+    if (m_UseDeviceFrameReconstruction)
+    {
+      return;
+    }
     frameSize[0] = brfGeometry->LineCount;
     frameSize[1] = brfGeometry->SamplesPerLine;
     if(frameSize[1] != m_PrimaryFrameSize[1])
@@ -456,11 +467,6 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
     LOG_INFO("Unsupported frame type: " << std::hex << usMode);
     return;
   }
-  if(header->TotalFrameCounter == 0)
-  {
-    first_timestamp = header->TimeStamp / 1000.0;
-    LOG_DEBUG("First frame timestamp: "<< first_timestamp);
-  }
   //timestamp counters are in milliseconds since last sequencer restart
   double timestamp = (header->TimeStamp / 1000.0) - first_timestamp;
   if(timestamp == 0.0) // some change is being applied, so this frame is not valid
@@ -468,7 +474,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
     return; // ignore this frame
   }
   timestamp += m_TimestampOffset;
-  LOG_DEBUG("Frame: " << FrameNumber << ". Mode: " << std::setw(4) << std::hex << usMode << ". Timestamp: " << timestamp);
+  LOG_DEBUG("Frame: " << callbackFrameNumber << ". Mode: " << std::setw(4) << std::hex << usMode << ". Timestamp: " << timestamp << ". UseDeviceFrameReconstruction: " << m_UseDeviceFrameReconstruction);
 
   if(usMode & B && !m_PrimarySources.empty() // B-mode and primary source is defined
       || usMode & M_PostProcess && !m_ExtraSources.empty() // M-mode and extra source is defined
@@ -477,30 +483,32 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   {
     assert(length == frameSize[0] * frameSize[1] * sizeof(uint16_t) + 16); //frame + header
 
-    if(m_UseDeviceFrameReconstruction)
+    if(usMode & M_PostProcess)
     {
-      char* frameData = nullptr;
-      int length = WPSaveImageToPointer(&frameData);
-      assert(length == frameSize[0] * frameSize[1] * sizeof(uint32_t));
-      auto* frameRGBA = reinterpret_cast<uint32_t*>(frameData);
-
-      // all the color channels are the same for B-mode
-      // and alpha is filled with ones (fully opaque)
-      for(unsigned i = 0; i < frameSize[0] * frameSize[1]; i++)
+      this->ReconstructFrame(data, m_ExtraBuffer, frameSize);
+      for(unsigned i = 0; i < m_ExtraSources.size(); i++)
       {
-        m_PrimaryBuffer[i] = static_cast<uint8_t>(frameRGBA[i]);
-      }
-      WPFreePointer(frameData);
-    }
-    else
-    {
-      if(usMode & M_PostProcess)
-      {
-        this->ReconstructFrame(data, m_ExtraBuffer, frameSize);
-        for(unsigned i = 0; i < m_ExtraSources.size(); i++)
+        frameSize[0] = m_ExtraFrameSize[0];
+        if(m_ExtraSources[i]->AddItem(&m_ExtraBuffer[0],
+                                      US_IMG_ORIENT_MF,
+                                      frameSize, VTK_UNSIGNED_CHAR,
+                                      1, US_IMG_BRIGHTNESS, 0,
+                                      callbackFrameNumber,
+                                      timestamp,
+                                      timestamp, //no timestamp filtering needed
+                                      &this->m_CustomFields) != PLUS_SUCCESS)
         {
-          frameSize[0] = m_ExtraFrameSize[0];
-          if(m_ExtraSources[i]->AddItem(&m_ExtraBuffer[0],
+          LOG_WARNING("Error adding item to extra video source " << m_ExtraSources[i]->GetSourceId());
+        }
+      }
+    }
+    else // B-mode
+    {
+      this->ReconstructFrame(data, m_PrimaryBuffer, frameSize);
+
+      for(unsigned i = 0; i < m_PrimarySources.size(); i++)
+      {
+        if(m_PrimarySources[i]->AddItem(&m_PrimaryBuffer[0],
                                         US_IMG_ORIENT_MF,
                                         frameSize, VTK_UNSIGNED_CHAR,
                                         1, US_IMG_BRIGHTNESS, 0,
@@ -508,70 +516,11 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
                                         timestamp,
                                         timestamp, //no timestamp filtering needed
                                         &this->m_CustomFields) != PLUS_SUCCESS)
-          {
-            LOG_WARNING("Error adding item to extra video source " << m_ExtraSources[i]->GetSourceId());
-          }
+        {
+          LOG_WARNING("Error adding item to primary video source " << m_PrimarySources[i]->GetSourceId());
         }
       }
-      else // B-mode
-      {
-        char* texture = nullptr;
-        int slicePitch;
-        int rowPitch;
-        int tLength = WPDXGetFusedTexData(&texture, &slicePitch, &rowPitch);
-        if (tLength != frameSize[0] * rowPitch)
-        {
-          LOG_ERROR("B Mode texture data does not match frame size");
-          return;
-        }
-
-        double timestamp = 0;
-        unsigned int temp = 0;
-        temp = (texture[0] & 0xff);
-        timestamp += temp;
-        temp = (texture[1] & 0xff);
-        timestamp += (temp << 8);
-        temp = (texture[2] & 0xff);
-        timestamp += (temp << 16);
-        temp = (texture[3] & 0xff);
-        timestamp += (temp << 24);
-
-        timestamp = (timestamp / 1000) - first_timestamp;
-        if(timestamp < m_LastTimestamp)
-        {
-          double alternativeTime = m_TimestampOffset + m_LastTimestamp;
-          m_TimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime();
-          LOG_INFO("Hardware timestamp counter restarted. Alternative time: " << alternativeTime);
-        }
-        m_LastTimestamp = timestamp;
-        timestamp += m_TimestampOffset;
-
-        if(tLength > 0)
-        {
-          this->FlipTexture(texture, frameSize, rowPitch);
-        }
-        else
-        {
-          this->ReconstructFrame(data, m_PrimaryBuffer, frameSize);
-        }
-        WPFreePointer(texture);
-
-        for(unsigned i = 0; i < m_PrimarySources.size(); i++)
-        {
-          if(m_PrimarySources[i]->AddItem(&m_PrimaryBuffer[0],
-                                          US_IMG_ORIENT_MF,
-                                          frameSize, VTK_UNSIGNED_CHAR,
-                                          1, US_IMG_BRIGHTNESS, 0,
-                                          this->FrameNumber,
-                                          timestamp,
-                                          timestamp, //no timestamp filtering needed
-                                          &this->m_CustomFields) != PLUS_SUCCESS)
-          {
-            LOG_WARNING("Error adding item to primary video source " << m_PrimarySources[i]->GetSourceId());
-          }
-        }
-      } // B-mode
-    } //m_UseDeviceFrameReconstruction
+    } // B-mode
   }
   else if(usMode & B)  //this is B frame, but B-mode source is NOT defined
   {
@@ -590,7 +539,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
                                     US_IMG_ORIENT_FM,
                                     frameSize, VTK_INT,
                                     1, US_IMG_RF_REAL, 0,
-                                    this->FrameNumber,
+                                    callbackFrameNumber,
                                     currentTime,
                                     currentTime,
                                     &m_CustomFields) != PLUS_SUCCESS)
@@ -749,6 +698,12 @@ vtkPlusWinProbeVideoSource::vtkPlusWinProbeVideoSource()
   thisPtr = this;
   WPSetCallback(funcPtr);
   WPInitialize();
+
+  if (m_UseDeviceFrameReconstruction)
+  {
+    // Device reconstructed frames are polled instead of sent via callback
+    this->StartThreadForInternalUpdates = true;
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -926,7 +881,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   WPSetSize(m_PrimaryFrameSize[0], m_PrimaryFrameSize[1]);
   SetMaxDmaTransferSize(0x100000);
 
-  if(!m_UseDeviceFrameReconstruction)
+  if(m_UseDeviceFrameReconstruction)
   {
     WPDXSetIsGetSpatialCompoundedTexEnabled(true);
     WPDXSetFusedTexBufferMax(16);
@@ -980,6 +935,82 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStopRecording()
 }
 
 // ----------------------------------------------------------------------------
+PlusStatus vtkPlusWinProbeVideoSource::InternalUpdate()
+{
+  if (!m_UseDeviceFrameReconstruction || !this->Connected)
+  {
+    return PLUS_SUCCESS;
+  }
+  if (!m_PrimarySources.empty())  // mode shouldn't matter here, we are always polling B-mode into primary
+  {
+    // Grab processed frame data
+    char* texture = nullptr;
+    int slicePitch;
+    int rowPitch;
+    int tLength = WPDXGetFusedTexData(&texture, &slicePitch, &rowPitch);
+    if (tLength == 0)
+    {
+      LOG_DEBUG("B Mode buffer empty");
+      return PLUS_FAIL;
+    }
+
+    // Adjust buffer sizes
+    FrameSizeType frameSize = { 1, 1, 1 };
+    frameSize[0] = tLength / rowPitch;
+    frameSize[1] = rowPitch;
+    if(frameSize[1] != m_PrimaryFrameSize[1])
+    {
+      LOG_INFO("SamplesPerLine has changed from " << m_PrimaryFrameSize[1]
+               << " to " << frameSize[1] << ". Adjusting spacing and buffer sizes.");
+      m_PrimaryFrameSize[1] = frameSize[1];
+      AdjustBufferSizes();
+      AdjustSpacing(false);
+    }
+    else if(this->CurrentPixelSpacingMm[1] != m_ScanDepth / (m_PrimaryFrameSize[1] - 1)) // we might need approximate equality check
+    {
+      LOG_INFO("Scan Depth changed. Adjusting spacing.");
+      AdjustSpacing(false);
+    }
+
+    // True post-processing timestamp is packed into the data
+    double timestamp = 0;
+    unsigned int temp = 0;
+    temp = (texture[0] & 0xff);
+    timestamp += temp;
+    temp = (texture[1] & 0xff);
+    timestamp += (temp << 8);
+    temp = (texture[2] & 0xff);
+    timestamp += (temp << 16);
+    temp = (texture[3] & 0xff);
+    timestamp += (temp << 24);
+
+    timestamp = (timestamp / 1000) - first_timestamp;
+
+    this->FlipTexture(texture, frameSize, rowPitch);
+    WPFreePointer(texture);
+
+    double currentTime = m_TimestampOffset + timestamp;
+    for(unsigned i = 0; i < m_PrimarySources.size(); i++)
+    {
+      if(m_PrimarySources[i]->AddItem(&m_PrimaryBuffer[0],
+                                      US_IMG_ORIENT_MF,
+                                      frameSize, VTK_UNSIGNED_CHAR,
+                                      1, US_IMG_BRIGHTNESS, 0,
+                                      this->FrameNumber,
+                                      currentTime,
+                                      currentTime, //no timestamp filtering needed
+                                      &this->m_CustomFields) != PLUS_SUCCESS)
+      {
+        LOG_WARNING("Error adding item to primary video source " << m_PrimarySources[i]->GetSourceId());
+      }
+    }
+    this->FrameNumber += 1;
+    this->Modified();
+  }
+  return PLUS_SUCCESS;
+}
+
+// ----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::FreezeDevice(bool freeze)
 {
   if(!IsRecording() == freeze) //already in desired mode
@@ -990,6 +1021,7 @@ PlusStatus vtkPlusWinProbeVideoSource::FreezeDevice(bool freeze)
   if(IsRecording())
   {
     this->StopRecording();
+    this->FrameNumber = 0;
   }
   else
   {
