@@ -141,7 +141,9 @@ public:
   /* Get the frequency of the push pulse. */
   uint8_t GetARFITxCycleWidth();
 
-  /* Whether or not to use device's built-in frame reconstruction */
+  /* Whether or not to use device's built-in frame reconstruction.
+   * This should not be changed in the middle of acquisition as it
+   * breaks some assumptions about frame size and timestamps. */
   void SetUseDeviceFrameReconstruction(bool value) { m_UseDeviceFrameReconstruction = value; }
 
   /* Whether or not to use device's built-in frame reconstruction */
@@ -357,6 +359,9 @@ protected:
   /*! Device-specific recording stop */
   virtual PlusStatus InternalStopRecording() VTK_OVERRIDE;
 
+  /*! The internal function which actually does the grab. */
+  PlusStatus InternalUpdate();
+
   /*! Updates internal spacing based on current depth */
   void AdjustSpacing(bool value);
 
@@ -377,7 +382,6 @@ protected:
   double m_ADCfrequency = 60.0e6; //MHz
   double m_TimestampOffset = 0; //difference between program start time and latest internal timer restart
   double first_timestamp = 0;
-  double m_LastTimestamp = 1000; //used to determine timer restarts and to update timestamp offset
   FrameSizeType m_PrimaryFrameSize = { 128, 256, 1 };
   FrameSizeType m_ExtraFrameSize = { 256, 128, 1 };
   std::vector<uint8_t> m_PrimaryBuffer;
