@@ -696,7 +696,10 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Connect()
     return ERROR_CANNOT_CREATE_FRAME_INSTANCE;
   }
 
-  if (ftkSetFrameOptions(false, false, 128u, 128u, 4u * FTK_MAX_FIDUCIALS, 4u, this->Internal->Frame) != ftkError::FTK_OK)
+  if (ftkSetFrameOptions(false, this->MaxEventsNumber,
+    this->Max2dFiducialsNumber, this->Max2dFiducialsNumber,
+    this->Max3dFiducialsNumber, this->MaxMarkersNumber,
+    this->Internal->Frame) != ftkError::FTK_OK)
   {
     ftkDeleteFrame(this->Internal->Frame);
     this->Internal->Frame = nullptr;
@@ -1002,6 +1005,46 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerBatteryStr
   {
     return ERROR_ENABLE_WIRELESS_MARKER_BATTERY_STREAMING;
   }
+  return SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMaxEventsNumber(int n)
+{
+  if (n < 0) {
+    return ERROR_SET_OPTION;
+  }
+  this->MaxEventsNumber = n;
+  return SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMax2dFiducialsNumber(int n)
+{
+  if (n < 0) {
+    return ERROR_SET_OPTION;
+  }
+  this->Max2dFiducialsNumber = n;
+  return SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMax3dFiducialsNumber(int n)
+{
+  if (n < 0) {
+    return ERROR_SET_OPTION;
+  }
+  this->Max3dFiducialsNumber = n;
+  return SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMaxMarkersNumber(int n)
+{
+  if (n < 0) {
+    return ERROR_SET_OPTION;
+  }
+  this->MaxMarkersNumber = n;
   return SUCCESS;
 }
 

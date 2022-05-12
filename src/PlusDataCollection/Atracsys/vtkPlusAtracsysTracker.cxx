@@ -249,8 +249,8 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
     }
   };
 
-  // handling options that are used only internally
   std::map<std::string, std::string>::const_iterator itd;
+  // handling options that are used only internally
   // ------- time allocated for activer marker pairing
   itd = this->Internal->DeviceOptions.find("ActiveMarkerPairingTimeSec");
   if (itd != this->Internal->DeviceOptions.cend())
@@ -297,9 +297,66 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   {
     this->Internal->DeviceOptions.emplace("MaxMissingFiducials",
                                           std::to_string(this->Internal->MaxMissingFiducials));
+
+  // set frame options (internally passed to sdk during connection)
+  // ------- maximum number of events per frame included in the device's output
+  itd = this->Internal->DeviceOptions.find("MaxEventsNumber");
+  if (itd != this->Internal->DeviceOptions.cend())
+  {
+    int value = -1;
+    strToInt32(itd->second, value);
+    if (value < 0) {
+      LOG_WARNING("Invalid value for max events number per frame in output: " << itd->second
+        << ". Default value used (" << this->Internal->Tracker.GetMaxEventsNumber() << ")");
+    }
+    else {
+      this->Internal->Tracker.SetMaxEventsNumber(value);
+    }
+  }
+  // ------- maximum number of 2D fiducials (in either left or right frame) included in the device's output
+  itd = this->Internal->DeviceOptions.find("Max2dFiducialsNumber");
+  if (itd != this->Internal->DeviceOptions.cend())
+  {
+    int value = -1;
+    strToInt32(itd->second, value);
+    if (value < 0) {
+      LOG_WARNING("Invalid value for max 2D fiducials number in output: " << itd->second
+        << ". Default value used (" << this->Internal->Tracker.GetMax2dFiducialsNumber() << ")");
+    }
+    else {
+      this->Internal->Tracker.SetMax2dFiducialsNumber(value);
+    }
+  }
+  // ------- maximum number of 3D fiducials (after triangulation) included in the device's output
+  itd = this->Internal->DeviceOptions.find("Max3dFiducialsNumber");
+  if (itd != this->Internal->DeviceOptions.cend())
+  {
+    int value = -1;
+    strToInt32(itd->second, value);
+    if (value < 0) {
+      LOG_WARNING("Invalid value for max 3D fiducials number in output: " << itd->second
+        << ". Default value used (" << this->Internal->Tracker.GetMax3dFiducialsNumber() << ")");
+    }
+    else {
+      this->Internal->Tracker.SetMax3dFiducialsNumber(value);
+    }
+  }
+  // ------- maximum number of markers included in the device's output
+  itd = this->Internal->DeviceOptions.find("MaxMarkersNumber");
+  if (itd != this->Internal->DeviceOptions.cend())
+  {
+    int value = -1;
+    strToInt32(itd->second, value);
+    if (value < 0) {
+      LOG_WARNING("Invalid value for max markers number in output: " << itd->second
+        << ". Default value used (" << this->Internal->Tracker.GetMaxMarkersNumber() << ")");
+    }
+    else {
+      this->Internal->Tracker.SetMaxMarkersNumber(value);
+    }
   }
 
-  // set device options
+  // set actual device options
   for (const auto& i : this->Internal->DeviceOptions)
   {
     std::string translatedOptionName;
