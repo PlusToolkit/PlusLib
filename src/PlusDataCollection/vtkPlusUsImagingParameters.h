@@ -66,6 +66,9 @@ protected:
 
 public:
   static const char* XML_ELEMENT_TAG;
+  static const char* US_PARAMETER_TAG;
+  static const char* NAME_TAG;
+  static const char* VALUE_TAG;
   static const char* KEY_FREQUENCY;
   static const char* KEY_DEPTH;
   static const char* KEY_FOCUS_DEPTH;
