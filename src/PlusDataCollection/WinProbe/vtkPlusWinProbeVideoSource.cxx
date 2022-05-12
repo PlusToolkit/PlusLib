@@ -1977,7 +1977,10 @@ std::string vtkPlusWinProbeVideoSource::GetARFIPushConfigurationString()
 {
   if(Connected)
   {
-    m_ARFIPushConfigurationString = WPGetARFIPushConfigurationString();
+    char* temp = new char[50];
+    WPGetARFIPushConfigurationString(temp);
+    m_ARFIPushConfigurationString.assign(temp);
+    delete[] temp;
   }
   return m_ARFIPushConfigurationString;
 }
@@ -1985,7 +1988,10 @@ std::string vtkPlusWinProbeVideoSource::GetARFIPushConfigurationString()
 //----------------------------------------------------------------------------
 std::string vtkPlusWinProbeVideoSource::GetFPGARevDateString()
 {
-  m_FPGAVersion = WPGetFPGARevDateString();
+  char* temp = new char[20];
+  WPGetFPGARevDateString(temp);
+  m_FPGAVersion.assign(temp);
+  delete[] temp;
   return m_FPGAVersion;
 }
 
