@@ -606,7 +606,22 @@ IF(PLUS_USE_LEAPMOTION AND PLUS_TEST_LEAPMOTION)
   SET_TESTS_PROPERTIES(LeapMotionTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 ENDIF()
 
-#*************************** Azure Kinect ***************************
+#*************************** GenericSensor test ***************************
+IF(PLUS_USE_GENERIC_SENSOR_TRACKER)
+  IF(WIN32)
+    ADD_EXECUTABLE(GenericSensorTrackerTest1 vtkGenericSensorTrackerTest.cxx)
+    SET_TARGET_PROPERTIES(GenericSensorTrackerTest1 PROPERTIES FOLDER Tests)
+    TARGET_LINK_LIBRARIES(GenericSensorTrackerTest1 vtkPlusDataCollection)
+
+    ADD_TEST(GenericSensorTrackerTest1 
+      ${PLUS_EXECUTABLE_OUTPUT_PATH}/GenericSensorTrackerTest1
+      --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_GenericSensor.xml
+      )
+    SET_TESTS_PROPERTIES(GenericSensorTrackerTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
+  ENDIF()
+ENDIF()
+
+#*************************** AzureKinect test ***************************
 IF(PLUS_USE_AZUREKINECT)
   ADD_EXECUTABLE(AzureKinectTest1 vtkAzureKinectTest.cxx)
   SET_TARGET_PROPERTIES(AzureKinectTest1 PROPERTIES FOLDER Tests)
