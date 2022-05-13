@@ -388,7 +388,7 @@ int main(int argc, char* argv[])
         LOG_ERROR("Unable to instantiate landmark detection algorithm class!");
         exit(EXIT_FAILURE);
       }
-      landmarkDetection->SetMinimunDistanceBetweenLandmarksMm(phantomRegistration->GetMinimunDistanceBetweenTwoLandmarksMm());
+      landmarkDetection->SetMinimumDistanceBetweenLandmarksMm(phantomRegistration->GetMinimunDistanceBetweenTwoLandmarksMm());
       landmarkDetection->SetAcquisitionRate(1 / (trackedStylusTipFrames->GetTrackedFrame(1)->GetTimestamp() - trackedStylusTipFrames->GetTrackedFrame(0)->GetTimestamp()));
       if (landmarkDetection->ReadConfiguration(configLandmarkDetection) != PLUS_SUCCESS)
       {

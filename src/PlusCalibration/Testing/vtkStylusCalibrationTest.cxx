@@ -219,7 +219,7 @@ int main(int argc, char* argv[])
   }
 
   LOG_INFO("Number of detected outliers: " << pivotCalibration->GetNumberOfDetectedOutliers());
-  LOG_INFO("Mean calibration error: " << pivotCalibration->GetCalibrationError() << " mm");
+  LOG_INFO("Mean calibration error: " << pivotCalibration->GetPivotCalibrationErrorMm() << " mm");
 
   // Save result
   if (transformRepository->WriteConfiguration(configRootElement) != PLUS_SUCCESS)
@@ -236,7 +236,9 @@ int main(int argc, char* argv[])
   if (!inputBaselineFileName.empty())
   {
     // Compare to baseline
-    if (CompareCalibrationResultsWithBaseline(inputBaselineFileName.c_str(), calibrationResultFileName.c_str(), pivotCalibration->GetObjectMarkerCoordinateFrame(), pivotCalibration->GetObjectPivotPointCoordinateFrame()) != 0)
+    std::string objectMarkerCoordinateFrame = pivotCalibration->GetObjectMarkerCoordinateFrame();
+    std::string objectPivotCoordinateFrame = pivotCalibration->GetObjectPivotPointCoordinateFrame();
+    if (CompareCalibrationResultsWithBaseline(inputBaselineFileName.c_str(), calibrationResultFileName.c_str(), objectMarkerCoordinateFrame.c_str(), objectPivotCoordinateFrame.c_str()) != 0)
     {
       LOG_ERROR("Comparison of calibration data to baseline failed");
       std::cout << "Exit failure!!!" << std::endl;

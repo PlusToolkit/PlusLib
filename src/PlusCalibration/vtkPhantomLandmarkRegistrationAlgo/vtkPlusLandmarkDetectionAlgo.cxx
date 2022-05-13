@@ -38,7 +38,7 @@ PlusStatus vtkPlusLandmarkDetectionAlgo::ReadConfiguration(vtkXMLDataElement* aC
   }
 
   LOG_DEBUG("AcquisitionRate = " << AcquisitionRate << "[fps] WindowTimeSec = " << FilterWindowTimeSec << "[s] DetectionTimeSec = " << DetectionTimeSec << "[s]");
-  LOG_DEBUG("NumberOfWindows = " << numberOfWindows << " WindowSize = " << filterWindowSize << " MinimunDistanceBetweenLandmarksMm = " << MinimunDistanceBetweenLandmarksMm << "[mm] LandmarkThreshold " << StylusTipMaximumDisplacementThresholdMm << "[mm]");
+  LOG_DEBUG("NumberOfWindows = " << numberOfWindows << " WindowSize = " << filterWindowSize << " MinimunDistanceBetweenLandmarksMm = " << MinimumDistanceBetweenLandmarksMm << "[mm] LandmarkThreshold " << StylusTipMaximumDisplacementThresholdMm << "[mm]");
 
   return PLUS_SUCCESS;
 }
