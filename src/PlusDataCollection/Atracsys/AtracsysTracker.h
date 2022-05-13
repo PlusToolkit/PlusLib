@@ -149,6 +149,25 @@ public:
   ATRACSYS_RESULT EnableWirelessMarkerBatteryStreaming(bool enabled);
 
   // ------------------------------------------
+  // frame options
+  // ------------------------------------------
+  /*! Set/get the maximum number of events per frame included in the device's output */
+  ATRACSYS_RESULT SetMaxEventsNumber(int n);
+  int GetMaxEventsNumber() { return MaxEventsNumber; }
+
+  /*! Set/get the maximum number of 2D fiducials (in either left or right frame) included in the device's output */
+  ATRACSYS_RESULT SetMax2dFiducialsNumber(int n);
+  int GetMax2dFiducialsNumber() { return Max2dFiducialsNumber; }
+
+  /*! Set/get the maximum number of 3D fiducials (after triangulation) included in the device's output */
+  ATRACSYS_RESULT SetMax3dFiducialsNumber(int n);
+  int GetMax3dFiducialsNumber() { return Max3dFiducialsNumber; }
+
+  /*! Set/get the maximum number of markers included in the device's output */
+  ATRACSYS_RESULT SetMaxMarkersNumber(int n);
+  int GetMaxMarkersNumber() { return MaxMarkersNumber; }
+
+  // ------------------------------------------
   // spryTrack only options
   // ------------------------------------------
 
@@ -178,6 +197,11 @@ protected:
 
 private:
   DEVICE_TYPE DeviceType = UNKNOWN_DEVICE;
+
+  int MaxEventsNumber = 0;
+  int Max2dFiducialsNumber = 0;
+  int Max3dFiducialsNumber = 64;
+  int MaxMarkersNumber = 16;
 
   class AtracsysInternal;
   AtracsysInternal* Internal;
