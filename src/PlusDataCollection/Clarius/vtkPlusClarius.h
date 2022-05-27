@@ -247,6 +247,8 @@ protected:
   */
   int TiltSensorWestAxisIndex;
   int FilteredTiltSensorWestAxisIndex;
+
+  bool Initialized;
 };
 
 #endif //_VTKPLUSCLARIUS_H

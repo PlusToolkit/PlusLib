@@ -92,6 +92,7 @@ vtkPlusClarius::vtkPlusClarius()
   , CompressRawData(false)
   , IsReceivingRawData(false)
   , RawDataPointer(nullptr)
+  , Initialized(false)
 {
   LOG_TRACE("vtkPlusClarius: Constructor");
   this->StartThreadForInternalUpdates = false;
@@ -133,12 +134,14 @@ vtkPlusClarius::~vtkPlusClarius()
     cusCastDisconnect(BLOCKINGCALL);
   }
 
-  int destroyed = cusCastDestroy();
-  if (destroyed != 0)
+  if (this->Initialized)
   {
-    LOG_ERROR("Error destoying the listener");
+    int destroyed = cusCastDestroy();
+    if (destroyed != 0)
+    {
+      LOG_ERROR("Error destoying the listener");
+    }
   }
-
   this->instance = NULL;
 }
 
@@ -453,11 +456,12 @@ PlusStatus vtkPlusClarius::InternalConnect()
         buttonCallBackFnPtr,
         progressCallBackFnPtr,
         errorCallBackFnPtr,
-        FrameWidth,
-        FrameHeight) < 0)
+        device->FrameWidth,
+        device->FrameHeight) < 0)
       {
         return PLUS_FAIL;
       }
+      this->Initialized = true;
     }
     catch (const std::runtime_error& re)
     {
@@ -671,21 +675,38 @@ void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const ClariusP
     LOG_WARNING("Processed image was received, however no output B-Mode video source was found.");
     return;
   }
-
   // Set Image Properties
   bModeSource->SetInputFrameSize(nfo->width, nfo->height, 1);
-  int frameBufferBytesPerPixel = (nfo->bitsPerPixel / 8);
-  int frameSizeInBytes = nfo->width * nfo->height * frameBufferBytesPerPixel;
-  bModeSource->SetNumberOfScalarComponents(frameBufferBytesPerPixel);
 
-  // need to copy newImage to new char vector vtkDataSource::AddItem() do not accept const char array
-  std::vector<char> _image;
-  size_t img_sz = nfo->width * nfo->height * (nfo->bitsPerPixel / 8);
-  if (_image.size() < img_sz)
+  vtkSmartPointer<vtkImageData> rgbImage = vtkSmartPointer<vtkImageData>::New();
+  rgbImage->SetExtent(0, nfo->width - 1, 0, nfo->height - 1, 0, 0);
+  rgbImage->SetOrigin(0.0, 0.0, 0.0);
+  rgbImage->SetSpacing(1.0, 1.0, 1.0);
+  rgbImage->AllocateScalars(VTK_UNSIGNED_CHAR, 3);
+  PixelCodec::BGRA32ToRGB24(nfo->width, nfo->height, (unsigned char*)newImage, (unsigned char*)rgbImage->GetScalarPointer());
+
+  vtkSmartPointer<vtkImageData> outputImage = rgbImage;
+  US_IMAGE_TYPE outputUSImageType = US_IMG_RGB_COLOR;
+  bModeSource->SetNumberOfScalarComponents(3);
+  if (bModeSource->GetImageType() == US_IMG_BRIGHTNESS)
   {
-    _image.resize(img_sz);
+    bModeSource->SetNumberOfScalarComponents(1);
+
+    vtkSmartPointer<vtkImageData> grayscaleImage = vtkSmartPointer<vtkImageData>::New();
+    grayscaleImage->SetExtent(0, nfo->width - 1, 0, nfo->height - 1, 0, 1);
+    grayscaleImage->SetOrigin(0.0, 0.0, 0.0);
+    grayscaleImage->SetSpacing(1.0, 1.0, 1.0);
+    grayscaleImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+    outputImage = grayscaleImage;
+
+    PixelCodec::ConvertToGray(
+      PixelCodec::PixelEncoding_RGB24,
+      nfo->width,
+      nfo->height,
+      (unsigned char*)rgbImage->GetScalarPointer(),
+      (unsigned char*)grayscaleImage->GetScalarPointer());
+    outputUSImageType = US_IMG_BRIGHTNESS;
   }
-  memcpy(_image.data(), newImage, img_sz);
 
   // the clarius timestamp is in nanoseconds
   device->ClariusLastTimestamp = static_cast<double>((double)nfo->tm / (double)1000000000);
@@ -709,7 +730,7 @@ void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const ClariusP
   {
     // create cvimg to write to disk
     cv::Mat cvimg = cv::Mat(nfo->width, nfo->height, CV_8UC4);
-    cvimg.data = cvimg.data = (unsigned char*)_image.data();
+    cvimg.data = cvimg.data = (unsigned char*)newImage;
     if (cv::imwrite("Clarius_Image" + std::to_string(device->ClariusLastTimestamp) + ".bmp", cvimg) == false)
     {
       LOG_ERROR("ERROR writing clarius image" + std::to_string(device->ClariusLastTimestamp) + " to disk");
@@ -719,13 +740,13 @@ void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const ClariusP
   igsioFieldMapType customField;
   customField["micronsPerPixel"] = std::make_pair(igsioFrameFieldFlags::FRAMEFIELD_FORCE_SERVER_SEND, std::to_string(nfo->micronsPerPixel));
   bModeSource->AddItem(
-    _image.data(), // pointer to char array
+    outputImage->GetScalarPointer(),
     bModeSource->GetInputImageOrientation(), // refer to this url: http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/UltrasoundImageOrientation.html for reference;
                                          // Set to UN to keep the orientation of the image the same as on tablet
     bModeSource->GetInputFrameSize(),
     VTK_UNSIGNED_CHAR,
-    frameBufferBytesPerPixel,
-    US_IMG_BRIGHTNESS,
+    outputImage->GetNumberOfScalarComponents(),
+    outputUSImageType,
     0,
     device->FrameNumber,
     converted_timestamp,
