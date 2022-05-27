@@ -25,6 +25,12 @@ SET(${PROJECT_NAME}_SRCS
   vtkPlusCommandProcessor.cxx
   ${${PROJECT_NAME}_CMD_SRCS}
   )
+IF(PLUS_USE_CanonNCSA)
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    vtkPlusCanonNCSAServer.cxx
+    Canon/ConfigurationCommon.cpp
+    )
+ENDIF()
 
 SET(${PROJECT_NAME}_CMD_HDRS
   Commands/vtkPlusCommand.h
@@ -49,6 +55,12 @@ SET(${PROJECT_NAME}_HDRS
   vtkPlusCommandProcessor.h
   ${${PROJECT_NAME}_CMD_HDRS}
   )
+IF(PLUS_USE_CanonNCSA)
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    vtkPlusCanonNCSAServer.h
+    Canon/ConfigurationCommon.h
+    )
+ENDIF()
 
 IF (PLUS_USE_ATRACSYS)
   LIST(APPEND ${PROJECT_NAME}_SRCS Commands/vtkPlusAtracsysCommand.cxx)
@@ -84,6 +96,9 @@ SET(${PROJECT_NAME}_LIBS
   vtkPlusVolumeReconstruction
   ${PLUSLIB_VTK_PREFIX}IOPLY
   )
+IF(PLUS_USE_CanonNCSA)
+  LIST(APPEND ${PROJECT_NAME}_LIBS Canon::NCSA)
+ENDIF()
 SET(${PROJECT_NAME}_PRIVATE_LIBS
   igtlioConverter
   )
@@ -112,6 +127,24 @@ TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} PRIVATE ${${PROJECT_NAME}_PRIVATE_LIBS}
 PlusLibAddVersionInfo(vtk${PROJECT_NAME} "Library containing classes and functionality necessary for providing OpenIGTLink servers and clients. Part of the Plus toolkit." vtk${PROJECT_NAME} vtk${PROJECT_NAME})
 
 source_group("Commands" FILES ${${PROJECT_NAME}_CMD_HDRS} ${${PROJECT_NAME}_CMD_SRCS})
+
+# --------------------------------------------------------------------------
+# Copy DLLs for NCSA dependency
+IF(PLUS_USE_CanonNCSA)
+  TARGET_COMPILE_DEFINITIONS(vtkPlusServer
+    PUBLIC
+      PLUS_USE_CANONNCSA
+    )
+
+  add_custom_command(TARGET vtk${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    $<TARGET_FILE:Canon::CommLib> $<TARGET_FILE_DIR:vtk${PROJECT_NAME}>
+    )
+  add_custom_command(TARGET vtk${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    $<TARGET_FILE:Canon::Logging> $<TARGET_FILE_DIR:vtk${PROJECT_NAME}>
+    )
+ENDIF()
 
 # --------------------------------------------------------------------------
 # Set external MS project

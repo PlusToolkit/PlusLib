@@ -49,6 +49,13 @@ IF(PLUS_USE_OpenIGTLink)
   FIND_PACKAGE(OpenIGTLinkIO REQUIRED NO_MODULE)
 ENDIF()
 
+# --------------------------------------------------------------------------
+# Use Canon NCSA network backend
+OPTION(PLUS_USE_CanonNCSA "Use the Canon NCSA network back end" OFF)
+IF(PLUS_USE_CanonNCSA)
+  FIND_PACKAGE(CanonNCSA REQUIRED)
+ENDIF()
+
 # Reset the list of PlusLib Qt components
 SET(PLUSLIB_QT_COMPONENTS "" CACHE INTERNAL "" FORCE)
 
@@ -272,7 +279,7 @@ ADD_SUBDIRECTORY(PlusCalibration)
 INCLUDE_DIRECTORIES(${PlusCalibration_INCLUDE_DIRS})
 LIST(APPEND PLUSLIB_INCLUDE_DIRS ${PlusCalibration_INCLUDE_DIRS} CACHE INTERNAL "")
 
-IF(PLUS_USE_OpenIGTLink)
+IF(PLUS_USE_OpenIGTLink OR PLUS_USE_CanonNCSA)
   ADD_SUBDIRECTORY(PlusServer)
   INCLUDE_DIRECTORIES(${PlusServer_INCLUDE_DIRS})
   LIST(APPEND PLUSLIB_INCLUDE_DIRS ${PlusServer_INCLUDE_DIRS} CACHE INTERNAL "")

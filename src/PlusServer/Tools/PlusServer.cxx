@@ -23,6 +23,9 @@ happens between two threads. In real life, it happens between two programs.
 #include "vtkSmartPointer.h"
 #include "vtkIGSIOTransformRepository.h"
 #include "vtksys/CommandLineArguments.hxx"
+#if defined(PLUS_USE_CANONNCSA)
+#include "vtkPlusCanonNCSAServer.h"
+#endif
 
 // For catching Ctrl-C
 #include <csignal>
@@ -136,6 +139,30 @@ int main(int argc, char** argv)
     }
     serverList.push_back(server);
   }
+
+#if defined(PLUS_USE_CANONNCSA)
+  std::vector<vtkPlusCanonNCSAServer*> canonServerList;
+  for (int i = 0; i < configRootElement->GetNumberOfNestedElements(); ++i)
+  {
+    vtkXMLDataElement* serverElement = configRootElement->GetNestedElement(i);
+    if (STRCASECMP(serverElement->GetName(), "PlusCanonNCSAServer") != 0)
+    {
+      continue;
+    }
+
+    serverCount++;
+
+    // This is a PlusServer tag, let's create it
+    vtkPlusCanonNCSAServer* server = vtkPlusCanonNCSAServer::New();
+    LOG_DEBUG("Initializing Plus CanonNCSA server... ");
+    if (server->Start(dataCollector.GetPointer(), transformRepository.GetPointer(), serverElement, vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName(), argc, argv) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to start Canon NCSA server");
+      exit(EXIT_FAILURE);
+    }
+    canonServerList.push_back(server);
+  }
+#endif
   if (serverCount == 0)
   {
     LOG_ERROR("No vtkPlusOpenIGTLinkServer tags were found in the configuration file. Please add at least one.");
@@ -176,6 +203,14 @@ int main(int argc, char** argv)
   {
     (*it)->Stop();
   }
+
+#if defined(PLUS_USE_CANONNCSA)
+  for (std::vector<vtkPlusCanonNCSAServer*>::iterator it = canonServerList.begin(); it != canonServerList.end(); ++it)
+  {
+    (*it)->Stop();
+    (*it)->Delete();
+  }
+#endif
 
   LOG_INFO("Shutdown successful.");
 

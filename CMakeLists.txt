@@ -2,6 +2,9 @@ PROJECT(PlusLib)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.3.0)
 
+# Target generation continues if all target configurations are not populated
+CMAKE_POLICY(SET CMP0111 OLD)
+
 # Cache C++ standard to allow setting externally
 SET(_minimum_cxx_standard "11")
 SET(CMAKE_CXX_STANDARD "${_minimum_cxx_standard}" CACHE STRING "C++ standard")
