@@ -297,6 +297,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   {
     this->Internal->DeviceOptions.emplace("MaxMissingFiducials",
                                           std::to_string(this->Internal->MaxMissingFiducials));
+  }
 
   // set frame options (internally passed to sdk during connection)
   // ------- maximum number of events per frame included in the device's output
