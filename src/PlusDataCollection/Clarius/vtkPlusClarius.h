@@ -131,7 +131,7 @@ protected:
 
   virtual PlusStatus InternalConnect();
   virtual PlusStatus InternalDisconnect();
-  PlusStatus WritePosesToCsv(const ClariusProcessedImageInfo* nfo, int npos, const ClariusPosInfo* pos, int frameNum, double systemTime, double convertedTime);
+  PlusStatus WritePosesToCsv(const CusProcessedImageInfo* nfo, int npos, const _CusPosInfo* pos, int frameNum, double systemTime, double convertedTime);
 
   /*!
   Receive previously requested data
@@ -190,9 +190,9 @@ protected:
   */
   void AllocateRawData(int size);
 
-  static void NewImageFn(const void* newImage, const ClariusProcessedImageInfo* nfo, int npos, const ClariusPosInfo* pos);
-  static void ProcessedImageCallback(const void* newImage, const ClariusProcessedImageInfo* nfo, int npos, const ClariusPosInfo* pos);
-  static void RawImageCallback(const void* newImage, const ClariusRawImageInfo* nfo, int npos, const ClariusPosInfo* pos);
+  static void NewImageFn(const void* newImage, const CusProcessedImageInfo* nfo, int npos, const CusPosInfo* pos);
+  static void ProcessedImageCallback(const void* newImage, const CusProcessedImageInfo* nfo, int npos, const CusPosInfo* pos);
+  static void RawImageCallback(const void* newImage, const CusRawImageInfo* nfo, int npos, const CusPosInfo* pos);
 
   vtkPlusDataSource* AccelerometerTool;
   vtkPlusDataSource* GyroscopeTool;

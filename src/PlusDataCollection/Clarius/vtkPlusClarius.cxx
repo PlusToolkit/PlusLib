@@ -423,12 +423,12 @@ PlusStatus vtkPlusClarius::InternalConnect()
     const char* path = device->PathToSecKey.c_str();
 
     // Callbacks
-    ClariusNewProcessedImageFn processedImageCallbackPtr = static_cast<ClariusNewProcessedImageFn>(&vtkPlusClarius::ProcessedImageCallback);
-    ClariusNewRawImageFn rawDataCallBackPtr = static_cast<ClariusNewRawImageFn>(&vtkPlusClarius::RawImageCallback);
-    ClariusFreezeFn freezeCallBackFnPtr = static_cast<ClariusFreezeFn>(&vtkPlusClarius::FreezeFn);
-    ClariusButtonFn buttonCallBackFnPtr = static_cast<ClariusButtonFn>(&vtkPlusClarius::ButtonFn);
-    ClariusProgressFn progressCallBackFnPtr = static_cast<ClariusProgressFn>(&vtkPlusClarius::ProgressFn);
-    ClariusErrorFn errorCallBackFnPtr = static_cast<ClariusErrorFn>(&vtkPlusClarius::ErrorFn);
+    CusNewProcessedImageFn processedImageCallbackPtr = static_cast<CusNewProcessedImageFn>(&vtkPlusClarius::ProcessedImageCallback);
+    CusNewRawImageFn rawDataCallBackPtr = static_cast<CusNewRawImageFn>(&vtkPlusClarius::RawImageCallback);
+    CusFreezeFn freezeCallBackFnPtr = static_cast<CusFreezeFn>(&vtkPlusClarius::FreezeFn);
+    CusButtonFn buttonCallBackFnPtr = static_cast<CusButtonFn>(&vtkPlusClarius::ButtonFn);
+    CusProgressFn progressCallBackFnPtr = static_cast<CusProgressFn>(&vtkPlusClarius::ProgressFn);
+    CusErrorFn errorCallBackFnPtr = static_cast<CusErrorFn>(&vtkPlusClarius::ErrorFn);
 
     // No B-mode data sources. Disable B mode callback.
     std::vector<vtkPlusDataSource*> bModeSources;
@@ -484,7 +484,7 @@ PlusStatus vtkPlusClarius::InternalConnect()
     const char* ip = device->IpAddress.c_str();
     try
     {
-      ClariusReturnFn returnFunction = (ClariusReturnFn)(&vtkPlusClarius::ConnectReturnFn);
+      CusReturnFn returnFunction = (CusReturnFn)(&vtkPlusClarius::ConnectReturnFn);
       isConnected = cusCastConnect(ip, device->TcpPort, returnFunction);
     }
     catch (const std::runtime_error& re)
@@ -617,7 +617,7 @@ void vtkPlusClarius::ButtonFn(int btn, int clicks)
  * @param[in] npos the # fo positional data points embedded with the frame
  * @param[in] pos the buffer of positional data
  * */
-void vtkPlusClarius::NewImageFn(const void* newImage, const ClariusProcessedImageInfo* nfo, int npos, const ClariusPosInfo* pos)
+void vtkPlusClarius::NewImageFn(const void* newImage, const CusProcessedImageInfo* nfo, int npos, const CusPosInfo* pos)
 {
   LOG_TRACE("new image (" << newImage << "): " << nfo->width << " x " << nfo->height << " @ " << nfo->bitsPerPixel
     << "bits. @ " << nfo->micronsPerPixel << " microns per pixel. imu points: " << npos);
@@ -634,7 +634,7 @@ void vtkPlusClarius::NewImageFn(const void* newImage, const ClariusProcessedImag
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const ClariusProcessedImageInfo* nfo, int npos, const ClariusPosInfo* pos)
+void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const CusProcessedImageInfo* nfo, int npos, const CusPosInfo* pos)
 {
   LOG_TRACE("vtkPlusClarius::ProcessedImageCallback");
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
@@ -891,7 +891,7 @@ void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const ClariusP
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusClarius::RawImageCallback(const void* newImage, const ClariusRawImageInfo* nfo, int npos, const ClariusPosInfo* pos)
+void vtkPlusClarius::RawImageCallback(const void* newImage, const CusRawImageInfo* nfo, int npos, const CusPosInfo* pos)
 {
   LOG_TRACE("vtkPlusClarius::RawImageCallback");
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
@@ -991,12 +991,12 @@ void vtkPlusClarius::RawImageCallback(const void* newImage, const ClariusRawImag
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusClarius::WritePosesToCsv(const ClariusProcessedImageInfo* nfo, int npos, const ClariusPosInfo* pos, int frameNum, double systemTime, double convertedTime)
+PlusStatus vtkPlusClarius::WritePosesToCsv(const CusProcessedImageInfo* nfo, int npos, const CusPosInfo* pos, int frameNum, double systemTime, double convertedTime)
 {
   LOG_TRACE("vtkPlusClarius::WritePosesToCsv");
   if (npos != 0)
   {
-    LOG_TRACE("timestamp in nanoseconds ClariusPosInfo" << pos[0].tm);
+    LOG_TRACE("timestamp in nanoseconds CusPosInfo" << pos[0].tm);
     std::string posInfo = "";
     for (auto i = 0; i < npos; i++)
     {
@@ -1073,7 +1073,7 @@ PlusStatus vtkPlusClarius::RequestRawData(long long startTimestamp, long long en
 
   this->IsReceivingRawData = true;
 
-  ClariusReturnFn returnFunction = (ClariusReturnFn)(&vtkPlusClarius::RawDataRequestFn);
+  CusReturnFn returnFunction = (CusReturnFn)(&vtkPlusClarius::RawDataRequestFn);
   cusCastRequestRawData(startTimestamp, endTimestamp, returnFunction);
   return PLUS_SUCCESS;
 }
@@ -1105,7 +1105,7 @@ PlusStatus vtkPlusClarius::ReceiveRawData(int dataSize)
 {
   LOG_INFO("Receiving " << dataSize << " bytes of raw data");
 
-  ClariusReturnFn returnFunction = (ClariusReturnFn)(&vtkPlusClarius::RawDataWriteFn);
+  CusReturnFn returnFunction = (CusReturnFn)(&vtkPlusClarius::RawDataWriteFn);
   this->AllocateRawData(dataSize);
   cusCastReadRawData(&this->RawDataPointer, returnFunction);
   return PLUS_SUCCESS;
