@@ -91,9 +91,9 @@ namespace
 {
   enum class BUTTON_MODE
   {
-    DISABLED = BUTTON_DISABLED,
-    FREEZE = BUTTON_FREEZE,
-    USER = BUTTON_USER
+    DISABLED = CusButtonSetting::ButtonDisabled,
+    FREEZE = CusButtonSetting::ButtonFreeze,
+    USER = CusButtonSetting::ButtonUser
   };
 
   static std::map<BUTTON_MODE, std::string> ButtonModeEnumToString{
@@ -101,7 +101,7 @@ namespace
     {BUTTON_MODE::USER, "USER"},
     {BUTTON_MODE::DISABLED, "DISABLED"}
   };
- 
+
   static const double CM_TO_MM = 10.0;
   static const double MM_TO_CM = 0.1;
   static const double UM_TO_MM = 0.001;
@@ -146,11 +146,11 @@ namespace
   static const std::vector<double> DEFAULT_TGC_DB = { 5, 5, 5 };
 
   static std::map<int, std::string> ConnectEnumToString {
-    {CONNECT_SUCCESS, "CONNECT_SUCCESS"},
-    {CONNECT_DISCONNECT, "CONNECT_DISCONNECT"},
-    {CONNECT_FAILED, "CONNECT_FAILED"},
-    {CONNECT_SWUPDATE, "CONNECT_SWUPDATE"},
-    {CONNECT_ERROR, "CONNECT_ERROR"},
+    {CusConnection::ProbeConnected, "CONNECT_SUCCESS"},
+    {CusConnection::ProbeDisconnected, "CONNECT_DISCONNECT"},
+    {CusConnection::ConnectionFailed, "CONNECT_FAILED"},
+    {CusConnection::SwUpdateRequired, "CONNECT_SWUPDATE"},
+    {CusConnection::ConnectionError, "CONNECT_ERROR"},
   };
 
   static const std::string TRANSD_PORT_NAME = "Transd";
@@ -177,34 +177,34 @@ protected:
   // Clarius callbacks
   static void ListFn(const char* list, int sz);
 
-  static void ConnectFn(int ret, int port, const char* status);
+  static void ConnectFn(CusConnection ret, int port, const char* status);
 
   static void CertFn(int daysValid);
 
-  static void PowerDownFn(int ret, int tm);
+  static void PowerDownFn(CusPowerDown ret, int tm);
 
-  static void SwUpdateFn(int ret);
+  static void SwUpdateFn(CusSwUpdate ret);
 
-  static void RawImageFn(const void* newImage, const ClariusRawImageInfo* nfo, int npos, const ClariusPosInfo* pos);
+  static void RawImageFn(const void* newImage, const CusRawImageInfo* nfo, int npos, const CusPosInfo* pos);
 
-  static void ProcessedImageFn(const void* newImage, const ClariusProcessedImageInfo* nfo, int npos, const ClariusPosInfo* pos);
+  static void ProcessedImageFn(const void* newImage, const CusProcessedImageInfo* nfo, int npos, const CusPosInfo* pos);
 
-  static void SpectralImageFn(const void* newImage, const ClariusSpectralImageInfo* nfo);
+  static void SpectralImageFn(const void* newImage, const CusSpectralImageInfo* nfo);
 
-  static void ImagingFn(int ready, int imaging);
+  static void ImagingFn(CusImagingState ready, int imaging);
 
-  static void ButtonFn(int btn, int clicks);
+  static void ButtonFn(CusButton btn, int clicks);
 
   static void ProgressFn(int progress);
 
   static void ErrorFn(const char* msg);
-  
+
   // log user settings to console
   void LogUserSettings();
 
   //
   // members
-  // 
+  //
 
   // user configurable params
   std::string ProbeSerialNum;
@@ -290,7 +290,7 @@ vtkPlusClariusOEM::vtkInternal::vtkInternal(vtkPlusClariusOEM* ext)
 void vtkPlusClariusOEM::vtkInternal::ListFn(const char* list, int sz)
 {
   vtkPlusClariusOEM* device = vtkPlusClariusOEM::GetInstance();
-  
+
   std::vector<std::string> vec;
 
   std::stringstream ss(list);
@@ -312,9 +312,9 @@ void vtkPlusClariusOEM::vtkInternal::ListFn(const char* list, int sz)
 }
 
 //-------------------------------------------------------------------------------------------------
-void vtkPlusClariusOEM::vtkInternal::ConnectFn(int ret, int port, const char* status)
+void vtkPlusClariusOEM::vtkInternal::ConnectFn(CusConnection ret, int port, const char* status)
 {
-  if (ret == CONNECT_SUCCESS)
+  if (ret == CusConnection::ProbeConnected)
   {
     // connection succeeded, set Internal->Connected variable to end busy wait in InternalConnect
     vtkPlusClariusOEM* device = vtkPlusClariusOEM::GetInstance();
@@ -336,11 +336,11 @@ void vtkPlusClariusOEM::vtkInternal::CertFn(int daysValid)
 }
 
 //-------------------------------------------------------------------------------------------------
-void vtkPlusClariusOEM::vtkInternal::PowerDownFn(int ret, int tm)
+void vtkPlusClariusOEM::vtkInternal::PowerDownFn(CusPowerDown ret, int tm)
 {
   std::stringstream ss;
   ss << "Clarius probe will power down ";
-  
+
   if (tm == 0)
   {
     ss << "immediately as a result of ";
@@ -350,19 +350,19 @@ void vtkPlusClariusOEM::vtkInternal::PowerDownFn(int ret, int tm)
     ss << "in " << tm << " seconds as a result of ";
   }
 
-  if (ret == POWERDOWN_IDLE)
+  if (ret == CusPowerDown::Idle)
   {
     ss << "being idle for an extended period of time. ";
   }
-  else if (ret == POWERDOWN_TOOHOT)
+  else if (ret == CusPowerDown::TooHot)
   {
     ss << "overheating. ";
   }
-  else if (ret == POWERDOWN_BATTERY)
+  else if (ret == CusPowerDown::LowBattery)
   {
     ss << "running out of battery. ";
   }
-  else if (ret == POWERDOWN_BUTTON)
+  else if (ret == CusPowerDown::ButtonOff)
   {
     ss << "user holding the shutdown button. ";
   }
@@ -376,25 +376,25 @@ void vtkPlusClariusOEM::vtkInternal::PowerDownFn(int ret, int tm)
 }
 
 //-------------------------------------------------------------------------------------------------
-void vtkPlusClariusOEM::vtkInternal::SwUpdateFn(int ret)
+void vtkPlusClariusOEM::vtkInternal::SwUpdateFn(CusSwUpdate ret)
 {
   LOG_ERROR("Clarius SwUpdateFn callback was called, but this feature is not supported by PLUS. Please update using the Clarius iOS/Android App");
 }
 
 //-------------------------------------------------------------------------------------------------
-void vtkPlusClariusOEM::vtkInternal::RawImageFn(const void* newImage, const ClariusRawImageInfo* nfo, int npos, const ClariusPosInfo* pos)
+void vtkPlusClariusOEM::vtkInternal::RawImageFn(const void* newImage, const CusRawImageInfo* nfo, int npos, const CusPosInfo* pos)
 {
   LOG_ERROR("Support for Clarius OEM raw images has not been implemented. If you desire this feature please submit an issue to request it on the PlusToolkit/PlusLib GitHub repository");
 }
 
 //-------------------------------------------------------------------------------------------------
-void vtkPlusClariusOEM::vtkInternal::SpectralImageFn(const void* newImage, const ClariusSpectralImageInfo* nfo)
+void vtkPlusClariusOEM::vtkInternal::SpectralImageFn(const void* newImage, const CusSpectralImageInfo* nfo)
 {
   LOG_ERROR("Support for Clarius OEM spectral images has not been implemented. If you desire this feature please submit an issue to request it on the PlusToolkit/PlusLib GitHub repository");
 }
 
 //-------------------------------------------------------------------------------------------------
-void vtkPlusClariusOEM::vtkInternal::ProcessedImageFn(const void* oemImage, const ClariusProcessedImageInfo* nfo, int npos, const ClariusPosInfo* pos)
+void vtkPlusClariusOEM::vtkInternal::ProcessedImageFn(const void* oemImage, const CusProcessedImageInfo* nfo, int npos, const CusPosInfo* pos)
 {
   vtkPlusClariusOEM* device = vtkPlusClariusOEM::GetInstance();
   if (device == NULL)
@@ -453,7 +453,7 @@ void vtkPlusClariusOEM::vtkInternal::ProcessedImageFn(const void* oemImage, cons
 
   // custom fields (battery & button clicks)
   igsioFieldMapType customFields;
-  ClariusStatusInfo stats;
+  CusStatusInfo stats;
   if (cusOemStatusInfo(&stats) != 0)
   {
     LOG_WARNING("Failed to retrieve cusOemStatusInfo");
@@ -480,7 +480,7 @@ void vtkPlusClariusOEM::vtkInternal::ProcessedImageFn(const void* oemImage, cons
     device->Internal->PressedButton = NO_BUTTON_TAG;
     device->Internal->ButtonNumClicks = 0;
   }
-  
+
   // update the b-mode image
   device->Internal->BModeSource->AddItem(
     vtkImage->GetScalarPointer(),
@@ -529,29 +529,29 @@ void vtkPlusClariusOEM::vtkInternal::ProcessedImageFn(const void* oemImage, cons
 }
 
 //-------------------------------------------------------------------------------------------------
-void vtkPlusClariusOEM::vtkInternal::ImagingFn(int ready, int imaging)
+void vtkPlusClariusOEM::vtkInternal::ImagingFn(CusImagingState ready, int imaging)
 {
-  if (ready == IMAGING_NOTREADY)
+  if (ready == CusImagingState::ImagingNotReady)
   {
     LOG_WARNING("Clarius imaging is not ready yet...");
   }
-  else if (ready == IMAGING_READY)
+  else if (ready == CusImagingState::ImagingReady)
   {
     LOG_INFO("Clarius imaging is " << (imaging ? "running" : "stopped"));
   }
-  else if (ready == IMAGING_CERTEXPIRED)
+  else if (ready == CusImagingState::CertExpired)
   {
     LOG_ERROR("Clarius certificate needs to be updated prior to imaging");
   }
-  else if (ready == IMAGING_POORWIFI)
+  else if (ready == CusImagingState::PoorWifi)
   {
     LOG_WARNING("Clarius stopped imaging as a result of a poor Wi-Fi connection");
   }
-  else if (ready == IMAGING_NOCONTACT)
+  else if (ready == CusImagingState::NoContact)
   {
     LOG_INFO("Clarius stopped imaging as a result of no patient contact for specified timeout duration");
   }
-  else if (ready == IMAGING_CHARGING)
+  else if (ready == CusImagingState::ChargingChanged)
   {
     LOG_WARNING("Clarius started / stopped imaging due to a change in charging status");
   }
@@ -565,7 +565,7 @@ void vtkPlusClariusOEM::vtkInternal::ImagingFn(int ready, int imaging)
 /*! callback for button clicks
  * @param[in] btn 0 = up, 1 = down
  * @param[in] clicks # of clicks performed*/
-void vtkPlusClariusOEM::vtkInternal::ButtonFn(int btn, int clicks)
+void vtkPlusClariusOEM::vtkInternal::ButtonFn(CusButton btn, int clicks)
 {
   vtkPlusClariusOEM* device = vtkPlusClariusOEM::GetInstance();
   if (device == NULL)
@@ -584,11 +584,11 @@ void vtkPlusClariusOEM::vtkInternal::ButtonFn(int btn, int clicks)
 
   // set button state
   device->Internal->ButtonNumClicks = clicks;
-  if (btn == BUTTON_DOWN)
+  if (btn == CusButton::ButtonDown)
   {
     device->Internal->PressedButton = DOWN_BUTTON_TAG;
   }
-  else if (btn == BUTTON_UP)
+  else if (btn == CusButton::ButtonUp)
   {
     device->Internal->PressedButton = UP_BUTTON_TAG;
   }
@@ -736,7 +736,7 @@ PlusStatus vtkPlusClariusOEM::ReadConfiguration(vtkXMLDataElement* rootConfigEle
   // path to Clarius certificate
   XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(
     PathToCert, this->Internal->PathToCert, deviceConfig);
-  
+
   // probe type
   XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(
     ProbeType, this->Internal->ProbeType, deviceConfig);
@@ -826,7 +826,7 @@ PlusStatus vtkPlusClariusOEM::ReadConfiguration(vtkXMLDataElement* rootConfigEle
       // if this is not a data source element, skip it
       continue;
     }
- 
+
     // if video source, verify correct orientation (MF) to place the (0, 0) voxel
     // of the image in the marked corner adjacent to the probe
     const char* type = element->GetAttribute("Type");
@@ -958,9 +958,9 @@ PlusStatus vtkPlusClariusOEM::InitializeBLE()
     LOG_ERROR("Failed to find BLE connection for Clarius probe with serial number "
       << this->Internal->ProbeSerialNum << ". Please make sure the probe is charged"
       ", paired, and in range for BLE.");
-    
+
     std::vector<std::string> probes = this->Internal->BleHelper.RetrieveFoundProbeIds();
-    
+
     if (!probes.size())
     {
       // failed to connect to probe by serial number, no active probes found in BLE range
@@ -1015,7 +1015,7 @@ PlusStatus vtkPlusClariusOEM::InitializeProbe()
   if (!this->Internal->BleHelper.AwaitWifiInfoReady())
   {
     LOG_ERROR("Timeout occurred while waiting for Clarius probe to power on."
-      << " Last error ws: " << this->Internal->BleHelper.GetLastError());
+      << " Last error was: " << this->Internal->BleHelper.GetLastError());
     return PLUS_FAIL;
   }
 
@@ -1056,7 +1056,7 @@ PlusStatus vtkPlusClariusOEM::InitializeProbe()
     infoStream << "\tChannel: " << info.Channel << "\n";
 
     LOG_INFO("Clarius Wifi Info: " << std::endl << infoStream.str());
-    
+
     this->Internal->Ssid = info.SSID;
     this->Internal->Password = info.Password;
     this->Internal->IpAddress = info.IPv4;
@@ -1099,18 +1099,18 @@ PlusStatus vtkPlusClariusOEM::InitializeOEM()
   const char* certPath = "/Clarius";
 
   // api callback functions
-  ClariusListFn listFnPtr = static_cast<ClariusListFn>(&vtkPlusClariusOEM::vtkInternal::ListFn);
-  ClariusConnectFn connectFnPtr = static_cast<ClariusConnectFn>(&vtkPlusClariusOEM::vtkInternal::ConnectFn);
-  ClariusCertFn certFnPtr = static_cast<ClariusCertFn>(&vtkPlusClariusOEM::vtkInternal::CertFn);
-  ClariusPowerDownFn powerDownFnPtr = static_cast<ClariusPowerDownFn>(&vtkPlusClariusOEM::vtkInternal::PowerDownFn);
-  ClariusSwUpdateFn swUpdateFnPtr = static_cast<ClariusSwUpdateFn>(&vtkPlusClariusOEM::vtkInternal::SwUpdateFn);
-  ClariusNewRawImageFn newRawImageFnPtr = static_cast<ClariusNewRawImageFn>(&vtkPlusClariusOEM::vtkInternal::RawImageFn);
-  ClariusNewProcessedImageFn newProcessedImageFnPtr = static_cast<ClariusNewProcessedImageFn>(&vtkPlusClariusOEM::vtkInternal::ProcessedImageFn);
-  ClariusNewSpectralImageFn newSpectralImageFnPtr = static_cast<ClariusNewSpectralImageFn>(&vtkPlusClariusOEM::vtkInternal::SpectralImageFn);
-  ClariusImagingFn imagingFnPtr = static_cast<ClariusImagingFn>(&vtkPlusClariusOEM::vtkInternal::ImagingFn);
-  ClariusButtonFn buttonFnPtr = static_cast<ClariusButtonFn>(&vtkPlusClariusOEM::vtkInternal::ButtonFn);
-  ClariusProgressFn progressFnPtr = static_cast<ClariusProgressFn>(&vtkPlusClariusOEM::vtkInternal::ProgressFn);
-  ClariusErrorFn errorFnPtr = static_cast<ClariusErrorFn>(&vtkPlusClariusOEM::vtkInternal::ErrorFn);
+  CusListFn listFnPtr = static_cast<CusListFn>(&vtkPlusClariusOEM::vtkInternal::ListFn);
+  CusConnectFn connectFnPtr = static_cast<CusConnectFn>(&vtkPlusClariusOEM::vtkInternal::ConnectFn);
+  CusCertFn certFnPtr = static_cast<CusCertFn>(&vtkPlusClariusOEM::vtkInternal::CertFn);
+  CusPowerDownFn powerDownFnPtr = static_cast<CusPowerDownFn>(&vtkPlusClariusOEM::vtkInternal::PowerDownFn);
+  CusSwUpdateFn swUpdateFnPtr = static_cast<CusSwUpdateFn>(&vtkPlusClariusOEM::vtkInternal::SwUpdateFn);
+  CusNewRawImageFn newRawImageFnPtr = static_cast<CusNewRawImageFn>(&vtkPlusClariusOEM::vtkInternal::RawImageFn);
+  CusNewProcessedImageFn newProcessedImageFnPtr = static_cast<CusNewProcessedImageFn>(&vtkPlusClariusOEM::vtkInternal::ProcessedImageFn);
+  CusNewSpectralImageFn newSpectralImageFnPtr = static_cast<CusNewSpectralImageFn>(&vtkPlusClariusOEM::vtkInternal::SpectralImageFn);
+  CusImagingFn imagingFnPtr = static_cast<CusImagingFn>(&vtkPlusClariusOEM::vtkInternal::ImagingFn);
+  CusButtonFn buttonFnPtr = static_cast<CusButtonFn>(&vtkPlusClariusOEM::vtkInternal::ButtonFn);
+  CusProgressFn progressFnPtr = static_cast<CusProgressFn>(&vtkPlusClariusOEM::vtkInternal::ProgressFn);
+  CusErrorFn errorFnPtr = static_cast<CusErrorFn>(&vtkPlusClariusOEM::vtkInternal::ErrorFn);
 
   // no b-mode data sources, disable b mode callback
   std::vector<vtkPlusDataSource*> bModeSources;
@@ -1208,12 +1208,12 @@ PlusStatus vtkPlusClariusOEM::ConfigureProbeApplication()
   const char* ip = this->Internal->IpAddress.c_str();
   unsigned int port = this->Internal->TcpPort;
   LOG_INFO("Attempting connection to Clarius ultrasound on " << ip << ":" << port << " for 25 seconds:");
-  
+
   std::future<void> connectionBarrierFuture = this->Internal->ConnectionBarrier.get_future();
   try
   {
     int result = cusOemConnect(ip, port);
-    if (result != CONNECT_SUCCESS)
+    if (result != CusConnection::ProbeConnected)
     {
       LOG_ERROR("Failed to initiate connection to Clarius probe on " << ip << ":" << port <<
         ". Return code: " << ConnectEnumToString[result]);
@@ -1245,7 +1245,7 @@ PlusStatus vtkPlusClariusOEM::ConfigureProbeApplication()
   LOG_INFO("Connected to Clarius probe on " << ip << ":" << port);
 
   // get list of available probes
-  ClariusListFn listFnPtr = static_cast<ClariusListFn>(&vtkPlusClariusOEM::vtkInternal::ListFn);
+  CusListFn listFnPtr = static_cast<CusListFn>(&vtkPlusClariusOEM::vtkInternal::ListFn);
   this->Internal->ExpectedList = vtkPlusClariusOEM::vtkInternal::EXPECTED_LIST::PROBES;
   std::future<std::vector<std::string>> futureProbes = this->Internal->PromiseProbes.get_future();
   if (cusOemProbes(listFnPtr) != 0)
@@ -1412,13 +1412,13 @@ PlusStatus vtkPlusClariusOEM::InternalConnect()
   }
 
   // CONFIGURE PROBE SETTINGS
-  ClariusProbeSettings settings;
+  CusProbeSettings settings;
   settings.contactDetection = this->Internal->ContactDetectionTimeoutSec;
   settings.autoFreeze = (this->Internal->AutoFreezeTimeoutSec ? 1 : 0);
   settings.keepAwake = this->Internal->KeepAwakeTimeoutMin;
   settings.wifiOptimization = this->Internal->FreezeOnPoorWifiSignal;
-  settings.buttonUp = static_cast<int>(this->Internal->UpButtonMode);
-  settings.buttonDown = static_cast<int>(this->Internal->DownButtonMode);
+  settings.up = static_cast<CusButtonSetting>(this->Internal->UpButtonMode);
+  settings.down = static_cast<CusButtonSetting>(this->Internal->DownButtonMode);
   if (cusOemSetProbeSettings(&settings) != 0)
   {
     LOG_ERROR("Failed to set Clarius OEM probe settings");
@@ -1435,14 +1435,14 @@ PlusStatus vtkPlusClariusOEM::InternalConnect()
   }
 
   // PRINT DEVICE STATS AND PROBE INFO
-  ClariusStatusInfo stats;
+  CusStatusInfo stats;
   if (cusOemStatusInfo(&stats) != 0)
   {
     LOG_WARNING("Failed to retrieve cusOemStatusInfo");
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_LONG_DELAY_MS));
 
-  ClariusProbeInfo probeInfo;
+  CusProbeInfo probeInfo;
   if (cusOemProbeInfo(&probeInfo) != 0)
   {
     LOG_WARNING("Failed to retrieve cusOemProbeInfo");
@@ -1455,7 +1455,7 @@ PlusStatus vtkPlusClariusOEM::InternalConnect()
   ss << "Pitch: " << probeInfo.pitch << std::endl;
   ss << "Radius: " << probeInfo.radius << "mm" << std::endl;
   LOG_INFO(std::endl << "Probe info: " << std::endl << ss.str());
-  
+
   // enable the 5v rail on the top of the Clarius probe
   int enable5v = this->Internal->Enable5v ? 1 : 0;
   if (cusOemEnable5v(enable5v) < 0)
@@ -1663,7 +1663,7 @@ PlusStatus vtkPlusClariusOEM::GetDepthMm(double& aDepthMm)
     return this->ImagingParameters->GetDepthMm(aDepthMm);
   }
 
-  double oemVal = cusOemGetParam(PARAM_DEPTH);
+  double oemVal = cusOemGetParam(CusParam::ImageDepth);
   if (oemVal < 0)
   {
     aDepthMm = -1;
@@ -1694,7 +1694,7 @@ PlusStatus vtkPlusClariusOEM::SetDepthMm(double aDepthMm)
 
   // attempt to set parameter value
   double depthCm = aDepthMm * MM_TO_CM;
-  if (cusOemSetParam(PARAM_DEPTH, depthCm) < 0)
+  if (cusOemSetParam(CusParam::ImageDepth, depthCm) < 0)
   {
     LOG_ERROR("Failed to set DepthMm parameter");
     return PLUS_FAIL;
@@ -1717,7 +1717,7 @@ PlusStatus vtkPlusClariusOEM::GetGainPercent(double& aGainPercent)
     return this->ImagingParameters->GetGainPercent(aGainPercent);
   }
 
-  double oemVal = cusOemGetParam(PARAM_GAIN);
+  double oemVal = cusOemGetParam(CusParam::Gain);
   if (oemVal < 0)
   {
     aGainPercent = -1;
@@ -1747,7 +1747,7 @@ PlusStatus vtkPlusClariusOEM::SetGainPercent(double aGainPercent)
   }
 
   // attempt to set parameter value
-  if (cusOemSetParam(PARAM_GAIN, aGainPercent) < 0)
+  if (cusOemSetParam(CusParam::Gain, aGainPercent) < 0)
   {
     LOG_ERROR("Failed to set GainPercent parameter");
     return PLUS_FAIL;
@@ -1770,7 +1770,7 @@ PlusStatus vtkPlusClariusOEM::GetDynRangePercent(double& aDynRangePercent)
     return this->ImagingParameters->GetDynRangeDb(aDynRangePercent);
   }
 
-  double oemVal = cusOemGetParam(PARAM_DYNRNG);
+  double oemVal = cusOemGetParam(CusParam::DynamicRange);
   if (oemVal < 0)
   {
     aDynRangePercent = -1;
@@ -1800,7 +1800,7 @@ PlusStatus vtkPlusClariusOEM::SetDynRangePercent(double aDynRangePercent)
   }
 
   // attempt to set parameter value
-  if (cusOemSetParam(PARAM_DYNRNG, aDynRangePercent) < 0)
+  if (cusOemSetParam(CusParam::DynamicRange, aDynRangePercent) < 0)
   {
     LOG_ERROR("Failed to set DynRange parameter");
     return PLUS_FAIL;
@@ -1823,7 +1823,7 @@ PlusStatus vtkPlusClariusOEM::GetTimeGainCompensationDb(std::vector<double>& aTG
     return this->ImagingParameters->GetTimeGainCompensation(aTGC);
   }
 
-  ClariusTgc cTGC;
+  CusTgc cTGC;
   if (cusOemGetTgc(&cTGC) < 0)
   {
     LOG_ERROR("Failed to get time gain compensation parameter");
@@ -1861,7 +1861,7 @@ PlusStatus vtkPlusClariusOEM::SetTimeGainCompensationDb(const std::vector<double
     return PLUS_SUCCESS;
   }
 
-  ClariusTgc cTGC;
+  CusTgc cTGC;
   cTGC.top = aTGC[0];
   cTGC.mid = aTGC[1];
   cTGC.bottom = aTGC[2];
