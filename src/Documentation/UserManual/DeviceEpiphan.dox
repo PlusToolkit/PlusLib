@@ -4,6 +4,7 @@
 \section EpiphanSupportedHwDevices Supported hardware devices
 
 - Recommended model for VGA and DVI capture: <a href="http://www.epiphan.com/products/dvi2usb-3-0/">DVI2USB 3.0</a>. The basic VGA2USB model is not suitable for most applications, because it provides interlaced output at a very low frame rate.
+- This device is not compatible with Epiphan AV.io frame grabbers. If using one of these devices, use the \ref DeviceMicrosoftMediaFoundation or \ref DeviceOpenCVVideo imaging devices to connect to the frame grabber.
 
 - Link to manufacturer's website: http://www.epiphan.com/.
 
