@@ -194,7 +194,7 @@ public:
 
   // setup function for the Clarius WiFi service and related characteristics
   PlusStatus SetupWifiService();
-  
+
   // call this immediately after SetupPowerService / SetupWifiService members
   // to ensure state is initialized correctly
   PlusStatus InitializeState();
@@ -204,6 +204,9 @@ public:
 
   // convert GattCommunicationStatus enum to string representations
   std::string GattCommunicationStatusToString(GattCommunicationStatus status);
+
+  // parses Clarius WiFi info string into this->WifiInfo
+  void ProcessWifiInfo(std::string info);
 
   // members
 
@@ -252,9 +255,6 @@ private:
     const guid charUuid,
     GattCharacteristic& characteristic
   );
-
-  // parses Clarius WiFi info string into this->WifiInfo
-  void ProcessWifiInfo(std::string info);
 
   // helper for ProcessWifiInfo to split string up
   std::vector<std::string> TokenizeString(std::string str, const char delimiter);
@@ -314,7 +314,7 @@ void ClariusBLEPrivate::PowerStateChanged(GattCharacteristic sender, GattValueCh
 void ClariusBLEPrivate::WifiStateChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
 {
   DataReader reader = DataReader::FromBuffer(args.CharacteristicValue());
-  winrt::hstring wifiHString= reader.ReadString(reader.UnconsumedBufferLength());
+  winrt::hstring wifiHString = reader.ReadString(reader.UnconsumedBufferLength());
   std::string wifiStr = to_narrow_string(wifiHString);
   this->ProcessWifiInfo(wifiStr);
 
@@ -344,6 +344,8 @@ PlusStatus ClariusBLEPrivate::SetupPowerService()
   }
 
   // subscribe to power state changes
+  this->PowerPublishedChar.WriteClientCharacteristicConfigurationDescriptorAsync(
+    GattClientCharacteristicConfigurationDescriptorValue::Notify);
   this->PowerPublishedChar.ValueChanged({ this, &ClariusBLEPrivate::PowerStateChanged });
 
   return PLUS_SUCCESS;
@@ -371,6 +373,9 @@ PlusStatus ClariusBLEPrivate::SetupWifiService()
   }
 
   // subscribe to wifi state changes
+  // TODO: Even after subscribing, WifiStateChanged callback doesn't seem to be called.
+  this->WifiPublishedChar.WriteClientCharacteristicConfigurationDescriptorAsync(
+    GattClientCharacteristicConfigurationDescriptorValue::Notify);
   this->WifiPublishedChar.ValueChanged({ this, &ClariusBLEPrivate::WifiStateChanged });
 
   return PLUS_SUCCESS;
@@ -380,7 +385,7 @@ PlusStatus ClariusBLEPrivate::SetupWifiService()
 PlusStatus ClariusBLEPrivate::InitializeState()
 {
   // initialize power state
-  IAsyncOperation<GattReadResult> powerOp = 
+  IAsyncOperation<GattReadResult> powerOp =
     this->PowerPublishedChar.ReadValueAsync(BluetoothCacheMode::Uncached);
   if (await_async(powerOp) != PLUS_SUCCESS)
   {
@@ -431,7 +436,7 @@ PlusStatus ClariusBLEPrivate::InitializeState()
   winrt::hstring wifiHString = wifiReader.ReadString(wifiReader.UnconsumedBufferLength());
   std::string wifiStr = to_narrow_string(wifiHString);
   this->ProcessWifiInfo(wifiStr);
-  
+
   return PLUS_SUCCESS;
 }
 
@@ -471,7 +476,7 @@ PlusStatus ClariusBLEPrivate::RetrieveService(const guid& serviceUuid, GattDevic
   }
 
   GattDeviceServicesResult servicesResult = getServicesOp.GetResults();
-  
+
   // check that GetGattServicesForUuidAsync returned a successful status
   if (servicesResult.Status() != GattCommunicationStatus::Success)
   {
@@ -629,13 +634,13 @@ void ClariusBLEPrivate::ProcessWifiInfo(std::string info)
   std::string castTag = "cast: ";
   std::string castStrInt = castStr.replace(0, castTag.length(), "");
   newInfo.CastPort = std::stoi(castStrInt);
-  
+
   // parse Channel
   std::string channelStr = infoList.at(8);
   std::string channelTag = "channel: ";
   std::string channelStrInt = channelStr.replace(0, channelTag.length(), "");
   newInfo.Channel = std::stoi(channelStrInt);
-  
+
   // set WifiInfo member variable and set variable
   this->WifiInfo = newInfo;
   this->WifiInfoSet = true;
@@ -676,7 +681,7 @@ PlusStatus ClariusBLE::FindBySerial(std::string serialNum)
 {
   std::string fullBleName = "CUS-" + serialNum;
   _impl->ProbeId = to_wide_string(fullBleName);
-  
+
   DeviceWatcher deviceWatcher{ nullptr };
   winrt::hstring aqsFilter{ BluetoothLEDevice::GetDeviceSelectorFromPairingState(true) };
   deviceWatcher = DeviceInformation::CreateWatcher(
@@ -729,7 +734,7 @@ PlusStatus ClariusBLE::Connect()
 
   // get BLE device
   IAsyncOperation<BluetoothLEDevice> deviceOp = BluetoothLEDevice::FromIdAsync(_impl->DeviceInfo.Id());
-  
+
   if (await_async(deviceOp) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
@@ -852,7 +857,25 @@ bool ClariusBLE::AwaitWifiInfoReady()
   // wait for wifi info to be set
   std::future<void> wifiInfoFuture = _impl->WifiInfoPromise.get_future();
 
-  if (wifiInfoFuture.wait_for(std::chrono::seconds(POWER_ON_TIMEOUT_SEC)) != std::future_status::ready)
+  if (wifiInfoFuture.wait_for(std::chrono::seconds(POWER_ON_TIMEOUT_SEC)) == std::future_status::ready)
+  {
+    return true;
+  }
+
+  // TODO: WifiStateChanged callback is not currently being called.
+  // After waiting for the timeout, try once to see if WifiPublishedChar has been updated.
+  IAsyncOperation<GattReadResult> wifiOp =
+    _impl->WifiPublishedChar.ReadValueAsync(BluetoothCacheMode::Uncached);
+  if (await_async(wifiOp) == PLUS_SUCCESS)
+  {
+    GattReadResult wifiResult = wifiOp.GetResults();
+    DataReader wifiReader = DataReader::FromBuffer(wifiResult.Value());
+    winrt::hstring wifiHString = wifiReader.ReadString(wifiReader.UnconsumedBufferLength());
+    std::string wifiStr = to_narrow_string(wifiHString);
+    _impl->ProcessWifiInfo(wifiStr);
+  }
+
+  if (!_impl->WifiInfoSet)
   {
     std::stringstream msg;
     msg << "Clarius probe took longer than the maximum allowed " << POWER_ON_TIMEOUT_SEC
