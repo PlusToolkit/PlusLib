@@ -412,16 +412,9 @@ PlusStatus vtkPlusClarius::InternalConnect()
   this->OrientationSensorTool = NULL;
   this->GetToolByPortName("OrientationSensor", this->OrientationSensorTool);
 
-  vtkPlusClarius* device = vtkPlusClarius::GetInstance();
   // Initialize Clarius Listener Before Connecting
-  if (!device->Connected)
+  if (!this->IsConnected())
   {
-    int argc = 1;
-    char** argv = new char* [1];
-    argv[0] = new char[4];
-    strcpy(argv[0], "abc");
-    const char* path = device->PathToSecKey.c_str();
-
     // Callbacks
     CusNewProcessedImageFn processedImageCallbackPtr = static_cast<CusNewProcessedImageFn>(&vtkPlusClarius::ProcessedImageCallback);
     CusNewRawImageFn rawDataCallBackPtr = static_cast<CusNewRawImageFn>(&vtkPlusClarius::RawImageCallback);
@@ -432,7 +425,7 @@ PlusStatus vtkPlusClarius::InternalConnect()
 
     // No B-mode data sources. Disable B mode callback.
     std::vector<vtkPlusDataSource*> bModeSources;
-    device->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, bModeSources);
+    this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, bModeSources);
     if (bModeSources.empty())
     {
       processedImageCallbackPtr = nullptr;
@@ -440,7 +433,7 @@ PlusStatus vtkPlusClarius::InternalConnect()
 
     // No RF-mode data sources. Disable RF mode callback.
     std::vector<vtkPlusDataSource*> rfModeSources;
-    device->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, rfModeSources);
+    this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, rfModeSources);
     if (rfModeSources.empty())
     {
       rawDataCallBackPtr = nullptr;
@@ -448,7 +441,7 @@ PlusStatus vtkPlusClarius::InternalConnect()
 
     try
     {
-      if (cusCastInit(argc, argv, path,
+      if (cusCastInit(0, NULL, this->PathToSecKey.c_str(),
         processedImageCallbackPtr,
         rawDataCallBackPtr,
         nullptr, // ClariusSpectralImageInfo
@@ -456,8 +449,8 @@ PlusStatus vtkPlusClarius::InternalConnect()
         buttonCallBackFnPtr,
         progressCallBackFnPtr,
         errorCallBackFnPtr,
-        device->FrameWidth,
-        device->FrameHeight) < 0)
+        this->FrameWidth,
+        this->FrameHeight) < 0)
       {
         return PLUS_FAIL;
       }
@@ -480,12 +473,15 @@ PlusStatus vtkPlusClarius::InternalConnect()
     }
 
     // Attempt to connect;
-    int isConnected = -1;
-    const char* ip = device->IpAddress.c_str();
+    const char* ip = this->IpAddress.c_str();
     try
     {
       CusReturnFn returnFunction = (CusReturnFn)(&vtkPlusClarius::ConnectReturnFn);
-      isConnected = cusCastConnect(ip, device->TcpPort, returnFunction);
+      cusCastConnect(ip, this->TcpPort, returnFunction);
+
+      // Wait for connection to complete and get udp port.
+      const double connectionDelaySeconds = 1.0;
+      vtkIGSIOAccurateTimer::DelayWithEventProcessing(connectionDelaySeconds);
     }
     catch (const std::runtime_error& re)
     {
@@ -503,17 +499,17 @@ PlusStatus vtkPlusClarius::InternalConnect()
       return PLUS_FAIL;
     }
 
-    if (isConnected < 0)
+    if (!this->IsConnected())
     {
-      LOG_ERROR("Could not connect to scanner at Ip = " << ip << " port number= " << device->TcpPort << " isConnected = " << isConnected);
+      LOG_ERROR("Could not connect to scanner at ip: " << ip << " port number: " << this->TcpPort);
       return PLUS_FAIL;
     }
   }
   else
   {
-    LOG_DEBUG("Scanner already connected to IP address=" << device->IpAddress
-      << " TCP Port Number =" << device->TcpPort << "Streaming Image at UDP Port=" << device->UdpPort);
-    device->Connected = 1;
+    LOG_DEBUG("Scanner already connected to IP address=" << this->IpAddress
+      << " TCP Port Number =" << this->TcpPort << "Streaming Image at UDP Port=" << this->UdpPort);
+    this->Connected = 1;
     return PLUS_SUCCESS;
   }
   return PLUS_SUCCESS;
@@ -533,6 +529,7 @@ void vtkPlusClarius::ConnectReturnFn(int udpPort)
       device->FrameWidth = DEFAULT_FRAME_WIDTH;
       device->FrameHeight = DEFAULT_FRAME_HEIGHT;
     }
+    device->Connected = 1;
   }
   else
   {
@@ -645,11 +642,11 @@ void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const CusProce
   }
 
 
-  LOG_TRACE("new image (" << newImage << "): " << nfo->width << " x " << nfo->height << " @ " << nfo->bitsPerPixel
+  LOG_TRACE("New image (" << newImage << "): " << nfo->width << " x " << nfo->height << " @ " << nfo->bitsPerPixel
     << "bits. @ " << nfo->micronsPerPixel << " microns per pixel. imu points: " << npos);
 
   // Check if still connected
-  if (device->Connected == 0)
+  if (!device->IsConnected())
   {
     LOG_ERROR("Trouble connecting to Clarius Device. IpAddress = " << device->IpAddress
       << " port = " << device->TcpPort);
@@ -905,7 +902,7 @@ void vtkPlusClarius::RawImageCallback(const void* newImage, const CusRawImageInf
     << nfo->axialSize << " axial microns per sample, " << nfo->lateralSize << " lateral microns per line.");
 
   // Check if still connected
-  if (device->Connected == 0)
+  if (!device->IsConnected())
   {
     LOG_ERROR("Trouble connecting to Clarius Device. IpAddress = " << device->IpAddress
       << " port = " << device->TcpPort);
