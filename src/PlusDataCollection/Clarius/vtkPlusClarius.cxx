@@ -717,10 +717,10 @@ void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const CusProce
 
   // The timestamp that each image is tagged with is
   // (system_start_time + current_clarius_time - clarius_start_time)
-  double converted_timestamp = device->SystemStartTimestamp + (device->ClariusLastTimestamp - device->ClariusStartTimestamp);
+  double convertedTimestamp = device->SystemStartTimestamp + (device->ClariusLastTimestamp - device->ClariusStartTimestamp);
   if (npos != 0)
   {
-    device->WritePosesToCsv(nfo, npos, pos, device->FrameNumber, systemTime, converted_timestamp);
+    device->WritePosesToCsv(nfo, npos, pos, device->FrameNumber, systemTime, convertedTimestamp);
   }
 
   if (device->WriteImagesToDisk)
@@ -746,16 +746,25 @@ void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const CusProce
     outputUSImageType,
     0,
     device->FrameNumber,
-    converted_timestamp,
-    converted_timestamp,
+    convertedTimestamp,
+    convertedTimestamp,
     &customField
   );
 
   for (int i = 0; i < npos; i++)
   {
-    double angularRate[3] = { pos[i].gx , pos[i].gy , pos[i].gz };
-    double magneticField[3] = { pos[i].mx , pos[i].my , pos[i].mz };
-    double acceleration[3] = { pos[i].ax , pos[i].ay , pos[i].az };
+    const CusPosInfo currentPos = pos[i];
+
+    // the clarius timestamp is in nanoseconds
+    // The timestamp that each pose is tagged with is
+    // (system_start_time + current_clarius_time - clarius_start_time)
+    double poseTimeStamp = static_cast<double>((double)currentPos.tm / (double)1000000000);
+    poseTimeStamp = device->SystemStartTimestamp + (poseTimeStamp - device->ClariusStartTimestamp);
+
+    double angularRate[3] = { currentPos.gx , currentPos.gy , currentPos.gz };
+    double magneticField[3] = { currentPos.mx , currentPos.my , currentPos.mz };
+    double acceleration[3] = { currentPos.ax , currentPos.ay , currentPos.az };
+    double orientationQuat[4] = { currentPos.qw, currentPos.qx, currentPos.qy, currentPos.qz };
 
     if (device->AccelerometerTool != NULL)
     {
@@ -763,7 +772,7 @@ void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const CusProce
       device->LastAccelerometerToTrackerTransform->SetElement(0, 3, acceleration[0]);
       device->LastAccelerometerToTrackerTransform->SetElement(1, 3, acceleration[1]);
       device->LastAccelerometerToTrackerTransform->SetElement(2, 3, acceleration[2]);
-      device->ToolTimeStampedUpdateWithoutFiltering(device->AccelerometerTool->GetId(), device->LastAccelerometerToTrackerTransform, TOOL_OK, converted_timestamp, converted_timestamp);
+      device->ToolTimeStampedUpdateWithoutFiltering(device->AccelerometerTool->GetId(), device->LastAccelerometerToTrackerTransform, TOOL_OK, poseTimeStamp, poseTimeStamp);
     }
     if (device->GyroscopeTool != NULL)
     {
@@ -771,14 +780,14 @@ void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const CusProce
       device->LastGyroscopeToTrackerTransform->SetElement(0, 3, angularRate[0]);
       device->LastGyroscopeToTrackerTransform->SetElement(1, 3, angularRate[1]);
       device->LastGyroscopeToTrackerTransform->SetElement(2, 3, angularRate[2]);
-      device->ToolTimeStampedUpdateWithoutFiltering(device->GyroscopeTool->GetId(), device->LastGyroscopeToTrackerTransform, TOOL_OK, converted_timestamp, converted_timestamp);
+      device->ToolTimeStampedUpdateWithoutFiltering(device->GyroscopeTool->GetId(), device->LastGyroscopeToTrackerTransform, TOOL_OK, poseTimeStamp, poseTimeStamp);
     }
     if (device->MagnetometerTool != NULL)
     {
       if (magneticField[0] > 1e100)
       {
         // magnetometer data is not available, use the last transform with an invalid status to not have any missing transform
-        device->ToolTimeStampedUpdateWithoutFiltering(device->MagnetometerTool->GetId(), device->LastMagnetometerToTrackerTransform, TOOL_INVALID, converted_timestamp, converted_timestamp);
+        device->ToolTimeStampedUpdateWithoutFiltering(device->MagnetometerTool->GetId(), device->LastMagnetometerToTrackerTransform, TOOL_INVALID, poseTimeStamp, poseTimeStamp);
       }
       else
       {
@@ -787,88 +796,59 @@ void vtkPlusClarius::ProcessedImageCallback(const void* newImage, const CusProce
         device->LastMagnetometerToTrackerTransform->SetElement(0, 3, magneticField[0]);
         device->LastMagnetometerToTrackerTransform->SetElement(1, 3, magneticField[1]);
         device->LastMagnetometerToTrackerTransform->SetElement(2, 3, magneticField[2]);
-        device->ToolTimeStampedUpdateWithoutFiltering(device->MagnetometerTool->GetId(), device->LastMagnetometerToTrackerTransform, TOOL_OK, converted_timestamp, converted_timestamp);
+        device->ToolTimeStampedUpdateWithoutFiltering(device->MagnetometerTool->GetId(), device->LastMagnetometerToTrackerTransform, TOOL_OK, poseTimeStamp, poseTimeStamp);
       }
+    }
+    if (device->OrientationSensorTool != NULL)
+    {
+      double orientationMatrix[3][3] = {
+        {0.0, 0.0, 0.0},
+        {0.0, 0.0, 0.0},
+        {0.0, 0.0, 0.0}
+      };
+      vtkMath::QuaternionToMatrix3x3(orientationQuat, orientationMatrix);
+      for (int c = 0; c < 3; c++)
+      {
+        for (int r = 0; r < 3; r++)
+        {
+          device->LastOrientationSensorToTrackerTransform->SetElement(r, c, orientationMatrix[r][c]);
+        }
+      }
+      device->ToolTimeStampedUpdateWithoutFiltering(device->OrientationSensorTool->GetId(), device->LastOrientationSensorToTrackerTransform, TOOL_OK, poseTimeStamp, poseTimeStamp);
     }
 
     if (device->TiltSensorTool != NULL)
     {
-      // Compose matrix that transforms the x axis to the input vector by rotations around two orthogonal axes
-      vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-
       double downVector_Sensor[4] = { acceleration[0], acceleration[1], acceleration[2], 0 }; // provided by the sensor
       vtkMath::Normalize(downVector_Sensor);
 
       igsioMath::ConstrainRotationToTwoAxes(downVector_Sensor, device->TiltSensorWestAxisIndex, device->LastTiltSensorToTrackerTransform);
 
-      device->ToolTimeStampedUpdateWithoutFiltering(device->TiltSensorTool->GetId(), device->LastTiltSensorToTrackerTransform, TOOL_OK, converted_timestamp, converted_timestamp);
+      device->ToolTimeStampedUpdateWithoutFiltering(device->TiltSensorTool->GetId(), device->LastTiltSensorToTrackerTransform, TOOL_OK, poseTimeStamp, poseTimeStamp);
     }
 
-    if (device->OrientationSensorTool != NULL)
-    {
-      if (magneticField[0] > 1e100)
-      {
-        // magnetometer data is not available, use the last transform with an invalid status to not have any missing transform
-        device->ToolTimeStampedUpdateWithoutFiltering(device->OrientationSensorTool->GetId(), device->LastOrientationSensorToTrackerTransform, TOOL_INVALID, converted_timestamp, converted_timestamp);
-      }
-      else
-      {
-        // magnetometer data is valid
-
-        //LOG_TRACE("samplingTime(msec)="<<1000.0*timeSinceLastAhrsUpdateSec<<", packetCount="<<count);
-        //LOG_TRACE("gyroX="<<std::fixed<<std::setprecision(2)<<std::setw(6)<<angularRate[0]<<", gyroY="<<angularRate[1]<<", gyroZ="<<angularRate[2]);
-        //LOG_TRACE("magX="<<std::fixed<<std::setprecision(2)<<std::setw(6)<<magneticField[0]<<", magY="<<magneticField[1]<<", magZ="<<magneticField[2]);
-
-        if (device->AhrsUseMagnetometer)
-        {
-          device->AhrsAlgo->UpdateWithTimestamp(
-            vtkMath::RadiansFromDegrees(angularRate[0]), vtkMath::RadiansFromDegrees(angularRate[1]), vtkMath::RadiansFromDegrees(angularRate[2]),
-            acceleration[0], acceleration[1], acceleration[2],
-            magneticField[0], magneticField[1], magneticField[2], converted_timestamp);
-        }
-        else
-        {
-          device->AhrsAlgo->UpdateIMUWithTimestamp(
-            vtkMath::RadiansFromDegrees(angularRate[0]), vtkMath::RadiansFromDegrees(angularRate[1]), vtkMath::RadiansFromDegrees(angularRate[2]),
-            acceleration[0], acceleration[1], acceleration[2], converted_timestamp);
-        }
-
-
-        double rotQuat[4] = { 0 };
-        device->AhrsAlgo->GetOrientation(rotQuat[0], rotQuat[1], rotQuat[2], rotQuat[3]);
-
-        double rotMatrix[3][3] = { 0 };
-        vtkMath::QuaternionToMatrix3x3(rotQuat, rotMatrix);
-
-        for (int c = 0; c < 3; c++)
-        {
-          for (int r = 0; r < 3; r++)
-          {
-            device->LastOrientationSensorToTrackerTransform->SetElement(r, c, rotMatrix[r][c]);
-          }
-        }
-
-        device->ToolTimeStampedUpdateWithoutFiltering(device->OrientationSensorTool->GetId(), device->LastOrientationSensorToTrackerTransform, TOOL_OK, converted_timestamp, converted_timestamp);
-      }
-    }
     if (device->FilteredTiltSensorTool != NULL)
     {
       device->FilteredTiltSensorAhrsAlgo->UpdateIMUWithTimestamp(
         vtkMath::RadiansFromDegrees(angularRate[0]), vtkMath::RadiansFromDegrees(angularRate[1]), vtkMath::RadiansFromDegrees(angularRate[2]),
-        acceleration[0], acceleration[1], acceleration[2], converted_timestamp);
+        acceleration[0], acceleration[1], acceleration[2], poseTimeStamp);
 
-      double rotQuat[4] = { 0 };
+      double rotQuat[4] = { 0.0, 0.0, 0.0, 0.0 };
       device->AhrsAlgo->GetOrientation(rotQuat[0], rotQuat[1], rotQuat[2], rotQuat[3]);
 
-      double rotMatrix[3][3] = { 0 };
+      double rotMatrix[3][3] = {
+        {0.0, 0.0, 0.0},
+        {0.0, 0.0, 0.0},
+        {0.0, 0.0, 0.0}
+      };
       vtkMath::QuaternionToMatrix3x3(rotQuat, rotMatrix);
 
-      double filteredDownVector_Sensor[4] = { rotMatrix[2][0], rotMatrix[2][1], rotMatrix[2][2], 0 };
+      double filteredDownVector_Sensor[4] = { rotMatrix[2][0], rotMatrix[2][1], rotMatrix[2][2], 0.0 };
       vtkMath::Normalize(filteredDownVector_Sensor);
 
       igsioMath::ConstrainRotationToTwoAxes(filteredDownVector_Sensor, device->FilteredTiltSensorWestAxisIndex, device->LastFilteredTiltSensorToTrackerTransform);
 
-      device->ToolTimeStampedUpdateWithoutFiltering(device->FilteredTiltSensorTool->GetId(), device->LastFilteredTiltSensorToTrackerTransform, TOOL_OK, converted_timestamp, converted_timestamp);
+      device->ToolTimeStampedUpdateWithoutFiltering(device->FilteredTiltSensorTool->GetId(), device->LastFilteredTiltSensorToTrackerTransform, TOOL_OK, poseTimeStamp, poseTimeStamp);
 
       // write back the results to the FilteredTiltSensor_AHRS algorithm
       for (int c = 0; c < 3; c++)

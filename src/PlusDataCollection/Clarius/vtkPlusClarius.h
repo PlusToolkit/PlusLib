@@ -23,9 +23,7 @@
 #include "cast.h"
 
 // OpenCV includes
-#include <opencv2/imgproc.hpp>
 #include <opencv2/core/mat.hpp>
-#include <opencv2/opencv.hpp>
 
 class AhrsAlgo;
 
