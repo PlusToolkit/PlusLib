@@ -952,6 +952,8 @@ std::string vtkPlusClariusOEM::GetSdkVersion()
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::InitializeBLE()
 {
+  LOG_TRACE("vtkPlusClariusOEM::InitializeBLE");
+
   // find probe by serial number
   if (!this->Internal->BleHelper.FindBySerial(this->Internal->ProbeSerialNum))
   {
@@ -1003,6 +1005,8 @@ PlusStatus vtkPlusClariusOEM::InitializeBLE()
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::InitializeProbe()
 {
+  LOG_TRACE("vtkPlusClariusOEM::InitializeProbe");
+
   // power on the probe
   if (this->Internal->BleHelper.RequestProbeOn() != PLUS_SUCCESS)
   {
@@ -1069,6 +1073,8 @@ PlusStatus vtkPlusClariusOEM::InitializeProbe()
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::InitializeWifi()
 {
+  LOG_TRACE("vtkPlusClariusOEM::InitializeWifi");
+
   if (this->Internal->WifiHelper.Initialize() != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to initialize Clarius wifi helper");
@@ -1091,6 +1097,8 @@ PlusStatus vtkPlusClariusOEM::InitializeWifi()
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::InitializeOEM()
 {
+  LOG_TRACE("vtkPlusClariusOEM::InitializeOEM");
+
   // placeholder argc / argv arguments
   int argc = 1;
   char** argv = new char* [1];
@@ -1178,6 +1186,8 @@ PlusStatus vtkPlusClariusOEM::InitializeOEM()
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::SetClariusCert()
 {
+  LOG_TRACE("vtkPlusClariusOEM::SetClariusCert");
+
   // load the cert file
   std::string fullCertPath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->Internal->PathToCert);
   std::ifstream certFile(fullCertPath);
@@ -1326,6 +1336,8 @@ PlusStatus vtkPlusClariusOEM::ConfigureProbeApplication()
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::SetInitialUsParams()
 {
+  LOG_TRACE("vtkPlusClariusOEM::SetInitialUsParams");
+
   // set imaging depth (mm)
   double depthMm = this->ImagingParameters->GetDepthMm();
   if (this->SetDepthMm(depthMm) != PLUS_SUCCESS)
@@ -1474,6 +1486,8 @@ PlusStatus vtkPlusClariusOEM::InternalConnect()
 //-------------------------------------------------------------------------------------------------
 void vtkPlusClariusOEM::DeInitializeOEM()
 {
+  LOG_TRACE("vtkPlusClariusOEM::DeInitializeOEM");
+
   int oemState = cusOemIsConnected();
 
   if (oemState == CLARIUS_STATE_CONNECTED)
@@ -1514,6 +1528,8 @@ void vtkPlusClariusOEM::DeInitializeOEM()
 //-------------------------------------------------------------------------------------------------
 void vtkPlusClariusOEM::DeInitializeWifi()
 {
+  LOG_TRACE("vtkPlusClariusOEM::DeInitializeWifi");
+
   if (!this->Internal->WifiHelper.DisconnectFromClariusWifi())
   {
     LOG_WARNING("Failed to disconnect from Clarius wifi");
@@ -1527,6 +1543,8 @@ void vtkPlusClariusOEM::DeInitializeWifi()
 //-------------------------------------------------------------------------------------------------
 void vtkPlusClariusOEM::DeInitializeProbe()
 {
+  LOG_TRACE("vtkPlusClariusOEM::DeInitializeProbe");
+
   // power off the probe if powered / connected over BLE
   if (!this->Internal->BleHelper.IsProbeConnected())
   {
@@ -1543,6 +1561,8 @@ void vtkPlusClariusOEM::DeInitializeProbe()
 //-------------------------------------------------------------------------------------------------
 void vtkPlusClariusOEM::DeInitializeBLE()
 {
+  LOG_TRACE("vtkPlusClariusOEM::DeInitializeBLE");
+
   // disconnect from probe BLE
   if (this->Internal->BleHelper.Disconnect() != PLUS_SUCCESS)
   {
@@ -1598,6 +1618,8 @@ PlusStatus vtkPlusClariusOEM::InternalStopRecording()
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::InternalApplyImagingParameterChange()
 {
+  LOG_TRACE("vtkPlusClariusOEM::InternalApplyImagingParameterChange");
+
   PlusStatus status = PLUS_SUCCESS;
 
   // depth (mm), note: Clarius uses cm
