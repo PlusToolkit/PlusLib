@@ -13,20 +13,6 @@
 #include "vtkPlusDataSource.h"
 #include "vtkPlusUsDevice.h"
 
-// System Includes
-#include <thread>
-#include <string>
-#include <stdio.h>
-#include <fstream>
-
-// Clarius Includes
-#include "cast.h"
-
-// OpenCV includes
-#include <opencv2/core/mat.hpp>
-
-class AhrsAlgo;
-
 /*!
 \class vtkPlusClarius
 \brief Interface to the Clarius ultrasound scans
@@ -123,87 +109,10 @@ public:
   vtkSetStdStringMacro(RawDataOutputFilename);
   vtkGetStdStringMacro(RawDataOutputFilename);
 
-protected:
-  vtkPlusClarius();
-  ~vtkPlusClarius();
-
-  virtual PlusStatus InternalConnect();
-  virtual PlusStatus InternalDisconnect();
-  PlusStatus WritePosesToCsv(const CusProcessedImageInfo* nfo, int npos, const _CusPosInfo* pos, int frameNum, double systemTime, double convertedTime);
-
-  /*!
-  Receive previously requested data
-  */
-  PlusStatus ReceiveRawData(int dataSize);
-
-protected:
-  unsigned int TcpPort;
-  int UdpPort;
-  std::string IpAddress;
-  std::string PathToSecKey; // path to security key, required by the clarius api
-  std::ofstream RawImuDataStream;
-  std::string ImuOutputFileName;
-  int FrameWidth;
-  int FrameHeight;
-  int FrameNumber;
-  double SystemStartTimestamp;
-  double ClariusStartTimestamp;
-  double ClariusLastTimestamp;
-  bool ImuEnabled;
-  bool WriteImagesToDisk;
-
-  cv::Mat cvImage;
-
-  bool CompressRawData;
-  bool IsReceivingRawData;
-  int RawDataSize;
-  void* RawDataPointer;
-  std::string RawDataOutputFilename;
-
-  static vtkPlusClarius* instance;
-
-  static void ErrorFn(const char* err);
-  static void FreezeFn(int val);
-  static void ProgressFn(int progress);
-  static void ButtonFn(int button, int clicks);
-
-  /*!
-  Callback function used when connecting
-  Input value is the udpPort.
-  */
-  static void ConnectReturnFn(int udpPort);
-
-  /*!
-  Callback function for raw data request
-  */
-  static void RawDataRequestFn(int rawDataSize);
-
-  /*!
-  Callback function for raw data read
-  */
-  static void RawDataWriteFn(int rawDataSize);
-
-  /*!
-  Re-allocate memory to store raw ultrasound data
-  */
-  void AllocateRawData(int size);
-
-  static void NewImageFn(const void* newImage, const CusProcessedImageInfo* nfo, int npos, const CusPosInfo* pos);
-  static void ProcessedImageCallback(const void* newImage, const CusProcessedImageInfo* nfo, int npos, const CusPosInfo* pos);
-  static void RawImageCallback(const void* newImage, const CusRawImageInfo* nfo, int npos, const CusPosInfo* pos);
-
-  vtkPlusDataSource* AccelerometerTool;
-  vtkPlusDataSource* GyroscopeTool;
-  vtkPlusDataSource* MagnetometerTool;
-  vtkPlusDataSource* TiltSensorTool;
-  vtkPlusDataSource* FilteredTiltSensorTool;
-  vtkPlusDataSource* OrientationSensorTool;
-  vtkNew<vtkMatrix4x4> LastAccelerometerToTrackerTransform;
-  vtkNew<vtkMatrix4x4> LastGyroscopeToTrackerTransform;
-  vtkNew<vtkMatrix4x4> LastMagnetometerToTrackerTransform;
-  vtkNew<vtkMatrix4x4> LastTiltSensorToTrackerTransform;
-  vtkNew<vtkMatrix4x4> LastFilteredTiltSensorToTrackerTransform;
-  vtkNew<vtkMatrix4x4> LastOrientationSensorToTrackerTransform;
+  vtkSetVector2Macro(AhrsAlgorithmGain, double);
+  vtkGetVector2Macro(AhrsAlgorithmGain, double);
+  vtkSetVector2Macro(FilteredTiltSensorAhrsAlgorithmGain, double);
+  vtkGetVector2Macro(FilteredTiltSensorAhrsAlgorithmGain, double);
 
   enum AHRS_METHOD
   {
@@ -211,16 +120,27 @@ protected:
     AHRS_MAHONY
   };
 
-  AhrsAlgo* FilteredTiltSensorAhrsAlgo;
+protected:
+  vtkPlusClarius();
+  ~vtkPlusClarius();
 
-  AhrsAlgo* AhrsAlgo;
+  virtual PlusStatus InternalConnect();
+  virtual PlusStatus InternalDisconnect();
 
-  /*!
-    If AhrsUseMagnetometer enabled (a ..._MARG algorithm is chosen) then heading will be estimated using magnetometer data.
-    Otherwise (when a ..._IMU algorithm is chosen) only the gyroscope data will be used for getting the heading information.
-    IMU may be more noisy, but not sensitive to magnetic field distortions.
-  */
-  bool AhrsUseMagnetometer;
+protected:
+  unsigned int TcpPort;
+  std::string IpAddress;
+
+  std::string ImuOutputFileName;
+  int FrameWidth;
+  int FrameHeight;
+  bool ImuEnabled;
+  bool WriteImagesToDisk;
+  bool CompressRawData;
+
+  std::string RawDataOutputFilename;
+
+  static vtkPlusClarius* Instance;
 
   /*!
     Gain values used by the AHRS algorithm (Mahony: first parameter is proportional, second is integral gain; Madgwick: only the first parameter is used)
@@ -228,12 +148,6 @@ protected:
   */
   double AhrsAlgorithmGain[2];
   double FilteredTiltSensorAhrsAlgorithmGain[2];
-  vtkSetVector2Macro(AhrsAlgorithmGain, double);
-  vtkSetVector2Macro(FilteredTiltSensorAhrsAlgorithmGain, double);
-
-  /*! last AHRS update time (in system time) */
-  double AhrsLastUpdateTime;
-  double FilteredTiltSensorAhrsLastUpdateTime;
 
   /*!
     In tilt sensor mode we don't use the magnetometer, so we have to provide a direction reference.
@@ -246,7 +160,8 @@ protected:
   int TiltSensorWestAxisIndex;
   int FilteredTiltSensorWestAxisIndex;
 
-  bool Initialized;
+  class vtkInternal;
+  vtkInternal* Internal;
 };
 
 #endif //_VTKPLUSCLARIUS_H
