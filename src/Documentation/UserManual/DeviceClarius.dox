@@ -12,6 +12,8 @@ In contrast, the (relatively newer) Clarius support uses the Clarius OEM API whi
 - This device is used for image acquisition from Clarius ultrasound systems using the CAST API.
 - Link to manufacturer's website: https://clarius.com
 - Link to the CAST API: https://github.com/clariusdev/cast
+- Link to the IMU coordinate system documentation: https://github.com/clariusdev/motion
+- Link to the raw data documentation: https://github.com/clariusdev/raw
 
 \section ClariusSupportedPlatforms Supported platforms
 
@@ -25,17 +27,36 @@ In contrast, the (relatively newer) Clarius support uses the Clarius OEM API whi
 
 \section ClariusConfigSettings Device configuration settings
 
-- \xmlAtt \ref DeviceType "Type" = \c "Clarius" \RequiredAtt
-- \xmlAtt \ref IpAddress \RequiredAtt
-- \xmlAtt \ref TcpPort \RequiredAtt
-- \xmlAtt \ref FrameWidth \OptionalAtt{640}
-- \xmlAtt \ref FrameHeight \OptionalAtt{480}
-- \xmlAtt \ref ImuEnabled \OptionalAtt{FALSE}
-- \xmlAtt \ref ImuOutputFileName \OptionalAtt{ClariusImuData.csv}
-- \xmlAtt \ref WriteImagesToDisk \OptionalAtt{"FALSE"}
+- \xmlElem \ref Device
+  - \xmlAtt \ref DeviceType "Type" = \c "Clarius" \RequiredAtt
+  - \xmlAtt \b IpAddress Ip address of probe on connected network \RequiredAtt
+  - \xmlAtt \b TcpPort Clarius cast tcp port \RequiredAtt
+  - \xmlAtt \b FrameWidth Desired frame width. If the frame size is not supported the default will be used. \OptionalAtt{640}
+  - \xmlAtt \b FrameHeight Desired frame height. If the frame size is not supported the default will be used. \OptionalAtt{480}
+  - \xmlAtt \b ImuEnabled \OptionalAtt{FALSE}
+  - \xmlAtt \b ImuOutputFileName \OptionalAtt{ClariusImuData.csv}
+  - \xmlAtt \b WriteImagesToDisk \OptionalAtt{"FALSE"}
+  - \xmlElem \ref DataSources Multiple \c DataSource child elements are allowed, one for each data type (\c PortName indicates the data type) \RequiredAtt
+    - \xmlElem \ref DataSource \RequiredAtt
+      - \xmlAtt \ref DataSourceType "Type" Type should be \c Video for images and \c Tool for IMU data \RequiredAtt
+      - \xmlAtt \ref PortName \RequiredAtt
+        - \c B B-mode image data
+        - \c Rf RF data
+        - \c Accelerometer IMU accelerometer data
+        - \c Gyroscope IMU gyroscope data
+        - \c Magnetometer IMU magnetometer data
+        - \c OrientationSensor IMU orientation data
 
-\section ClariusExampleConfigFile Example configuration file PlusDeviceSet_Server_ClariusVideoCapture.xml
+\section ClariusExampleConfigFile Example configuration file for Clarius B-mode image acquisition
 
 \include "ConfigFiles/PlusDeviceSet_Server_ClariusVideoCapture.xml"
+
+\section ClariusExampleConfigFile Example configuration file for Clarius B-mode image acquisition with IMU data
+
+\include "ConfigFiles/PlusDeviceSet_Server_ClariusVideoCapture_IMU.xml"
+
+\section ClariusExampleConfigFile Example configuration file for Clarius B-mode and RF image acquisition
+
+\include "ConfigFiles/PlusDeviceSet_Server_ClariusVideoRfBMode.xml"
 
 */
