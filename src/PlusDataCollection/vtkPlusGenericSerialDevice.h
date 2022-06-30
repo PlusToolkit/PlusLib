@@ -30,6 +30,10 @@ public:
   vtkTypeMacro(vtkPlusGenericSerialDevice, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  static const char* SERIAL_COMMAND_GET_RTS;
+  static const char* SERIAL_COMMAND_SET_RTS;
+  static const char* SERIAL_COMMAND_GET_CTS;
+
   /*! Connect to device */
   PlusStatus InternalConnect();
 
@@ -105,7 +109,7 @@ public:
   /*! Gets the DTR (data-set-ready) line. */
   PlusStatus GetDSR(bool& onOff);
 
-  /*! Gets the RTS (clear-to-send) line. */
+  /*! Gets the CTS (clear-to-send) line. */
   PlusStatus GetCTS(bool& onOff);
 
 protected:
