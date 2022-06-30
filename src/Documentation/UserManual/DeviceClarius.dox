@@ -47,15 +47,15 @@ In contrast, the (relatively newer) Clarius support uses the Clarius OEM API whi
         - \c Magnetometer IMU magnetometer data
         - \c OrientationSensor IMU orientation data
 
-\section ClariusExampleConfigFile Example configuration file for Clarius B-mode image acquisition
+\section ClariusBModeExampleConfigFile Example configuration file for Clarius B-mode image acquisition
 
 \include "ConfigFiles/PlusDeviceSet_Server_ClariusVideoCapture.xml"
 
-\section ClariusExampleConfigFile Example configuration file for Clarius B-mode image acquisition with IMU data
+\section ClariusBModeIMUExampleConfigFile Example configuration file for Clarius B-mode image acquisition with IMU data
 
 \include "ConfigFiles/PlusDeviceSet_Server_ClariusVideoCapture_IMU.xml"
 
-\section ClariusExampleConfigFile Example configuration file for Clarius B-mode and RF image acquisition
+\section ClariusBModeRFExampleConfigFile Example configuration file for Clarius B-mode image and RF data acquisition
 
 \include "ConfigFiles/PlusDeviceSet_Server_ClariusVideoRfBMode.xml"
 
