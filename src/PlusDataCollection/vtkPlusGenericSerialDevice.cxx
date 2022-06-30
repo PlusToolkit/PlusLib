@@ -24,6 +24,12 @@ See License.txt for details.
 vtkStandardNewMacro(vtkPlusGenericSerialDevice);
 
 //----------------------------------------------------------------------------
+// Define command strings
+const char* vtkPlusGenericSerialDevice::SERIAL_COMMAND_GET_RTS = "GetRTS";
+const char* vtkPlusGenericSerialDevice::SERIAL_COMMAND_SET_RTS = "SetRTS";
+const char* vtkPlusGenericSerialDevice::SERIAL_COMMAND_GET_CTS = "GetCTS";
+
+//----------------------------------------------------------------------------
 void bin2hex(const std::string& inputBinary, std::string& outputHexEncoded)
 {
   std::stringstream ss;
