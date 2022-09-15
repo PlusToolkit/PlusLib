@@ -61,10 +61,10 @@ protected:
   vtkPlusGenericSerialCommand();
   virtual ~vtkPlusGenericSerialCommand();
 
-  std::string vtkPlusGenericSerialCommand::GetCommandName() const;
-  void vtkPlusGenericSerialCommand::SetCommandName(const std::string& text);
-  std::string vtkPlusGenericSerialCommand::GetCommandValue() const;
-  void vtkPlusGenericSerialCommand::SetCommandValue(const std::string& text);
+  std::string GetCommandName() const;
+  void SetCommandName(const std::string& text);
+  std::string GetCommandValue() const;
+  void SetCommandValue(const std::string& text);
 
 private:
   std::string DeviceId;
