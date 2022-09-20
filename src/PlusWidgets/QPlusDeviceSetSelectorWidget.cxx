@@ -23,10 +23,11 @@ See License.txt for details.
 #include <QMessageBox>
 #include <QMimeData>
 #include <QProcess>
+#include <QTimer>
 #include <QUrl>
 
 #if !defined(_WIN32)
-  #include <unistd.h>
+#include <unistd.h>
 #endif
 
 enum DataItemRoles
@@ -67,7 +68,9 @@ QPlusDeviceSetSelectorWidget::QPlusDeviceSetSelectorWidget(QWidget* aParent)
 
   connect(ui.pushButton_EditConfiguration, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(ShowEditContextMenu(QPoint)));
 
-  SetConfigurationDirectory(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory().c_str());
+  // Add a small delay to allow the Qt event loop system to make connections before SetConfigurationDirectory is called.
+  // This ensures that signals are fired on first launch
+  QTimer::singleShot(10, Qt::CoarseTimer, this, [this]() {SetConfigurationDirectory(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory().c_str()); });
 }
 
 //----------------------------------------------------------------------------
@@ -485,11 +488,11 @@ PlusStatus QPlusDeviceSetSelectorWidget::ParseDirectory(const QString& aDirector
 
 //----------------------------------------------------------------------------
 QString QPlusDeviceSetSelectorWidget::FindCalibrationDetails(const QDomDocument& aDocument,
-    vtkSmartPointer<vtkIGSIOTransformRepository> aTransformRepository,
-    const QString& aTagName,
-    const QString& aOutputPrefix,
-    const QString& aFirstFrame,
-    const QString& aSecondFrame)
+  vtkSmartPointer<vtkIGSIOTransformRepository> aTransformRepository,
+  const QString& aTagName,
+  const QString& aOutputPrefix,
+  const QString& aFirstFrame,
+  const QString& aSecondFrame)
 {
   QDomNodeList list(aDocument.elementsByTagName(aTagName));
   if (list.count() > 0)
@@ -503,7 +506,7 @@ QString QPlusDeviceSetSelectorWidget::FindCalibrationDetails(const QDomDocument&
       std::string date;
       double error;
       if (aTransformRepository->GetTransformDate(tName, date, true) == PLUS_SUCCESS &&
-          aTransformRepository->GetTransformError(tName, error, true) == PLUS_SUCCESS)
+        aTransformRepository->GetTransformError(tName, error, true) == PLUS_SUCCESS)
       {
         bool valid(false);
         std::tm tm = {};
@@ -585,7 +588,7 @@ void QPlusDeviceSetSelectorWidget::dropEvent(QDropEvent* event)
 void QPlusDeviceSetSelectorWidget::FixComboBoxDropDownListSizeAdjustemnt(QComboBox* cb)
 {
   int scroll = cb->count() <= cb->maxVisibleItems() ? 0 :
-               QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent);
+    QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent);
 
   int max = 0;
 
