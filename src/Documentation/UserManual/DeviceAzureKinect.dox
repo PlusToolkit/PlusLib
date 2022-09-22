@@ -1,6 +1,15 @@
 /*!
 \page DeviceAzureKinect Azure Kinect camera
-This device allow you to process two kind of images. The first image is in RGB and the second image is a Depth image.
+This device allow you to retrieve different kind of data from Azure Kinect RGB-D camera:
+
+- The rgb image
+- The depth map
+- The reconstructed points cloud
+
+The depth map resolution can be aligned to the rgb image resolution.
+
+The points cloud resolution matches the rgb image resolution or the depth map resolution if no rgb data
+is retrieved. In the first case, the color data of the rgb image can be used to enhance the points cloud.
 
 \section DeviceAzureKinectSupportedHwDevices Supported hardware devices
 
@@ -36,6 +45,7 @@ The Azure Kinect SDK is released under the MIT license (https://github.com/micro
   - \xmlAtt FrameType Type of stream to capture. \RequiredAtt
     - \c RGB
     - \c DEPTH
+    - \c PCL (The points cloud is sent as an image with 3 scalar components representing the x-y-z coordinates of the points)
   - \xmlAtt FrameSize Size of the video/depth stream. This must be the first number of the Color/Depth resolutions shown in the hardware specifications (https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/kinect-dk/hardware-specification.md).
   - \xmlAtt FrameRate Acquisition frequence for this stream. See hardware specifications (https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/kinect-dk/hardware-specification.md).
   - \xmlAtt \ref PortUsImageOrientation \OptionalAtt{UN}
