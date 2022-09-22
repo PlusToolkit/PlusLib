@@ -29,11 +29,11 @@ vtkStandardNewMacro(vtkPlusAzureKinect);
 
 namespace
 {
-  enum class KinectSourceType
+  enum KinectSourceType
   {
-    RGB = 0,
-    DEPTH,
-    IR // Not used for now
+    RGB = 1 << 0,
+    DEPTH = 1 << 1,
+    PCL = 1 << 2
   };
 
   struct KinectStreamConfig
@@ -45,6 +45,21 @@ namespace
     uint32_t Height{0};
     vtkPlusDataSource* Source{nullptr};
   };
+
+  std::string KinectSourceTypeAsString(KinectSourceType type)
+  {
+    switch (type)
+    {
+      case KinectSourceType::RGB:
+        return "RGB";
+      case KinectSourceType::DEPTH:
+        return "DEPTH";
+      case KinectSourceType::PCL:
+        return "PCL";
+      default:
+        return "";
+    }
+  }
 
   std::tuple<bool, k4a_fps_t> ToKinectFrameRate(int rate)
   {
@@ -129,7 +144,9 @@ public:
   k4a::transformation Transformation;
   k4a::image ColorImage;
   k4a::image DepthImage;
+  k4a::image PointsCloudImage;
   bool AlignDepthStream{false};
+  int AvailableStreamsFlag{0};
 
   vtkInternal(vtkPlusAzureKinect* external)
     : External(external)
@@ -162,7 +179,7 @@ public:
       {
         std::tie(status, DeviceConfig.color_resolution, stream.Height) = ToKinectColorMode(stream.Width);
       }
-      else
+      else if (stream.Type == KinectSourceType::DEPTH)
       {
         std::tie(status, DeviceConfig.depth_mode, stream.Height) = ToKinectDepthMode(stream.Width);
       }
@@ -182,15 +199,40 @@ public:
     {
       return stream.Type == KinectSourceType::DEPTH;
     });
+    auto pclStream = std::find_if(std::begin(this->StreamList), std::end(this->StreamList), [](const KinectStreamConfig & stream)
+    {
+      return stream.Type == KinectSourceType::PCL;
+    });
 
-    if (rgbStream == std::end(this->StreamList) || depthStream == std::end(this->StreamList))
+    if (rgbStream != std::end(this->StreamList))
+    {
+      this->AvailableStreamsFlag |= KinectSourceType::RGB;
+    }
+
+    if (depthStream != std::end(this->StreamList))
+    {
+      this->AvailableStreamsFlag |= KinectSourceType::DEPTH;
+    }
+
+    if (pclStream != std::end(this->StreamList))
+    {
+      this->AvailableStreamsFlag |= KinectSourceType::PCL;
+    }
+
+    if ((this->AvailableStreamsFlag & KinectSourceType::PCL) && !(this->AvailableStreamsFlag & KinectSourceType::DEPTH))
+    {
+      LOG_ERROR("Invalid configuration: PCL stream is required but no Depth stream set");
+      return PLUS_FAIL;
+    }
+
+    if (!(this->AvailableStreamsFlag & KinectSourceType::RGB) || !(this->AvailableStreamsFlag & KinectSourceType::DEPTH))
     {
       DeviceConfig.synchronized_images_only = false;
     }
 
     if (AlignDepthStream)
     {
-      if (rgbStream == std::end(this->StreamList) || depthStream == std::end(this->StreamList))
+      if (!DeviceConfig.synchronized_images_only)
       {
         LOG_ERROR("Invalid configuration: AlignDepthStream set to TRUE but no RGB or Depth stream set");
         return PLUS_FAIL;
@@ -198,6 +240,17 @@ public:
 
       depthStream->Width = rgbStream->Width;
       depthStream->Height = rgbStream->Height;
+    }
+
+    if ((this->AvailableStreamsFlag & KinectSourceType::PCL) && (this->AvailableStreamsFlag & KinectSourceType::RGB))
+    {
+      pclStream->Width = rgbStream->Width;
+      pclStream->Height = rgbStream->Height;
+    }
+    else if (this->AvailableStreamsFlag & KinectSourceType::PCL)
+    {
+      pclStream->Width = depthStream->Width;
+      pclStream->Height = depthStream->Height;
     }
 
     std::sort(std::begin(frameRates), std::end(frameRates));
@@ -266,12 +319,12 @@ public:
       return;
     }
 
-    if (this->DeviceConfig.depth_mode != K4A_DEPTH_MODE_OFF)
+    if (this->AvailableStreamsFlag & KinectSourceType::DEPTH)
     {
       this->DepthImage = capture.get_depth_image();
     }
 
-    if (this->DeviceConfig.color_resolution != K4A_COLOR_RESOLUTION_OFF)
+    if (this->AvailableStreamsFlag & KinectSourceType::RGB)
     {
       this->ColorImage = capture.get_color_image();
     }
@@ -279,6 +332,22 @@ public:
     if (this->ColorImage && this->DepthImage && this->AlignDepthStream)
     {
       this->DepthImage = this->Transformation.depth_image_to_color_camera(this->DepthImage);
+    }
+
+    if (!(this->AvailableStreamsFlag & KinectSourceType::PCL))
+    {
+      return;
+    }
+
+    if (this->AvailableStreamsFlag & KinectSourceType::RGB)
+    {
+      this->PointsCloudImage = this->Transformation.depth_image_to_point_cloud(
+                                 (this->AlignDepthStream ? this->DepthImage : this->Transformation.depth_image_to_color_camera(this->DepthImage)), K4A_CALIBRATION_TYPE_COLOR);
+    }
+    else
+    {
+      this->PointsCloudImage = this->Transformation.depth_image_to_point_cloud(this->DepthImage,
+                               K4A_CALIBRATION_TYPE_DEPTH);
     }
   }
 };
@@ -308,7 +377,7 @@ void vtkPlusAzureKinect::PrintSelf(ostream& os, vtkIndent indent)
   for (const auto& config : this->Internal->StreamList)
   {
     os << indent << "Source: " << config.Id << std::endl;
-    os << indent << indent << "Type: " << (config.Type == KinectSourceType::RGB ? "RGB" : "DEPTH") << std::endl;
+    os << indent << indent << "Type: " << KinectSourceTypeAsString(config.Type) << std::endl;
     os << indent << indent << "Frame Rate: " << config.FrameRate << std::endl;
     os << indent << indent << "Frame Width: " << config.Width << std::endl;
     os << indent << indent << "Frame Height: " << config.Height << std::endl;
@@ -347,7 +416,7 @@ PlusStatus vtkPlusAzureKinect::ReadConfiguration(vtkXMLDataElement* rootConfigEl
 
       KinectStreamConfig config;
       config.Id = toolId;
-      XML_READ_ENUM2_ATTRIBUTE_NONMEMBER_REQUIRED(FrameType, config.Type, dataElement, "RGB", KinectSourceType::RGB, "DEPTH", KinectSourceType::DEPTH);
+      XML_READ_ENUM3_ATTRIBUTE_NONMEMBER_REQUIRED(FrameType, config.Type, dataElement, "RGB", KinectSourceType::RGB, "DEPTH", KinectSourceType::DEPTH, "PCL", KinectSourceType::PCL);
       XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_REQUIRED(int, FrameRate, config.FrameRate, dataElement);
       XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_REQUIRED(int, FrameSize, config.Width, dataElement);
       this->Internal->StreamList.push_back(config);
@@ -445,6 +514,15 @@ PlusStatus vtkPlusAzureKinect::InternalUpdate()
       stream.Source->SetNumberOfScalarComponents(1);
       stream.Source->SetInputFrameSize(stream.Width, stream.Height, 1);
     }
+    else if (stream.Source->GetNumberOfItems() == 0 && stream.Type == KinectSourceType::PCL)
+    {
+      // depth output is raw pcl data
+      LOG_TRACE("Setting up pcl frame");
+      stream.Source->SetImageType(US_IMG_BRIGHTNESS);
+      stream.Source->SetPixelType(VTK_TYPE_INT16);
+      stream.Source->SetNumberOfScalarComponents(3);
+      stream.Source->SetInputFrameSize(stream.Width, stream.Height, 1);
+    }
 
     if (stream.Type == KinectSourceType::RGB)
     {
@@ -452,11 +530,11 @@ PlusStatus vtkPlusAzureKinect::InternalUpdate()
       {
         if (stream.Source->GetNumberOfItems() == 0)
         {
-          LOG_TRACE("Waiting for KinectAzure color images");
+          LOG_TRACE("Waiting for KinectAzure RGB images");
         }
         else
         {
-          LOG_WARNING("Failed to get KinectAzure color image");
+          LOG_WARNING("Failed to get KinectAzure RGB image");
         }
         return PLUS_FAIL;
       }
@@ -474,32 +552,55 @@ PlusStatus vtkPlusAzureKinect::InternalUpdate()
       }
 
       FrameSizeType frameSizeColor = {stream.Width, stream.Height, 1};
-      if (stream.Source->AddItem((void*)rgbBuffer.get(), stream.Source->GetInputImageOrientation(), frameSizeColor, VTK_UNSIGNED_CHAR, 3, US_IMG_RGB_COLOR, 0, this->FrameNumber) == PLUS_FAIL)
+      if (stream.Source->AddItem(reinterpret_cast<void*>(rgbBuffer.get()), stream.Source->GetInputImageOrientation(), frameSizeColor, VTK_UNSIGNED_CHAR, 3, US_IMG_RGB_COLOR, 0, this->FrameNumber) == PLUS_FAIL)
       {
         LOG_ERROR("Unable to send RGB image. Skipping frame.");
         return PLUS_FAIL;
       }
       this->Modified();
     }
-    else
+    else if (stream.Type == KinectSourceType::DEPTH)
     {
       if (!this->Internal->DepthImage)
       {
         if (stream.Source->GetNumberOfItems() == 0)
         {
-          LOG_TRACE("Waiting for KinectAzure depth images");
+          LOG_TRACE("Waiting for KinectAzure DEPTH images");
         }
         else
         {
-          LOG_WARNING("Failed to get KinectAzure depth image");
+          LOG_WARNING("Failed to get KinectAzure DEPTH image");
         }
         return PLUS_FAIL;
       }
 
       FrameSizeType frameSizeDepth = {stream.Width, stream.Height, 1};
-      if (stream.Source->AddItem((void*)this->Internal->DepthImage.get_buffer(), stream.Source->GetInputImageOrientation(), frameSizeDepth, VTK_TYPE_UINT16, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
+      if (stream.Source->AddItem(reinterpret_cast<void*>(this->Internal->DepthImage.get_buffer()), stream.Source->GetInputImageOrientation(), frameSizeDepth, VTK_TYPE_UINT16, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
       {
         LOG_ERROR("Unable to send DEPTH image. Skipping frame.");
+        return PLUS_FAIL;
+      }
+      this->Modified();
+    }
+    else if (stream.Type == KinectSourceType::PCL)
+    {
+      if (!this->Internal->PointsCloudImage)
+      {
+        if (stream.Source->GetNumberOfItems() == 0)
+        {
+          LOG_TRACE("Waiting for KinectAzure PCL images");
+        }
+        else
+        {
+          LOG_WARNING("Failed to get KinectAzure PCL image");
+        }
+        return PLUS_FAIL;
+      }
+
+      FrameSizeType frameSizeDepth = {stream.Width, stream.Height, 1};
+      if (stream.Source->AddItem(reinterpret_cast<void*>(this->Internal->PointsCloudImage.get_buffer()), stream.Source->GetInputImageOrientation(), frameSizeDepth, VTK_TYPE_INT16, 3, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
+      {
+        LOG_ERROR("Unable to send PCL image. Skipping frame.");
         return PLUS_FAIL;
       }
       this->Modified();
