@@ -563,10 +563,13 @@ bool AtracsysTracker::GetOptionInfo(const std::string& optionName, const ftkOpti
 // this method sets a value to an option in the device. The option name follows Atracsys' nomenclature.
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetOption(const std::string& optionName, const std::string& attributeValue)
 {
+  LOG_INFO(std::string("Setting option \"") + optionName + std::string("\" at value ") + attributeValue);
+
   const ftkOptionsInfo * info;
 
   if (!this->GetOptionInfo(optionName, info))
   {
+    LOG_WARNING(std::string("Info for option \"") + optionName + std::string("\" not found."));
     return ERROR_OPTION_NOT_FOUND;
   }
 
@@ -583,7 +586,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetOption(const std::string& o
       ftkBuffer buffer{};
       if (ftkGetLastErrorString(this->Internal->FtkLib, sizeof(buffer.data), buffer.data) == ftkError::FTK_OK)
       {
-        LOG_WARNING(buffer.data);
+        LOG_WARNING(std::string(buffer.data));
       }
       else
       {
@@ -604,7 +607,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetOption(const std::string& o
       ftkBuffer buffer{};
       if (ftkGetLastErrorString(this->Internal->FtkLib, sizeof(buffer.data), buffer.data) == ftkError::FTK_OK)
       {
-        LOG_WARNING(buffer.data);
+        LOG_WARNING(std::string(buffer.data));
       }
       else
       {
@@ -675,6 +678,9 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Connect()
   {
     case ftkDeviceType::DEV_SPRYTRACK_180:
       this->DeviceType = SPRYTRACK_180;
+      break;
+    case ftkDeviceType::DEV_SPRYTRACK_300:
+      this->DeviceType = SPRYTRACK_300;
       break;
     case ftkDeviceType::DEV_FUSIONTRACK_500:
       this->DeviceType = FUSIONTRACK_500;
@@ -1088,7 +1094,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableImageStreaming(bool enab
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetSpryTrackProcessingType(AtracsysTracker::SPRYTRACK_IMAGE_PROCESSING_TYPE processingType)
 {
-  if (this->DeviceType != SPRYTRACK_180)
+  if (this->DeviceType != SPRYTRACK_180 && this->DeviceType != SPRYTRACK_300)
   {
     return ERROR_OPTION_AVAILABLE_ONLY_ON_STK;
   }

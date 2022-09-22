@@ -60,6 +60,7 @@ public:
   {
     UNKNOWN_DEVICE = 0,
     SPRYTRACK_180,
+    SPRYTRACK_300,
     FUSIONTRACK_500,
     FUSIONTRACK_250
   };
