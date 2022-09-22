@@ -384,11 +384,16 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
     else/* end of hack*/ if (translateOptionName(i.first, translatedOptionName))
     {
       this->Internal->Tracker.SetOption(translatedOptionName, i.second);
+      // if spryTrack, also set the same options but for onboard processing
+      if (this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::SPRYTRACK_180 || this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::SPRYTRACK_300)
+      {
+        this->Internal->Tracker.SetOption("Embedded " + translatedOptionName, i.second);
+      }
     }
   }
 
-  // if spryTrack, setup for onboard processing and disable extraneous marker info streaming
-  if (this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::SPRYTRACK_180)
+  // if spryTrack, setup for onboard processing
+  if (this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::SPRYTRACK_180 || this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::SPRYTRACK_300)
   {
     this->Internal->Tracker.SetSpryTrackProcessingType(AtracsysTracker::SPRYTRACK_IMAGE_PROCESSING_TYPE::PROCESSING_ONBOARD);
   }
