@@ -753,9 +753,7 @@ PlusStatus ClariusBLE::Connect()
   }
 
   // initialize power state & wifi info correctly
-  _impl->InitializeState();
-
-  return PLUS_SUCCESS;
+  return _impl->InitializeState();
 }
 
 //-----------------------------------------------------------------------------
@@ -913,7 +911,7 @@ PlusStatus ClariusBLE::ConfigureWifiAP()
   IBuffer buf = writer.DetachBuffer();
 
   IAsyncOperation<GattWriteResult> writeOp =
-    _impl->PowerRequestChar.WriteValueWithResultAsync(buf, GattWriteOption::WriteWithResponse);
+    _impl->WifiRequestChar.WriteValueWithResultAsync(buf, GattWriteOption::WriteWithResponse);
   if (await_async(writeOp) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
