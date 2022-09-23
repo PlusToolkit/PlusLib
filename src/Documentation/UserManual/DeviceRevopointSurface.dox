@@ -1,7 +1,11 @@
 /*!
 \page DeviceRevopoint3DCamera Revopoint 3D cameras
 
-This device allows you to process a depth image from Revopoint 3D cameras.
+This device allows you to process depth data from Revopoint 3D cameras. The following data
+can be retrieved:
+
+- The depth map
+- The points cloud
 
 \section DeviceRevopoint3DCameraSupportedHwDevices Supported hardware devices
 
@@ -26,8 +30,11 @@ This device allows you to process a depth image from Revopoint 3D cameras.
 
 - \xmlAtt \ref DeviceType "Type" = \c "Revopoint3DCamera" \RequiredAtt
 
-- \xmlElem \ref DataSources A single \c DataSource child element is required. \RequiredAtt
+- \xmlElem \ref DataSources One \c DataSource child element is required per stream. \RequiredAtt
   - \xmlElem \ref DataSource Unique data source \RequiredAtt
+  - \xmlAtt FrameType Type of stream to capture. \RequiredAtt
+    - \c DEPTH
+    - \c PCL (The points cloud is sent as an image with 3 scalar components representing the x-y-z coordinates of the points)
   - \xmlAtt FrameWidth Width of the depth stream. \RequiredAtt
     - Check Depth image in hardware specifications (https://3dcamera.revopoint3d.com/html/areascan/index.html).
   - \xmlAtt FrameRate Acquisition frequence for the depth stream. \RequiredAtt
