@@ -689,8 +689,8 @@ PlusStatus ClariusBLE::FindBySerial(std::string serialNum)
     nullptr,
     DeviceInformationKind::AssociationEndpoint
   );
-  deviceWatcher.Added({ _impl.get(), &ClariusBLEPrivate::DeviceAdded});
-  deviceWatcher.Updated({ _impl.get(), &ClariusBLEPrivate::DeviceUpdated});
+  deviceWatcher.Added({ _impl.get(), &ClariusBLEPrivate::DeviceAdded });
+  deviceWatcher.Updated({ _impl.get(), &ClariusBLEPrivate::DeviceUpdated });
 
   std::future<void> deviceInfoFuture = _impl->DeviceInfoPromise.get_future();
   deviceWatcher.Start();
@@ -824,21 +824,29 @@ PlusStatus ClariusBLE::RequestProbeOff()
   writer.WriteByte(0x00); // 0x00 = request power off
   IBuffer buf = writer.DetachBuffer();
 
-  IAsyncOperation<GattWriteResult> writeOp =
-    _impl->PowerRequestChar.WriteValueWithResultAsync(buf, GattWriteOption::WriteWithResponse);
-  if (await_async(writeOp) != PLUS_SUCCESS)
+  if (_impl->PowerRequestChar)
   {
-    return PLUS_FAIL;
+    IAsyncOperation<GattWriteResult> writeOp =
+      _impl->PowerRequestChar.WriteValueWithResultAsync(buf, GattWriteOption::WriteWithResponse);
+    if (await_async(writeOp) != PLUS_SUCCESS)
+    {
+      return PLUS_FAIL;
+    }
+
+    GattWriteResult writeResult = writeOp.GetResults();
+
+    if (writeResult.Status() != GattCommunicationStatus::Success)
+    {
+      std::stringstream msg;
+      msg << "ClariusBLE::ProbeOff failed with non-successful GATT communication. Status was: "
+        << _impl->GattCommunicationStatusToString(writeResult.Status());
+      _impl->LastError = msg.str();
+      return PLUS_FAIL;
+    }
   }
-
-  GattWriteResult writeResult = writeOp.GetResults();
-
-  if (writeResult.Status() != GattCommunicationStatus::Success)
+  else
   {
-    std::stringstream msg;
-    msg << "ClariusBLE::ProbeOff failed with non-successful GATT communication. Status was: "
-      << _impl->GattCommunicationStatusToString(writeResult.Status());
-    _impl->LastError = msg.str();
+    LOG_ERROR("Unable to send probe off signal. Power request characteristic not availiable.");
     return PLUS_FAIL;
   }
 
