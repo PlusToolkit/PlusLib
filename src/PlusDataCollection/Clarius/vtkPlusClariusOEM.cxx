@@ -570,7 +570,7 @@ void vtkPlusClariusOEM::vtkInternal::ButtonFn(CusButton btn, int clicks)
   vtkPlusClariusOEM* device = vtkPlusClariusOEM::GetInstance();
   if (device == NULL)
   {
-    LOG_ERROR("vtkPlusClariusOEM::vtkInternal::ProcessedImageFn called when Clarius instance was NULL!");
+    LOG_ERROR("vtkPlusClariusOEM::vtkInternal::ButtonFn called when Clarius instance was NULL!");
     return;
   }
 

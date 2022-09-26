@@ -106,6 +106,11 @@ public:
   PlusStatus Disconnect();
 
   /*!
+  * Close the BLE connection.
+  */
+  PlusStatus CloseConnection();
+
+  /*!
    * Check if currently connected probe is powered
    */
   bool IsProbePowered();

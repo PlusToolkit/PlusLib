@@ -85,7 +85,7 @@ PlusStatus await_async(TAsyncOp op)
 
   auto busy_wait = [&](TAsyncOp op)
   {
-    while (op.Status() != AsyncStatus::Completed);
+    while (op.Status() == AsyncStatus::Started);
 
     // successful completion
     wait_prom.set_value();
@@ -117,7 +117,7 @@ PlusStatus await_async(TAsyncOp op)
   }
 
   // async operation was successful
-  return PLUS_SUCCESS;
+  return op.Status() == AsyncStatus::Completed ? PLUS_SUCCESS : PLUS_FAIL;
 }
 
 //-----------------------------------------------------------------------------
@@ -343,6 +343,18 @@ PlusStatus ClariusBLEPrivate::SetupPowerService()
     return PLUS_FAIL;
   }
 
+  if (!this->PowerPublishedChar)
+  {
+    this->LastError = "Could not find PowerPublished characteristic";
+    return PLUS_FAIL;
+  }
+
+  if (!this->PowerRequestChar)
+  {
+    this->LastError = "Could not find PowerRequest characteristic";
+    return PLUS_FAIL;
+  }
+
   // subscribe to power state changes
   this->PowerPublishedChar.WriteClientCharacteristicConfigurationDescriptorAsync(
     GattClientCharacteristicConfigurationDescriptorValue::Notify);
@@ -369,6 +381,18 @@ PlusStatus ClariusBLEPrivate::SetupWifiService()
   if (this->RetrieveCharacteristic(this->WifiService, WIFI_REQUEST_CHAR_UUID, this->WifiRequestChar) != PLUS_SUCCESS)
   {
     // last error already set
+    return PLUS_FAIL;
+  }
+
+  if (!this->WifiPublishedChar)
+  {
+    this->LastError = "Could not find WifiPublished characteristic";
+    return PLUS_FAIL;
+  }
+
+  if (!this->WifiRequestChar)
+  {
+    this->LastError = "Could not find WifiRequest characteristic";
     return PLUS_FAIL;
   }
 
@@ -499,6 +523,13 @@ PlusStatus ClariusBLEPrivate::RetrieveService(const guid& serviceUuid, GattDevic
   }
 
   service = *servicesResult.Services().First();
+  if (!service)
+  {
+    std::stringstream msg;
+    msg << "ClariusBLEPrivate::RetrieveService could not find service " << uuid_to_string(serviceUuid);
+    this->LastError = msg.str();
+    return PLUS_FAIL;
+  }
   return PLUS_SUCCESS;
 }
 
@@ -733,27 +764,87 @@ PlusStatus ClariusBLE::Connect()
   }
 
   // get BLE device
-  IAsyncOperation<BluetoothLEDevice> deviceOp = BluetoothLEDevice::FromIdAsync(_impl->DeviceInfo.Id());
+  int maxConnectionAttempts = 15;
 
-  if (await_async(deviceOp) != PLUS_SUCCESS)
+  PlusStatus success = PLUS_FAIL;
+
+  int connectionAttemptCount = 0;
+  int retryDelayMs = 1000;
+  while (connectionAttemptCount < maxConnectionAttempts && !success)
   {
-    return PLUS_FAIL;
+    if (connectionAttemptCount > 0)
+    {
+      LOG_DEBUG("Attempt #" << connectionAttemptCount << " failed. Last error: \"" << this->GetLastError() << "\"");
+      this->CloseConnection();
+      std::this_thread::sleep_for(std::chrono::milliseconds(retryDelayMs));
+    }
+
+    ++connectionAttemptCount;
+    LOG_DEBUG("Trying to connect: Attempt #" << connectionAttemptCount);
+
+    IAsyncOperation<BluetoothLEDevice> deviceOp = BluetoothLEDevice::FromIdAsync(_impl->DeviceInfo.Id());
+    if (await_async(deviceOp) != PLUS_SUCCESS)
+    {
+      _impl->LastError = "Failed to connect to device.";
+      continue;
+    }
+    _impl->Device = deviceOp.GetResults();
+    if (_impl->Device == nullptr)
+    {
+      _impl->LastError = "Failed to connect to device.";
+      continue;
+    }
+
+    // setup power & wifi services
+    if (_impl->SetupPowerService() != PLUS_SUCCESS)
+    {
+      continue;
+    }
+    if (_impl->SetupWifiService() != PLUS_SUCCESS)
+    {
+      continue;
+    }
+
+    // initialize power state & wifi info correctly
+    if (_impl->InitializeState() != PLUS_SUCCESS)
+    {
+      continue;
+    }
+
+    success = PLUS_SUCCESS;
+    LOG_DEBUG("Device connected: Attempt #" << connectionAttemptCount);
   }
 
-  _impl->Device = deviceOp.GetResults();
+  return success;
+}
 
-  // setup power & wifi services
-  if (_impl->SetupPowerService() != PLUS_SUCCESS)
+//-----------------------------------------------------------------------------
+PlusStatus ClariusBLE::CloseConnection()
+{
+  if (_impl->PowerService)
   {
-    return PLUS_FAIL;
+    _impl->PowerService.Close();
   }
-  if (_impl->SetupWifiService() != PLUS_SUCCESS)
+  if (_impl->WifiService)
   {
-    return PLUS_FAIL;
+    _impl->WifiService.Close();
+  }
+  if (_impl->Device)
+  {
+    _impl->Device.Close();
   }
 
-  // initialize power state & wifi info correctly
-  return _impl->InitializeState();
+  _impl->PowerPublishedChar = nullptr;
+  _impl->PowerRequestChar = nullptr;
+  _impl->WifiPublishedChar = nullptr;
+  _impl->WifiRequestChar = nullptr;
+
+  _impl->PowerService = nullptr;
+  _impl->WifiService = nullptr;
+
+  _impl->Device = nullptr;
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -765,7 +856,10 @@ PlusStatus ClariusBLE::Disconnect()
     return PLUS_SUCCESS;
   }
 
-  _impl->Device.Close();
+  this->CloseConnection();
+
+  _impl->DeviceInfo = nullptr;
+
   return PLUS_SUCCESS;
 }
 
