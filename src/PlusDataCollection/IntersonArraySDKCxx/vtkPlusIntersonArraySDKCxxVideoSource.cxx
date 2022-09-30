@@ -309,7 +309,6 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalConnect()
 
   ContainerType* container = this->Internal->GetContainer();
   container->SetHWControls(hwControls);
-  container->AbortScan();
 
   std::vector<vtkPlusDataSource*> rfSources;
   vtkPlusDataSource* source = NULL;
@@ -335,9 +334,14 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalConnect()
   const int depth = 100;
   const int heightLines = hwControls->GetLinesPerArray();
   const int steering = 0;
+  const int compoundAngle = 0;
+  const int depthCfm = 0;
+  const bool cfm = 0;
+  const bool doubler = false;
+  const bool compound = false;
   container->IdleInitScanConverter(depth, width_samples, heightLines, probeId,
-                                   steering, false, false, 0);
-  container->HardInitScanConverter(depth, width_samples, heightLines, steering);
+                                   steering, depthCfm, doubler, compound, compoundAngle, cfm);
+  container->HardInitScanConverter(depth, width_samples, heightLines, steering, depthCfm);
 
   std::vector<vtkPlusDataSource*> bmodeSources;
   this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, bmodeSources);
@@ -500,7 +504,6 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalDisconnect()
 
   this->StopRecording();
   ContainerType* container = this->Internal->GetContainer();
-  container->AbortScan();
 
   return PLUS_SUCCESS;
 }
@@ -509,7 +512,6 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalDisconnect()
 PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalStartRecording()
 {
   ContainerType* container = this->Internal->GetContainer();
-  container->AbortScan();
 
   HWControlsType* hwControls = this->Internal->GetHWControls();
 
@@ -556,7 +558,6 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalStopRecording()
   ContainerType* container = this->Internal->GetContainer();
   container->StopReadScan();
   Sleep(100);   // "time to stop"
-  container->DisposeScan();
 
   return PLUS_SUCCESS;
 }

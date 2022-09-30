@@ -1801,12 +1801,14 @@ IF(PLUS_USE_INTERSONARRAYSDKCXX_VIDEO)
     )
 
   LIST(APPEND External_Libraries_Install
-    ${IntersonArraySDK_DIR}/Libraries/IntersonArray${CMAKE_SHARED_LIBRARY_SUFFIX}
-    ${IntersonArraySDK_DIR}/Libraries/IntersonArrayTools${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${IntersonArraySDK_DIR}/IntersonArray${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${IntersonArraySDK_DIR}/IntersonArrayTools${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${IntersonArraySDK_DIR}/MathNet.Numerics${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
   LIST(APPEND External_Libraries_Debug
-    ${IntersonArraySDK_DIR}/Libraries/IntersonArray${CMAKE_SHARED_LIBRARY_SUFFIX}
-    ${IntersonArraySDK_DIR}/Libraries/IntersonArrayTools${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${IntersonArraySDK_DIR}/IntersonArray${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${IntersonArraySDK_DIR}/IntersonArrayTools${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${IntersonArraySDK_DIR}/MathNet.Numerics${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
 ENDIF()
 
