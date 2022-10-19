@@ -941,6 +941,25 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalUpdate()
   {
     return PLUS_SUCCESS;
   }
+
+  // Handle manual probe disconnections
+  if (GetTransducerInternalID() == 0xF)  // probe has been disconnected from the engine
+  {
+    if (IsScanning())
+    {
+      WPStopScanning();
+    }
+    LOG_WARNING("Probe has been disconnected from the engine!");
+    return PLUS_SUCCESS;
+  }
+  else
+  {
+    if (!IsScanning())
+    {
+      WPExecute();
+    }
+  }
+
   if (!m_PrimarySources.empty())  // mode shouldn't matter here, we are always polling B-mode into primary
   {
     // Grab processed frame data
