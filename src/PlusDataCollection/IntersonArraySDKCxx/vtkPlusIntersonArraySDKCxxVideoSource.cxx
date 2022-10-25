@@ -36,11 +36,11 @@ vtkStandardNewMacro(vtkPlusIntersonArraySDKCxxVideoSource);
 //----------------------------------------------------------------------------
 struct BmodeCallbackClientData
 {
-  vtkPlusIntersonArraySDKCxxVideoSource*   ActiveIntersonArrayDevice;
+  vtkPlusIntersonArraySDKCxxVideoSource* ActiveIntersonArrayDevice;
 };
 struct RfCallbackClientData
 {
-  vtkPlusIntersonArraySDKCxxVideoSource*   ActiveIntersonArrayDevice;
+  vtkPlusIntersonArraySDKCxxVideoSource* ActiveIntersonArrayDevice;
 };
 
 //----------------------------------------------------------------------------
@@ -52,7 +52,7 @@ void vtkPlusIntersonArraySDKCxxVideoSource::NewBmodeImageCallback(BmodePixelType
     return;
   }
 
-  BmodeCallbackClientData* callbackClientData = static_cast< BmodeCallbackClientData* >(clientData);
+  BmodeCallbackClientData* callbackClientData = static_cast<BmodeCallbackClientData*>(clientData);
   vtkPlusIntersonArraySDKCxxVideoSource* activeIntersonArrayDevice = callbackClientData->ActiveIntersonArrayDevice;
 
   if (activeIntersonArrayDevice != NULL)
@@ -75,7 +75,7 @@ void vtkPlusIntersonArraySDKCxxVideoSource::NewRfImageCallback(RfPixelType* buff
     return;
   }
 
-  RfCallbackClientData* callbackClientData = static_cast< RfCallbackClientData* >(clientData);
+  RfCallbackClientData* callbackClientData = static_cast<RfCallbackClientData*>(clientData);
   vtkPlusIntersonArraySDKCxxVideoSource* activeIntersonArrayDevice = callbackClientData->ActiveIntersonArrayDevice;
 
   if (activeIntersonArrayDevice != NULL)
@@ -106,7 +106,7 @@ public:
     this->RfClientData.ActiveIntersonArrayDevice = this->External;
 
     this->BModeBufferToVtkImage = vtkImageImport::New();
-    this->BModeBufferToVtkImage->SetDataScalarType(VTK_UNSIGNED_CHAR);
+    this->BModeBufferToVtkImage->SetDataScalarType(VTK_UNSIGNED_SHORT);
     this->BModeBufferToVtkImage->SetDataExtent(0, ContainerType::MAX_SAMPLES / 2 - 1, 0, ContainerType::NBOFLINES - 1, 0, 0);
     this->BModeBufferToVtkImage->SetWholeExtent(0, ContainerType::MAX_SAMPLES / 2 - 1, 0, ContainerType::NBOFLINES - 1, 0, 0);
 
@@ -160,7 +160,7 @@ public:
   void EnableBModeCallback()
   {
     this->Container->SetNewImageCallback(&vtkPlusIntersonArraySDKCxxVideoSource::NewBmodeImageCallback,
-                                         &(this->BmodeClientData));
+      &(this->BmodeClientData));
   }
 
   void DisableBModeCallback()
@@ -171,7 +171,7 @@ public:
   void EnableRfCallback()
   {
     this->Container->SetNewRFImageCallback(&vtkPlusIntersonArraySDKCxxVideoSource::NewRfImageCallback,
-                                           &(this->RfClientData));
+      &(this->RfClientData));
   }
 
   void DisableRfCallback()
@@ -185,8 +185,8 @@ public:
   {
     vtkPlusChannel* channel = NULL;
     for (ChannelContainerConstIterator channelIt = this->External->OutputChannels.begin();
-         channelIt != this->External->OutputChannels.end();
-         ++channelIt)
+      channelIt != this->External->OutputChannels.end();
+      ++channelIt)
     {
       if (!(*channelIt)->HasVideoSource())
       {
@@ -205,8 +205,8 @@ public:
   }
 
 private:
-  HWControlsType*     HWControls;
-  ContainerType*      Container;
+  HWControlsType* HWControls;
+  ContainerType* Container;
   IntersonClassType* IntersonClass;
 
   BmodeCallbackClientData BmodeClientData;
@@ -218,7 +218,7 @@ private:
 
 
 //----------------------------------------------------------------------------
-vtkPlusIntersonArraySDKCxxVideoSource::vtkPlusIntersonArraySDKCxxVideoSource():
+vtkPlusIntersonArraySDKCxxVideoSource::vtkPlusIntersonArraySDKCxxVideoSource() :
   PulseVoltage(30)
 {
   this->Internal = new vtkInternal(this);
@@ -327,7 +327,7 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalConnect()
   }
 
   LOG_DEBUG("Interson Array SDK version " << this->Internal->GetSdkVersion() <<
-            ", USB probe FPGA version " << hwControls->ReadFPGAVersion());
+    ", USB probe FPGA version " << hwControls->ReadFPGAVersion());
 
   // Even if we do not use their SDK scan converter, we have to initialize the
   // scan converter to get the probe fully initialized.
@@ -340,7 +340,7 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalConnect()
   const bool doubler = false;
   const bool compound = false;
   container->IdleInitScanConverter(depth, width_samples, heightLines, probeId,
-                                   steering, depthCfm, doubler, compound, compoundAngle, cfm);
+    steering, depthCfm, doubler, compound, compoundAngle, cfm);
   container->HardInitScanConverter(depth, width_samples, heightLines, steering, depthCfm);
 
   std::vector<vtkPlusDataSource*> bmodeSources;
@@ -367,13 +367,13 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalConnect()
       source->SetImageType(US_IMG_RF_REAL);
       source->SetOutputImageOrientation(US_IMG_ORIENT_FM);
       source->SetInputFrameSize(ContainerType::MAX_RFSAMPLES,
-                                hwControls->GetLinesPerArray(),
-                                1);
+        hwControls->GetLinesPerArray(),
+        1);
       LOG_INFO("RF Pixel type: " << vtkImageScalarTypeNameMacro(source->GetPixelType())
-               << ", device image orientation: "
-               << igsioCommon::GetStringFromUsImageOrientation(source->GetInputImageOrientation())
-               << ", buffer image orientation: "
-               << igsioCommon::GetStringFromUsImageOrientation(source->GetOutputImageOrientation()));
+        << ", device image orientation: "
+        << igsioCommon::GetStringFromUsImageOrientation(source->GetInputImageOrientation())
+        << ", buffer image orientation: "
+        << igsioCommon::GetStringFromUsImageOrientation(source->GetOutputImageOrientation()));
     }
 
     if (!bmodeSources.empty())
@@ -389,8 +389,8 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalConnect()
 
       // Clear buffer on connect because the new frames that we will acquire might have a different size
       source->Clear();
-      source->SetPixelType(VTK_UNSIGNED_CHAR);
-      source->SetImageType(US_IMG_BRIGHTNESS) ;
+      source->SetPixelType(VTK_UNSIGNED_SHORT);
+      source->SetImageType(US_IMG_BRIGHTNESS);
       vtkPlusRfProcessor* rfProcessor = channel->GetRfProcessor();
       if (rfProcessor != NULL)
       {
@@ -407,22 +407,22 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalConnect()
             return PLUS_FAIL;
           }
           source->SetInputFrameSize(static_cast<unsigned int>(outputExtent[1] - outputExtent[0] + 1),
-                                    static_cast<unsigned int>(outputExtent[3] - outputExtent[2] + 1),
-                                    1);
+            static_cast<unsigned int>(outputExtent[3] - outputExtent[2] + 1),
+            1);
         }
       }
       else
       {
         source->SetOutputImageOrientation(US_IMG_ORIENT_FM);
         source->SetInputFrameSize(ContainerType::MAX_RFSAMPLES,
-                                  hwControls->GetLinesPerArray(),
-                                  1);
+          hwControls->GetLinesPerArray(),
+          1);
       }
       LOG_INFO("Pixel type: " << vtkImageScalarTypeNameMacro(source->GetPixelType())
-               << ", device image orientation: "
-               << igsioCommon::GetStringFromUsImageOrientation(source->GetInputImageOrientation())
-               << ", buffer image orientation: "
-               << igsioCommon::GetStringFromUsImageOrientation(source->GetOutputImageOrientation()));
+        << ", device image orientation: "
+        << igsioCommon::GetStringFromUsImageOrientation(source->GetInputImageOrientation())
+        << ", buffer image orientation: "
+        << igsioCommon::GetStringFromUsImageOrientation(source->GetOutputImageOrientation()));
     }
   }
   else if (!bmodeSources.empty())
@@ -433,7 +433,7 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalConnect()
     source = bmodeSources[0];
     // Clear buffer on connect because the new frames that we will acquire might have a different size
     source->Clear();
-    source->SetPixelType(VTK_UNSIGNED_CHAR);
+    source->SetPixelType(VTK_UNSIGNED_SHORT);
     source->SetImageType(US_IMG_BRIGHTNESS);
 
     vtkPlusChannel* channel = this->Internal->GetSourceChannel(source);
@@ -460,8 +460,8 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalConnect()
             return PLUS_FAIL;
           }
           source->SetInputFrameSize(outputExtent[1] - outputExtent[0] + 1,
-                                    outputExtent[3] - outputExtent[2] + 1,
-                                    1);
+            outputExtent[3] - outputExtent[2] + 1,
+            1);
         }
         else
         {
@@ -473,16 +473,16 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalConnect()
       {
         source->SetOutputImageOrientation(US_IMG_ORIENT_MF);
         source->SetInputFrameSize(ContainerType::MAX_SAMPLES / 2,
-                                  hwControls->GetLinesPerArray(),
-                                  1);
+          hwControls->GetLinesPerArray(),
+          1);
       }
     }
 
     LOG_INFO("BMode Pixel type: " << vtkImageScalarTypeNameMacro(source->GetPixelType())
-             << ", device image orientation: "
-             << igsioCommon::GetStringFromUsImageOrientation(source->GetInputImageOrientation())
-             << ", buffer image orientation: "
-             << igsioCommon::GetStringFromUsImageOrientation(source->GetOutputImageOrientation()));
+      << ", device image orientation: "
+      << igsioCommon::GetStringFromUsImageOrientation(source->GetInputImageOrientation())
+      << ", buffer image orientation: "
+      << igsioCommon::GetStringFromUsImageOrientation(source->GetOutputImageOrientation()));
   }
   else
   {
@@ -676,14 +676,14 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::SetProbeFrequencyMhz(double fr
   for (size_t ii = 1; ii < numSupportedFrequencies - 1; ++ii)
   {
     const int lower = supportedFrequencies[ii - 1] +
-                      (supportedFrequencies[ii] - supportedFrequencies[ii - 1]) / 2;
+      (supportedFrequencies[ii] - supportedFrequencies[ii - 1]) / 2;
     if (frequency <= lower)
     {
       frequencyIndex = ii - 1;
       break;
     }
     const int upper = supportedFrequencies[ii] +
-                      (supportedFrequencies[ii + 1] - supportedFrequencies[ii]) / 2;
+      (supportedFrequencies[ii + 1] - supportedFrequencies[ii]) / 2;
     if (frequency < upper)
     {
       frequencyIndex = ii;
@@ -713,7 +713,7 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::SetDynRangeDb(double dynRangeD
   unsigned char usedGain = 100;
   if (dynRangeDb > 0.0)
   {
-    usedGain = static_cast< unsigned char >(255 * dynRangeDb);
+    usedGain = static_cast<unsigned char>(255 * dynRangeDb);
   }
   HWControlsType* hwControls = this->Internal->GetHWControls();
   if (!hwControls->SendDynamic(usedGain))
@@ -781,9 +781,9 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::AddBmodeFrameToBuffer(BmodePix
   }
 
   const PlusStatus status = source->AddItem(bufferVtkImageData,
-                            source->GetInputImageOrientation(),
-                            US_IMG_BRIGHTNESS,
-                            this->FrameNumber);
+    source->GetInputImageOrientation(),
+    US_IMG_BRIGHTNESS,
+    this->FrameNumber);
 
   this->Modified();
 
@@ -824,9 +824,9 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::AddRfFrameToBuffer(RfPixelType
 
   vtkImageData* rfBufferVtkImageData = this->Internal->ConvertRfBufferToVtkImage(buffer);
   if (source->AddItem(rfBufferVtkImageData,
-                      source->GetInputImageOrientation(),
-                      US_IMG_RF_REAL,
-                      this->FrameNumber) == PLUS_FAIL)
+    source->GetInputImageOrientation(),
+    US_IMG_RF_REAL,
+    this->FrameNumber) == PLUS_FAIL)
   {
     LOG_ERROR("Failed to add RF frame to buffer");
     return PLUS_FAIL;
@@ -842,7 +842,7 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::AddRfFrameToBuffer(RfPixelType
     if (rfProcessor != NULL)
     {
       rfProcessor->SetRfFrame(rfBufferVtkImageData,
-                              US_IMG_RF_REAL);
+        US_IMG_RF_REAL);
       rfProcessor->GetRfToBrightnessConverter()->Modified();
       vtkPlusUsScanConvert* scanConverter = rfProcessor->GetScanConverter();
       vtkImageData* bmodeBufferVtkImageData = NULL;
@@ -855,9 +855,9 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::AddRfFrameToBuffer(RfPixelType
         bmodeBufferVtkImageData = rfProcessor->GetBrightnessConvertedImage();
       }
       if (source->AddItem(bmodeBufferVtkImageData,
-                          source->GetInputImageOrientation(),
-                          US_IMG_BRIGHTNESS,
-                          this->FrameNumber) == PLUS_FAIL)
+        source->GetInputImageOrientation(),
+        US_IMG_BRIGHTNESS,
+        this->FrameNumber) == PLUS_FAIL)
       {
         LOG_ERROR("Failed to add BMode frame to buffer.");
         return PLUS_FAIL;
