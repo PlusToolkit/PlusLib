@@ -94,12 +94,12 @@ public:
   //----------------------------------------------------------------------------
   void vtkPlusIntersonVideoSource::vtkInternal::CreateLinearTGC(int tgcMin, int tgcMax)
   {
-    int tgc[samplesPerLine] = {0};
+    int tgc[samplesPerLine] = { 0 };
     int b = tgcMin;
     float m = (float)(tgcMax - tgcMin) / samplesPerLine;
     for (int x = 0; x < samplesPerLine; x++)
     {
-      tgc[x] = (int)(m * (float) x) + b;
+      tgc[x] = (int)(m * (float)x) + b;
     }
     bmSetTGC(tgc);
   }
@@ -110,13 +110,13 @@ public:
     /*  A linear TGC function is created. The initial point is initialTGC, then is linear until the
     middle point (midTGC) and then linear until the maximum depth where the compensation is equal to farTGC*/
 
-    int tgc[samplesPerLine] = {0};
+    int tgc[samplesPerLine] = { 0 };
     double firstSlope = (double)(midTGC - initialTGC) / (samplesPerLine / 2);
     double secondSlope = (double)(farTGC - midTGC) / (samplesPerLine / 2);
     for (int x = 0; x < samplesPerLine / 2; x++)
     {
-      tgc[x] = (int)(firstSlope * (double) x) + initialTGC;
-      tgc[samplesPerLine / 2 + x] = (int)(secondSlope * (double) x) + midTGC;
+      tgc[x] = (int)(firstSlope * (double)x) + initialTGC;
+      tgc[samplesPerLine / 2 + x] = (int)(secondSlope * (double)x) + midTGC;
     }
     bmSetTGC(tgc);
   }
@@ -125,7 +125,7 @@ public:
   static LRESULT CALLBACK vtkPlusIntersonVideoSource::vtkInternal::ImageWindowProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
   {
     vtkPlusIntersonVideoSource::vtkInternal* self = (vtkPlusIntersonVideoSource::vtkInternal*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-    return DefWindowProc(hwnd, iMsg, wParam, lParam) ;
+    return DefWindowProc(hwnd, iMsg, wParam, lParam);
   }
 
   //----------------------------------------------------------------------------
@@ -165,7 +165,7 @@ public:
     int left = level - center;        // left of window
     int right = level + center;       // right of window
 
-    // everything to our left is black
+                                      // everything to our left is black
     for (int x = 0; x < left; x++)
     {
       lut[x] = 0;
@@ -178,7 +178,7 @@ public:
     }
 
     // everything in between is on the line
-    float m = 255.0f / ((float) window);
+    float m = 255.0f / ((float)window);
 
     int startX = left;
     if (startX < 0)
@@ -308,7 +308,7 @@ PlusStatus vtkPlusIntersonVideoSource::InternalConnect()
   // will detect all attached probes and initialize the driver. After a successful call to usbFindProbes,
   // other probe-related functions may be called. These include: usbInitializeProbes, usbProbeHandle,
   // usbSelectProbe.
-  usbErrorString errorStatus = {0};
+  usbErrorString errorStatus = { 0 };
   ULONG status = usbFindProbes(errorStatus);
   LOG_DEBUG("Find USB probes: status=" << status << ", details: " << errorStatus);
   if (status != ERROR_SUCCESS)
@@ -359,7 +359,7 @@ PlusStatus vtkPlusIntersonVideoSource::InternalConnect()
   // set the display window depth for this probe
   usbSetWindowDepth(this->Internal->ProbeHandle, imageSize[1]);
   // set the assumed velocity (m/s)
-  float soundVelocity = -1 ;
+  float soundVelocity = -1;
   this->ImagingParameters->GetSoundVelocity(soundVelocity);
   if (soundVelocity > 0)
   {
@@ -414,18 +414,18 @@ PlusStatus vtkPlusIntersonVideoSource::InternalConnect()
   HINSTANCE hInst = GetModuleHandle(NULL);
 
   WNDCLASSEX    wndclass;
-  wndclass.cbSize        = sizeof(wndclass);
-  wndclass.style         = CS_HREDRAW | CS_VREDRAW | CS_BYTEALIGNCLIENT;
-  wndclass.lpfnWndProc   = vtkPlusIntersonVideoSource::vtkInternal::ImageWindowProc;
-  wndclass.cbClsExtra    = 0;
-  wndclass.cbWndExtra    = 0;
-  wndclass.hInstance     = hInst;
-  wndclass.hIcon         = NULL;
-  wndclass.hCursor       = NULL;
-  wndclass.hbrBackground = (HBRUSH) GetStockObject(BLACK_BRUSH);
-  wndclass.lpszMenuName  = NULL ;
+  wndclass.cbSize = sizeof(wndclass);
+  wndclass.style = CS_HREDRAW | CS_VREDRAW | CS_BYTEALIGNCLIENT;
+  wndclass.lpfnWndProc = vtkPlusIntersonVideoSource::vtkInternal::ImageWindowProc;
+  wndclass.cbClsExtra = 0;
+  wndclass.cbWndExtra = 0;
+  wndclass.hInstance = hInst;
+  wndclass.hIcon = NULL;
+  wndclass.hCursor = NULL;
+  wndclass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+  wndclass.lpszMenuName = NULL;
   wndclass.lpszClassName = TEXT("ImageWindow");
-  wndclass.hIconSm       = NULL;
+  wndclass.hIconSm = NULL;
   RegisterClassEx(&wndclass);
 
   int cxFixedFrameSize = GetSystemMetrics(SM_CXFIXEDFRAME);
@@ -436,10 +436,10 @@ PlusStatus vtkPlusIntersonVideoSource::InternalConnect()
   int cySize = GetSystemMetrics(SM_CYBORDER);
 
   this->Internal->ImageWindowHandle = CreateWindow(TEXT("ImageWindow"), TEXT("Ultrasound"),
-                                      WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, 0,
-                                      imageSize[0] + 2 * cxFixedFrameSize + cxBorderSize + cxSize,
-                                      imageSize[1] + 2 * cyFixedFrameSize + cyBorderSize + cySize,
-                                      NULL, NULL, hInst, NULL);
+    WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, 0,
+    imageSize[0] + 2 * cxFixedFrameSize + cxBorderSize + cxSize,
+    imageSize[1] + 2 * cyFixedFrameSize + cyBorderSize + cySize,
+    NULL, NULL, hInst, NULL);
 
   if (this->Internal->ImageWindowHandle == NULL)
   {
@@ -450,13 +450,13 @@ PlusStatus vtkPlusIntersonVideoSource::InternalConnect()
   SetWindowLongPtr(this->Internal->ImageWindowHandle, GWLP_USERDATA, (LONG)this->Internal);
 
   // Create a bitmap for use in our DIB
-  HDC hdc = GetDC(this->Internal->ImageWindowHandle) ;
+  HDC hdc = GetDC(this->Internal->ImageWindowHandle);
   RECT rect;
-  GetClientRect(this->Internal->ImageWindowHandle, &rect) ;
-  int cx  = rect.right - rect.left;
-  int cy  = rect.bottom - rect.top;
+  GetClientRect(this->Internal->ImageWindowHandle, &rect);
+  int cx = rect.right - rect.left;
+  int cy = rect.bottom - rect.top;
   this->Internal->DataHandle = CreateCompatibleBitmap(hdc, cx, cy);
-  GetObject(this->Internal->DataHandle, sizeof(BITMAP), (LPVOID) &this->Internal->Bitmap) ;
+  GetObject(this->Internal->DataHandle, sizeof(BITMAP), (LPVOID) &this->Internal->Bitmap);
   // zero indexed window including borders
   size_t toAllocate = (this->Internal->Bitmap.bmWidth + 16) * (this->Internal->Bitmap.bmHeight + 4);
   this->Internal->MemoryBitmapBuffer.resize(toAllocate, 0);
@@ -465,7 +465,7 @@ PlusStatus vtkPlusIntersonVideoSource::InternalConnect()
   this->ImagingParameters->GetTimeGainCompensation(gain);
   if (gain.size() == 3)
   {
-    double tgc[3] = {gain[0], gain[1], gain[2]};
+    double tgc[3] = { gain[0], gain[1], gain[2] };
     this->SetTimeGainCompensationPercentDevice(tgc);
   }
 
@@ -480,10 +480,10 @@ PlusStatus vtkPlusIntersonVideoSource::InternalDisconnect()
 
   this->StopRecording();
 
-  usbProbe(STOP) ;
+  usbProbe(STOP);
   Sleep(250); // allow time for the imaging to stop
 
-  // usbStopHardware() should be called here but the issue is that if the method is called, no probe is detected after connecting again.
+              // usbStopHardware() should be called here but the issue is that if the method is called, no probe is detected after connecting again.
 
   bmCloseDisplay();
 
@@ -516,29 +516,29 @@ PlusStatus vtkPlusIntersonVideoSource::WaitForFrame()
 
   switch (usbErrorCode)
   {
-    case USB_SUCCESS:
-      break;
-    case USB_FAILED:
-      LOG_ERROR("USB: FAILURE. Probe was removed?");
-      return PLUS_FAIL;
-    case USB_TIMEOUT2A:
-    case USB_TIMEOUT2B:
-    case USB_TIMEOUT6A:
-    case USB_TIMEOUT6B:
-      if (nextFrameReady) // timeout is fine if we're in synchronized mode, so only log error if next frame is ready
-      {
-        LOG_WARNING("USB timeout");
-      }
-      break;
-    case USB_NOTSEQ:
-      LOG_ERROR("Lost Probe Synchronization. Please check probe cables and restart.");
-      break;
-    case USB_STOPPED:
-      LOG_ERROR("USB: Stopped. Check probe and restart.");
-      break;
-    default:
-      LOG_ERROR("USB: Unknown USB error: " << usbErrorCode);
-      break;
+  case USB_SUCCESS:
+    break;
+  case USB_FAILED:
+    LOG_ERROR("USB: FAILURE. Probe was removed?");
+    return PLUS_FAIL;
+  case USB_TIMEOUT2A:
+  case USB_TIMEOUT2B:
+  case USB_TIMEOUT6A:
+  case USB_TIMEOUT6B:
+    if (nextFrameReady) // timeout is fine if we're in synchronized mode, so only log error if next frame is ready
+    {
+      LOG_WARNING("USB timeout");
+    }
+    break;
+  case USB_NOTSEQ:
+    LOG_ERROR("Lost Probe Synchronization. Please check probe cables and restart.");
+    break;
+  case USB_STOPPED:
+    LOG_ERROR("USB: Stopped. Check probe and restart.");
+    break;
+  default:
+    LOG_ERROR("USB: Unknown USB error: " << usbErrorCode);
+    break;
   }
 
   return PLUS_SUCCESS;
@@ -593,12 +593,12 @@ PlusStatus vtkPlusIntersonVideoSource::InternalUpdate()
     GetProbeNameDevice(probeName);
 
     LOG_INFO("Frame size: " << imageSize[0] << "x" << imageSize[1]
-             << ", pixel type: " << vtkImageScalarTypeNameMacro(aSource->GetPixelType())
-             << ", probe sample frequency (Hz): " << usbProbeSampleFrequency(this->Internal->ProbeHandle)
-             << ", probe name: " << probeName
-             << ", display zoom: " << bmDisplayZoom()
-             << ", probe depth scale (mm/sample):" << depthScale
-             << ", buffer image orientation: " << igsioCommon::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
+      << ", pixel type: " << vtkImageScalarTypeNameMacro(aSource->GetPixelType())
+      << ", probe sample frequency (Hz): " << usbProbeSampleFrequency(this->Internal->ProbeHandle)
+      << ", probe name: " << probeName
+      << ", display zoom: " << bmDisplayZoom()
+      << ", probe depth scale (mm/sample):" << depthScale
+      << ", buffer image orientation: " << igsioCommon::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
   }
 
   igsioFieldMapType customFields;
@@ -607,12 +607,12 @@ PlusStatus vtkPlusIntersonVideoSource::InternalUpdate()
   {
     std::ostringstream probeButtonPressCountString;
     probeButtonPressCountString << this->Internal->ProbeButtonPressCount;
-    customFields["ProbeButtonToDummyTransform"].second =  std::string("1 0 0 ") + probeButtonPressCountString.str() + " 0 1 0 0 0 0 1 0 0 0 0 1";
+    customFields["ProbeButtonToDummyTransform"].second = std::string("1 0 0 ") + probeButtonPressCountString.str() + " 0 1 0 0 0 0 1 0 0 0 0 1";
     customFields["ProbeButtonToDummyTransformStatus"].second = "OK";
   }
 
   if (this->AddVideoItemToVideoSources(sources, (void*) & (this->Internal->MemoryBitmapBuffer[0]), aSource->GetInputImageOrientation(),
-                                       imageSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields) != PLUS_SUCCESS)
+    imageSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields) != PLUS_SUCCESS)
   {
     LOG_ERROR("Error adding item to video source " << aSource->GetSourceId());
     return PLUS_FAIL;
@@ -626,6 +626,53 @@ PlusStatus vtkPlusIntersonVideoSource::InternalUpdate()
 PlusStatus vtkPlusIntersonVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+
+  if (Superclass::ReadConfiguration(deviceConfig) != PLUS_SUCCESS)
+  {
+    if (deviceConfig->GetAttribute("TimeGainCompensationPercent") != NULL)
+    {
+      double tgc[3];
+      deviceConfig->GetVectorAttribute("TimeGainCompensationPercent", 3, tgc);
+      std::vector<double> tgcVec;
+      tgcVec.assign(tgc, tgc + 3);
+      this->ImagingParameters->SetTimeGainCompensation(tgcVec);
+    }
+
+    if (deviceConfig->GetAttribute("Intensity") != NULL)
+    {
+      double intensity;
+      deviceConfig->GetScalarAttribute("Intensity", intensity);
+      this->ImagingParameters->SetIntensity(intensity);
+    }
+
+    if (deviceConfig->GetAttribute("Contrast") != NULL)
+    {
+      double contrast;
+      deviceConfig->GetScalarAttribute("Contrast", contrast);
+      this->ImagingParameters->SetContrast(contrast);
+    }
+
+    if (deviceConfig->GetAttribute("DepthMm") != NULL)
+    {
+      double depthMm;
+      deviceConfig->GetScalarAttribute("DepthMm", depthMm);
+      this->ImagingParameters->SetDepthMm(depthMm);
+    }
+
+    if (deviceConfig->GetAttribute("SoundVelocity") != NULL)
+    {
+      double soundVel;
+      deviceConfig->GetScalarAttribute("SoundVelocity", soundVel);
+      this->ImagingParameters->SetSoundVelocity(soundVel);
+    }
+
+    if (deviceConfig->GetAttribute("ImageSize") != NULL)
+    {
+      int imageSize[2] = { 0,0 };
+      deviceConfig->GetVectorAttribute("ImageSize", 2, imageSize);
+      this->ImagingParameters->SetImageSize(imageSize[0], imageSize[1], 1);
+    }
+  }
 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableProbeButtonMonitoring, deviceConfig);
 
@@ -788,16 +835,16 @@ PlusStatus vtkPlusIntersonVideoSource::SetDepthMmDevice(double depthMm)
   }
   if (possibleModes.size() == 1)
   {
-    chosenFrequencyMhz = allowedModes[possibleModes[0]].first ;
-    chosenDepthCm = allowedModes[possibleModes[0]].second ;
+    chosenFrequencyMhz = allowedModes[possibleModes[0]].first;
+    chosenDepthCm = allowedModes[possibleModes[0]].second;
   }
   else if (possibleModes.size() == 0)
   {
-    chosenDepthCm = 5 ;
+    chosenDepthCm = 5;
     double clockDivider = usbClockDivider();
     double sampleFrequency = usbProbeSampleFrequency(this->Internal->ProbeHandle);
     double divider = usbPulseFrequency();
-    chosenFrequencyMhz = sampleFrequency / divider ;
+    chosenFrequencyMhz = sampleFrequency / divider;
     this->Internal->PulseFrequencyDivider = sampleFrequency / chosenFrequencyMhz;
     LOG_INFO("The probe does not allow the required depth." << chosenDepthCm << " cm depth was chosen instead.");
   }
@@ -854,8 +901,8 @@ PlusStatus vtkPlusIntersonVideoSource::SetDepthMm(double depthMm)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntersonVideoSource::SetImageSize(int imageSize[2])
 {
-    FrameSizeType frameSize = { imageSize[0], imageSize[1], 1 };
-    return this->ImagingParameters->SetImageSize(frameSize);
+  FrameSizeType frameSize = { imageSize[0], imageSize[1], 1 };
+  return this->ImagingParameters->SetImageSize(frameSize);
 }
 
 //----------------------------------------------------------------------------
@@ -932,7 +979,7 @@ PlusStatus vtkPlusIntersonVideoSource::SetTimeGainCompensationPercent(double gai
   if (gainPercent[0] < 0 || gainPercent[1] < 0 || gainPercent[2] < 0)
   {
     LOG_ERROR("vtkPlusIntersonVideoSource::SetTimeGainCompensationPercent failed: Invalid values sent.")
-    return PLUS_FAIL;
+      return PLUS_FAIL;
   }
 
   std::vector<double> tgc;
@@ -976,9 +1023,9 @@ PlusStatus vtkPlusIntersonVideoSource::SetTimeGainCompensationPercentDevice(doub
 
   const double MAX_TGC(512);
 
-  int nearGain = -255 + gainPercent[0] * MAX_TGC / 100 ;
-  int midGain = -255 + gainPercent[1] * MAX_TGC / 100 ;
-  int farGain = -255 + gainPercent[2] * MAX_TGC / 100 ;
+  int nearGain = -255 + gainPercent[0] * MAX_TGC / 100;
+  int midGain = -255 + gainPercent[1] * MAX_TGC / 100;
+  int farGain = -255 + gainPercent[2] * MAX_TGC / 100;
 
   this->Internal->CreateLinearTGC(nearGain, midGain, farGain);
 
@@ -1231,11 +1278,11 @@ PlusStatus vtkPlusIntersonVideoSource::GetProbeNameDevice(std::string& probeName
   // so we use a much larger buffer (the usbProbeNameString buffer size is 20)
   typedef TCHAR usbProbeNameStringSafe[1000];
 
-  usbProbeNameStringSafe probeNameWideStringPtr = {0};
+  usbProbeNameStringSafe probeNameWideStringPtr = { 0 };
   usbProbeName(this->Internal->ProbeHandle, probeNameWideStringPtr);
 
   // Probe name is stored in a wide-character string, convert it to a multi-byte character string
-  char probeNamePrintable[usbProbeNameMaxLength + 1] = {0};
+  char probeNamePrintable[usbProbeNameMaxLength + 1] = { 0 };
   wcstombs(probeNamePrintable, (wchar_t*)probeNameWideStringPtr, usbProbeNameMaxLength);
 
   probeName = probeNamePrintable;
@@ -1323,7 +1370,7 @@ PlusStatus vtkPlusIntersonVideoSource::InternalApplyImagingParameterChange()
   {
     if (this->SetZoomFactorDevice(this->ImagingParameters->GetZoomFactor()) == PLUS_SUCCESS)
     {
-       this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_ZOOM, false);
+      this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_ZOOM, false);
     }
     else
     {
