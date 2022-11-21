@@ -17,9 +17,6 @@ See License.txt for details.
 #include "vtkPlusDevice.h"
 #include "vtkPlusRfProcessor.h"
 #include "vtkPlusSavedDataSource.h"
-#ifdef PLUS_USE_ULTRASONIX_VIDEO
-  #include "vtkPlusSonixVideoSource.h"
-#endif
 
 // VTK includes
 #include <vtkCallbackCommand.h>
@@ -136,9 +133,6 @@ int main(int argc, char** argv)
   args.Initialize(argc, argv);
 
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file.");
-#ifdef PLUS_USE_ULTRASONIX_VIDEO
-  args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIp, "IP address of the Ultrasonix scanner (overrides the IP address parameter defined in the config file; only applicable if VideoDevice is SonixVideo).");
-#endif
   args.AddArgument("--video-buffer-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputVideoBufferMetafile, "Video buffer sequence metafile.");
   args.AddArgument("--tracker-buffer-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackerBufferMetafile, "Tracker buffer sequence metafile.");
   args.AddArgument("--transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Name of the transform displayed.");
@@ -199,23 +193,6 @@ int main(int argc, char** argv)
     videoSource->SetSequenceFile(inputVideoBufferMetafile.c_str());
     videoSource->SetRepeatEnabled(inputRepeat);
   }
-#ifdef PLUS_USE_ULTRASONIX_VIDEO
-  else if (!inputSonixIp.empty())
-  {
-    if (dataCollector->GetDevice(videoDevice, "VideoDevice") != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Unable to locate the device with Id=\"VideoDevice\". Check config file.");
-      exit(EXIT_FAILURE);
-    }
-    vtkPlusSonixVideoSource* videoSource = dynamic_cast<vtkPlusSonixVideoSource*>(videoDevice);
-    if (videoSource == NULL)
-    {
-      LOG_ERROR("Video source is not SonixVideo. Cannot set IP address.");
-      exit(EXIT_FAILURE);
-    }
-    videoSource->SetSonixIP(inputSonixIp.c_str());
-  }
-#endif
 
   if (! inputTrackerBufferMetafile.empty())
   {

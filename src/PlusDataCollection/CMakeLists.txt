@@ -31,7 +31,6 @@ OPTION(PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ${E
 OPTION(PLUS_USE_Ascension3DGm "Provide support for the Ascension 3DGm MedSafe Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY})
 OPTION(PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
 OPTION(PLUS_USE_3dConnexion_TRACKER "Provide support for the 3dConnexion 3d mouse" OFF)
-OPTION(PLUS_USE_ULTRASONIX_VIDEO "Provide support for Ultrasonix ultrasound scanners" OFF)
 OPTION(PLUS_USE_BKPROFOCUS_VIDEO "Provide support for BK ProFocus ultrasound scanners through the OEM (TCP/IP) interface" OFF)
 OPTION(PLUS_USE_BKPROFOCUS_CAMERALINK "Provide support for BK ProFocus ultrasound scanners through CameraLink interface" OFF)
 OPTION(PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
@@ -68,11 +67,6 @@ OPTION(PLUS_USE_PICOSCOPE "Provide support for PicoScope 2xxx series oscilloscop
 OPTION(PLUS_USE_AZUREKINECT "Provide support the Kinect Azure RGB-D camera" OFF)
 OPTION(PLUS_USE_REVOPOINT3DCAMERA "Provide support Revopoint 3D cameras" OFF)
 OPTION(PLUS_USE_GENERIC_SENSOR_TRACKER "Provide support for generic sensor data collection" OFF)
-
-OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
-IF(PLUS_TEST_ULTRASONIX)
-  SET(PLUS_TEST_ULTRASONIX_IP_ADDRESS "127.0.0.1" CACHE STRING "IP address of the Ultrasonix scanner that is used during testing")
-ENDIF()
 
 OPTION(PLUS_USE_MMF_VIDEO "Provide support for the Microsoft Media Foundation video digitizers (requires installation of Windows Platform SDK 7.1 or later)" OFF)
 IF(PLUS_USE_MMF_VIDEO)
@@ -1212,111 +1206,6 @@ IF( PLUS_USE_OpenIGTLink )
 ENDIF()
 
 # --------------------------------------------------------------------------
-# Ultrasonix support
-IF(PLUS_USE_ULTRASONIX_VIDEO)
-  SET(Ultrasonix_SRCS
-    SonixVideo/vtkPlusSonixVideoSource.cxx
-    SonixVideo/vtkPlusSonixVolumeReader.cxx
-    SonixVideo/itkUlteriusImageIO.cxx
-    SonixVideo/itkUlteriusImageIOFactory.cxx
-    SonixVideo/vtkPlusSonixPortaVideoSource.cxx
-    )
-
-  SET(Ultrasonix_HDRS
-    SonixVideo/vtkPlusSonixVideoSource.h
-    SonixVideo/vtkPlusSonixVolumeReader.h
-    SonixVideo/itkUlteriusImageIO.h
-    SonixVideo/itkUlteriusImageIOFactory.h
-    SonixVideo/vtkPlusSonixPortaVideoSource.h
-    )
-
-  LIST(APPEND ${PROJECT_NAME}_HDRS
-    ${Ultrasonix_HDRS}
-    )
-
-  LIST(APPEND ${PROJECT_NAME}_SRCS
-    ${Ultrasonix_SRCS}
-    )
-
-  MESSAGE(STATUS "Ultrasonix SDK directory: ${ULTRASONIX_SDK_DIR}")
-  IF(PLUS_ULTRASONIX_SDK_MAJOR_VERSION EQUAL 1)
-    # Use Ultrasonix SDK 1.2 (only Ulterius is supported)
-    SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
-    SET(ULTERIUS_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
-    SET(ULTERIUS_LIB_DIR ${ULTRASONIX_SDK_DIR}/lib CACHE PATH "Path to the Ulterius SDK library directory." FORCE)
-    LIST(APPEND ${PROJECT_NAME}_LIBS
-      optimized ${ULTERIUS_LIB_DIR}/r/ulterius.lib
-      debug ${ULTERIUS_LIB_DIR}/d/ulterius.lib
-      )
-    LIST(APPEND External_Libraries_Install
-      ${ULTRASONIX_SDK_BINARY_DIR}/r/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
-      ${ULTRASONIX_SDK_BINARY_DIR}/r/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
-      )
-   LIST(APPEND External_Libraries_Debug
-      ${ULTRASONIX_SDK_BINARY_DIR}/d/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
-      ${ULTRASONIX_SDK_BINARY_DIR}/d/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
-      )
-  ELSEIF(PLUS_ULTRASONIX_SDK_MAJOR_VERSION EQUAL 2)
-    # Use Ultrasonix SDK 2.0 (only Ulterius is supported)
-    SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
-    SET(ULTERIUS_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
-    SET(ULTERIUS_LIB_DIR ${ULTRASONIX_SDK_DIR}/lib CACHE PATH "Path to the Ulterius SDK library directory." FORCE)
-    LIST(APPEND ${PROJECT_NAME}_LIBS
-      ${ULTERIUS_LIB_DIR}/ulterius.lib
-      )
-    SET(Ultrasonix_External_Libs
-      ${ULTRASONIX_SDK_BINARY_DIR}/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
-      ${ULTRASONIX_SDK_BINARY_DIR}/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
-      ${ULTRASONIX_SDK_BINARY_DIR}/umc_string_convert${CMAKE_SHARED_LIBRARY_SUFFIX}
-      ${ULTRASONIX_SDK_BINARY_DIR}/umc_unit_convert${CMAKE_SHARED_LIBRARY_SUFFIX}
-      ${ULTRASONIX_SDK_BINARY_DIR}/umc_xml${CMAKE_SHARED_LIBRARY_SUFFIX}
-      ${ULTRASONIX_SDK_BINARY_DIR}/xerces-c_2_7_u_vc6${CMAKE_SHARED_LIBRARY_SUFFIX}
-      )
-    LIST(APPEND External_Libraries_Install ${Ultrasonix_External_Libs})
-    LIST(APPEND External_Libraries_Debug ${Ultrasonix_External_Libs})
-  ELSE()
-    SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ultrasonix SDK binary directory." FORCE)
-    SET(ULTERIUS_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/ulterius/inc CACHE PATH "Path to the Ultrasonix SDK Ulterius include directory." FORCE)
-    SET(ULTERIUS_LIB_DIR ${ULTRASONIX_SDK_DIR}/ulterius/lib CACHE PATH "Path to the Ultrasonix SDK Ulterius library directory." FORCE)
-    IF(PLUS_ULTRASONIX_SDK_MAJOR_VERSION GREATER 5)
-      SET(PORTA_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/porta/inc ${ULTRASONIX_SDK_DIR}/porta/wrapper CACHE PATH "Path to the Ultrasonix SDK Porta include directory." FORCE)
-    ELSE()
-      SET(PORTA_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/porta/inc CACHE PATH "Path to the Ultrasonix SDK Porta include directory." FORCE)
-    ENDIF()
-    SET(PORTA_LIB_DIR ${ULTRASONIX_SDK_DIR}/porta/lib CACHE PATH "Path to the Ultrasonix SDK Porta library directory." FORCE)
-
-    LIST(APPEND ${PROJECT_NAME}_LIBS
-      ${PORTA_LIB_DIR}/porta.lib
-      )
-    IF(PLUS_ULTRASONIX_SDK_MAJOR_VERSION EQUAL 6)
-      IF(PLUS_ULTRASONIX_SDK_MINOR_VERSION EQUAL 0)
-        MESSAGE( FATAL_ERROR "Plus does not support Ultrasonix SDK version 6.0.x")
-      ENDIF()
-
-      LIST(APPEND ${PROJECT_NAME}_LIBS ${ULTERIUS_LIB_DIR}/ulterius_old.lib)
-    ELSE()
-      LIST(APPEND ${PROJECT_NAME}_LIBS ${ULTERIUS_LIB_DIR}/ulterius.lib)
-    ENDIF()
-
-    FILE(GLOB ULTRASONIX_SDK_SHARED_LIBRARIES
-      "${ULTRASONIX_SDK_BINARY_DIR}/[^.]*${CMAKE_SHARED_LIBRARY_SUFFIX}")
-
-    LIST(APPEND External_Libraries_Install ${ULTRASONIX_SDK_SHARED_LIBRARIES})
-    LIST(APPEND External_Libraries_Debug ${ULTRASONIX_SDK_SHARED_LIBRARIES})
-  ENDIF()
-
-  LIST(APPEND ${PROJECT_NAME}_LIBS
-    ITKCommon
-    ITKIOImageBase
-    )
-  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
-    ${ULTERIUS_INCLUDE_DIR}
-    ${PORTA_INCLUDE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/SonixVideo
-    )
-ENDIF()
-
-# --------------------------------------------------------------------------
 # BK ProFocus support
 
 # OEM interface
@@ -1948,46 +1837,40 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Philips ie33 3d ultrasound support
 IF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
-  IF(PLUS_USE_ULTRASONIX_VIDEO)
-    # Ultrasonix contains its own libmmd.dll which does not support all the functionality needed for the philips probe
-    # They both cannot be enabled at the same time.
-    MESSAGE( FATAL_ERROR "Plus cannot enable both Ultrasonix and Philips devices due to .dll conflicts in their respective SDK packages.")
-  ELSE()
-    SET(Philips_SRCS
-      Philips3D/vtkPlusPhilips3DProbeVideoSource.cxx
-      Philips3D/vtkPlusIEEListener.cxx
-      )
-
-    SET(Philips_HDRS
-      Philips3D/vtkPlusPhilips3DProbeVideoSource.h
-      Philips3D/vtkPlusIEEListener.h
-      )
-
-    LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
-      ${CMAKE_CURRENT_SOURCE_DIR}/Philips3D
-      ${Philips_INCLUDE_DIRS}
-      )
-
-    LIST(APPEND ${PROJECT_NAME}_LIBS
-      ${Philips_LIBRARY_DIR}/PipelineComDll${CMAKE_STATIC_LIBRARY_SUFFIX}
-      ${Philips_LIBRARY_DIR}/3DData${CMAKE_STATIC_LIBRARY_SUFFIX}
-      ${Philips_LIBRARY_DIR}/3DUtil${CMAKE_STATIC_LIBRARY_SUFFIX}
+  SET(Philips_SRCS
+    Philips3D/vtkPlusPhilips3DProbeVideoSource.cxx
+    Philips3D/vtkPlusIEEListener.cxx
     )
 
-    FILE(GLOB PHILIPS_SDK_SHARED_LIBRARIES "${Philips_BINARY_DIRS}/[^.]*${CMAKE_SHARED_LIBRARY_SUFFIX}")
+  SET(Philips_HDRS
+    Philips3D/vtkPlusPhilips3DProbeVideoSource.h
+    Philips3D/vtkPlusIEEListener.h
+    )
 
-    LIST(APPEND ${PROJECT_NAME}_HDRS
-      ${Philips_HDRS}
-      )
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Philips3D
+    ${Philips_INCLUDE_DIRS}
+    )
 
-    LIST(APPEND ${PROJECT_NAME}_SRCS
-      ${Philips_SRCS}
-      )
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    ${Philips_LIBRARY_DIR}/PipelineComDll${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${Philips_LIBRARY_DIR}/3DData${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${Philips_LIBRARY_DIR}/3DUtil${CMAKE_STATIC_LIBRARY_SUFFIX}
+  )
 
-    LIST(APPEND External_Libraries_Install
-      ${PHILIPS_SDK_SHARED_LIBRARIES}
-      )
-  ENDIF()
+  FILE(GLOB PHILIPS_SDK_SHARED_LIBRARIES "${Philips_BINARY_DIRS}/[^.]*${CMAKE_SHARED_LIBRARY_SUFFIX}")
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${Philips_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${Philips_SRCS}
+    )
+
+  LIST(APPEND External_Libraries_Install
+    ${PHILIPS_SDK_SHARED_LIBRARIES}
+    )
 ENDIF()
 
 # --------------------------------------------------------------------------
@@ -2596,7 +2479,6 @@ source_group("VideoForWindows" FILES ${Vfw_HDRS} ${Vfw_SRCS})
 source_group("daVinci" FILES ${daVinci_HDRS} ${daVinci_SRCS})
 source_group("ICCapturing" FILES ${ICCapturing_HDRS} ${ICCapturing_SRCS})
 source_group("BKProFocus" FILES ${BKProFocus_HDRS} ${BKProFocus_SRCS})
-source_group("Ultrasonix" FILES ${Ultrasonix_HDRS} ${Ultrasonix_SRCS})
 source_group("MicrochipMARG" FILES ${MicrochipMARG_HDRS} ${MicrochipMARG_SRCS})
 source_group("Miscellaneous" FILES ${Miscellaneous_HDRS} ${Miscellaneous_SRCS})
 source_group("ChRobotics" FILES ${ChRobotics_HDRS} ${ChRobotics_SRCS})

@@ -76,16 +76,11 @@ The image \c x axis points towards the same direction as the \c U (unmarked) tra
 - Go to the "Freehand calibration" tab
 - Click on the "Show segmentation parameter editing dialog" button (icon)
 
-\image html UltrasoundImageOrientationsSegParamWindow.png 
+\image html UltrasoundImageOrientationsSegParamWindow.png
 
 - In the window the M and F directions are shown with arrows (M points to the right, F points downwards)
 - If the UsImageOrientation is set correctly, then
   - The transducer surface shall appear at the top of the image
   - If you touch the marked side of the transducer surface then the finger shall appear on the right side of the image
-  
-\section UltrasoundImageOrientationUltrasonix Image orientation in the Ultrasonix software
-The Ultrasonix software shows an image orientation marker (blue "U" symbol) at the marked / near corner of the image.
-
-\image html UltrasoundImageOrientationUltrasonixSw.png
 
 */

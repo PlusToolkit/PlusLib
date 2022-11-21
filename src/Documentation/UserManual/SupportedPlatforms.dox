@@ -8,10 +8,6 @@
 \section PackageWin64 Windows 64 bits
 64-bit application running on 64-bit Windows 7, 8, and 10 systems.
 
-\section PackageWin32XPe Windows XP embedded 32 bits
-32-bit application to be used on Windows XP embedded 32-bit operating system.
-Most Ultrasonix systems use this operating system.
-
 \section PackageMacOSX Mac OS X
 Compatible with Mac OS X.
 

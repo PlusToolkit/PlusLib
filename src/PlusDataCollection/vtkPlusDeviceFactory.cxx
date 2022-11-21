@@ -107,11 +107,6 @@ See License.txt for details.
 #include "vtkPlusMmfVideoSource.h"
 #endif
 
-#ifdef PLUS_USE_ULTRASONIX_VIDEO
-#include "vtkPlusSonixVideoSource.h"
-#include "vtkPlusSonixPortaVideoSource.h"
-#endif
-
 #ifdef PLUS_USE_BKPROFOCUS_VIDEO
 #include "vtkPlusBkProFocusOemVideoSource.h"
 #ifdef PLUS_USE_BKPROFOCUS_CAMERALINK
@@ -309,10 +304,6 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 #endif
 #ifdef PLUS_USE_OPTITRACK
     RegisterDevice("OptiTrack", "vtkPlusOptiTrack", (PointerToDevice)&vtkPlusOptiTrack::New);
-#endif
-#ifdef PLUS_USE_ULTRASONIX_VIDEO
-    RegisterDevice("SonixVideo", "vtkPlusSonixVideoSource", (PointerToDevice)&vtkPlusSonixVideoSource::New);
-    RegisterDevice("SonixPortaVideo", "vtkPlusSonixPortaVideoSource", (PointerToDevice)&vtkPlusSonixPortaVideoSource::New);
 #endif
 #ifdef PLUS_USE_BKPROFOCUS_VIDEO
     RegisterDevice("BkProFocusOem", "vtkPlusBkProFocusOemVideoSource", (PointerToDevice)&vtkPlusBkProFocusOemVideoSource::New);
