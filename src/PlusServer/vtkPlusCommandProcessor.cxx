@@ -13,9 +13,6 @@ See License.txt for details.
 #include "vtkPlusCommand.h"
 #include "vtkPlusGetImageCommand.h"
 #include "vtkPlusReconstructVolumeCommand.h"
-#ifdef PLUS_USE_STEALTHLINK
-  #include "vtkPlusStealthLinkCommand.h"
-#endif
 #ifdef PLUS_USE_CLARIUS
 #include "vtkPlusClariusCommand.h"
 #endif
@@ -73,9 +70,6 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
   RegisterPlusCommand(vtkSmartPointer<vtkPlusGetUsParameterCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusAddRecordingDeviceCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusGenericSerialCommand>::New());
-#ifdef PLUS_USE_STEALTHLINK
-  RegisterPlusCommand(vtkSmartPointer<vtkPlusStealthLinkCommand>::New());
-#endif
 #ifdef PLUS_USE_CLARIUS
   RegisterPlusCommand(vtkSmartPointer<vtkPlusClariusCommand>::New());
 #endif

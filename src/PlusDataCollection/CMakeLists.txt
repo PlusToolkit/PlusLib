@@ -45,7 +45,6 @@ OPTION(PLUS_USE_INTERSONARRAYSDKCXX_VIDEO "Provide support Interson Array SDK 2.
 OPTION(PLUS_USE_TELEMED_VIDEO "Provide support for the Telemed ultrasound probes" OFF)
 OPTION(PLUS_USE_SPINNAKER_VIDEO "Provide support for Point Grey Spinnaker API compatible imaging devices" OFF)
 OPTION(PLUS_USE_THORLABS_VIDEO "Provide support for the ThorLabs compact spectrometers" OFF)
-OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
 OPTION(PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical System. Enable this only if you have a da Vinci that is accessible from this computer." OFF)
 OPTION(PLUS_USE_PHILIPS_3D_ULTRASOUND "Provide support for the Philips ie33 3D ultrasound probe system." OFF)
 OPTION(PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
@@ -801,7 +800,7 @@ IF(PLUS_USE_PICOSCOPE)
     ${CMAKE_CURRENT_SOURCE_DIR}/PicoScope
     ${PicoScopeSDK_INCLUDE_DIR}
     )
-  
+
   IF(WIN32)
     LIST(APPEND ${PROJECT_NAME}_LIBS
       ${PicoScopeSDK_LIBRARY_DIR}/ps2000${CMAKE_STATIC_LIBRARY_SUFFIX}
@@ -815,7 +814,7 @@ IF(PLUS_USE_PICOSCOPE)
   LIST(APPEND External_Libraries_Install
     ${PicoScopeSDK_BINARY_DIR}/ps2000${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
-    
+
 ENDIF()
 
 #--------------------------------------------------------------------------
@@ -935,7 +934,7 @@ IF(PLUS_USE_CLARIUS_OEM)
   LIST(APPEND ${PROJECT_NAME}_PRIVATE_LIBS
     ClariusOEM
     )
-    
+
   LIST(APPEND External_Libraries_Install
     ${ClariusOEM_BINARY_PATH}
   )
@@ -1413,47 +1412,6 @@ IF(PLUS_USE_ICCAPTURING_VIDEO)
   LIST(APPEND External_Libraries_Debug
     ${ICCAPTURING_TIS_UDSHLD_SHARED_LIB}
     )
-ENDIF()
-
-# --------------------------------------------------------------------------
-# StealthLink2.0 suppport
-IF(PLUS_USE_STEALTHLINK)
-  SET(StealthLink_SRCS
-    StealthLink/vtkPlusStealthLinkTracker.cxx
-    )
-  SET(StealthLink_HDRS
-    StealthLink/vtkPlusStealthLinkTracker.h
-    )
-
-  LIST(APPEND ${PROJECT_NAME}_HDRS
-    ${StealthLink_HDRS}
-    )
-
-  LIST(APPEND ${PROJECT_NAME}_SRCS
-    ${StealthLink_SRCS}
-    )
-
-  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
-    ${STEALTHLINK_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/StealthLink
-    )
-
-  IF(WIN32)
-    LIST(APPEND ${PROJECT_NAME}_LIBS
-      optimized ${STEALTHLINK_STEALTHLINK_STATIC_LIBRARY}
-      debug ${STEALTHLINK_STEALTHLINKD_STATIC_LIBRARY}
-      )
-    LIST(APPEND External_Libraries_Debug
-      ${STEALTHLINK_STEALTHLINKD_SHARED_LIBRARY}
-      )
-    LIST(APPEND External_Libraries_Install
-      ${STEALTHLINK_STEALTHLINK_SHARED_LIBRARY}
-      )
-  ELSE()
-    LIST(APPEND ${PROJECT_NAME}_LIBS
-      ${STEALTHLINK_STEALTHLINK_STATIC_LIBRARY}
-      )
-  ENDIF()
 ENDIF()
 
 #--------------------------------------------------------------------------
@@ -2346,7 +2304,7 @@ IF(PLUS_USE_ANDOR_CAMERA)
   SET(Andor_HDRS
     Andor/vtkPlusAndorVideoSource.h
     )
-  
+
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${Andor_HDRS}
     )
@@ -2354,8 +2312,8 @@ IF(PLUS_USE_ANDOR_CAMERA)
   LIST(APPEND ${PROJECT_NAME}_SRCS
     ${Andor_SRCS}
     )
-  
-  LIST(APPEND ${PROJECT_NAME}_LIBS 
+
+  LIST(APPEND ${PROJECT_NAME}_LIBS
     ${ANDOR_LIBRARY_DIR}/${ANDOR_LIBRARY}${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
@@ -2636,7 +2594,6 @@ source_group("Epiphan" FILES ${Epiphan_HDRS} ${Epiphan_SRCS})
 source_group("MicrosoftMediaFoundation" FILES ${Mmf_HDRS} ${Mmf_SRCS})
 source_group("VideoForWindows" FILES ${Vfw_HDRS} ${Vfw_SRCS})
 source_group("daVinci" FILES ${daVinci_HDRS} ${daVinci_SRCS})
-source_group("StealthLink" FILES ${StealthLink_HDRS} ${StealthLink_SRCS})
 source_group("ICCapturing" FILES ${ICCapturing_HDRS} ${ICCapturing_SRCS})
 source_group("BKProFocus" FILES ${BKProFocus_HDRS} ${BKProFocus_SRCS})
 source_group("Ultrasonix" FILES ${Ultrasonix_HDRS} ${Ultrasonix_SRCS})

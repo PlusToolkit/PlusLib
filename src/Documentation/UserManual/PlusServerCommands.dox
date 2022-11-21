@@ -58,12 +58,6 @@ PlusServerRemoteControl.exe --command=GET_RECONSTRUCTION_SNAPSHOT --output-image
 PlusServerRemoteControl.exe --command=STOP_RECONSTRUCTION --output-image-name=recvol_Reference
 ~~~~~~~~~~~~~~~~~~~~~
 
-\subsubsection PlusServerCommandsRemoteControlExampleClientStealth Example: Acquiring exam image data from StealthStation
-~~~~~~~~~~~~~~~~~~~~~
-PlusServerRemoteControl.exe --command=GET_EXAM_DATA --device=StealthLinkDevice
-PlusServerRemoteControl.exe --command=GET_EXAM_DATA --device=StealthLinkDevice -keepReceivedDicomFiles --volumeEmbeddedTransformToFrame= "Reference" --dicom-directory="C:/StealthLinkOutput"
-~~~~~~~~~~~~~~~~~~~~~
-
 \subsubsection PlusServerCommandsRemoteControl3DSlicer Control the server from 3D Slicer
 
 - In the OpenIGTLinkIF module in Slicer create a new connection, set as client, check Active
@@ -158,10 +152,6 @@ PlusServerRemoteControl.exe --command=GET_EXAM_DATA --device=StealthLinkDevice -
   - \xmlAtt TransformName: transform name in CoordinateSystem1ToCoordinateSystem2 format
 - SaveConfig: save the config file
   - \xmlAtt Filename: target filename, if not specified then the current device set configuration file will be updated
-- GetExamData: acquire the current image from the StealthStation. This command can only be used for stealthlink connection.
-  - \xmlAtt volumeEmbeddedTransformToFrame: Specify in which coordinate system the volume will be represented. Example: Ras, Reference, Tracker, or any other coordinate system defined in PLUS (The default value is Ras)
-  - \xmlAtt dicomDirectory: The directory where the dicom images will be stored. (The default value is the same as PLUS output directory)
-  - \xmlAtt keepReceivedDicomFiles: StealthLink sends the volume as dicom images. Leave this if you want to keep the dicom files in your computer's directory. (The default value is FALSE, as in the files will be deleted after volume has been created)
 - SendText: sends text to the device. This command can only be used for GenericSerialDevice. Returns the command response received from the serial device.
   - \xmlAtt DeviceId: Device ID of the GenericSerialDevice \RequiredAtt
   - \xmlAtt Text: String to be sent to the serial device \RequiredAtt

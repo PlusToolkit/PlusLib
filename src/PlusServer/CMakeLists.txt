@@ -57,11 +57,6 @@ IF (PLUS_USE_ATRACSYS)
   LIST(APPEND ${PROJECT_NAME}_HDRS Commands/vtkPlusAtracsysCommand.h)
 ENDIF()
 
-IF(PLUS_USE_STEALTHLINK)
-  LIST(APPEND ${PROJECT_NAME}_SRCS Commands/vtkPlusStealthLinkCommand.cxx)
-  LIST(APPEND ${PROJECT_NAME}_HDRS Commands/vtkPlusStealthLinkCommand.h)
-ENDIF()
-
 IF (PLUS_USE_CLARIUS)
   LIST(APPEND ${PROJECT_NAME}_SRCS Commands/vtkPlusClariusCommand.cxx)
   LIST(APPEND ${PROJECT_NAME}_HDRS Commands/vtkPlusClariusCommand.h)
@@ -72,10 +67,10 @@ IF(PLUS_USE_OPTIMET_CONOPROBE)
   LIST(APPEND ${PROJECT_NAME}_HDRS Commands/vtkPlusConoProbeLinkCommand.h)
 ENDIF()
 
-SET(${PROJECT_NAME}_INCLUDE_DIRS 
-  ${CMAKE_CURRENT_SOURCE_DIR} 
-  ${CMAKE_CURRENT_BINARY_DIR} 
-  ${CMAKE_CURRENT_SOURCE_DIR}/Commands 
+SET(${PROJECT_NAME}_INCLUDE_DIRS
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Commands
   CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
@@ -140,11 +135,11 @@ ENDIF()
 PlusLibInstallLibrary(vtk${PROJECT_NAME} ${PROJECT_NAME})
 
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
-  INSTALL(TARGETS 
-      ${PROJECT_NAME} 
-      ${PROJECT_NAME}RemoteControl 
+  INSTALL(TARGETS
+      ${PROJECT_NAME}
+      ${PROJECT_NAME}RemoteControl
     EXPORT PlusLib
-    DESTINATION "${PLUSLIB_BINARY_INSTALL}" 
+    DESTINATION "${PLUSLIB_BINARY_INSTALL}"
     COMPONENT RuntimeExecutables
     )
 ENDIF()

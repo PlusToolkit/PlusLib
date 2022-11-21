@@ -53,9 +53,6 @@ See License.txt for details.
 #ifdef PLUS_USE_ATRACSYS
 #include "vtkPlusAtracsysTracker.h"
 #endif
-#ifdef PLUS_USE_STEALTHLINK
-#include "vtkPlusStealthLinkTracker.h"
-#endif
 #ifdef PLUS_USE_BRACHY_TRACKER
 #include "vtkPlusBrachyTracker.h"
 #endif
@@ -285,9 +282,6 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 #endif
 #ifdef PLUS_USE_ATRACSYS
     RegisterDevice("AtracsysTracker", "vtkPlusAtracsysTracker", (PointerToDevice)&vtkPlusAtracsysTracker::New);
-#endif
-#ifdef PLUS_USE_STEALTHLINK
-    RegisterDevice("StealthLinkTracker", "vtkPlusStealthLinkTracker", (PointerToDevice)&vtkPlusStealthLinkTracker::New);
 #endif
 #ifdef PLUS_USE_Ascension3DG
     RegisterDevice("Ascension3DG", "vtkAscension3DGTracker", (PointerToDevice)&vtkAscension3DGTracker::New);
