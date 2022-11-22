@@ -3,17 +3,18 @@
 \page SupportedPlatforms Supported platforms
 
 \section PackageWin32 Windows 32 bits
-32-bit application running on 32 or 64-bit Windows 7, 8, and 10 systems.
+32-bit application running on 32 or 64-bit Windows 10 and 11 systems.
 
 \section PackageWin64 Windows 64 bits
-64-bit application running on 64-bit Windows 7, 8, and 10 systems.
+64-bit application running on 64-bit Windows 10 and 11 systems.
 
 \section PackageWin32XPe Windows XP embedded 32 bits
 32-bit application to be used on Windows XP embedded 32-bit operating system.
-Most Ultrasonix systems use this operating system.
+Most Ultrasonix systems are running on this operating system.
+Since security updates are no longer available for these systems, it is strongly recommended to connect to them to the network using a firewall and disable direct internet access from the machine.
 
-\section PackageMacOSX Mac OS X
-Compatible with Mac OS X.
+\section PackageMacOSX macOS
+Compatible with macOS.
 
 \section PackageLinux Linux
 Compatible with Linux.
