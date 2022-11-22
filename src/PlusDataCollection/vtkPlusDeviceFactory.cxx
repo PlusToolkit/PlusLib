@@ -102,10 +102,6 @@ See License.txt for details.
 #include "vtkPlusSavedDataSource.h"
 #include "vtkPlusUsSimulatorVideoSource.h"
 
-#ifdef PLUS_USE_VFW_VIDEO
-#include "vtkPlusWin32VideoSource2.h"
-#endif
-
 #ifdef PLUS_USE_MMF_VIDEO
 #include "vtkPlusMmfVideoSource.h"
 #endif
@@ -338,9 +334,6 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
     RegisterDevice("BkProFocusCameraLink", "vtkPlusBkProFocusCameraLinkVideoSource", (PointerToDevice)&vtkPlusBkProFocusCameraLinkVideoSource::New);
     RegisterDevice("BkProFocus", "vtkPlusBkProFocusCameraLinkVideoSource", (PointerToDevice)&vtkPlusBkProFocusCameraLinkVideoSource::New);
 #endif
-#endif
-#ifdef PLUS_USE_VFW_VIDEO
-    RegisterDevice("VFWVideo", "vtkPlusWin32VideoSource2", (PointerToDevice)&vtkPlusWin32VideoSource2::New);
 #endif
 #ifdef PLUS_USE_MMF_VIDEO
     RegisterDevice("MmfVideo", "vtkPlusMmfVideoSource", (PointerToDevice)&vtkPlusMmfVideoSource::New);

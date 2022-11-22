@@ -88,7 +88,6 @@
 #cmakedefine PLUS_USE_PHIDGET_SPATIAL_TRACKER
 #cmakedefine PLUS_USE_NDI
 #cmakedefine PLUS_USE_ULTRASONIX_VIDEO
-#cmakedefine PLUS_USE_VFW_VIDEO
 #cmakedefine PLUS_USE_STEALTHLINK
 #cmakedefine PLUS_USE_IntuitiveDaVinci
 #cmakedefine PLUS_USE_PHILIPS_3D_ULTRASOUND
