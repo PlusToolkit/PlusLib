@@ -21,11 +21,14 @@ AtracsysTracker::DEVICE_TYPE DeviceType = AtracsysTracker::UNKNOWN_DEVICE;
 // for convenience
 #define ATR_SUCCESS AtracsysTracker::ATRACSYS_RESULT::SUCCESS
 typedef AtracsysTracker::ATRACSYS_RESULT ATRACSYS_RESULT;
-typedef AtracsysTracker::Fiducial3D Fiducial3D;
+typedef AtracsysTracker::Fiducial Fiducial;
+typedef AtracsysTracker::Marker Marker;
 
 // data types
-typedef std::vector<Fiducial3D> fiducialFrame; // list of all fiducials in single frame, or all background fids
-typedef std::vector<fiducialFrame> fiducialFrameList; // list of frames of fiducials
+// list of all 3d fiducials in single frame, including triangulated background stray blobs
+typedef std::vector<Fiducial> fidsFrame;
+// list of frames of 3d fiducials
+typedef std::vector<fidsFrame> fidsFrameList;
 
 // struct to hold geometry intrinsics
 struct MarkerGeometry
@@ -34,14 +37,14 @@ struct MarkerGeometry
   std::string description;
   std::string destPath;
   int geometryId;
-  fiducialFrame fids;
+  fidsFrame fids;
 };
 
 // forward declare functions
-PlusStatus CollectFiducials(fiducialFrameList& fidFrameList, int numFrames);
-PlusStatus ProcessFiducials(fiducialFrameList& fidFrameList, fiducialFrame& backgroundFids);
-PlusStatus PerformBackgroundSubtraction(fiducialFrame& backgroundFids, fiducialFrame& dataFids);
-PlusStatus ZeroMeanFids(fiducialFrame& dataFids);
+PlusStatus CollectFiducials(fidsFrameList& fidFrameList, int numFrames);
+PlusStatus ProcessFiducials(fidsFrameList& fidFrameList, fidsFrame& backgroundFids);
+PlusStatus PerformBackgroundSubtraction(fidsFrame& backgroundFids, fidsFrame& dataFids);
+PlusStatus ZeroMeanFids(fidsFrame& dataFids);
 PlusStatus WriteGeometryIniFile(const MarkerGeometry geom);
 
 int main(int argc, char** argv)
@@ -131,16 +134,16 @@ int main(int argc, char** argv)
   Tracker.SetUserLEDState(0, 0, 255, 0);
 
   // collect background frames
-  fiducialFrameList backgroundFiducialFrameList;
-  fiducialFrame backgroundFids; // list of fids visible in background
+  fidsFrameList backgroundfidsFrameList;
+  fidsFrame backgroundFids; // list of fids visible in background
   if (backgroundSubtraction)
   {
-    if (CollectFiducials(backgroundFiducialFrameList, NUM_BACKGROUND_FRAMES) == PLUS_FAIL)
+    if (CollectFiducials(backgroundfidsFrameList, NUM_BACKGROUND_FRAMES) == PLUS_FAIL)
     {
       LOG_ERROR("Failed to collect background noise fiducial frames.");
       return PLUS_FAIL;
     }
-    ProcessFiducials(backgroundFiducialFrameList, backgroundFids);
+    ProcessFiducials(backgroundfidsFrameList, backgroundFids);
 
     // set LED red and wait for user to place marker in front of the camera
     Tracker.SetUserLEDState(255, 0, 0, 0);
@@ -153,14 +156,14 @@ int main(int argc, char** argv)
   Tracker.SetUserLEDState(0, 0, 255, 0);
 
   // collect numFrames frames of fiducials
-  fiducialFrameList dataFiducialFrameList;
-  if (CollectFiducials(dataFiducialFrameList, numFrames) == PLUS_FAIL)
+  fidsFrameList datafidsFrameList;
+  if (CollectFiducials(datafidsFrameList, numFrames) == PLUS_FAIL)
   {
     LOG_ERROR("Failed to collect data fiducial frames.");
     return PLUS_FAIL;
   }
-  fiducialFrame dataFids;
-  ProcessFiducials(dataFiducialFrameList, dataFids);
+  fidsFrame dataFids;
+  ProcessFiducials(datafidsFrameList, dataFids);
 
   // perform background subtraction and fiducial filtering
   if (PerformBackgroundSubtraction(backgroundFids, dataFids) != PLUS_SUCCESS)
@@ -199,19 +202,21 @@ int main(int argc, char** argv)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus CollectFiducials(fiducialFrameList& fidFrameList, int numFrames)
+PlusStatus CollectFiducials(fidsFrameList& fidFrameList, int numFrames)
 {
   int m = 0;
-  fiducialFrame fidFrame;
+  fidsFrame fid3dFrame;
+  std::vector<Marker> markerFrame; // unused
+  std::map<std::string, std::string> events; // unused
   while (m < numFrames)
   {
-    // ensure fiducials vector is empty
-    fidFrame.clear();
-    ATRACSYS_RESULT result = Tracker.GetFiducialsInFrame(fidFrame);
+    // ensure vector is empty
+    markerFrame.clear();
+    ATRACSYS_RESULT result = Tracker.GetMarkersInFrame(markerFrame, events);
     if (result == ATR_SUCCESS)
     {
       m++;
-      fidFrameList.push_back(fidFrame);
+      fidFrameList.push_back(fid3dFrame);
     }
     else if (result == AtracsysTracker::ERROR_NO_FRAME_AVAILABLE)
     {
@@ -227,13 +232,13 @@ PlusStatus CollectFiducials(fiducialFrameList& fidFrameList, int numFrames)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ProcessFiducials(fiducialFrameList& fidFrameList, fiducialFrame& fids)
+PlusStatus ProcessFiducials(fidsFrameList& fidFrameList, fidsFrame& fids)
 {
-  fiducialFrame frame;
+  fidsFrame frame;
   // make sure backgroundFids is empty
   fids.clear();
 
-  for (fiducialFrameList::size_type frameNum = 0; frameNum < fidFrameList.size(); frameNum++)
+  for (fidsFrameList::size_type frameNum = 0; frameNum < fidFrameList.size(); frameNum++)
   {
     frame = fidFrameList[frameNum];
     // populate backgroundFids with list of fiducials appearing in the background
@@ -242,17 +247,17 @@ PlusStatus ProcessFiducials(fiducialFrameList& fidFrameList, fiducialFrame& fids
 
   // remove duplicate points in backgroundFids && resize
   std::sort(fids.begin(), fids.end());
-  fiducialFrame::iterator it = std::unique(fids.begin(), fids.end());
+  fidsFrame::iterator it = std::unique(fids.begin(), fids.end());
   fids.resize(std::distance(fids.begin(), it));
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PerformBackgroundSubtraction(fiducialFrame& backgroundFids, fiducialFrame& dataFids)
+PlusStatus PerformBackgroundSubtraction(fidsFrame& backgroundFids, fidsFrame& dataFids)
 {
   // subtract the backgroundFids from the dataFids
-  fiducialFrame filteredDataFids;
-  fiducialFrame::iterator backgroundIt, dataIt;
+  fidsFrame filteredDataFids;
+  fidsFrame::iterator backgroundIt, dataIt;
   for (dataIt = begin(dataFids); dataIt != end(dataFids); dataIt++)
   {
     bool equalityFound = false;
@@ -271,7 +276,7 @@ PlusStatus PerformBackgroundSubtraction(fiducialFrame& backgroundFids, fiducialF
   }
 
   // check that no data fiducials have non 1 probability
-  for (fiducialFrame::size_type i = 0; i < filteredDataFids.size(); i++)
+  for (fidsFrame::size_type i = 0; i < filteredDataFids.size(); i++)
   {
     if (filteredDataFids[i].probability != 1)
     {
@@ -287,12 +292,12 @@ PlusStatus PerformBackgroundSubtraction(fiducialFrame& backgroundFids, fiducialF
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ZeroMeanFids(fiducialFrame& dataFids)
+PlusStatus ZeroMeanFids(fidsFrame& dataFids)
 {
   // zero-mean the fiducials
-  fiducialFrame zeroMeanFids;
+  fidsFrame zeroMeanFids;
   float cumulativeXmm = 0, cumulativeYmm = 0, cumulativeZmm = 0;
-  fiducialFrame::const_iterator it;
+  fidsFrame::const_iterator it;
   for (it = begin(dataFids); it != end(dataFids); it++)
   {
     cumulativeXmm += it->xMm;
@@ -304,14 +309,11 @@ PlusStatus ZeroMeanFids(fiducialFrame& dataFids)
   float aveZmm = cumulativeZmm /= dataFids.size();
   for (it = begin(dataFids); it != end(dataFids); it++)
   {
-    zeroMeanFids.push_back(
-      AtracsysTracker::Fiducial3D(
-        it->xMm - aveXmm,
-        it->yMm - aveYmm,
-        it->zMm - aveZmm,
-        it->probability
-      )
-    );
+    zeroMeanFids.emplace_back();
+    zeroMeanFids.back().xMm = it->xMm - aveXmm;
+    zeroMeanFids.back().yMm = it->yMm - aveXmm;
+    zeroMeanFids.back().zMm = it->zMm - aveXmm;
+    zeroMeanFids.back().probability = it->probability;
   }
   dataFids = zeroMeanFids;
   return PLUS_SUCCESS;
@@ -346,7 +348,7 @@ PlusStatus WriteGeometryIniFile(const MarkerGeometry geom)
   file << "count=" << geom.fids.size() << std::endl;
   file << "id=" << geom.geometryId << std::endl;
 
-  for (fiducialFrame::size_type i = 0; i < geom.fids.size(); i++)
+  for (fidsFrame::size_type i = 0; i < geom.fids.size(); i++)
   {
     file << "[fiducial" << i << "]" << std::endl;
     file << "x=" << geom.fids[i].xMm << std::endl;

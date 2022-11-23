@@ -23,10 +23,6 @@ See License.txt for details.
 
 #include <igsioCommon.h>
 
-// vtk includes
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
-
 #define ATRACSYS_BUFFER_SIZE 1024
 #define RESET_DROPPED_FRAME_COUNT 1
 
@@ -164,22 +160,22 @@ public:
     bool parseLine(std::string& line)
     {
       size_t first_bracket = line.find_first_of("["),
-             last_bracket = line.find_last_of("]"),
-             equal = line.find_first_of("=");
+        last_bracket = line.find_last_of("]"),
+        equal = line.find_first_of("=");
 
       if (first_bracket != std::string::npos &&
-          last_bracket != std::string::npos)
+        last_bracket != std::string::npos)
       {
         // Found section
         _currentSection = line.substr(first_bracket + 1,
-                                      last_bracket - first_bracket - 1);
+          last_bracket - first_bracket - 1);
         sections[_currentSection] = KeyValues();
       }
       else if (equal != std::string::npos && _currentSection != "")
       {
         // Found property in a section
         std::string key = line.substr(0, equal),
-                    val = line.substr(equal + 1);
+          val = line.substr(equal + 1);
         sections[_currentSection][key] = val;
       }
       else
@@ -188,7 +184,7 @@ public:
         // skip it
         // as well, otherwise the parsing cannot be done.
         line.erase(remove_if(line.begin(),
-                             line.end(), isspace), line.end());
+          line.end(), isspace), line.end());
         if (!line.empty() && line.substr(0, 1) != ";")
         {
           return false;
@@ -271,7 +267,7 @@ public:
         while (iterK != kw.end())
         {
           fprintf(file, "%s=%s\n",
-                  iterK->first.c_str(), iterK->second.c_str());
+            iterK->first.c_str(), iterK->second.c_str());
           iterK++;
         }
         iterS++;
@@ -304,7 +300,7 @@ public:
         while (iterK != kw.end())
         {
           sprintf(temp, "%s=%s\n",
-                  iterK->first.c_str(), iterK->second.c_str());
+            iterK->first.c_str(), iterK->second.c_str());
           buffer += temp;
           iterK++;
         }
@@ -350,8 +346,8 @@ public:
 
   //----------------------------------------------------------------------------
   bool assignUint32(IniFile& p, const std::string& section,
-                    const std::string& key,
-                    uint32* variable)
+    const std::string& key,
+    uint32* variable)
   {
     if (!checkKey(p, section, key))
     {
@@ -368,8 +364,8 @@ public:
 
   //----------------------------------------------------------------------------
   bool assignFloatXX(IniFile& p, const std::string& section,
-                     const std::string& key,
-                     floatXX* variable)
+    const std::string& key,
+    floatXX* variable)
   {
     if (!checkKey(p, section, key))
     {
@@ -423,7 +419,7 @@ public:
     IniFile parser;
 
     if (!parser.parse(const_cast<char*>(fileContent.c_str()),
-                      fileContent.size()))
+      fileContent.size()))
     {
       return false;
     }
@@ -458,17 +454,17 @@ public:
       }
 
       if (!assignFloatXX(parser, sectionName, "x",
-                         &geometry.positions[i].x))
+        &geometry.positions[i].x))
       {
         return false;
       }
       if (!assignFloatXX(parser, sectionName, "y",
-                         &geometry.positions[i].y))
+        &geometry.positions[i].y))
       {
         return false;
       }
       if (!assignFloatXX(parser, sectionName, "z",
-                         &geometry.positions[i].z))
+        &geometry.positions[i].z))
       {
         return false;
       }
@@ -565,7 +561,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetOption(const std::string& o
 {
   LOG_INFO(std::string("Setting option \"") + optionName + std::string("\" at value ") + attributeValue);
 
-  const ftkOptionsInfo * info;
+  const ftkOptionsInfo* info;
 
   if (!this->GetOptionInfo(optionName, info))
   {
@@ -676,20 +672,20 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Connect()
 
   switch (device.Type)
   {
-    case ftkDeviceType::DEV_SPRYTRACK_180:
-      this->DeviceType = SPRYTRACK_180;
-      break;
+  case ftkDeviceType::DEV_SPRYTRACK_180:
+    this->DeviceType = SPRYTRACK_180;
+    break;
     case ftkDeviceType::DEV_SPRYTRACK_300:
       this->DeviceType = SPRYTRACK_300;
       break;
-    case ftkDeviceType::DEV_FUSIONTRACK_500:
-      this->DeviceType = FUSIONTRACK_500;
-      break;
-    case ftkDeviceType::DEV_FUSIONTRACK_250:
-      this->DeviceType = FUSIONTRACK_250;
-      break;
-    default:
-      this->DeviceType = UNKNOWN_DEVICE;
+  case ftkDeviceType::DEV_FUSIONTRACK_500:
+    this->DeviceType = FUSIONTRACK_500;
+    break;
+  case ftkDeviceType::DEV_FUSIONTRACK_250:
+    this->DeviceType = FUSIONTRACK_250;
+    break;
+  default:
+    this->DeviceType = UNKNOWN_DEVICE;
   }
 
   // allocate memory for ftk frame to be used throughout life of the object
@@ -713,8 +709,8 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Connect()
   }
 
   if (ftkEnumerateOptions(this->Internal->FtkLib, this->Internal->TrackerSN,
-                          &AtracsysTracker::AtracsysInternal::DeviceOptionEnumerator, this->Internal) != ftkError::FTK_OK
-      || this->Internal->DeviceOptionMap.find("Data Directory") == this->Internal->DeviceOptionMap.cend())
+    &AtracsysTracker::AtracsysInternal::DeviceOptionEnumerator, this->Internal) != ftkError::FTK_OK
+    || this->Internal->DeviceOptionMap.find("Data Directory") == this->Internal->DeviceOptionMap.cend())
   {
     return ERROR_OPTION_NOT_FOUND;
   }
@@ -807,7 +803,7 @@ std::string AtracsysTracker::ResultToString(AtracsysTracker::ATRACSYS_RESULT res
 }
 
 //----------------------------------------------------------------------------
-AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetFiducialsInFrame(std::vector<Fiducial3D>& fiducials)
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetMarkersInFrame(std::vector<Marker>& markers, std::map<std::string, std::string>& events)
 {
   ftkError err = ftkGetLastFrame(this->Internal->FtkLib, this->Internal->TrackerSN, this->Internal->Frame, 20);
   if (err != ftkError::FTK_OK)
@@ -817,52 +813,14 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetFiducialsInFrame(std::vecto
 
   switch (this->Internal->Frame->markersStat)
   {
-    case ftkQueryStatus::QS_WAR_SKIPPED:
-      return ERROR_INVALID_FRAME;
-    case ftkQueryStatus::QS_ERR_INVALID_RESERVED_SIZE:
-      return ERROR_INVALID_FRAME;
-    case ftkQueryStatus::QS_OK:
-      break;
-    default:
-      return ERROR_INVALID_FRAME;
-  }
-
-  if (this->Internal->Frame->markersStat == ftkQueryStatus::QS_ERR_OVERFLOW)
-  {
-    return ERROR_TOO_MANY_MARKERS;
-  }
-
-  // make sure fiducials vector is empty before populating
-  fiducials.clear();
-
-  for (size_t m = 0; m < this->Internal->Frame->threeDFiducialsCount; m++)
-  {
-    ftk3DFiducial& ftkFiducial = this->Internal->Frame->threeDFiducials[m];
-    Fiducial3D fiducial(ftkFiducial.positionMM.x, ftkFiducial.positionMM.y, ftkFiducial.positionMM.z, ftkFiducial.probability);
-    fiducials.push_back(fiducial);
-  }
-  return SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetMarkersInFrame(std::vector<Marker>& markers)
-{
-  ftkError err = ftkGetLastFrame(this->Internal->FtkLib, this->Internal->TrackerSN, this->Internal->Frame, 20);
-  if (err != ftkError::FTK_OK)
-  {
-    return ERROR_NO_FRAME_AVAILABLE;
-  }
-
-  switch (this->Internal->Frame->markersStat)
-  {
-    case ftkQueryStatus::QS_WAR_SKIPPED:
-      return ERROR_INVALID_FRAME;
-    case ftkQueryStatus::QS_ERR_INVALID_RESERVED_SIZE:
-      return ERROR_INVALID_FRAME;
-    case ftkQueryStatus::QS_OK:
-      break;
-    default:
-      return ERROR_INVALID_FRAME;
+  case ftkQueryStatus::QS_WAR_SKIPPED:
+    return ERROR_INVALID_FRAME;
+  case ftkQueryStatus::QS_ERR_INVALID_RESERVED_SIZE:
+    return ERROR_INVALID_FRAME;
+  case ftkQueryStatus::QS_OK:
+    break;
+  default:
+    return ERROR_INVALID_FRAME;
   }
 
   if (this->Internal->Frame->markersStat == ftkQueryStatus::QS_ERR_OVERFLOW)
@@ -875,9 +833,10 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetMarkersInFrame(std::vector<
 
   for (size_t m = 0; m < this->Internal->Frame->markersCount; m++)
   {
-    ftkMarker& marker = this->Internal->Frame->markers[m];
-    vtkNew<vtkMatrix4x4> toolToTracker;
+    const ftkMarker& marker = this->Internal->Frame->markers[m];
 
+    // A marker
+    vtkNew<vtkMatrix4x4> toolToTracker;
     for (int row = 0; row < 3; row++)
     {
       toolToTracker->SetElement(row, 3, marker.translationMM[row]);
@@ -887,9 +846,83 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetMarkersInFrame(std::vector<
       }
     }
 
-    Marker atracsysMarker((int)marker.geometryId, toolToTracker.GetPointer(), marker.geometryPresenceMask, marker.registrationErrorMM);
+    Marker atracsysMarker(marker.status, marker.id, marker.geometryId,
+      toolToTracker.GetPointer(), marker.geometryPresenceMask, marker.registrationErrorMM);
+
+    // Add the corresponding 3D fiducials
+    for (size_t f3 = 0; f3 < FTK_MAX_FIDUCIALS; f3++)
+    {
+      const uint32 f = marker.fiducialCorresp[f3];
+      if (f == INVALID_ID) // no more 3D fids for this marker
+      {
+        continue;
+      }
+      else
+      {
+        Fiducial fid;
+        // 3D stuff
+        const ftk3DFiducial& ftkFid3d = this->Internal->Frame->threeDFiducials[f];
+        fid.Fid3dStatus = ftkFid3d.status;
+        fid.xMm = ftkFid3d.positionMM.x;
+        fid.yMm = ftkFid3d.positionMM.y;
+        fid.zMm = ftkFid3d.positionMM.z;
+        fid.epipolarErrorPx = ftkFid3d.epipolarErrorPixels;
+        fid.probability = ftkFid3d.probability;
+        fid.triangulErrorMm = ftkFid3d.triangulationErrorMM;
+        // Left 2D stuff
+        const ftkRawData& leftRaw = this->Internal->Frame->rawDataLeft[ftkFid3d.leftIndex];
+        fid.Fid2dLeftStatus = leftRaw.status;
+        fid.xLeftPx = leftRaw.centerXPixels;
+        fid.yLeftPx = leftRaw.centerYPixels;
+        fid.heightLeftPx = leftRaw.height;
+        fid.widthLeftPx = leftRaw.width;
+        fid.pixCountLeft = leftRaw.pixelsCount;
+        // Right 2D stuff
+        const ftkRawData& rightRaw = this->Internal->Frame->rawDataRight[ftkFid3d.rightIndex];
+        fid.Fid2dRightStatus = rightRaw.status;
+        fid.xRightPx = rightRaw.centerXPixels;
+        fid.yRightPx = rightRaw.centerYPixels;
+        fid.heightRightPx = rightRaw.height;
+        fid.widthRightPx = rightRaw.width;
+        fid.pixCountRight = rightRaw.pixelsCount;
+
+        if (!atracsysMarker.AddFiducial(fid))
+        {
+          return ERROR_TOO_MANY_FIDUCIALS;
+        }
+      }
+    }
     markers.push_back(atracsysMarker);
   }
+
+  // make sure events map is empty before populating
+  events.clear();
+
+  // Parse events
+  for (size_t e = 0; e < this->Internal->Frame->eventsCount; e++)
+  {
+    const ftkEvent& event = *this->Internal->Frame->events[e];
+
+    if (event.Type == FtkEventType::fetTempV4)
+    {
+      std::stringstream ss;
+      const EvtTemperatureV4Payload* ptr = reinterpret_cast<EvtTemperatureV4Payload*>(event.Data);
+      for (unsigned int i = 0; i < event.Payload / sizeof(EvtTemperatureV4Payload) - 1; i++, ++ptr)
+      {
+        ss << ptr->SensorId << " " << ptr->SensorValue << " ";
+      }
+      ss << ptr->SensorId << " " << ptr->SensorValue;
+      events.emplace("tempv4", ss.str());
+    }
+    else if (event.Type == FtkEventType::fetSyntheticTemperaturesV1)
+    {
+      std::stringstream ss;
+      const EvtSyntheticTemperaturesV1Payload* ptr = reinterpret_cast<EvtSyntheticTemperaturesV1Payload*>(event.Data);
+      ss << ptr->CurrentValue << " " << ptr->ReferenceValue;
+      events.emplace("synthTempv1", ss.str());
+    }
+  }
+
   return SUCCESS;
 }
 
@@ -907,19 +940,25 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetUserLEDState(int red, int g
     return ERROR_SET_USER_LED;
   }
   if (!this->GetOptionInfo("User-LED red component", info))
-  { return ERROR_OPTION_NOT_FOUND; }
+  {
+    return ERROR_OPTION_NOT_FOUND;
+  }
   if (ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, info->id, red) != ftkError::FTK_OK)
   {
     return ERROR_SET_USER_LED;
   }
   if (!this->GetOptionInfo("User-LED green component", info))
-  { return ERROR_OPTION_NOT_FOUND; }
+  {
+    return ERROR_OPTION_NOT_FOUND;
+  }
   if (ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, info->id, green) != ftkError::FTK_OK)
   {
     return ERROR_SET_USER_LED;
   }
   if (!this->GetOptionInfo("User-LED blue component", info))
-  { return ERROR_OPTION_NOT_FOUND; }
+  {
+    return ERROR_OPTION_NOT_FOUND;
+  }
   if (ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, info->id, blue) != ftkError::FTK_OK)
   {
     return ERROR_SET_USER_LED;
@@ -1129,10 +1168,14 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetDroppedFrameCount(int& drop
     // get correct device option number
     const ftkOptionsInfo* info;
     if (!this->GetOptionInfo("Counter of lost frames", info))
-    { return ERROR_OPTION_NOT_FOUND; }
+    {
+      return ERROR_OPTION_NOT_FOUND;
+    }
     ftkGetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, info->id, &lost, ftkOptionGetter::FTK_VALUE);
     if (!this->GetOptionInfo("Counter of corrupted frames", info))
-    { return ERROR_OPTION_NOT_FOUND; }
+    {
+      return ERROR_OPTION_NOT_FOUND;
+    }
     ftkGetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, info->id, &corrupted, ftkOptionGetter::FTK_VALUE);
 
     droppedFrameCount = lost + corrupted;
@@ -1149,7 +1192,9 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::ResetLostFrameCount()
     // get correct device option number
     const ftkOptionsInfo* info;
     if (!this->GetOptionInfo("Resets lost counters", info))
-    { return ERROR_OPTION_NOT_FOUND; }
+    {
+      return ERROR_OPTION_NOT_FOUND;
+    }
     ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, info->id, RESET_DROPPED_FRAME_COUNT);
     return SUCCESS;
   }
@@ -1157,29 +1202,13 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::ResetLostFrameCount()
 }
 
 // ------------------------------------------
-// Fiducial3D methods
+// Fiducial methods
 // ------------------------------------------
-AtracsysTracker::Fiducial3D::Fiducial3D()
-{
-  this->xMm = 0.0;
-  this->yMm = 0.0;
-  this->zMm = 0.0;
-  this->probability = -1;
-}
 
-//----------------------------------------------------------------------------
-AtracsysTracker::Fiducial3D::Fiducial3D(float x, float y, float z, float probability)
-{
-  this->xMm = x;
-  this->yMm = y;
-  this->zMm = z;
-  this->probability = probability;
-}
-
-// any 2 fiducials within this 3D distance will be considered equal
+// any 2 fiducials within this 3D distance in mm will be considered equal
 const float EQUALITY_DISTANCE_MM = 2.0;
 
-bool AtracsysTracker::Fiducial3D::operator==(const Fiducial3D& f)
+bool AtracsysTracker::Fiducial::operator==(const Fiducial& f)
 {
   // pow is much slower than just x*x for squaring numbers
   float dist2 = (this->xMm - f.xMm) * (this->xMm - f.xMm) + (this->yMm - f.yMm) * (this->yMm - f.yMm) + (this->zMm - f.zMm) * (this->zMm - f.zMm);
@@ -1187,7 +1216,7 @@ bool AtracsysTracker::Fiducial3D::operator==(const Fiducial3D& f)
 }
 
 // compare fiducials on distance from the origin
-bool AtracsysTracker::Fiducial3D::operator<(const Fiducial3D& f) const
+bool AtracsysTracker::Fiducial::operator<(const Fiducial& f) const
 {
   float distF1 = sqrt(this->xMm * this->xMm + this->yMm * this->yMm + this->zMm * this->zMm);
   float distF2 = sqrt(f.xMm * f.xMm + f.yMm * f.yMm + f.zMm * f.zMm);
@@ -1200,42 +1229,41 @@ bool AtracsysTracker::Fiducial3D::operator<(const Fiducial3D& f) const
 
 AtracsysTracker::Marker::Marker()
 {
+  this->MarkerStatus = 0;
+  this->TrackingId = -1;
   this->GeometryId = -1;
   this->GeometryPresenceMask = -1;
-  this->RegistrationErrorMM = 0.0;
+  this->RegistrationErrorMm = 0.0;
 }
-AtracsysTracker::Marker::Marker(int geometryId, vtkMatrix4x4* toolToTracker, int geometryPresenceMask, float registrationErrorMM)
+AtracsysTracker::Marker::Marker(int status, int trackingId, int geometryId,
+  vtkMatrix4x4* toolToTracker, int geometryPresenceMask, float registrationErrorMM)
 {
+  this->MarkerStatus = status;
+  this->TrackingId = trackingId;
   this->GeometryId = geometryId;
   this->ToolToTracker->DeepCopy(toolToTracker);
   this->GeometryPresenceMask = geometryPresenceMask;
-  this->RegistrationErrorMM = registrationErrorMM;
+  this->RegistrationErrorMm = registrationErrorMM;
 }
 
 AtracsysTracker::Marker::Marker(const AtracsysTracker::Marker& obj)
 {
+  this->MarkerStatus = obj.MarkerStatus;
+  this->TrackingId = obj.TrackingId;
   this->GeometryId = obj.GeometryId;
   this->ToolToTracker->DeepCopy(obj.ToolToTracker.GetPointer());
   this->GeometryPresenceMask = obj.GeometryPresenceMask;
-  this->RegistrationErrorMM = obj.RegistrationErrorMM;
+  this->RegistrationErrorMm = obj.RegistrationErrorMm;
+  this->fiducials = obj.fiducials;
 }
 
-int AtracsysTracker::Marker::GetGeometryID()
+bool AtracsysTracker::Marker::AddFiducial(AtracsysTracker::Fiducial fid)
 {
-  return this->GeometryId;
-}
-
-int AtracsysTracker::Marker::GetGeometryPresenceMask()
-{
-  return this->GeometryPresenceMask;
-}
-
-vtkMatrix4x4* AtracsysTracker::Marker::GetTransformToTracker()
-{
-  return this->ToolToTracker.GetPointer();
-}
-
-float AtracsysTracker::Marker::GetFiducialRegistrationErrorMm()
-{
-  return this->RegistrationErrorMM;
+  if (fiducials.size() < FTK_MAX_FIDUCIALS)
+  {
+    fiducials.push_back(fid);
+    return true;
+  }
+  else
+    return false;
 }
