@@ -10,9 +10,10 @@ See License.txt for details.
 #include <string>
 #include <vector>
 #include <vtkNew.h>
+#include <vtkMatrix4x4.h>
+#include <map>
 
 struct ftkOptionsInfo;
-class vtkMatrix4x4;
 
 // Functions to safely convert string to int32 or float
 bool strToInt32(const std::string& str, int& var);
@@ -41,6 +42,7 @@ public:
     ERROR_NO_FRAME_AVAILABLE,
     ERROR_INVALID_FRAME,
     ERROR_TOO_MANY_MARKERS,
+    ERROR_TOO_MANY_FIDUCIALS,
     ERROR_ENABLE_LASER,
     ERROR_SET_USER_LED,
     ERROR_ENABLE_USER_LED,
@@ -71,38 +73,67 @@ public:
     PROCESSING_ON_PC
   };
 
-  // Class to hold a single fiducial in the view of the camera
-  class Fiducial3D
+  // Class to hold the 3D and 2D coordinates in mm and pixel respectively of
+  // a single fiducial in the view of the camera
+  class Fiducial
   {
   public:
-    Fiducial3D();
-    Fiducial3D(float x, float y, float z, float probability);
+    Fiducial() {};
     // override equality operator to make fids less than EQUALITY_DISTANCE_MM considered equal
-    bool operator==(const Fiducial3D& f);
-    bool operator<(const Fiducial3D& f) const;
+    bool operator==(const Fiducial& f);
+    bool operator<(const Fiducial& f) const;
+    // 3D
+    uint32_t Fid3dStatus = 0;
     float xMm = 0;
     float yMm = 0;
     float zMm = 0;
+    float epipolarErrorPx = 0;
     float probability = -1;
+    float triangulErrorMm = 0;
+    // 2D left
+    uint32_t Fid2dLeftStatus = 0;
+    float xLeftPx = 0;
+    float yLeftPx = 0;
+    uint16_t heightLeftPx = 0;
+    uint16_t widthLeftPx = 0;
+    uint32_t pixCountLeft = 0;
+    // 2D right
+    uint32_t Fid2dRightStatus = 0;
+    float xRightPx = 0;
+    float yRightPx = 0;
+    uint16_t heightRightPx = 0;
+    uint16_t widthRightPx = 0;
+    uint32_t pixCountRight = 0;
   };
+
+  typedef std::vector<Fiducial> Fiducials;
 
   // Class to hold position and metadata of a marker in the camera's field of view
   class Marker
   {
   public:
     Marker();
-    /*! toolToTracker is deep copied */
-    Marker(int geometryId, vtkMatrix4x4* toolToTracker, int gpm, float freMm);
+    // toolToTracker is deep copied in this constructor
+    Marker(int status, int trackingId, int geometryId,
+      vtkMatrix4x4* toolToTracker, int geometryPresenceMask, float registrationErrorMM);
     Marker(const Marker&);
-    int GetGeometryID();
-    int GetGeometryPresenceMask();
-    vtkMatrix4x4* GetTransformToTracker();
-    float GetFiducialRegistrationErrorMm();
+    bool AddFiducial(Fiducial fid);
+    uint32_t GetMarkerStatus() { return MarkerStatus; }
+    uint32_t GetTrackingID() { return TrackingId; }
+    uint32_t GetGeometryID() { return GeometryId; }
+    vtkMatrix4x4* GetTransformToTracker() { return this->ToolToTracker.GetPointer(); }
+    uint32_t GetGeometryPresenceMask() { return GeometryPresenceMask; }
+    float GetFiducialRegistrationErrorMm() { return RegistrationErrorMm; }
+    const Fiducials& GetFiducials() { return fiducials; }
+
   private:
-    int GeometryId;
+    uint32_t MarkerStatus;
+    uint32_t TrackingId;
+    uint32_t GeometryId;
     vtkNew<vtkMatrix4x4> ToolToTracker;
-    int GeometryPresenceMask; // presence mask of fiducials expressed as their numerical indices
-    float RegistrationErrorMM; // Mean fiducial registration error (unit mm)
+    uint32_t GeometryPresenceMask; // presence mask of fiducials expressed as their numerical indices
+    float RegistrationErrorMm; // mean fiducial registration error (unit mm)
+    Fiducials fiducials; // fiducial coordinates
   };
 
   /*! Connect to Atracsys tracker, must be called before any other function in this wrapper API. */
@@ -126,10 +157,7 @@ public:
   std::string ResultToString(ATRACSYS_RESULT result);
 
   /*! */
-  ATRACSYS_RESULT GetFiducialsInFrame(std::vector<Fiducial3D>& fiducials);
-
-  /*! */
-  ATRACSYS_RESULT GetMarkersInFrame(std::vector<Marker>& markers);
+  ATRACSYS_RESULT GetMarkersInFrame(std::vector<Marker>& markers, std::map<std::string, std::string>& events);
 
   /*! */
   ATRACSYS_RESULT SetUserLEDState(int red, int green, int blue, int frequency, bool enabled = true);
@@ -200,8 +228,8 @@ private:
   DEVICE_TYPE DeviceType = UNKNOWN_DEVICE;
 
   int MaxEventsNumber = 0;
-  int Max2dFiducialsNumber = 0;
-  int Max3dFiducialsNumber = 64;
+  int Max2dFiducialsNumber = 256;
+  int Max3dFiducialsNumber = 256;
   int MaxMarkersNumber = 16;
 
   class AtracsysInternal;

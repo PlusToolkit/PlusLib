@@ -236,12 +236,14 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   this->Internal->Tracker.GetDeviceType(this->Internal->DeviceType);
 
   // helper to translate option names from Plus nomenclature to Atracsys' one
-  auto translateOptionName = [this](const std::string & optionName, std::string & translatedOptionName)
+  auto translateOptionName = [this](const std::string& optionName, std::string& translatedOptionName)
   {
     std::map<std::string, std::string>::const_iterator itt =
       this->Internal->DeviceOptionTranslator.find(optionName);
     if (itt == this->Internal->DeviceOptionTranslator.cend())
-    { return false; }
+    {
+      return false;
+    }
     else
     {
       translatedOptionName = itt->second;
@@ -278,7 +280,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   else
   {
     this->Internal->DeviceOptions.emplace("MaxMeanRegistrationErrorMm",
-                                          std::to_string(this->Internal->MaxMeanRegistrationErrorMm));
+      std::to_string(this->Internal->MaxMeanRegistrationErrorMm));
   }
   // ------- max number of missing fiducials
   itd = this->Internal->DeviceOptions.find("MaxMissingFiducials");
@@ -296,7 +298,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   else
   {
     this->Internal->DeviceOptions.emplace("MaxMissingFiducials",
-                                          std::to_string(this->Internal->MaxMissingFiducials));
+      std::to_string(this->Internal->MaxMissingFiducials));
   }
 
   // set frame options (internally passed to sdk during connection)
@@ -498,8 +500,9 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
   const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
   std::vector<AtracsysTracker::Marker> markers;
+  std::map<std::string, std::string> events;
 
-  ATRACSYS_RESULT result = result = this->Internal->Tracker.GetMarkersInFrame(markers);
+  ATRACSYS_RESULT result = this->Internal->Tracker.GetMarkersInFrame(markers, events);
   if (result == AtracsysTracker::ATRACSYS_RESULT::ERROR_NO_FRAME_AVAILABLE)
   {
     // waiting for frame
@@ -509,6 +512,15 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
   {
     LOG_ERROR(this->Internal->Tracker.ResultToString(result));
     return PLUS_FAIL;
+  }
+
+  igsioFieldMapType customFields;
+
+  // save event data in custom field
+  for (const auto& it : events)
+  {
+    customFields["Event_" + it.first].first = FRAMEFIELD_NONE;
+    customFields["Event_" + it.first].second = it.second;
   }
 
   std::map<int, std::string>::iterator it;
@@ -528,7 +540,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
     std::vector<AtracsysTracker::Marker>::iterator mit;
     for (mit = markers.begin(); mit != markers.end(); mit++)
     {
-      if (it->first != mit->GetGeometryID())
+      if (it->first != (int)mit->GetGeometryID())
       {
         continue;
       }
@@ -541,9 +553,53 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
 
       // tool is seen with acceptable registration error
       toolUpdated = true;
+
+      // save marker data in custom field
+      std::ostringstream mos;
+      mos.precision(3);
+      mos << std::fixed << mit->GetMarkerStatus() << " " << mit->GetTrackingID() << " ";
+      mos << mit->GetGeometryID() << " " << mit->GetGeometryPresenceMask() << " ";
+      mos << mit->GetFiducialRegistrationErrorMm();
+      customFields[it->second + "_info"].first = FRAMEFIELD_NONE;
+      customFields[it->second + "_info"].second = mos.str();
+
+      // save fiducial data in custom field
+      const auto& fids = mit->GetFiducials();
+      for (unsigned int f = 0; f < fids.size(); f++)
+      {
+        // 3D
+        std::ostringstream f3dos;
+        f3dos.precision(3);
+        f3dos << std::fixed << fids[f].Fid3dStatus << " ";
+        f3dos << fids[f].xMm << " " << fids[f].yMm << " " << fids[f].zMm << " ";
+        f3dos << fids[f].epipolarErrorPx << " " << fids[f].probability << " " << fids[f].triangulErrorMm;
+        customFields[it->second + "_fid" + std::to_string(f) + "_3D"].first = FRAMEFIELD_NONE;
+        customFields[it->second + "_fid" + std::to_string(f) + "_3D"].second = f3dos.str();
+        // 2D left
+        std::ostringstream f2dLos;
+        f2dLos.precision(3);
+        f2dLos << std::fixed << fids[f].Fid2dLeftStatus << " ";
+        f2dLos << fids[f].xLeftPx << " " << fids[f].yLeftPx << " ";
+        f2dLos << fids[f].heightLeftPx << " " << fids[f].widthLeftPx << " ";
+        f2dLos << fids[f].pixCountLeft;
+        customFields[it->second + "_fid" + std::to_string(f) + "_2D_L"].first = FRAMEFIELD_NONE;
+        customFields[it->second + "_fid" + std::to_string(f) + "_2D_L"].second = f2dLos.str();
+        // 2D right
+        std::ostringstream f2dRos;
+        f2dRos.precision(3);
+        f2dRos << std::fixed << fids[f].Fid2dRightStatus << " ";
+        f2dRos << fids[f].xRightPx << " " << fids[f].yRightPx << " ";
+        f2dRos << fids[f].heightRightPx << " " << fids[f].widthRightPx << " ";
+        f2dRos << fids[f].pixCountRight;
+        customFields[it->second + "_fid" + std::to_string(f) + "_2D_R"].first = FRAMEFIELD_NONE;
+        customFields[it->second + "_fid" + std::to_string(f) + "_2D_R"].second = f2dRos.str();
+      }
+
+      // dump marker transform and custom data to buffer
       igsioTransformName toolTransformName(it->second, this->GetToolReferenceFrameName());
       std::string toolSourceId = toolTransformName.GetTransformName();
-      ToolTimeStampedUpdate(toolSourceId, mit->GetTransformToTracker(), TOOL_OK, this->FrameNumber, unfilteredTimestamp);
+      ToolTimeStampedUpdate(toolSourceId, mit->GetTransformToTracker(), TOOL_OK, this->FrameNumber,
+        unfilteredTimestamp, &customFields);
     }
 
     if (!toolUpdated)
@@ -552,7 +608,8 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
       vtkNew<vtkMatrix4x4> emptyTransform;
       igsioTransformName toolTransformName(it->second, this->GetToolReferenceFrameName());
       std::string toolSourceId = toolTransformName.GetTransformName();
-      ToolTimeStampedUpdate(toolSourceId, emptyTransform.GetPointer(), TOOL_OUT_OF_VIEW, this->FrameNumber, unfilteredTimestamp);
+      ToolTimeStampedUpdate(toolSourceId, emptyTransform.GetPointer(), TOOL_OUT_OF_VIEW, this->FrameNumber,
+        unfilteredTimestamp, &customFields);
     }
   }
 
@@ -647,11 +704,30 @@ PlusStatus vtkPlusAtracsysTracker::AddToolGeometry(std::string toolId, std::stri
   }
 
   // add datasources for this tool
-  vtkSmartPointer<vtkPlusDataSource> aDataSource = vtkSmartPointer<vtkPlusDataSource>::New();
-  aDataSource->SetReferenceCoordinateFrameName(this->ToolReferenceFrameName);
-  aDataSource->SetType(DATA_SOURCE_TYPE_TOOL);
-  aDataSource->SetId(toolId);
-  this->AddTool(aDataSource);
+  vtkSmartPointer<vtkPlusDataSource> aToolSource = vtkSmartPointer<vtkPlusDataSource>::New();
+  aToolSource->SetReferenceCoordinateFrameName(this->ToolReferenceFrameName);
+  aToolSource->SetType(DATA_SOURCE_TYPE_TOOL);
+  aToolSource->SetId(toolId);
+  this->AddTool(aToolSource);
+
+  // TO DO: add fiducial data as separate sources ?
+  //vtkSmartPointer<vtkPlusDataSource> aFids3dSource = vtkSmartPointer<vtkPlusDataSource>::New();
+  //aFids3dSource->SetReferenceCoordinateFrameName(this->ToolReferenceFrameName);
+  //aFids3dSource->SetType(DATA_SOURCE_TYPE_FIELDDATA);
+  //aFids3dSource->SetId(toolId + "_Fids3d");
+  //this->AddFieldDataSource(aFids3dSource);
+
+  //vtkSmartPointer<vtkPlusDataSource> aFids2dLefSource = vtkSmartPointer<vtkPlusDataSource>::New();
+  //aFids2dLefSource->SetReferenceCoordinateFrameName(this->ToolReferenceFrameName);
+  //aFids2dLefSource->SetType(DATA_SOURCE_TYPE_FIELDDATA);
+  //aFids2dLefSource->SetId(toolId + "_Fids2dLeft");
+  //this->AddFieldDataSource(aFids2dLefSource);
+
+  //vtkSmartPointer<vtkPlusDataSource> aFids2dRightSource = vtkSmartPointer<vtkPlusDataSource>::New();
+  //aFids2dRightSource->SetReferenceCoordinateFrameName(this->ToolReferenceFrameName);
+  //aFids2dRightSource->SetType(DATA_SOURCE_TYPE_FIELDDATA);
+  //aFids2dRightSource->SetId(toolId + "_Fids2dRight");
+  //this->AddFieldDataSource(aFids2dRightSource);
 
   // add output channel for this tool
   vtkPlusChannel* outChannel;
@@ -660,7 +736,10 @@ PlusStatus vtkPlusAtracsysTracker::AddToolGeometry(std::string toolId, std::stri
     LOG_ERROR("Failed to get output channel when adding Atracsys geometry.");
     return PLUS_FAIL;
   }
-  outChannel->AddTool(aDataSource);
+  outChannel->AddTool(aToolSource);
+  //outChannel->AddFieldDataSource(aFids3dSource);
+  //outChannel->AddFieldDataSource(aFids2dLefSource);
+  //outChannel->AddFieldDataSource(aFids2dRightSource);
 
   // enable tool in Plus
 
