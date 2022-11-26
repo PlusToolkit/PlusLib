@@ -108,8 +108,8 @@ namespace
       }
 
       int* dims = imageData->GetDimensions();
-      auto points = vtkSmartPointer<vtkPoints>::New();
-      auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+      vtkNew<vtkPoints> points;
+      vtkNew<vtkUnsignedCharArray> colors;
       colors->SetNumberOfComponents(3);
       colors->SetName("Colors");
 
@@ -144,11 +144,11 @@ namespace
         }
       }
 
-      auto poly = vtkSmartPointer<vtkPolyData>::New();
+      vtkNew<vtkPolyData> poly;
       poly->SetPoints(points);
       poly->GetPointData()->SetScalars(colors);
 
-      auto vertexGenerator = vtkSmartPointer<vtkVertexGlyphFilter>::New();
+      vtkNew<vtkVertexGlyphFilter> vertexGenerator;
       vertexGenerator->SetInputData(poly);
       vertexGenerator->Update();
 
@@ -252,20 +252,20 @@ int main(int argc, char** argv)
 
   if (!renderingOff)
   {
-    auto imageViewer = vtkSmartPointer<vtkImageViewer>::New();
+    vtkNew<vtkImageViewer> imageViewer;
     imageViewer->SetColorWindow(255);
     imageViewer->SetColorLevel(127.5);
     imageViewer->SetZSlice(0);
 
     // Create the interactor that handles the event loop
-    auto imageInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+    vtkNew<vtkRenderWindowInteractor> imageInteractor;
     imageInteractor->SetRenderWindow(imageViewer->GetRenderWindow());
     imageViewer->SetupInteractor(imageInteractor);
 
     imageViewer->Render(); //must be called after iren and viewer are linked or there will be problems
 
     // Establish timer event and create timer to update the live image
-    auto call = vtkSmartPointer<vtkMyImageViewerCallback>::New();
+    vtkNew<vtkMyImageViewerCallback> call;
     call->m_Interactor = imageInteractor;
     call->m_Viewer = imageViewer;
     imageInteractor->AddObserver(vtkCommand::TimerEvent, call);
@@ -291,16 +291,16 @@ int main(int argc, char** argv)
     // Display points cloud
     if (pclChannel)
     {
-      auto pclRenderer = vtkSmartPointer<vtkRenderer>::New();
-      auto pclRenderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+      vtkNew<vtkRenderer> pclRenderer;
+      vtkNew<vtkRenderWindow> pclRenderWindow;
       pclRenderWindow->SetSize(640, 480);
       pclRenderWindow->AddRenderer(pclRenderer);
-      auto pclInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+      vtkNew<vtkRenderWindowInteractor> pclInteractor;
       pclInteractor->SetRenderWindow(pclRenderWindow);
 
-      auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+      vtkNew<vtkPolyDataMapper> mapper;
       mapper->SetInputData(vtkSmartPointer<vtkPolyData>::New());
-      auto actor = vtkSmartPointer<vtkActor>::New();
+      vtkNew<vtkActor> actor;
       actor->SetMapper(mapper);
       pclRenderer->SetBackground(0., 0., 0.);
       pclRenderer->AddActor(actor);
@@ -308,7 +308,7 @@ int main(int argc, char** argv)
       pclRenderWindow->Render();
       pclInteractor->Initialize();
 
-      auto call2 = vtkSmartPointer<vtkMyMeshViewerCallback>::New();
+      vtkNew<vtkMyMeshViewerCallback> call2;
       call2->m_Interactor = pclInteractor;
       call2->m_Mapper = mapper;
       call2->m_Channel = pclChannel;

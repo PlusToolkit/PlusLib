@@ -387,7 +387,7 @@ PlusStatus QPlusDeviceSetSelectorWidget::ParseDirectory(const QString& aDirector
       vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fileName.toStdString().c_str()));
       if (configRootElement != NULL)
       {
-        auto tr = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
+        vtkNew<vtkIGSIOTransformRepository> tr;
         if (tr->ReadConfiguration(configRootElement) == PLUS_SUCCESS)
         {
           QString pivotString;
