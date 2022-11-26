@@ -2,7 +2,7 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
 
@@ -25,7 +25,7 @@ See License.txt for details.
 typedef  itk::PowellOptimizer  OptimizerType;
 
 //-----------------------------------------------------------------------------
-class DistanceToWiresCostFunction : public itk::SingleValuedCostFunction 
+class DistanceToWiresCostFunction : public itk::SingleValuedCostFunction
 {
 public:
 
@@ -45,7 +45,7 @@ public:
   {
   }
 
-  DistanceToWiresCostFunction(vtkPlusProbeCalibrationOptimizerAlgo* calibrationOptimizer) 
+  DistanceToWiresCostFunction(vtkPlusProbeCalibrationOptimizerAlgo* calibrationOptimizer)
   {
     m_CalibrationOptimizer=calibrationOptimizer;
   }
@@ -91,13 +91,13 @@ public:
     {
       LOG_ERROR("GetTransformMatrix expects 7 or 8 parameters");
       return PLUS_FAIL;
-    }    
+    }
 
     // Decompose the initial calibration matrix to an orthogonal transformation matrix, scaling vector, and translation vector
     vnl_matrix_fixed<double,3,3> rotationMatrix= imageToProbeTransform_vnl.extract(3,3);
     vnl_svd<double> svd(rotationMatrix);
     vnl_matrix<double> orthogonalizedRotationMatrix;
-    orthogonalizedRotationMatrix = svd.U() * svd.V().transpose(); 
+    orthogonalizedRotationMatrix = svd.U() * svd.V().transpose();
     double scale[3] = { svd.W(0), svd.W(1), svd.W(2) };
 
     // Rotation versor (unit quaternion parameters)
@@ -112,7 +112,7 @@ public:
     imageToProbeTransformParameters[3]=imageToProbeTransform_vnl.get(0,3);
     imageToProbeTransformParameters[4]=imageToProbeTransform_vnl.get(1,3);
     imageToProbeTransformParameters[5]=imageToProbeTransform_vnl.get(2,3);
-    
+
     // Scaling
     bool isotropicPixelSpacing=(imageToProbeTransformParameters.GetSize()==7);
     if (isotropicPixelSpacing)
@@ -130,7 +130,7 @@ public:
   double GetValue( const ParametersType & imageToProbeTransformParameters ) const
   {
     vnl_matrix_fixed<double,4,4> imageToProbeTransform_vnl;
-    GetTransformMatrix(imageToProbeTransform_vnl, imageToProbeTransformParameters);    
+    GetTransformMatrix(imageToProbeTransform_vnl, imageToProbeTransformParameters);
     double errorMean=0.0;
     double errorStDev=0.0;
     double errorRms=0.0;
@@ -157,7 +157,7 @@ public:
 
 private:
   vtkPlusProbeCalibrationOptimizerAlgo* m_CalibrationOptimizer;
-}; 
+};
 
 //-----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkPlusProbeCalibrationOptimizerAlgo);
@@ -166,7 +166,7 @@ vtkStandardNewMacro(vtkPlusProbeCalibrationOptimizerAlgo);
 vtkPlusProbeCalibrationOptimizerAlgo::vtkPlusProbeCalibrationOptimizerAlgo()
 : IsotropicPixelSpacing(true)
 , ProbeCalibrationAlgo(NULL)
-{  
+{
 }
 
 //-----------------------------------------------------------------------------
@@ -204,7 +204,7 @@ PlusStatus vtkPlusProbeCalibrationOptimizerAlgo::ShowTransformation(const vnl_ma
   vnl_matrix_fixed<double,3,3> rotationMatrix=imageToProbeTransformationMatrix.extract(3,3);
   vnl_svd<double> svd(rotationMatrix);
   vnl_matrix<double> orthogonalizedRotationMatrix;
-  orthogonalizedRotationMatrix = svd.U() * svd.V().transpose(); 
+  orthogonalizedRotationMatrix = svd.U() * svd.V().transpose();
   double scale[3] = { svd.W(0), svd.W(1), svd.W(2) };
   LOG_INFO("Scale = [" << scale[0] << " " << scale[1] << " " << scale[2] << " ]");
 
@@ -226,7 +226,7 @@ PlusStatus vtkPlusProbeCalibrationOptimizerAlgo::ShowTransformation(const vnl_ma
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusProbeCalibrationOptimizerAlgo::Update()
-{  
+{
   DistanceToWiresCostFunction::Pointer costFunction = new DistanceToWiresCostFunction(this);
 
   DistanceToWiresCostFunction::ParametersType imageToProbeSeedTransformParameters(costFunction->GetNumberOfParameters());
@@ -239,7 +239,7 @@ PlusStatus vtkPlusProbeCalibrationOptimizerAlgo::Update()
   LOG_INFO("Initial cost function value with unconstrained matrix = " << errorRms );
   {
     vtkSmartPointer<vtkMatrix4x4> vtkMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-    PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeSeedTransformMatrix, vtkMatrix); 
+    PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeSeedTransformMatrix, vtkMatrix);
     igsioMath::LogVtkMatrix(vtkMatrix);
   }
 
@@ -249,12 +249,12 @@ PlusStatus vtkPlusProbeCalibrationOptimizerAlgo::Update()
     vnl_matrix_fixed<double,4,4> imageToProbeTransform_vnl;
     DistanceToWiresCostFunction::GetTransformMatrix(imageToProbeTransform_vnl, imageToProbeSeedTransformParameters);
     vtkSmartPointer<vtkMatrix4x4> vtkMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-    PlusMath::ConvertVnlMatrixToVtkMatrix(imageToProbeTransform_vnl, vtkMatrix); 
+    PlusMath::ConvertVnlMatrixToVtkMatrix(imageToProbeTransform_vnl, vtkMatrix);
     igsioMath::LogVtkMatrix(vtkMatrix);
   }
 
   OptimizerType::Pointer  optimizer = OptimizerType::New();
-  try 
+  try
   {
     optimizer->SetCostFunction( costFunction.GetPointer() );
   }
@@ -282,20 +282,20 @@ PlusStatus vtkPlusProbeCalibrationOptimizerAlgo::Update()
     scales[0] = rotationParametersScale;
     scales[1] = rotationParametersScale;
     scales[2] = rotationParametersScale;
-    scales[3] = translationParametersScale; 
-    scales[4] = translationParametersScale; 
+    scales[3] = translationParametersScale;
+    scales[4] = translationParametersScale;
     scales[5] = translationParametersScale;
-    scales[6] = scalesParametersScale;  
+    scales[6] = scalesParametersScale;
     break;
   case 8:
     scales[0] = rotationParametersScale;
     scales[1] = rotationParametersScale;
     scales[2] = rotationParametersScale;
-    scales[3] = translationParametersScale; 
-    scales[4] = translationParametersScale; 
+    scales[3] = translationParametersScale;
+    scales[4] = translationParametersScale;
     scales[5] = translationParametersScale;
-    scales[6] = scalesParametersScale;  
-    scales[7] = scalesParametersScale;  
+    scales[6] = scalesParametersScale;
+    scales[7] = scalesParametersScale;
     break;
   default:
     LOG_ERROR("Number of transformation parameters is incorrect");
@@ -305,7 +305,7 @@ PlusStatus vtkPlusProbeCalibrationOptimizerAlgo::Update()
 
   optimizer->SetInitialPosition(imageToProbeSeedTransformParameters);
 
-  try 
+  try
   {
     optimizer->StartOptimization();
   }
@@ -323,7 +323,7 @@ PlusStatus vtkPlusProbeCalibrationOptimizerAlgo::Update()
   costFunction->GetTransformMatrix(this->ImageToProbeTransformMatrix, optimizer->GetCurrentPosition());
   {
     vtkSmartPointer<vtkMatrix4x4> vtkMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-    PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeTransformMatrix, vtkMatrix); 
+    PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeTransformMatrix, vtkMatrix);
     igsioMath::LogVtkMatrix(vtkMatrix);
   }
 
@@ -343,7 +343,7 @@ PlusStatus vtkPlusProbeCalibrationOptimizerAlgo::Update()
   double angleDifference = igsioMath::GetOrientationDifference(imageToProbeSeedTransformMatrixVtk, imageToProbeTransformMatrixVtk);
   LOG_INFO("Orientation difference between unoptimized and optimized matrices =  " << angleDifference << " deg");
 
-  return PLUS_SUCCESS; 
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -386,11 +386,11 @@ const char* vtkPlusProbeCalibrationOptimizerAlgo::GetOptimizationMethodAsString(
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusProbeCalibrationOptimizerAlgo::ReadConfiguration( vtkXMLDataElement* aConfig )
 {
-  LOG_TRACE("vtkPlusProbeCalibrationOptimizerAlgo::ReadConfiguration"); 
+  LOG_TRACE("vtkPlusProbeCalibrationOptimizerAlgo::ReadConfiguration");
   if ( aConfig == NULL )
   {
-    LOG_ERROR("Unable to read configuration"); 
-    return PLUS_FAIL; 
+    LOG_ERROR("Unable to read configuration");
+    return PLUS_FAIL;
   }
 
   // vtkPlusProbeCalibrationOptimizerAlgo section
