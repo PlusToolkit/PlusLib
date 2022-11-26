@@ -21,7 +21,7 @@
 //#include <chrono>
 //#include <thread>
 
-auto server = vtkSmartPointer<vtkPlusOpenIGTLinkServer>::New();
+vtkNew<vtkPlusOpenIGTLinkServer> server;
 
 void PrintLogsCallback(vtkObject* obj, unsigned long eid, void* clientdata, void* calldata);
 
@@ -102,7 +102,7 @@ int main(int argc, char** argv)
 
   // Read server config file
   LOG_INFO("Reading server config file...");
-  auto serverConfigRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
+  vtkNew<vtkXMLDataElement> serverConfigRootElement;
   if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(serverConfigRootElement, serverConfigFileName.c_str()) == PLUS_FAIL)
   {
     LOG_ERROR("Unable to read configuration from file " << serverConfigFileName.c_str());
@@ -117,16 +117,16 @@ int main(int argc, char** argv)
 
   // Read client config file
   LOG_INFO("Reading client config file...");
-  auto clientConfigRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
+  vtkNew<vtkXMLDataElement> clientConfigRootElement;
   if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(clientConfigRootElement, clientConfigFileName.c_str()) == PLUS_FAIL)
   {
     LOG_ERROR("Unable to read configuration from file " << clientConfigFileName.c_str());
     return EXIT_FAILURE;
   }
-  auto client = vtkSmartPointer<vtkPlusOpenIGTLinkTracker>::New();
+  vtkNew<vtkPlusOpenIGTLinkTracker> client;
 
   // Add an observer to warning and error events for redirecting it to the stdout
-  auto callbackCommand = vtkSmartPointer<vtkCallbackCommand>::New();
+  vtkNew<vtkCallbackCommand> callbackCommand;
   callbackCommand->SetCallback(PrintLogsCallback);
   client->AddObserver("WarningEvent", callbackCommand);
   client->AddObserver("ErrorEvent", callbackCommand);

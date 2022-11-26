@@ -863,7 +863,7 @@ PlusStatus vtkPlusGenericSensorTracker::InternalUpdate()
 
     auto safeReport = createSafePointer(report);
 
-    auto transform = vtkSmartPointer<vtkMatrix4x4>::New();
+    vtkNew<vtkMatrix4x4> transform;
     if (sensorStream.Type == SensorType::Accelerometer)
     {
       if (vtkInternal::RetrieveAccData(safeReport.get(), transform) != PLUS_SUCCESS)
