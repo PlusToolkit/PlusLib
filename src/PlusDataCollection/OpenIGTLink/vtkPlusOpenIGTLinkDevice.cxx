@@ -196,7 +196,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::SendRequestedMessageTypes()
   }
 
   // Pack client info message
-  igtl::PlusClientInfoMessage::Pointer clientInfoMsg = igtl::PlusClientInfoMessage::New();
+  auto clientInfoMsg = igtl::PlusClientInfoMessage::New();
   clientInfoMsg->SetClientInfo(clientInfo);
   clientInfoMsg->Pack();
 

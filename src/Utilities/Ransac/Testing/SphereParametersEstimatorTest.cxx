@@ -158,8 +158,7 @@ bool Test3D( std::ostream &out )
 	             // (b) their estimate using algebraic least squares; and
                // (c) their estimate using geometric least squares.
 	std::vector<double> sphereParameters;
-  itk::SphereParametersEstimator<3>::Pointer spEstimator =
-    itk::SphereParametersEstimator<3>::New();
+  auto spEstimator = itk::SphereParametersEstimator<3>::New();
   spEstimator->SetDelta( 0.5 );
 
 	               //The known circle parameters
@@ -240,8 +239,7 @@ bool Test2D( std::ostream &out )
 	             //   (b) their estimate using algebraic least squares; and
                //   (c) their estimate using geometric least squares.
 	std::vector<double> circleParameters;
-	itk::SphereParametersEstimator<2>::Pointer cpEstimator =
-    itk::SphereParametersEstimator<2>::New();
+	auto cpEstimator = itk::SphereParametersEstimator<2>::New();
   cpEstimator->SetDelta( 0.5 );
 
 	               //The known circle parameters
@@ -370,8 +368,7 @@ bool TestnD( std::ostream &out )
   std::ostringstream titleStr;
   bool succeedExact, succeedAlgebraic, succeedGeometric;
 
-	typename itk::SphereParametersEstimator<dimension>::Pointer estimator;
-  estimator = itk::SphereParametersEstimator<dimension>::New();
+  auto estimator = itk::SphereParametersEstimator<dimension>::New();
   estimator->SetDelta( 0.5 );
 
   GenerateData<dimension>( numPoints, noiseSigma, data, cleanData,

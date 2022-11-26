@@ -86,10 +86,10 @@ PlusStatus vtkPlusPhantomLandmarkRegistrationAlgo::LandmarkRegister( vtkIGSIOTra
   }
 
   // Initialize ITK transform
-  itk::VersorRigid3DTransform<double>::Pointer transform = itk::VersorRigid3DTransform<double>::New();
+  auto transform = itk::VersorRigid3DTransform<double>::New();
   transform->SetIdentity();
 
-  itk::LandmarkBasedTransformInitializer< itk::VersorRigid3DTransform<double>, itk::Image<short, 3>, itk::Image<short, 3> >::Pointer initializer = itk::LandmarkBasedTransformInitializer< itk::VersorRigid3DTransform<double>, itk::Image<short, 3>, itk::Image<short, 3> >::New();
+  auto initializer = itk::LandmarkBasedTransformInitializer< itk::VersorRigid3DTransform<double>, itk::Image<short, 3>, itk::Image<short, 3> >::New();
   initializer->SetTransform( transform );
   initializer->SetFixedLandmarks( fixedPoints );
   initializer->SetMovingLandmarks( movingPoints );

@@ -46,7 +46,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalDisconnect()
   if (this->IsTDataMessageType())
   {
     // If we need TDATA, request server to stop streaming.
-    igtl::StopTrackingDataMessage::Pointer stpMsg = igtl::StopTrackingDataMessage::New();
+    auto stpMsg = igtl::StopTrackingDataMessage::New();
     stpMsg->SetDeviceName("");
     stpMsg->Pack();
 
@@ -167,7 +167,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalUpdateTData()
   std::set<std::string> identifiedToolSourceIds;
   for (int i = 0; i < tdataMsg->GetNumberOfTrackingDataElements(); ++ i)
   {
-    igtl::TrackingDataElement::Pointer tdataElem = igtl::TrackingDataElement::New();
+    auto tdataElem = igtl::TrackingDataElement::New();
     tdataMsg->GetTrackingDataElement(i, tdataElem);
 
     igtl::Matrix4x4 igtlMatrix;
@@ -183,7 +183,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalUpdateTData()
     }
 
     // Get timestamp
-    igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New();
+    auto igtlTimestamp = igtl::TimeStamp::New();
     tdataMsg->GetTimeStamp(igtlTimestamp);
 
     // Get igtl transform name
@@ -380,7 +380,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::SendRequestedMessageTypes()
   // If we need TDATA, request server to start streaming.
   if (this->IsTDataMessageType())
   {
-    igtl::StartTrackingDataMessage::Pointer sttMsg = igtl::StartTrackingDataMessage::New();
+    auto sttMsg = igtl::StartTrackingDataMessage::New();
     sttMsg->SetDeviceName("");
     sttMsg->SetResolution(50);
     sttMsg->SetCoordinateName(this->ToolReferenceFrameName.c_str());

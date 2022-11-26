@@ -106,10 +106,10 @@ namespace itk
     //STEP2: create the threads that generate hypotheses and test
 
 #if ITK_VERSION_MAJOR >= 5
-    itk::MultiThreaderBase::Pointer threader = itk::MultiThreaderBase::New();
+    auto threader = itk::MultiThreaderBase::New();
     threader->SetNumberOfWorkUnits(this->numberOfThreads);
 #else
-    itk::MultiThreader::Pointer threader = itk::MultiThreader::New();
+    auto threader = itk::MultiThreader::New();
     threader->SetNumberOfThreads(this->numberOfThreads);
 #endif
     threader->SetSingleMethod(RANSAC<T, S>::RANSACThreadCallback, this);

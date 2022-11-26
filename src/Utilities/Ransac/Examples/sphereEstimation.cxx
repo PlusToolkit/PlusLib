@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
   std::cout<<trueSphereParameters[i]<<"]\n\n";
                         //create and initialize the parameter estimator
   double maximalDistanceFromSphere = 0.5;
-  SphereEstimatorType::Pointer sphereEstimator = SphereEstimatorType::New();
+  auto sphereEstimator = SphereEstimatorType::New();
   sphereEstimator->SetDelta( maximalDistanceFromSphere );
   sphereEstimator->SetLeastSquaresType( itk::SphereParametersEstimator<DIMENSION>::GEOMETRIC );
   sphereEstimator->LeastSquaresEstimate( data, sphereParameters );
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
   }
                           //create and initialize the RANSAC algorithm
   double desiredProbabilityForNoOutliers = 0.999;
-  RANSACType::Pointer ransacEstimator = RANSACType::New();
+  auto ransacEstimator = RANSACType::New();
   ransacEstimator->SetData( data );
   ransacEstimator->SetParametersEstimator( sphereEstimator.GetPointer() );
   double percentageOfDataUsed =

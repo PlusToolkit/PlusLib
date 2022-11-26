@@ -997,7 +997,7 @@ void PlusFidSegmentation::WritePng(PlusFidSegmentation::PixelType* modifiedImage
   const unsigned int Dimension = 2;
 
   typedef itk::Image< PlusFidSegmentation::PixelType, Dimension > ImageType;
-  ImageType::Pointer modImage = ImageType::New();
+  auto modImage = ImageType::New();
   ImageType::SizeType size;
   size[0] = cols;
   size[1] = rows;
@@ -1014,10 +1014,10 @@ void PlusFidSegmentation::WritePng(PlusFidSegmentation::PixelType* modifiedImage
   modImage->Allocate();
 
   typedef itk::ImageFileWriter< ImageType > WriterType;
-  itk::PNGImageIO::Pointer pngImageIO = itk::PNGImageIO::New();
+  auto pngImageIO = itk::PNGImageIO::New();
   pngImageIO->SetCompressionLevel(0);
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetImageIO(pngImageIO);
   writer->SetFileName(outImageName);
 
@@ -1093,7 +1093,7 @@ void PlusFidSegmentation::WritePossibleFiducialOverlayImage(const std::vector<Pl
   typedef itk::RGBPixel< unsigned char >    ColorPixelType;
   typedef itk::Image< ColorPixelType, 2 >   ImageType;
 
-  ImageType::Pointer possibleFiducials = ImageType::New();
+  auto possibleFiducials = ImageType::New();
 
   ImageType::SizeType size;
   size[0] = m_FrameSize[0];
@@ -1155,7 +1155,7 @@ void PlusFidSegmentation::WritePossibleFiducialOverlayImage(const std::vector<Pl
   SetPossibleFiducialsImageFilename(possibleFiducialsImageFilename.str());
 
   typedef itk::ImageFileWriter< ImageType > WriterType;
-  WriterType::Pointer writeImage = WriterType::New();
+  auto writeImage = WriterType::New();
   writeImage->SetFileName(m_PossibleFiducialsImageFilename);
 
   writeImage->SetInput(possibleFiducials);

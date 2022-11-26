@@ -157,7 +157,7 @@ namespace igtl
     memcpy(imageData, this->m_TrackedFrame.GetImageData()->GetScalarPointer(), this->m_TrackedFrame.GetImageData()->GetFrameSizeInBytes());
 
     // Set timestamp
-    igtl::TimeStamp::Pointer timestamp = igtl::TimeStamp::New();
+    auto timestamp = igtl::TimeStamp::New();
     timestamp->SetTime(this->m_TrackedFrame.GetTimestamp());
     this->SetTimeStamp(timestamp);
 
@@ -212,7 +212,7 @@ namespace igtl
     m_TrackedFrame.GetImageData()->GetImage()->Modified();
 
     // Set timestamp
-    igtl::TimeStamp::Pointer timestamp = igtl::TimeStamp::New();
+    auto timestamp = igtl::TimeStamp::New();
     this->GetTimeStamp(timestamp);
     this->m_TrackedFrame.SetTimestamp(timestamp->GetTimeStamp());
 
