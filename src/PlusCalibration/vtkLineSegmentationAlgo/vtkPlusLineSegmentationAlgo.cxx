@@ -215,7 +215,7 @@ PlusStatus vtkPlusLineSegmentationAlgo::ComputeVideoPositionMetric()
       LOG_ERROR("vtkPlusLineSegmentationAlgo::ComputeVideoPositionMetric only supports 8-bit images");
       continue;
     }
-    CharImageType::Pointer localImage = CharImageType::New();
+    auto localImage = CharImageType::New();
     PlusCommon::DeepCopyVtkVolumeToItkImage<CharPixelType>(trackedFrame->GetImageData()->GetImage(), localImage);
     if (localImage.IsNull())
     {
@@ -226,7 +226,7 @@ PlusStatus vtkPlusLineSegmentationAlgo::ComputeVideoPositionMetric()
 
     // Create an image duplicator to copy the original image
     typedef itk::ImageDuplicator<CharImageType> DuplicatorType;
-    DuplicatorType::Pointer duplicator = DuplicatorType::New();
+    auto duplicator = DuplicatorType::New();
     CharImageType::Pointer scanlineImage;
     if (m_SaveIntermediateImages == true)
     {
@@ -538,7 +538,7 @@ void vtkPlusLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point<d
 
   //create and initialize the parameter estimator
   double maximalDistanceFromPlane = 0.5;
-  PlaneEstimatorType::Pointer planeEstimator = PlaneEstimatorType::New();
+  auto planeEstimator = PlaneEstimatorType::New();
   planeEstimator->SetDelta(maximalDistanceFromPlane);
   planeEstimator->LeastSquaresEstimate(data, ransacParameterResult);
   if (ransacParameterResult.empty())
@@ -556,7 +556,7 @@ void vtkPlusLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point<d
 
   //create and initialize the RANSAC algorithm
   double desiredProbabilityForNoOutliers = 0.999;
-  RANSACType::Pointer ransacEstimator = RANSACType::New();
+  auto ransacEstimator = RANSACType::New();
 
   try
   {
@@ -616,7 +616,7 @@ void vtkPlusLineSegmentationAlgo::SaveIntermediateImage(int frameNumber, CharIma
 
   typedef itk::RGBPixel<unsigned char> rgbPixelType;
   typedef itk::Image<rgbPixelType, 2> rgbImageType;
-  rgbImageType::Pointer rgbImageCopy = rgbImageType::New();
+  auto rgbImageCopy = rgbImageType::New();
 
   CharImageType::RegionType fullImageRegion = scanlineImage->GetLargestPossibleRegion();
 
@@ -699,7 +699,7 @@ void vtkPlusLineSegmentationAlgo::SaveIntermediateImage(int frameNumber, CharIma
   rgbImageFilename << "LineSegmentationResult_" << std::setw(3) << std::setfill('0') << frameNumber << ".png" << std::ends;
 
   typedef itk::ImageFileWriter<rgbImageType> rgbImageWriterType;
-  rgbImageWriterType::Pointer rgbImageWriter = rgbImageWriterType::New();
+  auto rgbImageWriter = rgbImageWriterType::New();
 
   rgbImageWriter->SetFileName(rgbImageFilename.str());
   rgbImageWriter->SetInput(rgbImageCopy);

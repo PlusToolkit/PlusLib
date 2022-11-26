@@ -1075,7 +1075,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame(igsioTrackedFrame& tracked
         if (retValue == 0)
         {
           disconnectedClientIds.push_back(clientIterator->ClientId);
-          igtl::TimeStamp::Pointer ts = igtl::TimeStamp::New();
+          auto ts = igtl::TimeStamp::New();
           igtlMessage->GetTimeStamp(ts);
           LOG_INFO("Client disconnected - could not send " << igtlMessage->GetMessageType() << " message to client (device name: " << igtlMessage->GetDeviceName()
                    << "  Timestamp: " << std::fixed << ts->GetTimeStamp() << ").");
@@ -1199,7 +1199,7 @@ void vtkPlusOpenIGTLinkServer::KeepAlive()
 
     for (std::list<ClientData>::iterator clientIterator = this->IgtlClients.begin(); clientIterator != this->IgtlClients.end(); ++clientIterator)
     {
-      igtl::StatusMessage::Pointer replyMsg = igtl::StatusMessage::New();
+      auto replyMsg = igtl::StatusMessage::New();
       replyMsg->SetCode(igtl::StatusMessage::STATUS_OK);
       replyMsg->Pack();
 
@@ -1210,7 +1210,7 @@ void vtkPlusOpenIGTLinkServer::KeepAlive()
       if (retValue == 0)
       {
         disconnectedClientIds.push_back(clientIterator->ClientId);
-        igtl::TimeStamp::Pointer ts = igtl::TimeStamp::New();
+        auto ts = igtl::TimeStamp::New();
         replyMsg->GetTimeStamp(ts);
 
         LOG_DEBUG("Client disconnected - could not send " << replyMsg->GetMessageType() << " message to client (device name: " << replyMsg->GetDeviceName()

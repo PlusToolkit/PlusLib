@@ -99,7 +99,7 @@ namespace igtl
 
     double timestamp = this->m_TrackedFrame.GetTimestamp();
 
-    igtl::TimeStamp::Pointer igtlFrameTime = igtl::TimeStamp::New();
+    auto igtlFrameTime = igtl::TimeStamp::New();
     igtlFrameTime->SetTime(timestamp);
 
     std::array<int, 3> offset = {0};

@@ -60,7 +60,7 @@ public:
       return PLUS_FAIL;
     }
 
-    RigidTransformType::Pointer rigidTransform=RigidTransformType::New();
+    auto rigidTransform=RigidTransformType::New();
     rigidTransform->SetParameters(imageToProbeTransformParameters);
     imageToProbeTransform_vnl.update(rigidTransform->GetMatrix().GetVnlMatrix());
     imageToProbeTransform_vnl.put(0,3,rigidTransform->GetOffset()[0]);
@@ -101,7 +101,7 @@ public:
     double scale[3] = { svd.W(0), svd.W(1), svd.W(2) };
 
     // Rotation versor (unit quaternion parameters)
-    RigidTransformType::Pointer imageToProbeTransformRigid = RigidTransformType::New();
+    auto imageToProbeTransformRigid = RigidTransformType::New();
     imageToProbeTransformRigid->SetMatrix(orthogonalizedRotationMatrix );
     RigidTransformType::ParametersType rigidParameters=imageToProbeTransformRigid->GetParameters();
     imageToProbeTransformParameters[0]=rigidParameters[0];
@@ -253,7 +253,7 @@ PlusStatus vtkPlusProbeCalibrationOptimizerAlgo::Update()
     igsioMath::LogVtkMatrix(vtkMatrix);
   }
 
-  OptimizerType::Pointer  optimizer = OptimizerType::New();
+  auto optimizer = OptimizerType::New();
   try
   {
     optimizer->SetCostFunction( costFunction.GetPointer() );

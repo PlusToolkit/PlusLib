@@ -67,8 +67,7 @@ int main( int argc, char *argv[] )
 
 	std::vector<double> planeParameters;
   double maxDistanceToPlane = 0.5;
-  itk::PlaneParametersEstimator<3>::Pointer ppEstimator =
-    itk::PlaneParametersEstimator<3>::New();
+  auto ppEstimator = itk::PlaneParametersEstimator<3>::New();
   ppEstimator->SetDelta( maxDistanceToPlane );
   double tmp;
 

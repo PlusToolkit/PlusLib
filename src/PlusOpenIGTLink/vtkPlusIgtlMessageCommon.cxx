@@ -195,7 +195,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackUsMessage(igtl::MessageHeader::Pointe
     return PLUS_FAIL;
   }
 
-  igtl::PlusUsMessage::Pointer usMsg = igtl::PlusUsMessage::New();
+  auto usMsg = igtl::PlusUsMessage::New();
   usMsg->SetMessageHeader(headerMsg);
   usMsg->AllocateBuffer();
 
@@ -242,7 +242,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
   double timestamp = trackedFrame.GetTimestamp();
   vtkSmartPointer<vtkImageData> frameImage = converter->GetImageData(trackedFrame.GetImageData());
 
-  igtl::TimeStamp::Pointer igtlFrameTime = igtl::TimeStamp::New();
+  auto igtlFrameTime = igtl::TimeStamp::New();
   igtlFrameTime->SetTime(timestamp);
 
   int imageSizePixels[3] = { 0 };
@@ -345,7 +345,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
     return PLUS_FAIL;
   }
 
-  igtl::TimeStamp::Pointer igtlTime = igtl::TimeStamp::New();
+  auto igtlTime = igtl::TimeStamp::New();
   igtlTime->SetTime(timestamp);
   imageMessage->SetTimeStamp(igtlTime);
 
@@ -394,7 +394,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage(igtl::MessageHeader::Poi
   }
 
   // if CRC check is OK. Read data.
-  igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New();
+  auto igtlTimestamp = igtl::TimeStamp::New();
   imgMsg->GetTimeStamp(igtlTimestamp);
 
   int imgSize[3] = {0}; // image dimension in pixels
@@ -453,8 +453,8 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMetaMessage(igtl::ImageMetaMessage
   }
   for (igsioCommon::ImageMetaDataList::iterator it = imageMetaDataList.begin(); it != imageMetaDataList.end(); it++)
   {
-    igtl::ImageMetaElement::Pointer imageMetaElement = igtl::ImageMetaElement::New();
-    igtl::TimeStamp::Pointer timeStamp =  igtl::TimeStamp::New();
+    auto imageMetaElement = igtl::ImageMetaElement::New();
+    auto timeStamp =  igtl::TimeStamp::New();
     if (!imageMetaElement->SetName(it->Description.c_str()))
     {
       LOG_ERROR("vtkPlusIgtlMessageCommon::PackImageMetaMessage failed: image name is too long " << it->Id);
@@ -549,7 +549,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackVideoMessage(igtl::VideoMessage::Pointe
   igtlioConverterUtilities::VTKTransformToIGTLTransform(&matrix, frame->GetDimensions(), spacing, videoMatrix);
 
   double timestamp = trackedFrame.GetTimestamp();
-  igtl::TimeStamp::Pointer igtlFrameTime = igtl::TimeStamp::New();
+  auto igtlFrameTime = igtl::TimeStamp::New();
   igtlFrameTime->SetTime(timestamp);
 
   videoMessage->SetCodecType(codecFourCC.c_str());
@@ -583,7 +583,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTransformMessage(igtl::TransformMessage
     return PLUS_FAIL;
   }
 
-  igtl::TimeStamp::Pointer igtlTime = igtl::TimeStamp::New();
+  auto igtlTime = igtl::TimeStamp::New();
   igtlTime->SetTime(timestamp);
 
   std::string strTransformName;
@@ -619,7 +619,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackPolyDataMessage(igtl::PolyDataMessage::
     return PLUS_FAIL;
   }
 
-  igtl::TimeStamp::Pointer igtlTime = igtl::TimeStamp::New();
+  auto igtlTime = igtl::TimeStamp::New();
   igtlTime->SetTime(timestamp);
 
   igtlioPolyDataConverter::VTKPolyDataToIGTL(polyData, polydataMessage);
@@ -641,7 +641,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTrackingDataMessage(igtl::TrackingDataM
     return PLUS_FAIL;
   }
 
-  igtl::TimeStamp::Pointer igtlTime = igtl::TimeStamp::New();
+  auto igtlTime = igtl::TimeStamp::New();
   igtlTime->SetTime(timestamp);
 
   uint32_t i = 0;
@@ -667,7 +667,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTrackingDataMessage(igtl::TrackingDataM
       continue;
     }
 
-    igtl::TrackingDataElement::Pointer trackElement = igtl::TrackingDataElement::New();
+    auto trackElement = igtl::TrackingDataElement::New();
     std::string shortenedName = it->GetTransformName().substr(0, IGTL_TDATA_LEN_NAME);
     trackElement->SetName(shortenedName.c_str());
     trackElement->SetType(igtl::TrackingDataElement::TYPE_6D);
@@ -705,7 +705,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackingDataMessage(igtl::MessageHead
     return PLUS_FAIL;
   }
 
-  igtl::TrackingDataMessage::Pointer tdMsg = igtl::TrackingDataMessage::New();
+  auto tdMsg = igtl::TrackingDataMessage::New();
   tdMsg->SetMessageHeader(headerMsg);
   tdMsg->InitBuffer();
 
@@ -764,7 +764,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackingDataMessage(igtl::MessageHead
   }
 
   // Get timestamp
-  igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New();
+  auto igtlTimestamp = igtl::TimeStamp::New();
   tdMsg->GetTimeStamp(igtlTimestamp);
   timestamp = igtlTimestamp->GetTimeStamp();
 
@@ -829,7 +829,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTransformMessage(igtl::MessageHeader:
   }
 
   // Get timestamp
-  igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New();
+  auto igtlTimestamp = igtl::TimeStamp::New();
   transMsg->GetTimeStamp(igtlTimestamp);
   timestamp = igtlTimestamp->GetTimeStamp();
 
@@ -866,7 +866,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackPositionMessage(igtl::PositionMessage::
     return PLUS_FAIL;
   }
 
-  igtl::TimeStamp::Pointer igtlTime = igtl::TimeStamp::New();
+  auto igtlTime = igtl::TimeStamp::New();
   igtlTime->SetTime(timestamp);
 
   std::string strTransformName;
@@ -959,7 +959,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackPositionMessage(igtl::MessageHeader::
   }
 
   // Get timestamp
-  igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New();
+  auto igtlTimestamp = igtl::TimeStamp::New();
   posMsg->GetTimeStamp(igtlTimestamp);
   timestamp = igtlTimestamp->GetTimeStamp();
 
@@ -981,7 +981,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackStringMessage(igtl::StringMessage::Poin
     return PLUS_FAIL;
   }
 
-  igtl::TimeStamp::Pointer igtlTime = igtl::TimeStamp::New();
+  auto igtlTime = igtl::TimeStamp::New();
   igtlTime->SetTime(timestamp);
 
   stringMessage->SetString(stringValue);   // assume default encoding

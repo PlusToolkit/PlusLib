@@ -90,11 +90,11 @@ PlusStatus vtkPlusPhantomLinearObjectRegistrationAlgo::LinearObjectRegister(vtkI
   }
 
   // Initialize ITK transform
-  itk::VersorRigid3DTransform<double>::Pointer transform = itk::VersorRigid3DTransform<double>::New();
+  auto transform = itk::VersorRigid3DTransform<double>::New();
   transform->SetIdentity();
 
   //TODO: make itk::PlaneBasedTransfromInitializer
-  /*itk::LandmarkBasedTransformInitializer<itk::VersorRigid3DTransform<double>, itk::Image<short,3>, itk::Image<short,3> >::Pointer initializer = itk::LandmarkBasedTransformInitializer<itk::VersorRigid3DTransform<double>, itk::Image<short,3>, itk::Image<short,3> >::New();
+  /*auto initializer = itk::LandmarkBasedTransformInitializer<itk::VersorRigid3DTransform<double>, itk::Image<short,3>, itk::Image<short,3> >::New();
   initializer->SetTransform(transform);
   initializer->SetFixedPlanes(fixedPlanes);
   initializer->SetMovingPlanes(movingPlanes);

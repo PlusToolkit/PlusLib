@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 
                         //create and initialize the parameter estimator
   double maximalDistanceFromPlane = 0.5;
-  PlaneEstimatorType::Pointer planeEstimator = PlaneEstimatorType::New();
+  auto planeEstimator = PlaneEstimatorType::New();
   planeEstimator->SetDelta( maximalDistanceFromPlane );
   planeEstimator->LeastSquaresEstimate( data, planeParameters );
   if( planeParameters.empty() )
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
                           //create and initialize the RANSAC algorithm
   double desiredProbabilityForNoOutliers = 0.999;
   double percentageOfDataUsed;
-  RANSACType::Pointer ransacEstimator = RANSACType::New();
+  auto ransacEstimator = RANSACType::New();
   ransacEstimator->SetData( data );
   ransacEstimator->SetParametersEstimator( planeEstimator.GetPointer() );
   percentageOfDataUsed =
