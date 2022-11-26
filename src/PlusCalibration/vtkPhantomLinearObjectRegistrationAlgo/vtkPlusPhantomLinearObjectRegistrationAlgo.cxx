@@ -2,7 +2,7 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
 
@@ -11,7 +11,7 @@ See License.txt for details.
 
 #include "vtkObjectFactory.h"
 #include "vtkXMLUtilities.h"
-#include "vtksys/SystemTools.hxx" 
+#include "vtksys/SystemTools.hxx"
 #include "vtkMath.h"
 
 #include "itkImage.h"
@@ -59,7 +59,7 @@ vtkPlusPhantomLinearObjectRegistrationAlgo::~vtkPlusPhantomLinearObjectRegistrat
 
 PlusStatus vtkPlusPhantomLinearObjectRegistrationAlgo::LinearObjectRegister(vtkIGSIOTransformRepository* aTransformRepository/* = NULL*/)
 {
-  LOG_TRACE("vtkPlusPhantomLinearObjectRegistrationAlgo::Register"); 
+  LOG_TRACE("vtkPlusPhantomLinearObjectRegistrationAlgo::Register");
 
   Planes fixedPlanes;
   Planes movingPlanes;
@@ -167,7 +167,7 @@ PlusStatus vtkPlusPhantomLinearObjectRegistrationAlgo::ReadConfiguration(vtkXMLD
   XML_FIND_NESTED_ELEMENT_REQUIRED(geometry, phantomDefinition, "Geometry");
 
 // Read references (NWires are not interesting at this point, it is only parsed if segmentation is needed)
-  vtkXMLDataElement* references = geometry->FindNestedElementWithName("References"); 
+  vtkXMLDataElement* references = geometry->FindNestedElementWithName("References");
   if (references == NULL)
   {
     if(geometry->FindNestedElementWithName("Landmarks") == NULL)
@@ -212,13 +212,13 @@ PlusStatus vtkPlusPhantomLinearObjectRegistrationAlgo::ReadConfiguration(vtkXMLD
         LOG_WARNING("Invalid reference position (reference #"<<i+1<<")");
         continue;
       }
-      
+
       std::vector<double> referencePositionVector;
       for(int j=0; j<3;j++)
       {
         referencePositionVector.push_back(referencePosition[j]);
       }
-      
+
       this->DefinedReferences.InsertReference(Reference(referencePositionVector));
       this->DefinedReferenceNames[i] = referenceName;
     }
@@ -231,7 +231,7 @@ PlusStatus vtkPlusPhantomLinearObjectRegistrationAlgo::ReadConfiguration(vtkXMLD
   }
 
   // Read planes (NWires are not interesting at this point, it is only parsed if segmentation is needed)
-  vtkXMLDataElement* planes = geometry->FindNestedElementWithName("Planes"); 
+  vtkXMLDataElement* planes = geometry->FindNestedElementWithName("Planes");
   if (planes == NULL)
   {
     if(geometry->FindNestedElementWithName("Landmarks") == NULL)
@@ -295,7 +295,7 @@ PlusStatus vtkPlusPhantomLinearObjectRegistrationAlgo::ReadConfiguration(vtkXMLD
       {
         pointsOnPlane[1].push_back(pointOnPlane[j]);
       }
-      
+
       if (! plane->GetVectorAttribute("EndPoint2", 3, pointOnPlane))
       {
         LOG_WARNING("Invalid end point 2 position!");
@@ -305,7 +305,7 @@ PlusStatus vtkPlusPhantomLinearObjectRegistrationAlgo::ReadConfiguration(vtkXMLD
       {
         pointsOnPlane[2].push_back(pointOnPlane[j]);
       }
-      
+
       this->DefinedPlanes.InsertPlane(Plane(pointsOnPlane[0], pointsOnPlane[1], pointsOnPlane[2]));
       this->DefinedPlaneNames[i] = planeName;
       //---------------------------------------------------------------------------------------------------------------------------------------------
@@ -364,7 +364,7 @@ PlusStatus vtkPlusPhantomLinearObjectRegistrationAlgo::InsertNextCalibrationPoin
 {
   this->MarkerToReferenceTransformMatrixArray->InsertNextTuple(*aMarkerToReferenceTransformMatrix->Element);
 
-  return PLUS_SUCCESS; 
+  return PLUS_SUCCESS;
 }
 //-----------------------------------------------------------------------------
 
@@ -385,7 +385,7 @@ void vtkPlusPhantomLinearObjectRegistrationAlgo::SetRecordedPlanes(Planes* plane
     this->RecordedPlanes.Reset();
     return;
   }
-  
+
   this->RecordedPlanes = *planes;
 }
 //-----------------------------------------------------------------------------
@@ -397,6 +397,6 @@ void vtkPlusPhantomLinearObjectRegistrationAlgo::SetDefinedPlanesFromXML(Planes*
     this->DefinedPlanes.Reset();
     return;
   }
-  
+
   this->DefinedPlanes = *planes;
 }
