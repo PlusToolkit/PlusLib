@@ -96,7 +96,7 @@ public:
     // Decompose the initial calibration matrix to an orthogonal transformation matrix, scaling vector, and translation vector
     vnl_matrix_fixed<double,3,3> rotationMatrix= imageToProbeTransform_vnl.extract(3,3);
     vnl_svd<double> svd(rotationMatrix);
-    vnl_matrix<double> orthogonalizedRotationMatrix;
+    itk::Matrix<double,3,3> orthogonalizedRotationMatrix;
     orthogonalizedRotationMatrix = svd.U() * svd.V().transpose();
     double scale[3] = { svd.W(0), svd.W(1), svd.W(2) };
 
