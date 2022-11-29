@@ -26,6 +26,12 @@ public:
   vtkTypeMacro(vtkPlusAtracsysTracker, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  /* Get SDK version */
+  std::string GetSdkVersion();
+
+  /* Get device type */
+  std::string GetDeviceType();
+
   /* Device is a hardware tracker. */
   virtual bool IsTracker() const { return true; }
   virtual bool IsVirtual() const { return false; }
@@ -75,7 +81,6 @@ protected:
 
 private: // Functions
   vtkPlusAtracsysTracker(const vtkPlusAtracsysTracker&);
-  void operator=(const vtkPlusAtracsysTracker&);
 
   /*! Start the tracking system. */
   PlusStatus InternalStartRecording();

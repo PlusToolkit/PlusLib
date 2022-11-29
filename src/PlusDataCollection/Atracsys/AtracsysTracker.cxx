@@ -100,11 +100,15 @@ public:
   virtual ~AtracsysInternal()
   {
     FtkLib = nullptr;
+    LibVersion = "";
     TrackerSN = 0;
   }
 
   // handle to FtkLib library
   ftkLibrary FtkLib = nullptr;
+
+  // library version 
+  std::string LibVersion;
 
   // serial number of tracker
   uint64 TrackerSN = 0;
@@ -670,6 +674,10 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Connect()
 
   this->Internal->TrackerSN = device.SerialNumber;
 
+  ftkBuffer sdkVersion;
+  ftkVersion(&sdkVersion);
+  this->Internal->LibVersion = sdkVersion.data;
+
   switch (device.Type)
   {
   case ftkDeviceType::DEV_SPRYTRACK_180:
@@ -739,9 +747,23 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Disconnect()
 }
 
 //----------------------------------------------------------------------------
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetSDKversion(std::string& version)
+{
+  version = this->Internal->LibVersion;
+  return SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetDeviceType(DEVICE_TYPE& deviceType)
 {
   deviceType = this->DeviceType;
+  return SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetDeviceId(uint64_t &id)
+{
+  id = this->Internal->TrackerSN;
   return SUCCESS;
 }
 
