@@ -102,7 +102,6 @@ vtkPlusAtracsysTracker::vtkPlusAtracsysTracker()
   , Internal(new vtkInternal(this))
 {
   LOG_TRACE("vtkPlusAtracsysTracker::vtkPlusAtracsysTracker()");
-
   this->FrameNumber = 0;
   this->StartThreadForInternalUpdates = true;
   this->InternalUpdateRate = 300;
@@ -121,6 +120,32 @@ vtkPlusAtracsysTracker::~vtkPlusAtracsysTracker()
 void vtkPlusAtracsysTracker::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os, indent);
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusAtracsysTracker::GetSdkVersion()
+{
+  std::string v;
+  this->Internal->Tracker.GetSDKversion(v);
+  return v;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusAtracsysTracker::GetDeviceType()
+{
+  switch (this->Internal->DeviceType)
+  {
+  case AtracsysTracker::DEVICE_TYPE::FUSIONTRACK_250:
+    return "fusionTrack250";
+  case AtracsysTracker::DEVICE_TYPE::FUSIONTRACK_500:
+    return "fusionTrack500";
+  case AtracsysTracker::DEVICE_TYPE::SPRYTRACK_180:
+    return "spryTrack180";
+  case AtracsysTracker::DEVICE_TYPE::SPRYTRACK_300:
+    return "spryTrack300";
+  default:
+    return "unknown";
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -231,6 +256,13 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   {
     LOG_WARNING(this->Internal->Tracker.ResultToString(result));
   }
+
+  // get device serial number in hex form
+  std::ostringstream oss;
+  uint64 sn;
+  this->Internal->Tracker.GetDeviceId(sn);
+  oss << "0x" << std::setw(16) << std::setfill('0') << std::hex << sn;
+  this->DeviceId = oss.str();
 
   // get device type
   this->Internal->Tracker.GetDeviceType(this->Internal->DeviceType);

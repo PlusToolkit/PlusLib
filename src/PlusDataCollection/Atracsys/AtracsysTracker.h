@@ -142,7 +142,13 @@ public:
   ATRACSYS_RESULT Disconnect();
 
   /*! */
+  ATRACSYS_RESULT GetSDKversion(std::string& version);
+
+  /*! */
   ATRACSYS_RESULT GetDeviceType(DEVICE_TYPE& deviceType);
+
+  /*! */
+  ATRACSYS_RESULT GetDeviceId(uint64_t& id);
 
   /*! */
   ATRACSYS_RESULT LoadMarkerGeometryFromFile(std::string filePath, int& geometryId);
