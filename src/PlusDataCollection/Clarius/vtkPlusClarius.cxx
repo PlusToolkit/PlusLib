@@ -79,7 +79,7 @@ protected:
   static void ErrorFn(const char* err);
   static void FreezeFn(int val);
   static void ProgressFn(int progress);
-  static void ButtonFn(int button, int clicks);
+  static void ButtonFn(CusButton button, int clicks);
 
   /*!
   Image callback functions
@@ -286,7 +286,7 @@ void vtkPlusClarius::vtkInternal::ProgressFn(int progress)
 /*! callback for button clicks
  * @param[in] btn 0 = up, 1 = down
  * @param[in] clicks # of clicks performed*/
-void vtkPlusClarius::vtkInternal::ButtonFn(int btn, int clicks)
+void vtkPlusClarius::vtkInternal::ButtonFn(CusButton btn, int clicks)
 {
   LOG_DEBUG("button: " << btn << "clicks: " << clicks << "%");
 }
@@ -1210,7 +1210,7 @@ PlusStatus vtkPlusClarius::InternalConnect()
     try
     {
       CusReturnFn returnFunction = (CusReturnFn)(&vtkInternal::ConnectReturnFn);
-      cusCastConnect(ip, this->TcpPort, returnFunction);
+      cusCastConnect(ip, this->TcpPort, "research", returnFunction);
 
       // Wait for connection to complete and get udp port.
       const double connectionDelaySeconds = 1.0;
