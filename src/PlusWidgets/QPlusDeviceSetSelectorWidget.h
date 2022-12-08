@@ -82,6 +82,11 @@ public:
   bool GetConnectionSuccessful();
 
   /*!
+  * Return currently selected configuration file full path
+  */
+  std::string GetSelectedDeviceSetConfigFilePath();
+
+  /*!
   * Return currently selected device set description
   */
   std::string GetSelectedDeviceSetDescription();
