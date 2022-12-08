@@ -191,6 +191,14 @@ void QPlusDeviceSetSelectorWidget::InvokeConnect()
 }
 
 //-----------------------------------------------------------------------------
+std::string QPlusDeviceSetSelectorWidget::GetSelectedDeviceSetConfigFilePath()
+{
+  LOG_TRACE("DeviceSetSelectorWidget::GetSelectedDeviceSetConfigFilePath");
+
+  return ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), FileNameRole).toString().toStdString();
+}
+
+//-----------------------------------------------------------------------------
 std::string QPlusDeviceSetSelectorWidget::GetSelectedDeviceSetDescription()
 {
   LOG_TRACE("DeviceSetSelectorWidget::GetSelectedDeviceSetDescription");
