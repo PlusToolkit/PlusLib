@@ -230,21 +230,14 @@ void vtkPlusClarius::vtkInternal::ConnectReturnFn(int udpPort)
   vtkInternal* self = device->Internal;
 
   self->UdpPort = udpPort;
+  device->Connected = 1;
   if (self->UdpPort != -1)
   {
     LOG_DEBUG("... Clarius device connected, streaming port: " << self->UdpPort);
-    if (cusCastSetOutputSize(device->FrameWidth, device->FrameHeight) < 0)
-    {
-      LOG_DEBUG("Clarius Output size can not be set, falling back to default 640*480");
-      device->FrameWidth = DEFAULT_FRAME_WIDTH;
-      device->FrameHeight = DEFAULT_FRAME_HEIGHT;
-    }
-    device->Connected = 1;
   }
   else
   {
     LOG_ERROR("... Clarius device connected but could not get valid udp port");
-    device->Disconnect();
   }
 }
 
@@ -408,7 +401,7 @@ void vtkPlusClarius::vtkInternal::NewProcessedImageFn(const void* newImage, cons
   bModeSource->AddItem(
     outputImage->GetScalarPointer(),
     bModeSource->GetInputImageOrientation(), // refer to this url: http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/UltrasoundImageOrientation.html for reference;
-                                         // Set to UN to keep the orientation of the image the same as on tablet
+    // Set to UN to keep the orientation of the image the same as on tablet
     bModeSource->GetInputFrameSize(),
     bModeSource->GetPixelType(),
     bModeSource->GetNumberOfScalarComponents(),
@@ -521,7 +514,7 @@ void vtkPlusClarius::vtkInternal::NewRawImageFn(const void* newImage, const CusR
   rfModeSource->AddItem(
     (void*)newImage, // pointer to char array
     rfModeSource->GetInputImageOrientation(), // refer to this url: http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/UltrasoundImageOrientation.html for reference;
-                                              // Set to UN to keep the orientation of the image the same as on tablet
+    // Set to UN to keep the orientation of the image the same as on tablet
     rfModeSource->GetInputFrameSize(),
     pixelType,
     rfModeSource->GetNumberOfScalarComponents(),
@@ -1212,9 +1205,20 @@ PlusStatus vtkPlusClarius::InternalConnect()
       CusReturnFn returnFunction = (CusReturnFn)(&vtkInternal::ConnectReturnFn);
       cusCastConnect(ip, this->TcpPort, "research", returnFunction);
 
-      // Wait for connection to complete and get udp port.
-      const double connectionDelaySeconds = 1.0;
-      vtkIGSIOAccurateTimer::DelayWithEventProcessing(connectionDelaySeconds);
+      // Wait for the udp port to be determined.
+      int maxConnectionAttempts = 20;
+      for (int i = 0; i < 20; ++i)
+      {
+        // Attempt to get the udp port.
+        const double connectionDelaySeconds = 1.0;
+        vtkIGSIOAccurateTimer::DelayWithEventProcessing(connectionDelaySeconds);
+
+        if (this->Internal->UdpPort != -1)
+        {
+          vtkIGSIOAccurateTimer::DelayWithEventProcessing(connectionDelaySeconds);
+          break;
+        }
+      }
     }
     catch (const std::runtime_error& re)
     {
@@ -1229,6 +1233,23 @@ PlusStatus vtkPlusClarius::InternalConnect()
     catch (...)
     {
       LOG_ERROR("Unknown failure occured");
+      return PLUS_FAIL;
+    }
+
+    if (this->Internal->UdpPort != -1)
+    {
+      if (cusCastSetOutputSize(this->FrameWidth, this->FrameHeight) < 0)
+      {
+        LOG_DEBUG("Clarius Output size can not be set, falling back to default 640*480");
+        this->FrameWidth = DEFAULT_FRAME_WIDTH;
+        this->FrameHeight = DEFAULT_FRAME_HEIGHT;
+      }
+    }
+    else
+    {
+      this->Connected = 1;
+      this->InternalDisconnect();
+      this->Connected = 0;
       return PLUS_FAIL;
     }
 
