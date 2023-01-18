@@ -33,6 +33,7 @@ public:
   virtual ~vtkPlusThorLabsVideoSourceInternal()
   {
   }
+
   //----------------------------------------------------------------------------
   std::string GetThorLabsErrorString(ViStatus err)
   {
@@ -70,6 +71,23 @@ vtkPlusThorLabsVideoSource::~vtkPlusThorLabsVideoSource()
 void vtkPlusThorLabsVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusThorLabsVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
+{
+    LOG_TRACE("vtkPlusThorLabsVideoSource::ReadConfiguration")
+    XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+    XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, IntegrationTimeSec, deviceConfig);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusThorLabsVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
+{
+    LOG_TRACE("vtkPlusThorLabsVideoSource::WriteConfiguration");
+    XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
+    deviceConfig->SetFloatAttribute("IntegrationTimeSec", this->IntegrationTimeSec);
+    return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
