@@ -79,6 +79,7 @@ PlusStatus vtkPlusThorLabsVideoSource::ReadConfiguration(vtkXMLDataElement* root
     LOG_TRACE("vtkPlusThorLabsVideoSource::ReadConfiguration")
     XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
     XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, IntegrationTimeSec, deviceConfig);
+    return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------

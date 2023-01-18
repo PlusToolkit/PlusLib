@@ -40,10 +40,10 @@ public:
   vtkGetStringMacro(InstrumentName); 
 
   /*! Read configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
+  PlusStatus ReadConfiguration(vtkXMLDataElement* config) override;
 
   /*! Write configuration to xml data */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
+  PlusStatus WriteConfiguration(vtkXMLDataElement* config) override;
 
   /*
   Sensor integration time. Longer time makes the sensor more sensitive and
@@ -51,8 +51,8 @@ public:
   and higher chance of saturation at higher intensities. optional.png
   Default = "0.05"
   */
-  vtkSetMacro(IntegrationTimeSec, int);
-  vtkGetMacro(IntegrationTimeSec, int);
+  vtkSetMacro(IntegrationTimeSec, double);
+  vtkGetMacro(IntegrationTimeSec, double);
 
 protected:
 
