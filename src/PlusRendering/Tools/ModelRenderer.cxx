@@ -118,6 +118,7 @@ int main(int argc, char **argv)
   iren->SetRenderWindow(renWin);
 
   // Must be called after iren and renderer are linked or there will be problems
+  renderer->GetActiveCamera();
   renderer->Render();  
 
   // iren must be initialized so that it can handle events

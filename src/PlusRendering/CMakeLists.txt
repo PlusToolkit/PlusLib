@@ -55,6 +55,10 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_EXECUTABLE(ModelRenderer Tools/ModelRenderer.cxx )
   SET_TARGET_PROPERTIES(ModelRenderer PROPERTIES FOLDER Tools)
   TARGET_LINK_LIBRARIES(ModelRenderer vtkPlusCommon vtk${PROJECT_NAME} ${PLUSLIB_VTK_PREFIX}IOGeometry)
+  IF(NOT VTK_VERSION VERSION_LESS 9.0.0)
+    # vtk_module_autoinit is needed
+    vtk_module_autoinit(TARGETS ModelRenderer MODULES ${VTK_LIBRARIES})
+  ENDIF()
 
   INSTALL(TARGETS ModelRenderer
     RUNTIME DESTINATION bin COMPONENT RuntimeExecutables
