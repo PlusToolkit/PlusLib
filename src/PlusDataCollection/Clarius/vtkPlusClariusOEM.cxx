@@ -20,8 +20,8 @@
 #include "ClariusWifi.h"
 
 // Clarius Includes
-#include <oem.h>
-#include <oem_def.h>
+#include <solum.h>
+#include <solum_def.h>
 
 // VTK includes
 #include <vtkImageData.h>
@@ -454,9 +454,9 @@ void vtkPlusClariusOEM::vtkInternal::ProcessedImageFn(const void* oemImage, cons
   // custom fields (battery & button clicks)
   igsioFieldMapType customFields;
   CusStatusInfo stats;
-  if (cusOemStatusInfo(&stats) != 0)
+  if (solumStatusInfo(&stats) != 0)
   {
-    LOG_WARNING("Failed to retrieve cusOemStatusInfo");
+    LOG_WARNING("Failed to retrieve solumStatusInfo");
   }
   customFields[BATTERY_FIELD_TAG].first = FRAMEFIELD_FORCE_SERVER_SEND;
   customFields[BATTERY_FIELD_TAG].second = std::to_string(stats.battery);
@@ -1139,7 +1139,7 @@ PlusStatus vtkPlusClariusOEM::InitializeOEM()
   try
   {
     FrameSizeType fs = this->Internal->FrameSize;
-    int result = cusOemInit(
+    int result = solumInit(
       argc,
       argv,
       certPath,
@@ -1165,17 +1165,17 @@ PlusStatus vtkPlusClariusOEM::InitializeOEM()
   }
   catch (const std::runtime_error& re)
   {
-    LOG_ERROR("Runtime error on cusOemInit. Error text: " << re.what());
+    LOG_ERROR("Runtime error on solumInit. Error text: " << re.what());
     return PLUS_FAIL;
   }
   catch (const std::exception& ex)
   {
-    LOG_ERROR("Exception on cusOemInit. Error text: " << ex.what());
+    LOG_ERROR("Exception on solumInit. Error text: " << ex.what());
     return PLUS_FAIL;
   }
   catch (...)
   {
-    LOG_ERROR("Unknown failure occurred on cusOemInit");
+    LOG_ERROR("Unknown failure occurred on solumInit");
     return PLUS_FAIL;
   }
 
@@ -1202,7 +1202,7 @@ PlusStatus vtkPlusClariusOEM::SetClariusCert()
   std::string certStr = sstr.str();
 
   // set cert in OEM API
-  if (cusOemSetCert(certStr.c_str()) != 0)
+  if (solumSetCert(certStr.c_str()) != 0)
   {
     LOG_ERROR("Failed to set Clarius OEM connection certificate");
     return PLUS_FAIL;
@@ -1222,7 +1222,7 @@ PlusStatus vtkPlusClariusOEM::ConfigureProbeApplication()
   std::future<void> connectionBarrierFuture = this->Internal->ConnectionBarrier.get_future();
   try
   {
-    int result = cusOemConnect(ip, port);
+    int result = solumConnect(ip, port);
     if (result != CusConnection::ProbeConnected)
     {
       LOG_ERROR("Failed to initiate connection to Clarius probe on " << ip << ":" << port <<
@@ -1232,21 +1232,21 @@ PlusStatus vtkPlusClariusOEM::ConfigureProbeApplication()
   }
   catch (const std::runtime_error& re)
   {
-    LOG_ERROR("Runtime error on cusOemConnect. Error text: " << re.what());
+    LOG_ERROR("Runtime error on solumConnect. Error text: " << re.what());
     return PLUS_FAIL;
   }
   catch (const std::exception& ex)
   {
-    LOG_ERROR("Exception on cusOemConnect. Error text: " << ex.what());
+    LOG_ERROR("Exception on solumConnect. Error text: " << ex.what());
     return PLUS_FAIL;
   }
   catch (...)
   {
-    LOG_ERROR("Unknown failure occurred on cusOemConnect");
+    LOG_ERROR("Unknown failure occurred on solumConnect");
     return PLUS_FAIL;
   }
 
-  // wait for cusOemConnected call to complete
+  // wait for solumConnected call to complete
   if (connectionBarrierFuture.wait_for(std::chrono::seconds(25)) != std::future_status::ready)
   {
     LOG_ERROR("Connection to Clarius device timed out");
@@ -1258,7 +1258,7 @@ PlusStatus vtkPlusClariusOEM::ConfigureProbeApplication()
   CusListFn listFnPtr = static_cast<CusListFn>(&vtkPlusClariusOEM::vtkInternal::ListFn);
   this->Internal->ExpectedList = vtkPlusClariusOEM::vtkInternal::EXPECTED_LIST::PROBES;
   std::future<std::vector<std::string>> futureProbes = this->Internal->PromiseProbes.get_future();
-  if (cusOemProbes(listFnPtr) != 0)
+  if (solumProbes(listFnPtr) != 0)
   {
     LOG_INFO("Failed to retrieve list of valid probe types");
     return PLUS_FAIL;
@@ -1290,7 +1290,7 @@ PlusStatus vtkPlusClariusOEM::ConfigureProbeApplication()
   // list available imaging applications
   this->Internal->ExpectedList = vtkPlusClariusOEM::vtkInternal::EXPECTED_LIST::APPLICATIONS;
   std::future<std::vector<std::string>> futureApplications = this->Internal->PromiseApplications.get_future();
-  if (cusOemApplications(probeType.c_str(), listFnPtr) != 0)
+  if (solumApplications(probeType.c_str(), listFnPtr) != 0)
   {
     LOG_ERROR("Failed to retrieve list of valid imaging applications");
     return PLUS_FAIL;
@@ -1320,13 +1320,13 @@ PlusStatus vtkPlusClariusOEM::ConfigureProbeApplication()
   }
 
   // configure probe mode
-  if (cusOemLoadApplication(probeType.c_str(), imagingApplication.c_str()) == 0)
+  if (solumLoadApplication(probeType.c_str(), imagingApplication.c_str()) == 0)
   {
     LOG_INFO("Attempting to load " << imagingApplication << " application on a " << probeType << " probe");
   }
   else
   {
-    LOG_ERROR("An error occured on call to cusOemLoadApplication");
+    LOG_ERROR("An error occured on call to solumLoadApplication");
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_LONG_DELAY_MS));
 
@@ -1431,7 +1431,7 @@ PlusStatus vtkPlusClariusOEM::InternalConnect()
   settings.wifiOptimization = this->Internal->FreezeOnPoorWifiSignal;
   settings.up = static_cast<CusButtonSetting>(this->Internal->UpButtonMode);
   settings.down = static_cast<CusButtonSetting>(this->Internal->DownButtonMode);
-  if (cusOemSetProbeSettings(&settings) != 0)
+  if (solumSetProbeSettings(&settings) != 0)
   {
     LOG_ERROR("Failed to set Clarius OEM probe settings");
     return PLUS_FAIL;
@@ -1448,16 +1448,16 @@ PlusStatus vtkPlusClariusOEM::InternalConnect()
 
   // PRINT DEVICE STATS AND PROBE INFO
   CusStatusInfo stats;
-  if (cusOemStatusInfo(&stats) != 0)
+  if (solumStatusInfo(&stats) != 0)
   {
-    LOG_WARNING("Failed to retrieve cusOemStatusInfo");
+    LOG_WARNING("Failed to retrieve solumStatusInfo");
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_LONG_DELAY_MS));
 
   CusProbeInfo probeInfo;
-  if (cusOemProbeInfo(&probeInfo) != 0)
+  if (solumProbeInfo(&probeInfo) != 0)
   {
-    LOG_WARNING("Failed to retrieve cusOemProbeInfo");
+    LOG_WARNING("Failed to retrieve solumProbeInfo");
   }
   std::stringstream ss;
   ss << "Version: " << probeInfo.version << std::endl;
@@ -1470,7 +1470,7 @@ PlusStatus vtkPlusClariusOEM::InternalConnect()
 
   // enable the 5v rail on the top of the Clarius probe
   int enable5v = this->Internal->Enable5v ? 1 : 0;
-  if (cusOemEnable5v(enable5v) < 0)
+  if (solumEnable5v(enable5v) < 0)
   {
     std::string enstr = (enable5v ? "TRUE" : "FALSE");
     LOG_WARNING("Failed to set the state of the Clarius probe 5v rail, provided enable value was: " << enstr);
@@ -1488,33 +1488,33 @@ void vtkPlusClariusOEM::DeInitializeOEM()
 {
   LOG_TRACE("vtkPlusClariusOEM::DeInitializeOEM");
 
-  int oemState = cusOemIsConnected();
+  int oemState = solumIsConnected();
 
   if (oemState == CLARIUS_STATE_CONNECTED)
   {
-    if (cusOemEnable5v(CLARIUS_FALSE) < 0)
+    if (solumEnable5v(CLARIUS_FALSE) < 0)
     {
       LOG_WARNING("Failed to disable Clarius 5v");
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_LONG_DELAY_MS));
-    if (cusOemRun(CLARIUS_STOP) < 0)
+    if (solumRun(CLARIUS_STOP) < 0)
     {
       LOG_WARNING("Failed to stop Clarius imaging");
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_LONG_DELAY_MS));
-    if (cusOemDisconnect() < 0)
+    if (solumDisconnect() < 0)
     {
       LOG_WARNING("Failed to disconnect from Clarius OEM library");
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_LONG_DELAY_MS));
-    if (cusOemDestroy() < 0)
+    if (solumDestroy() < 0)
     {
       LOG_WARNING("Failed to destroy Clarius OEM library");
     }
   }
   else if (oemState == CLARIUS_STATE_NOT_CONNECTED)
   {
-    if (cusOemDestroy() < 0)
+    if (solumDestroy() < 0)
     {
       LOG_WARNING("Failed to destroy Clarius OEM library");
     }
@@ -1590,7 +1590,7 @@ PlusStatus vtkPlusClariusOEM::InternalStartRecording()
 {
   LOG_TRACE("vtkPlusClariusOEM::InternalStartRecording");
 
-  if (cusOemRun(CLARIUS_RUN) < 0)
+  if (solumRun(CLARIUS_RUN) < 0)
   {
     LOG_ERROR("Failed to start Clarius imaging");
     return PLUS_FAIL;
@@ -1605,7 +1605,7 @@ PlusStatus vtkPlusClariusOEM::InternalStopRecording()
 {
   LOG_TRACE("vtkPlusClariusOEM::InternalStopRecording");
 
-  if (cusOemRun(CLARIUS_STOP) < 0)
+  if (solumRun(CLARIUS_STOP) < 0)
   {
     LOG_ERROR("Failed to stop Clarius imaging");
     return PLUS_FAIL;
@@ -1678,14 +1678,14 @@ PlusStatus vtkPlusClariusOEM::InternalApplyImagingParameterChange()
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::GetDepthMm(double& aDepthMm)
 {
-  int oemState = cusOemIsConnected();
+  int oemState = solumIsConnected();
   if (oemState != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, return cached parameter value
     return this->ImagingParameters->GetDepthMm(aDepthMm);
   }
 
-  double oemVal = cusOemGetParam(CusParam::ImageDepth);
+  double oemVal = solumGetParam(CusParam::ImageDepth);
   if (oemVal < 0)
   {
     aDepthMm = -1;
@@ -1705,7 +1705,7 @@ PlusStatus vtkPlusClariusOEM::GetDepthMm(double& aDepthMm)
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::SetDepthMm(double aDepthMm)
 {
-  int oemState = cusOemIsConnected();
+  int oemState = solumIsConnected();
   if (oemState != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, parameter value will be set upon connection
@@ -1716,7 +1716,7 @@ PlusStatus vtkPlusClariusOEM::SetDepthMm(double aDepthMm)
 
   // attempt to set parameter value
   double depthCm = aDepthMm * MM_TO_CM;
-  if (cusOemSetParam(CusParam::ImageDepth, depthCm) < 0)
+  if (solumSetParam(CusParam::ImageDepth, depthCm) < 0)
   {
     LOG_ERROR("Failed to set DepthMm parameter");
     return PLUS_FAIL;
@@ -1732,14 +1732,14 @@ PlusStatus vtkPlusClariusOEM::SetDepthMm(double aDepthMm)
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::GetGainPercent(double& aGainPercent)
 {
-  int oemState = cusOemIsConnected();
+  int oemState = solumIsConnected();
   if (oemState != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, return cached parameter value
     return this->ImagingParameters->GetGainPercent(aGainPercent);
   }
 
-  double oemVal = cusOemGetParam(CusParam::Gain);
+  double oemVal = solumGetParam(CusParam::Gain);
   if (oemVal < 0)
   {
     aGainPercent = -1;
@@ -1759,7 +1759,7 @@ PlusStatus vtkPlusClariusOEM::GetGainPercent(double& aGainPercent)
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::SetGainPercent(double aGainPercent)
 {
-  int oemState = cusOemIsConnected();
+  int oemState = solumIsConnected();
   if (oemState != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, parameter value will be set upon connection
@@ -1769,7 +1769,7 @@ PlusStatus vtkPlusClariusOEM::SetGainPercent(double aGainPercent)
   }
 
   // attempt to set parameter value
-  if (cusOemSetParam(CusParam::Gain, aGainPercent) < 0)
+  if (solumSetParam(CusParam::Gain, aGainPercent) < 0)
   {
     LOG_ERROR("Failed to set GainPercent parameter");
     return PLUS_FAIL;
@@ -1785,14 +1785,14 @@ PlusStatus vtkPlusClariusOEM::SetGainPercent(double aGainPercent)
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::GetDynRangePercent(double& aDynRangePercent)
 {
-  int oemState = cusOemIsConnected();
+  int oemState = solumIsConnected();
   if (oemState != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, return cached parameter value
     return this->ImagingParameters->GetDynRangeDb(aDynRangePercent);
   }
 
-  double oemVal = cusOemGetParam(CusParam::DynamicRange);
+  double oemVal = solumGetParam(CusParam::DynamicRange);
   if (oemVal < 0)
   {
     aDynRangePercent = -1;
@@ -1812,7 +1812,7 @@ PlusStatus vtkPlusClariusOEM::GetDynRangePercent(double& aDynRangePercent)
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::SetDynRangePercent(double aDynRangePercent)
 {
-  int oemState = cusOemIsConnected();
+  int oemState = solumIsConnected();
   if (oemState != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, parameter value will be set upon connection
@@ -1822,7 +1822,7 @@ PlusStatus vtkPlusClariusOEM::SetDynRangePercent(double aDynRangePercent)
   }
 
   // attempt to set parameter value
-  if (cusOemSetParam(CusParam::DynamicRange, aDynRangePercent) < 0)
+  if (solumSetParam(CusParam::DynamicRange, aDynRangePercent) < 0)
   {
     LOG_ERROR("Failed to set DynRange parameter");
     return PLUS_FAIL;
@@ -1838,7 +1838,7 @@ PlusStatus vtkPlusClariusOEM::SetDynRangePercent(double aDynRangePercent)
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::GetTimeGainCompensationDb(std::vector<double>& aTGC)
 {
-  int oemState = cusOemIsConnected();
+  int oemState = solumIsConnected();
   if (oemState != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, return cached parameter value
@@ -1846,7 +1846,7 @@ PlusStatus vtkPlusClariusOEM::GetTimeGainCompensationDb(std::vector<double>& aTG
   }
 
   CusTgc cTGC;
-  if (cusOemGetTgc(&cTGC) < 0)
+  if (solumGetTgc(&cTGC) < 0)
   {
     LOG_ERROR("Failed to get time gain compensation parameter");
     return PLUS_FAIL;
@@ -1874,7 +1874,7 @@ PlusStatus vtkPlusClariusOEM::SetTimeGainCompensationDb(const std::vector<double
     return PLUS_FAIL;
   }
 
-  int oemState = cusOemIsConnected();
+  int oemState = solumIsConnected();
   if (oemState != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, parameter value will be set upon connection
@@ -1887,7 +1887,7 @@ PlusStatus vtkPlusClariusOEM::SetTimeGainCompensationDb(const std::vector<double
   cTGC.top = aTGC[0];
   cTGC.mid = aTGC[1];
   cTGC.bottom = aTGC[2];
-  if (cusOemSetTgc(&cTGC) < 0)
+  if (solumSetTgc(&cTGC) < 0)
   {
     LOG_ERROR("Failed to set time gain compensation parameter");
     return PLUS_FAIL;
