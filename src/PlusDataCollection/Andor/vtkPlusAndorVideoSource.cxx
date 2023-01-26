@@ -9,7 +9,11 @@ See License.txt for details.
 #include "vtkPlusAndorVideoSource.h"
 #include "ATMCD32D.h"
 #include "igtlOSUtil.h" // for Sleep
+#if CV_MAJOR_VERSION > 3
+#include "opencv2/calib3d.hpp"
+#else
 #include "opencv2/imgproc.hpp"
+#endif
 #include "opencv2/imgcodecs.hpp"
 
 
