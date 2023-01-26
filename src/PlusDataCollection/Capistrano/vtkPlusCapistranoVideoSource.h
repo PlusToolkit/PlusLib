@@ -27,6 +27,16 @@ public:
   static vtkPlusCapistranoVideoSource* New();
   vtkTypeMacro(vtkPlusCapistranoVideoSource, vtkPlusUsDevice);
   void PrintSelf(ostream& os, vtkIndent indent) override;
+  static const char* CAPISTRANO_SET_WOBBLE_RATE;
+  static const char* CAPISTRANO_GET_WOBBLE_RATE;
+  static const char* CAPISTRANO_SET_BIDIRECTIONAL_MODE;
+  static const char* CAPISTRANO_FREEZE_PROBE;
+  static const char* CAPISTRANO_IS_PROBE_FROZEN;
+  static const char* CAPISTRANO_SET_JITTER_COMPENSATION;
+  static const char* CAPISTRANO_GET_JITTER_COMPENSATION;
+  static const char* CAPISTRANO_SET_MIS_MODE;
+  static const char* CAPISTRANO_SET_MIS_PULSE_PERIOD;
+  static const char* CAPISTRANO_GET_MIS_PULSE_PERIOD;
 
   /*! Specify the device connected to this class */
   bool IsTracker() const override

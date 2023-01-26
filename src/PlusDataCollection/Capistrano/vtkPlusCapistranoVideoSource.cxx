@@ -20,6 +20,19 @@ See License.txt for details.
 
 vtkStandardNewMacro(vtkPlusCapistranoVideoSource);
 
+//----------------------------------------------------------------------------
+// Define command strings
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_SET_WOBBLE_RATE = "SetWobbleRate";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_GET_WOBBLE_RATE = "GetWobbleRate";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_SET_BIDIRECTIONAL_MODE = "SetBidirectionalMode";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_FREEZE_PROBE = "FreezeProbe";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_IS_PROBE_FROZEN = "IsProbeFrozen";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_SET_JITTER_COMPENSATION = "SetJitterCompensation";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_GET_JITTER_COMPENSATION = "GetJitterCompensation";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_SET_MIS_MODE = "SetMISMode";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_SET_MIS_PULSE_PERIOD = "SetMISPulsePeriod";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_GET_MIS_PULSE_PERIOD = "GetMISPulsePeriod";
+
 class vtkPlusCapistranoVideoSource::vtkInternal
 {
 public:
