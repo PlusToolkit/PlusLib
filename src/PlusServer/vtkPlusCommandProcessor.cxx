@@ -25,6 +25,9 @@ See License.txt for details.
 #ifdef PLUS_USE_ATRACSYS
   #include "vtkPlusAtracsysCommand.h"
 #endif
+#ifdef PLUS_USE_CAPISTRANO_VIDEO
+  #include "vtkPlusCapistranoCommand.h"
+#endif
 
 #include "vtkPlusAddRecordingDeviceCommand.h"
 #include "vtkPlusGenericSerialCommand.h"
@@ -73,6 +76,9 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
   RegisterPlusCommand(vtkSmartPointer<vtkPlusGetUsParameterCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusAddRecordingDeviceCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusGenericSerialCommand>::New());
+#ifdef PLUS_USE_CAPISTRANO_VIDEO
+  RegisterPlusCommand(vtkSmartPointer<vtkPlusCapistranoCommand>::New());
+#endif
 #ifdef PLUS_USE_STEALTHLINK
   RegisterPlusCommand(vtkSmartPointer<vtkPlusStealthLinkCommand>::New());
 #endif
