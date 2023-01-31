@@ -2047,7 +2047,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalApplyImagingParameterChange()
     this->ImagingParameters->GetTimeGainCompensation(tgcVec);
     double tgc[3] = { tgcVec[0], tgcVec[1], tgcVec[2] };
 
-    if (this->SetGainPercent(tgc) == PLUS_SUCCESS)
+    if (this->SetGainPercentDevice(tgc) == PLUS_SUCCESS)
     {
       this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_TGC, false);
     }
