@@ -32,6 +32,16 @@ public:
   /* Get device type */
   std::string GetDeviceType();
 
+  /*! Retrieves the cameras parameters :
+* leftIntrinsic = left camera focal length [0-1], optical center [2-3], lens distorsion [4-8] and skew [9]
+* rightIntrinsic = left camera focal length [0-1], optical center [2-3], lens distorsion [4-8] and skew [9]
+* rightPosition = position of the right camera in the coordinate system of the left camera
+* rightOrientation = orientation of the right camera in the coordinate system of the left camera
+*/
+  PlusStatus GetCamerasCalibration(
+    std::array<float, 10>& leftIntrinsic, std::array<float, 10>& rightIntrinsic,
+    std::array<float, 3>& rightPosition, std::array<float, 3>& rightOrientation);
+
   /* Device is a hardware tracker. */
   virtual bool IsTracker() const { return true; }
   virtual bool IsVirtual() const { return false; }
@@ -64,6 +74,8 @@ public:
   static const char* ATRACSYS_COMMAND_ENABLE_TOOL;
   static const char* ATRACSYS_COMMAND_ADD_TOOL;
 
+  PlusStatus GetOptionValue(const std::string& optionName, std::string& optionValue);
+
   // Command methods
   // LED
   PlusStatus SetLedEnabled(bool enabled);
@@ -78,6 +90,9 @@ public:
 protected:
   vtkPlusAtracsysTracker();
   ~vtkPlusAtracsysTracker();
+
+  // helper to translate option names from Plus nomenclature to Atracsys' one
+  bool TranslateOptionName(const std::string& optionName, std::string& translatedOptionName);
 
 private: // Functions
   vtkPlusAtracsysTracker(const vtkPlusAtracsysTracker&);
