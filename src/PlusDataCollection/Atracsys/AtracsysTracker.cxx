@@ -80,6 +80,8 @@ public:
     ResultToStringMap[ERROR_OPTION_AVAILABLE_ONLY_ON_FTK] = "Attempted to call fusionTrack only option with non-fusionTrack device connected.";
     ResultToStringMap[ERROR_OPTION_AVAILABLE_ONLY_ON_STK] = "Attempted to call spryTrack only option with non-spryTrack device connected.";
     ResultToStringMap[ERROR_FAILED_TO_CLOSE_SDK] = "Failed to close the Atracsys SDK.";
+    ResultToStringMap[ERROR_FAILED_TO_EXPORT_CALIB] = "Failed to export cameras calibration.";
+    ResultToStringMap[ERROR_FAILED_TO_EXTRACT_FRAME_INFO] = "Failed to extract frame info.";
     ResultToStringMap[ERROR_CANNOT_CREATE_FRAME_INSTANCE] = "Failed to create frame.";
     ResultToStringMap[ERROR_CANNOT_INITIALIZE_FRAME] = "Failed to initialize frame.";
     ResultToStringMap[ERROR_NO_FRAME_AVAILABLE] = "No frame available from tracker.";
@@ -683,9 +685,9 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Connect()
   case ftkDeviceType::DEV_SPRYTRACK_180:
     this->DeviceType = SPRYTRACK_180;
     break;
-    case ftkDeviceType::DEV_SPRYTRACK_300:
-      this->DeviceType = SPRYTRACK_300;
-      break;
+  case ftkDeviceType::DEV_SPRYTRACK_300:
+    this->DeviceType = SPRYTRACK_300;
+    break;
   case ftkDeviceType::DEV_FUSIONTRACK_500:
     this->DeviceType = FUSIONTRACK_500;
     break;
@@ -761,7 +763,50 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetDeviceType(DEVICE_TYPE& dev
 }
 
 //----------------------------------------------------------------------------
-AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetDeviceId(uint64_t &id)
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetCamerasCalibration(std::vector<float>& calib)
+{
+  if (this->SetOption("Calibration export", "1") != SUCCESS)
+  {
+    LOG_ERROR("Could not export calibration.");
+    return ERROR_FAILED_TO_EXPORT_CALIB;
+  }
+  else
+  {
+    if (ftkGetLastFrame(this->Internal->FtkLib, this->Internal->TrackerSN, this->Internal->Frame, 20) != ftkError::FTK_OK)
+    {
+      return ERROR_NO_FRAME_AVAILABLE;
+    }
+    else
+    {
+      ftkFrameInfoData info;
+      info.WantedInformation = ftkInformationType::CalibrationParameters;
+      if (ftkExtractFrameInfo(this->Internal->Frame, &info) != ftkError::FTK_OK)
+      {
+        return ERROR_FAILED_TO_EXTRACT_FRAME_INFO;
+      }
+      else
+      {
+        calib.clear();
+        calib.reserve(26);
+        ftkStereoParameters sps = info.Calibration;
+        calib = { sps.LeftCamera.FocalLength[0], sps.LeftCamera.FocalLength[1],
+        sps.LeftCamera.OpticalCentre[0], sps.LeftCamera.OpticalCentre[1],
+        sps.LeftCamera.Distorsions[0], sps.LeftCamera.Distorsions[1], sps.LeftCamera.Distorsions[2],
+        sps.LeftCamera.Distorsions[3], sps.LeftCamera.Distorsions[4], sps.LeftCamera.Skew,
+        sps.LeftCamera.FocalLength[0], sps.LeftCamera.FocalLength[1],
+        sps.RightCamera.OpticalCentre[0], sps.RightCamera.OpticalCentre[1],
+        sps.RightCamera.Distorsions[0], sps.RightCamera.Distorsions[1], sps.RightCamera.Distorsions[2],
+        sps.RightCamera.Distorsions[3], sps.RightCamera.Distorsions[4], sps.RightCamera.Skew,
+        sps.Translation[0], sps.Translation[1], sps.Translation[2],
+        sps.Rotation[0], sps.Rotation[1], sps.Rotation[2] };
+      }
+    }
+  }
+  return SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetDeviceId(uint64_t& id)
 {
   id = this->Internal->TrackerSN;
   return SUCCESS;

@@ -32,6 +32,9 @@ public:
   /* Get device type */
   std::string GetDeviceType();
 
+  /* Get cameras calibration */
+  PlusStatus GetCamerasCalibration(std::vector<float>& calib);
+
   /* Device is a hardware tracker. */
   virtual bool IsTracker() const { return true; }
   virtual bool IsVirtual() const { return false; }
@@ -64,6 +67,8 @@ public:
   static const char* ATRACSYS_COMMAND_ENABLE_TOOL;
   static const char* ATRACSYS_COMMAND_ADD_TOOL;
 
+  PlusStatus GetOptionValue(const std::string& optionName, std::string& optionValue);
+
   // Command methods
   // LED
   PlusStatus SetLedEnabled(bool enabled);
@@ -78,6 +83,9 @@ public:
 protected:
   vtkPlusAtracsysTracker();
   ~vtkPlusAtracsysTracker();
+
+  // helper to translate option names from Plus nomenclature to Atracsys' one
+  bool translateOptionName(const std::string& optionName, std::string& translatedOptionName);
 
 private: // Functions
   vtkPlusAtracsysTracker(const vtkPlusAtracsysTracker&);

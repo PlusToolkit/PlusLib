@@ -37,6 +37,8 @@ public:
     ERROR_OPTION_AVAILABLE_ONLY_ON_FTK,
     ERROR_OPTION_AVAILABLE_ONLY_ON_STK,
     ERROR_FAILED_TO_CLOSE_SDK,
+    ERROR_FAILED_TO_EXPORT_CALIB,
+    ERROR_FAILED_TO_EXTRACT_FRAME_INFO,
     ERROR_CANNOT_CREATE_FRAME_INSTANCE,
     ERROR_CANNOT_INITIALIZE_FRAME,
     ERROR_NO_FRAME_AVAILABLE,
@@ -149,6 +151,9 @@ public:
 
   /*! */
   ATRACSYS_RESULT GetDeviceId(uint64_t& id);
+
+  /*! */
+  ATRACSYS_RESULT GetCamerasCalibration(std::vector<float>& calib);
 
   /*! */
   ATRACSYS_RESULT LoadMarkerGeometryFromFile(std::string filePath, int& geometryId);
