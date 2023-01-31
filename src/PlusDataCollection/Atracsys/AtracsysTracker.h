@@ -37,6 +37,8 @@ public:
     ERROR_OPTION_AVAILABLE_ONLY_ON_FTK,
     ERROR_OPTION_AVAILABLE_ONLY_ON_STK,
     ERROR_FAILED_TO_CLOSE_SDK,
+    ERROR_FAILED_TO_EXPORT_CALIB,
+    ERROR_FAILED_TO_EXTRACT_FRAME_INFO,
     ERROR_CANNOT_CREATE_FRAME_INSTANCE,
     ERROR_CANNOT_INITIALIZE_FRAME,
     ERROR_NO_FRAME_AVAILABLE,
@@ -149,6 +151,15 @@ public:
 
   /*! */
   ATRACSYS_RESULT GetDeviceId(uint64_t& id);
+
+  /*! Retrieves the cameras parameters :
+  * leftIntrinsic = left camera focal length [0-1], optical center [2-3], lens distorsion [4-8] and skew [9]
+  * rightIntrinsic = left camera focal length [0-1], optical center [2-3], lens distorsion [4-8] and skew [9]
+  * rightPosition = position of the right camera in the coordinate system of the left camera
+  * rightOrientation = orientation of the right camera in the coordinate system of the left camera
+  */
+  ATRACSYS_RESULT GetCamerasCalibration(std::array<float,10>& leftIntrinsic, std::array<float, 10>& rightIntrinsic,
+    std::array<float, 3>& rightPosition, std::array<float, 3>& rightOrientation);
 
   /*! */
   ATRACSYS_RESULT LoadMarkerGeometryFromFile(std::string filePath, int& geometryId);

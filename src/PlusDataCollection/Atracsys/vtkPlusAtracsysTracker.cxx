@@ -149,6 +149,21 @@ std::string vtkPlusAtracsysTracker::GetDeviceType()
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusAtracsysTracker::GetCamerasCalibration(
+  std::array<float, 10>& leftIntrinsic, std::array<float, 10>& rightIntrinsic,
+  std::array<float, 3>& rightPosition, std::array<float, 3>& rightOrientation)
+{
+  ATRACSYS_RESULT result = this->Internal->Tracker.GetCamerasCalibration(
+  leftIntrinsic, rightIntrinsic, rightPosition, rightOrientation);
+  if (result != ATRACSYS_RESULT::SUCCESS)
+  {
+    LOG_ERROR(this->Internal->Tracker.ResultToString(result));
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusAtracsysTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   // Read and store all device options read in the xml config file
@@ -157,6 +172,8 @@ PlusStatus vtkPlusAtracsysTracker::ReadConfiguration(vtkXMLDataElement* rootConf
   for (int i = 0; i < deviceConfig->GetNumberOfAttributes(); ++i)
   {
     this->Internal->DeviceOptions.emplace(deviceConfig->GetAttributeName(i), deviceConfig->GetAttributeValue(i));
+    // also store parameters with vtkPlusDevice method
+    this->SetParameter(deviceConfig->GetAttributeName(i), deviceConfig->GetAttributeValue(i));
   }
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
@@ -241,6 +258,34 @@ PlusStatus vtkPlusAtracsysTracker::Probe()
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusAtracsysTracker::GetOptionValue(const std::string &optionName, std::string &optionValue)
+{
+  std::map<std::string, std::string>::const_iterator itd = this->Internal->DeviceOptions.find(optionName);
+  if (itd != this->Internal->DeviceOptions.cend())
+  {
+    optionValue = this->Internal->DeviceOptions[optionName];
+    return PLUS_SUCCESS;
+  }
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusAtracsysTracker::TranslateOptionName(const std::string& optionName, std::string& translatedOptionName)
+{
+  std::map<std::string, std::string>::const_iterator itt =
+    this->Internal->DeviceOptionTranslator.find(optionName);
+  if (itt == this->Internal->DeviceOptionTranslator.cend())
+  {
+    return false;
+  }
+  else
+  {
+    translatedOptionName = itt->second;
+    return true;
+  }
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusAtracsysTracker::InternalConnect()
 {
   LOG_TRACE("vtkPlusAtracsysTracker::InternalConnect");
@@ -266,22 +311,6 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
 
   // get device type
   this->Internal->Tracker.GetDeviceType(this->Internal->DeviceType);
-
-  // helper to translate option names from Plus nomenclature to Atracsys' one
-  auto translateOptionName = [this](const std::string& optionName, std::string& translatedOptionName)
-  {
-    std::map<std::string, std::string>::const_iterator itt =
-      this->Internal->DeviceOptionTranslator.find(optionName);
-    if (itt == this->Internal->DeviceOptionTranslator.cend())
-    {
-      return false;
-    }
-    else
-    {
-      translatedOptionName = itt->second;
-      return true;
-    }
-  };
 
   std::map<std::string, std::string>::const_iterator itd;
   // handling options that are used only internally
@@ -415,7 +444,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
         LOG_WARNING("Wrong strobe mode value " << i.second);
       }
     }
-    else/* end of hack*/ if (translateOptionName(i.first, translatedOptionName))
+    else/* end of hack*/ if (this->TranslateOptionName(i.first, translatedOptionName))
     {
       this->Internal->Tracker.SetOption(translatedOptionName, i.second);
       // if spryTrack, also set the same options but for onboard processing
