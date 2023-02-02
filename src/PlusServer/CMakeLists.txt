@@ -18,6 +18,7 @@ SET(${PROJECT_NAME}_CMD_SRCS
   Commands/vtkPlusGetUsParameterCommand.cxx
   Commands/vtkPlusAddRecordingDeviceCommand.cxx
   Commands/vtkPlusGenericSerialCommand.cxx
+  Commands/vtkPlusGetFrameRateCommand.cxx
   )
 SET(${PROJECT_NAME}_SRCS
   vtkPlusOpenIGTLinkServer.cxx
@@ -43,6 +44,7 @@ SET(${PROJECT_NAME}_CMD_HDRS
   Commands/vtkPlusGetUsParameterCommand.h
   Commands/vtkPlusAddRecordingDeviceCommand.h
   Commands/vtkPlusGenericSerialCommand.h
+  Commands/vtkPlusGetFrameRateCommand.h
   )
 SET(${PROJECT_NAME}_HDRS
   vtkPlusOpenIGTLinkServer.h

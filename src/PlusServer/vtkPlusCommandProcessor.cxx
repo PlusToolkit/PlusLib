@@ -31,6 +31,7 @@ See License.txt for details.
 
 #include "vtkPlusAddRecordingDeviceCommand.h"
 #include "vtkPlusGenericSerialCommand.h"
+#include "vtkPlusGetFrameRateCommand.h"
 #include "vtkPlusGetPolydataCommand.h"
 #include "vtkPlusGetTransformCommand.h"
 #include "vtkPlusGetUsParameterCommand.h"
@@ -76,6 +77,7 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
   RegisterPlusCommand(vtkSmartPointer<vtkPlusGetUsParameterCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusAddRecordingDeviceCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusGenericSerialCommand>::New());
+  RegisterPlusCommand(vtkSmartPointer<vtkPlusGetFrameRateCommand>::New());
 #ifdef PLUS_USE_CAPISTRANO_VIDEO
   RegisterPlusCommand(vtkSmartPointer<vtkPlusCapistranoCommand>::New());
 #endif
