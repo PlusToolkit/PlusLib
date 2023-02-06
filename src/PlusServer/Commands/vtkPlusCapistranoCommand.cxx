@@ -204,7 +204,7 @@ PlusStatus vtkPlusCapistranoCommand::Execute()
           if (!valid)
           {
             error += "Failed to parse " + parameterName + ". ";
-            resultString += " Success=\"false\"/>";
+            resultString += " Success=\"false\"";
             metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
             status = PLUS_FAIL;
             continue;
@@ -222,7 +222,7 @@ PlusStatus vtkPlusCapistranoCommand::Execute()
     else
     {
       error += "Invalid parameter " + parameterName + ". ";
-      resultString += " Success=\"false\"/>";
+      resultString += " Success=\"false\"";
       metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
       status = PLUS_FAIL;
       continue;
@@ -231,7 +231,7 @@ PlusStatus vtkPlusCapistranoCommand::Execute()
     {
       int wobbleRate_int = std::stoi(value);
       status = device->SetWobbleRate((unsigned char)wobbleRate_int);
-      resultString += " Success=\"true\"/>";
+      resultString += " Success=\"true\"";
       metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
     }
     else if (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_WOBBLE_RATE)
@@ -248,7 +248,7 @@ PlusStatus vtkPlusCapistranoCommand::Execute()
     {
       bool bidi = std::stoi(value);
       device->SetBidirectionalMode(bidi);
-      resultString += " Success=\"true\"/>";
+      resultString += " Success=\"true\"";
       metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
     }
     else if (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_FREEZE_PROBE)
@@ -256,13 +256,13 @@ PlusStatus vtkPlusCapistranoCommand::Execute()
       bool freezeProbe_bool = std::stoi(value);
       if (device->FreezeDevice(freezeProbe_bool) == PLUS_SUCCESS)
       {
-        resultString += " Success=\"true\"/>";
+        resultString += " Success=\"true\"";
         metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
       }
       else
       {
         LOG_ERROR("Failed to freeze probe"); 
-        resultString += " Success=\"false\"/>";
+        resultString += " Success=\"false\"";
         metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
       }
     }
@@ -280,7 +280,7 @@ PlusStatus vtkPlusCapistranoCommand::Execute()
     {
       int jitterCompensation_int = std::stoi(value);
       status = device->SetJitterCompensation((unsigned char)jitterCompensation_int);
-      resultString += " Success=\"true\"/>";
+      resultString += " Success=\"true\"";
       metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
     }
     else if (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_JITTER_COMPENSATION)
@@ -298,13 +298,13 @@ PlusStatus vtkPlusCapistranoCommand::Execute()
       bool MISMode_bool = std::stoi(value);
       if (device->SetMISMode(MISMode_bool) == PLUS_SUCCESS)
       {
-        resultString += " Success=\"true\"/>";
+        resultString += " Success=\"true\"";
         metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
       }
       else
       {
         LOG_ERROR("Failed to set MIS mode"); 
-        resultString += " Success=\"false\"/>";
+        resultString += " Success=\"false\"";
         metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
       }
     }
@@ -313,24 +313,25 @@ PlusStatus vtkPlusCapistranoCommand::Execute()
       int misPulse_int = std::stoi(value);
       if (device->SetMISPulsePeriod((unsigned char)misPulse_int) == PLUS_SUCCESS)
       {
-        resultString += " Success=\"true\"/>";
+        resultString += " Success=\"true\"";
         metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
       }
       else
       {
         LOG_ERROR("Failed to set MIS pulse period"); 
-        resultString += " Success=\"false\"/>";
+        resultString += " Success=\"false\"";
         metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
       }
     }
     if (status != PLUS_SUCCESS)
     {
       error += "Failed to set " + parameterName + ". ";
-      resultString += " Success=\"false\"/>";
+      resultString += " Success=\"false\"";
       metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
       status = PLUS_FAIL;
       continue;
     }
+    resultString += "/>";
   } // For each parameter
   resultString += "</CommandReply>";
 
