@@ -185,6 +185,7 @@ PlusStatus vtkPlusCapistranoCommand::Execute()
   std::string error = "";
   std::map < std::string, std::pair<IANA_ENCODING_TYPE, std::string> > metaData;
   PlusStatus status = PLUS_SUCCESS;
+  bool hasFailure = false;
 
   std::list<std::pair<std::string, std::string>>::iterator paramIt;
   for (paramIt = this->RequestedParameterChanges.begin(); paramIt != this->RequestedParameterChanges.end(); ++paramIt)
@@ -197,7 +198,12 @@ PlusStatus vtkPlusCapistranoCommand::Execute()
         || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_SET_MIS_PULSE_PERIOD
         || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_SET_JITTER_COMPENSATION
         || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_FREEZE_PROBE
-        || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_SET_BIDIRECTIONAL_MODE)
+        || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_SET_BIDIRECTIONAL_MODE
+        || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_SET_SWEEP_ANGLE
+        || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_SET_DERIVATIVE_COMPENSATION
+        || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_SET_SAMPLE_FREQUENCY
+        || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_SET_SERVO_GAIN
+        || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_SET_POSITION_SCALE)
         {
           bool valid = false;
           double parameterValue = vtkVariant(value).ToDouble(&valid);
@@ -212,7 +218,15 @@ PlusStatus vtkPlusCapistranoCommand::Execute()
         }
     else if (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_WOBBLE_RATE
              || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_JITTER_COMPENSATION
-             || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_IS_PROBE_FROZEN)
+             || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_IS_PROBE_FROZEN
+             || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_MIS_PULSE_PERIOD
+             || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_MIS_MODE
+             || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_BIDIRECTIONAL_MODE
+             || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_SWEEP_ANGLE
+             || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_DERIVATIVE_COMPENSATION
+             || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_SAMPLE_FREQUENCY
+             || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_SERVO_GAIN
+             || parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_POSITION_SCALE)
         {
           if (value != "None")
           {
@@ -226,7 +240,7 @@ PlusStatus vtkPlusCapistranoCommand::Execute()
       metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
       status = PLUS_FAIL;
       continue;
-    } 
+    }
     if (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_SET_WOBBLE_RATE)
     {
       int wobbleRate_int = std::stoi(value);
@@ -237,11 +251,9 @@ PlusStatus vtkPlusCapistranoCommand::Execute()
     else if (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_WOBBLE_RATE)
     {
       value = std::to_string(device->GetWobbleRate());
-      std::stringstream ss;
-      ss << value;
       resultString += " Success=\"true\"";
-      resultString += " Value=\"" + ss.str() + "\"";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, ss.str());
+      resultString += " Value=\"" + value + "\"";
+      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
       status = PLUS_SUCCESS;
     }
     else if (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_SET_BIDIRECTIONAL_MODE)
@@ -250,6 +262,13 @@ PlusStatus vtkPlusCapistranoCommand::Execute()
       device->SetBidirectionalMode(bidi);
       resultString += " Success=\"true\"";
       metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
+    }
+    else if (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_BIDIRECTIONAL_MODE)
+    {
+      value = std::to_string(device->GetBidirectionalMode());
+      resultString += " Success=\"true\"";
+      resultString += " Value=\"" + value + "\"";
+      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
     }
     else if (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_FREEZE_PROBE)
     {
@@ -261,7 +280,7 @@ PlusStatus vtkPlusCapistranoCommand::Execute()
       }
       else
       {
-        LOG_ERROR("Failed to freeze probe"); 
+        LOG_ERROR("Failed to freeze probe");
         resultString += " Success=\"false\"";
         metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
       }
@@ -269,11 +288,9 @@ PlusStatus vtkPlusCapistranoCommand::Execute()
     else if (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_IS_PROBE_FROZEN)
     {
       value = device->IsFrozen() ? "1" : "0";
-      std::stringstream ss;
-      ss << value;
       resultString += " Success=\"true\"";
-      resultString += " Value=\"" + ss.str() + "\"";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, ss.str());
+      resultString += " Value=\"" + value + "\"";
+      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
       status = PLUS_SUCCESS;
     }
     else if (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_SET_JITTER_COMPENSATION)
@@ -286,11 +303,9 @@ PlusStatus vtkPlusCapistranoCommand::Execute()
     else if (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_JITTER_COMPENSATION)
     {
       value = std::to_string(device->GetJitterCompensation());
-      std::stringstream ss;
-      ss << value;
       resultString += " Success=\"true\"";
-      resultString += " Value=\"" + ss.str() + "\"";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, ss.str());
+      resultString += " Value=\"" + value + "\"";
+      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
       status = PLUS_SUCCESS;
     }
     else if (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_SET_MIS_MODE)
@@ -303,7 +318,24 @@ PlusStatus vtkPlusCapistranoCommand::Execute()
       }
       else
       {
-        LOG_ERROR("Failed to set MIS mode"); 
+        LOG_ERROR("Failed to set MIS mode");
+        resultString += " Success=\"false\"";
+        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
+      }
+    }
+    else if (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_MIS_MODE)
+    {
+      bool MISMode;
+      if (device->GetMISMode(MISMode) == PLUS_SUCCESS)
+      {
+        value = std::to_string(MISMode);
+        resultString += " Success=\"true\"";
+        resultString += " Value=\"" + value + "\"";
+        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
+      }
+      else
+      {
+        LOG_ERROR("Failed to get MIS mode");
         resultString += " Success=\"false\"";
         metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
       }
@@ -318,28 +350,109 @@ PlusStatus vtkPlusCapistranoCommand::Execute()
       }
       else
       {
-        LOG_ERROR("Failed to set MIS pulse period"); 
+        LOG_ERROR("Failed to set MIS pulse period");
         resultString += " Success=\"false\"";
         metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
       }
     }
-    if (status != PLUS_SUCCESS)
+    else if (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_MIS_PULSE_PERIOD)
     {
+      unsigned int PulsePeriod;
+      if (device->GetMISPulsePeriod(PulsePeriod) == PLUS_SUCCESS)
+      {
+        value = std::to_string(PulsePeriod);
+        resultString += " Success=\"true\"";
+        resultString += " Value=\"" + value + "\"";
+        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
+      }
+      else
+      {
+        LOG_ERROR("Failed to get MIS pulse period");
+        resultString += " Success=\"false\"";
+        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
+      }
+    }
+    else if (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_SET_SWEEP_ANGLE)
+    {
+      float sweepAngle = std::stof(value);
+      status = device->SetSweepAngle(sweepAngle);
+      resultString += " Success=\"true\"";
+      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
+    }
+    else if (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_SWEEP_ANGLE)
+    {
+      value = std::to_string(device->GetSweepAngle());
+      resultString += " Success=\"true\"";
+      resultString += " Value=\"" + value + "\"";
+      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
+      status = PLUS_SUCCESS;
+    }
+    else if  (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_SET_DERIVATIVE_COMPENSATION)
+    {
+      int derComp = std::stoi(value);
+      status = device->SetDerivativeCompensation((unsigned char)derComp);
+      resultString += " Success=\"true\"";
+      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
+    }
+    else if (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_DERIVATIVE_COMPENSATION)
+    {
+      value = std::to_string(device->GetDerivativeCompensation());
+      resultString += " Success=\"true\"";
+      resultString += " Value=\"" + value + "\"";
+      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
+      status = PLUS_SUCCESS;
+    }
+    else if  (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_SET_SERVO_GAIN)
+    {
+      int servoGain = std::stoi(value);
+      status = device->SetServoGain((unsigned char)servoGain);
+      resultString += " Success=\"true\"";
+      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
+    }
+    else if (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_SERVO_GAIN)
+    {
+      value = std::to_string(device->GetServoGain());
+      resultString += " Success=\"true\"";
+      resultString += " Value=\"" + value + "\"";
+      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
+      status = PLUS_SUCCESS;
+    }
+    else if  (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_SET_POSITION_SCALE)
+    {
+      int positionScale = std::stoi(value);
+      status = device->SetPositionScale((unsigned char)positionScale);
+      resultString += " Success=\"true\"";
+      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
+    }
+    else if (parameterName == vtkPlusCapistranoVideoSource::CAPISTRANO_GET_POSITION_SCALE)
+    {
+      value = std::to_string(device->GetPositionScale());
+      resultString += " Success=\"true\"";
+      resultString += " Value=\"" + value + "\"";
+      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
+      status = PLUS_SUCCESS;
+    }
+    else
+    {
+      status = PLUS_FAIL;
       error += "Failed to set " + parameterName + ". ";
       resultString += " Success=\"false\"";
       metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
       status = PLUS_FAIL;
-      continue;
+    }
+    if (status != PLUS_SUCCESS)
+    {
+      hasFailure = true;
     }
     resultString += "/>";
   } // For each parameter
   resultString += "</CommandReply>";
-
-  if (status != PLUS_SUCCESS)
+  if (hasFailure)
   {
-    LOG_WARNING("Failed to set US parameter, result string was: " << resultString);
+    status = PLUS_FAIL;
+    LOG_WARNING("Failed to set some requested parameter(s), result string was: " << resultString);
   }
-  
+
   vtkSmartPointer<vtkPlusCommandRTSCommandResponse> commandResponse = vtkSmartPointer<vtkPlusCommandRTSCommandResponse>::New();
   commandResponse->UseDefaultFormatOff();
   commandResponse->SetClientId(this->ClientId);

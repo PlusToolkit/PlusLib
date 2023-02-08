@@ -30,13 +30,25 @@ public:
   static const char* CAPISTRANO_SET_WOBBLE_RATE;
   static const char* CAPISTRANO_GET_WOBBLE_RATE;
   static const char* CAPISTRANO_SET_BIDIRECTIONAL_MODE;
+  static const char* CAPISTRANO_GET_BIDIRECTIONAL_MODE;
   static const char* CAPISTRANO_FREEZE_PROBE;
   static const char* CAPISTRANO_IS_PROBE_FROZEN;
   static const char* CAPISTRANO_SET_JITTER_COMPENSATION;
   static const char* CAPISTRANO_GET_JITTER_COMPENSATION;
   static const char* CAPISTRANO_SET_MIS_MODE;
+  static const char* CAPISTRANO_GET_MIS_MODE;
   static const char* CAPISTRANO_SET_MIS_PULSE_PERIOD;
   static const char* CAPISTRANO_GET_MIS_PULSE_PERIOD;
+  static const char* CAPISTRANO_SET_SWEEP_ANGLE;
+  static const char* CAPISTRANO_GET_SWEEP_ANGLE;
+  static const char* CAPISTRANO_SET_DERIVATIVE_COMPENSATION;
+  static const char* CAPISTRANO_GET_DERIVATIVE_COMPENSATION;
+  static const char* CAPISTRANO_SET_SAMPLE_FREQUENCY;
+  static const char* CAPISTRANO_GET_SAMPLE_FREQUENCY;
+  static const char* CAPISTRANO_SET_SERVO_GAIN;
+  static const char* CAPISTRANO_GET_SERVO_GAIN;
+  static const char* CAPISTRANO_SET_POSITION_SCALE;
+  static const char* CAPISTRANO_GET_POSITION_SCALE;
 
   /*! Specify the device connected to this class */
   bool IsTracker() const override

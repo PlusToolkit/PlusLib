@@ -25,13 +25,25 @@ vtkStandardNewMacro(vtkPlusCapistranoVideoSource);
 const char* vtkPlusCapistranoVideoSource::CAPISTRANO_SET_WOBBLE_RATE = "SetWobbleRate";
 const char* vtkPlusCapistranoVideoSource::CAPISTRANO_GET_WOBBLE_RATE = "GetWobbleRate";
 const char* vtkPlusCapistranoVideoSource::CAPISTRANO_SET_BIDIRECTIONAL_MODE = "SetBidirectionalMode";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_GET_BIDIRECTIONAL_MODE = "GetBidirectionalMode";
 const char* vtkPlusCapistranoVideoSource::CAPISTRANO_FREEZE_PROBE = "FreezeProbe";
 const char* vtkPlusCapistranoVideoSource::CAPISTRANO_IS_PROBE_FROZEN = "IsProbeFrozen";
 const char* vtkPlusCapistranoVideoSource::CAPISTRANO_SET_JITTER_COMPENSATION = "SetJitterCompensation";
 const char* vtkPlusCapistranoVideoSource::CAPISTRANO_GET_JITTER_COMPENSATION = "GetJitterCompensation";
 const char* vtkPlusCapistranoVideoSource::CAPISTRANO_SET_MIS_MODE = "SetMISMode";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_GET_MIS_MODE = "GetMISMode";
 const char* vtkPlusCapistranoVideoSource::CAPISTRANO_SET_MIS_PULSE_PERIOD = "SetMISPulsePeriod";
 const char* vtkPlusCapistranoVideoSource::CAPISTRANO_GET_MIS_PULSE_PERIOD = "GetMISPulsePeriod";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_SET_SWEEP_ANGLE = "SetSweepAngle";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_GET_SWEEP_ANGLE = "GetSweepAngle";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_SET_DERIVATIVE_COMPENSATION = "SetDerivativeCompensation";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_GET_DERIVATIVE_COMPENSATION = "GetDerivativeCompensation";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_SET_SAMPLE_FREQUENCY = "SetSampleFrequency";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_GET_SAMPLE_FREQUENCY = "GetSampleFrequency";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_SET_SERVO_GAIN = "SetServoGain";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_GET_SERVO_GAIN = "GetServoGain";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_SET_POSITION_SCALE = "SetPositionScale";
+const char* vtkPlusCapistranoVideoSource::CAPISTRANO_GET_POSITION_SCALE = "GetPositionScale";
 
 class vtkPlusCapistranoVideoSource::vtkInternal
 {
