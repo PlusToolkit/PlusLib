@@ -9,12 +9,13 @@ ref struct Globals
     static unsigned initialized = 0; // how many times initialization was called
 };
 
-void enumerateEncoders(long comPort, long mode)
+void enumerateEncoders(long comPort, long mode, int devicesExpected)
 {
     System::String^ comPortString = "COM" + System::Convert::ToString(comPort);
 
     USDigital::SEIBusManager mgr;
     USDigital::SEIBus^ mSEIBus = mgr.GetBus(comPortString);
+    mSEIBus->ScanSettings->LimitDeviceCount = devicesExpected;
     mSEIBus->Initialize((USDigital::InitializationFlags)mode);
 
     for (int i = 0; i < mSEIBus->Devices->Length; i++)
@@ -25,7 +26,7 @@ void enumerateEncoders(long comPort, long mode)
     }
 }
 
-void enumerateEncodersAll(long mode)
+void enumerateEncodersAll(long mode, int devicesExpected)
 {
     const unsigned bufferSize = 5000;
     char lpTargetPath[bufferSize]; // buffer to store the path of the COMPORTS
@@ -39,7 +40,7 @@ void enumerateEncodersAll(long mode)
             //std::cout << str << ": " << lpTargetPath << std::endl;
             try
             {
-                enumerateEncoders(i, mode);
+                enumerateEncoders(i, mode, devicesExpected);
             }
             catch (System::UnauthorizedAccessException^)
             {
@@ -60,11 +61,11 @@ catch (...) \
 } \
 return 1
 
-long InitializeSEI(long comm, long mode)
+long InitializeSEI(long comm, long mode, int devicesExpected)
 {
     if (Globals::initialized > 0)
     {
-        ++Globals::initialized; // just inrease the count
+        ++Globals::initialized; // just increase the count
         return 0;
     }
 
@@ -72,11 +73,11 @@ long InitializeSEI(long comm, long mode)
     {
         if (comm == 0)
         {
-            enumerateEncodersAll(mode);
+            enumerateEncodersAll(mode, devicesExpected);
         }
         else
         {
-            enumerateEncoders(comm, mode);
+            enumerateEncoders(comm, mode, devicesExpected);
         }
         Globals::initialized = 1;
         return 0;
