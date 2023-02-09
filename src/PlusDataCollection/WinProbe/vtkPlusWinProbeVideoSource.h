@@ -29,6 +29,76 @@ public:
   static vtkPlusWinProbeVideoSource* New();
   vtkTypeMacro(vtkPlusWinProbeVideoSource, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  static const char* SET_FREEZE;
+  static const char* GET_FREEZE;
+  static const char* SET_TGC;
+  static const char* GET_TGC;
+  static const char* SET_ALL_FOCAL_DEPTHS;
+  static const char* SET_FOCAL_DEPTH;
+  static const char* GET_FOCAL_DEPTH;
+  static const char* SET_ALL_ARFI_FOCAL_DEPTHS;
+  static const char* SET_ARFI_FOCAL_DEPTH;
+  static const char* GET_ARFI_FOCAL_DEPTH;
+  static const char* SET_B_MULTIFOCAL_ZONE_COUNT;
+  static const char* GET_B_MULTIFOCAL_ZONE_COUNT;
+  static const char* SET_FIRST_GAIN_VALUE;
+  static const char* GET_FIRST_GAIN_VALUE;
+  static const char* SET_TGC_OVERALL_GAIN;
+  static const char* GET_TGC_OVERALL_GAIN;
+  static const char* SET_SPATIAL_COMPOUND_ENABLED;
+  static const char* GET_SPATIAL_COMPOUND_ENABLED;
+  static const char* GET_SPATIAL_COMPOUND_ANGLE;
+  static const char* SET_SPATIAL_COMPOUND_COUNT;
+  static const char* GET_SPATIAL_COMPOUND_COUNT;
+  static const char* SET_MMODE_ENABLED;
+  static const char* GET_MMODE_ENABLED;
+  static const char* SET_M_REVOLVING_ENABLED;
+  static const char* GET_M_REVOLVING_ENABLED;
+  static const char* SET_RF_MODE_ENABLED;
+  static const char* GET_RF_MODE_ENABLED;
+  static const char* SET_MPR_FREQUENCY;
+  static const char* GET_MPR_FREQUENCY;
+  static const char* SET_M_LINE_INDEX;
+  static const char* GET_M_LINE_INDEX;
+  static const char* SET_M_LINE_COUNT;
+  static const char* GET_M_LINE_COUNT;
+  static const char* SET_M_WIDTH;
+  static const char* GET_M_WIDTH;
+  static const char* SET_M_DEPTH;
+  static const char* GET_M_DEPTH;
+  static const char* SET_DECIMATION;
+  static const char* GET_DECIMATION;
+  static const char* SET_B_FRAME_RATE_LIMIT;
+  static const char* GET_B_FRAME_RATE_LIMIT;
+  static const char* SET_B_HARMONIC_ENABLED;
+  static const char* GET_B_HARMONIC_ENABLED;
+  static const char* GET_TRANSDUCER_INTERNAL_ID;
+  static const char* SET_ARFI_ENABLED;
+  static const char* GET_ARFI_ENABLED;
+  static const char* SET_ARFI_START_SAMPLE;
+  static const char* GET_ARFI_START_SAMPLE;
+  static const char* SET_ARFI_STOP_SAMPLE;
+  static const char* GET_ARFI_STOP_SAMPLE;
+  static const char* SET_ARFI_PRE_PUSH_LINE_REPEAT_COUNT;
+  static const char* GET_ARFI_PRE_PUSH_LINE_REPEAT_COUNT;
+  static const char* SET_ARFI_POST_PUSH_LINE_REPEAT_COUNT;
+  static const char* GET_ARFI_POST_PUSH_LINE_REPEAT_COUNT;
+  static const char* SET_ARFI_LINE_TIMER;
+  static const char* GET_ARFI_LINE_TIMER;
+  static const char* SET_ARFI_TX_CYCLE_COUNT;
+  static const char* GET_ARFI_TX_CYCLE_COUNT;
+  static const char* SET_ARFI_TX_CYCLE_WIDTH;
+  static const char* GET_ARFI_TX_CYCLE_WIDTH;
+  static const char* SET_ARFI_TX_TX_CYCLE_COUNT;
+  static const char* GET_ARFI_TX_TX_CYCLE_COUNT;
+  static const char* SET_ARFI_TX_TX_CYCLE_WIDTH;
+  static const char* GET_ARFI_TX_TX_CYCLE_WIDTH;
+  static const char* SET_ARFI_PUSH_CONFIG;
+  static const char* GET_ARFI_PUSH_CONFIG;
+  static const char* GET_FPGA_REV_DATE_STRING;
+  static const char* GET_X8BF_ENABLED;
+  static const char* UV_SEND_COMMAND;
+  static const char* IS_SCANNING;
 
   /*! Specify the device connected to this class */
   virtual bool IsTracker() const { return false; }
@@ -38,6 +108,9 @@ public:
 
   /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
+
+  /*! Set changed imaging parameter to device */
+  PlusStatus InternalApplyImagingParameterChange() override;
 
   /* Set the transmit frequency of US probe (MHz) */
   PlusStatus SetTransmitFrequencyMHz(float frequency);

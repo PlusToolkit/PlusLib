@@ -29,6 +29,11 @@ See License.txt for details.
   #include "vtkPlusCapistranoCommand.h"
 #endif
 
+#ifdef PLUS_USE_WINPROBE_VIDEO
+  #include "vtkPlusWinProbeCommand.h"
+#endif
+
+
 #include "vtkPlusAddRecordingDeviceCommand.h"
 #include "vtkPlusGenericSerialCommand.h"
 #include "vtkPlusGetFrameRateCommand.h"
@@ -92,6 +97,9 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
 #endif
 #ifdef PLUS_USE_ATRACSYS
   RegisterPlusCommand(vtkSmartPointer<vtkPlusAtracsysCommand>::New());
+#endif
+#ifdef PLUS_USE_WINPROBE_VIDEO
+  RegisterPlusCommand(vtkSmartPointer<vtkPlusWinProbeCommand>::New());
 #endif
 }
 
@@ -400,4 +408,3 @@ bool vtkPlusCommandProcessor::IsRunning()
 {
   return this->CommandExecutionActive.second;
 }
-
