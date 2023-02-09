@@ -293,7 +293,7 @@ vtkPlusUsDevice* vtkPlusGetUsParameterCommand::GetUsDevice()
       return NULL;
     }
     // device found
-    usDevice = vtkPlusUsDevice::SafeDownCast(device);
+    usDevice = dynamic_cast<vtkPlusUsDevice*>(device);
     if (usDevice == NULL)
     {
       // wrong type
@@ -306,7 +306,7 @@ vtkPlusUsDevice* vtkPlusGetUsParameterCommand::GetUsDevice()
     // No ultrasound device id is specified, auto-detect the first one and use that
     for (DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it)
     {
-      usDevice = vtkPlusUsDevice::SafeDownCast(*it);
+      usDevice = dynamic_cast<vtkPlusUsDevice*>(*it);
       if (usDevice != NULL)
       {
         // found an ultrasound device
