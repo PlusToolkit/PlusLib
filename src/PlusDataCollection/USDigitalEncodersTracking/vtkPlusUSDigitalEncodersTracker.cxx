@@ -128,7 +128,8 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
   // the zero COM port to look on all com ports, and the AUTOASSIGN means
   // that if there are address conflicts on the SEI bus, the device
   // addresses will automatically be reassigned so there are no conflicts
-  long EncoderStatus = ::InitializeSEI(0, REINITIALIZE | AUTOASSIGN | NORESET);
+  int devicesExpected = this->coreXY ? 2 : 15;  // only search for 2 devices for coreXY, otherwise search for max amount of 15 on the SEI bus
+  long EncoderStatus = ::InitializeSEI(0, REINITIALIZE | AUTOASSIGN | NORESET, devicesExpected);
   if(EncoderStatus != 0)
   {
     LOG_ERROR("Failed to initialize SEI!");
@@ -141,7 +142,8 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
   {
     if(numberofConnectedEncoders < 2)
     {
-      LOG_ERROR("USDigital encoder(s) not connected!");
+      LOG_ERROR("Number of connected USDigital encoder(s) is less than 2!");
+      LOG_ERROR("There are " << numberofConnectedEncoders << " encoders connected");
       return PLUS_FAIL;
     }
   }

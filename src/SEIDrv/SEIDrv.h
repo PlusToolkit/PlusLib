@@ -5,15 +5,19 @@
 // function: Initializes the SEI bus
 // comm: CommPort of SEI devices
 //  -If comm is zero, INITIALIZESEI will search all available comm ports
-// mode: 
+// mode:
 //  -Modes may be combined together
 //  -If SKIPDEVICEINFO is set, AUTOASSIGN is ignored
 //  -If SKIPDEVICESEARCH is set, AUTOASSIGN is ignored
+// devicesExpected:
+//  -The number of devices found that will cause the scan process to quit
+//  -Up to 15 devices supported on the SEI bus
+//  -USDigital's default is to only search for 1 device on the SEI bus
 // return: 0 if no error
 // This function can be called multiple times,
 // but only the first call will have an effect.
 // CloseSEI must be called the same number of times.
-long InitializeSEI(long comm, long mode);
+long InitializeSEI(long comm, long mode, int devicesExpected = 1);
 
 const long AUTOASSIGN = 0x0001;	// autoassign addresses if they conflict
 const long SKIPDEVICESEARCH = 0x0002;	// don't check if devices exist on chosen comm port
