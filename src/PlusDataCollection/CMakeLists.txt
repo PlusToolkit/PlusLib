@@ -56,6 +56,8 @@ OPTION(PLUS_USE_BLACKMAGIC_DECKLINK "Provide support for BlackMagic DeckLink cap
 OPTION(PLUS_USE_INFRARED_SEEK_CAM "Provide support for capturing an Infrared Seek Cam" OFF)
 OPTION(PLUS_USE_ANDOR_CAMERA "Provide support for capturing images from Andor Camera. Requires PLUS_USE_OpenCV." OFF)
 OPTION(PLUS_USE_INFRARED_TEQ1_CAM "Provide support for capturing an Infrared Therma Expert Q1 Camera capture stream" OFF)
+OPTION(PLUS_USE_INFRARED_TEEV2_CAM "Provide support for capturing an Infrared Thermal Expert EV2 Camera capture stream" OFF)
+OPTION(PLUS_USE_ULTRAVIOLET_PCOUV_CAM "Provide support for capturing an PCO Ultraviolet Camera capture stream" OFF)
 OPTION(PLUS_USE_WITMOTIONTRACKER "Provide support for the WitMotion class of inertial measurement units" OFF)
 
 OPTION(PLUS_USE_LEAPMOTION "Provide support for the LeapMotion hand tracker" OFF)
@@ -2313,6 +2315,91 @@ IF(PLUS_USE_INFRARED_TEQ1_CAM)
   )
 
 ENDIF()
+
+#---------------------------------------------------------------------------
+# InfraredTEEV2Cam
+IF(PLUS_USE_INFRARED_TEEV2_CAM)
+  FIND_PACKAGE(TEEV2SDK REQUIRED)
+
+  # Compile
+  SET(Infrared_TEEV2_SRCS
+    InfraredTEEV2Cam/vtkPlusInfraredTEEV2Cam.cxx
+    )
+  SET(Infrared_TEEV2_HDRS
+      InfraredTEEV2Cam/vtkPlusInfraredTEEV2Cam.h
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${Infrared_TEEV2_HDRS}
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${Infrared_TEEV2_SRCS}
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/InfraredTEEV2Cam
+    ${TEEV2_SDK_LIBRARY}
+    ${TEEV2_SDK_INCLUDE_DIR}
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    ${TEEV2_SDK_LIBRARY}
+  )
+  LIST(APPEND External_Libraries_Install
+    ${TEEV2_SDK_BINARY}/${SDK_FILENAME}
+    ${TEEV2_SDK_BINARY}/${SDK_FILENAME_USB}
+    ${TEEV2_SDK_BINARY}/${SDK_FILENAME_IMG}
+  )
+  LIST(APPEND External_Libraries_Debug
+    ${TEEV2_SDK_BINARY}/${SDK_FILENAME}
+    ${TEEV2_SDK_BINARY}/${SDK_FILENAME_USB}
+    ${TEEV2_SDK_BINARY}/${SDK_FILENAME_IMG}
+  )
+
+ENDIF()
+
+#---------------------------------------------------------------------------
+# UltravioletPCOUVCam
+IF(PLUS_USE_ULTRAVIOLET_PCOUV_CAM)
+  FIND_PACKAGE(PCOUVSDK REQUIRED)
+
+  # Compile
+  SET(Ultraviolet_PCOUV_SRCS
+    UltravioletPCOUVCam/vtkPlusUltravioletPCOUVCam.cxx
+    )
+  SET(Ultraviolet_PCOUV_HDRS
+      UltravioletPCOUVCam/vtkPlusUltravioletPCOUVCam.h
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${Ultraviolet_PCOUV_HDRS}
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${Ultraviolet_PCOUV_SRCS}
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/UltravioletPCOUVCam
+    ${PCOUV_SDK_LIBRARY}
+    ${PCOUV_SDK_INCLUDE_DIR}
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    ${PCOUV_SDK_LIBRARY}
+  )
+  LIST(APPEND External_Libraries_Install
+    ${PCOUV_SDK_BINARY}/${SDK_FILENAME}
+  )
+  LIST(APPEND External_Libraries_Debug
+    ${PCOUV_SDK_BINARY}/${SDK_FILENAME}
+  )
+
+ENDIF()
+
+
+
 
 # --------------------------------------------------------------------------
 # V4L2
