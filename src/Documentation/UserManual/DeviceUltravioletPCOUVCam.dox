@@ -1,0 +1,26 @@
+/*!
+\page DeviceUltravioletPCOUVCam PCO Ultraviolet camera
+
+\section DeviceUltravioletPCOUVCamera 
+This device allow you to use a PCO Ultraviolet Camera to capture and send ultraviolet images.
+
+This device only works in Windows (2023-01-19). 
+
+\section UltravioletPCOUVCamConfigInstallation
+
+You can found the license in:
+ "PlusLib/src/Utilities/UltravioletPCOUVCamera/README.md"
+
+\section UltravioletPCOUVCamConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "UltravioletPCOUVCam" \RequiredAtt
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+
+\section UltravioletPCOUVCamExampleConfigFile Example configuration file PlusDeviceSet_Server_UltravioletPCOUVCamera.xml
+
+\include "ConfigFiles/PlusDeviceSet_Server_UltravioletPCOUVCamera.xml"
+
+*/

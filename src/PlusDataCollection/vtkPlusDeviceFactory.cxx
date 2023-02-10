@@ -216,6 +216,14 @@ See License.txt for details.
 #include "vtkInfraredTEQ1Cam.h"
 #endif
 
+#ifdef PLUS_USE_INFRARED_TEEV2_CAM
+#include "vtkPlusInfraredTEEV2Cam.h"
+#endif
+
+#ifdef PLUS_USE_ULTRAVIOLET_PCOUV_CAM
+#include "vtkPlusUltravioletPCOUVCam.h"
+#endif
+
 #ifdef PLUS_USE_GENERIC_SENSOR_TRACKER
 #if WIN32
 #include "vtkPlusGenericSensorTracker.h"
@@ -415,6 +423,14 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 
 #ifdef PLUS_USE_INFRARED_TEQ1_CAM
     RegisterDevice("InfraredTEQ1Cam", "vtkInfraredTEQ1Cam", (PointerToDevice)&vtkInfraredTEQ1Cam::New);
+#endif
+
+#ifdef PLUS_USE_INFRARED_TEEV2_CAM
+    RegisterDevice("InfraredTEEV2Cam", "vtkPlusInfraredTEEV2Cam", (PointerToDevice)&vtkPlusInfraredTEEV2Cam::New);
+#endif
+
+#ifdef PLUS_USE_ULTRAVIOLET_PCOUV_CAM
+    RegisterDevice("UltravioletPCOUVCam", "vtkPlusUltravioletPCOUVCam", (PointerToDevice)&vtkPlusUltravioletPCOUVCam::New);
 #endif
 
 #ifdef PLUS_USE_CLARIUS

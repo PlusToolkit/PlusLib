@@ -1,0 +1,26 @@
+/*!
+\page DeviceInfraredTEEV2Cam Infrared Thermal Expert EV2 camera
+
+\section DeviceInfraredTEEV2Camera 
+This device allow you to use a Infrared Thermal Expert EV2 Camera to capture and send infrared thermal images.
+
+This device only works in Windows (2023-01-03). 
+
+\section InfraredTEEV2CamConfigInstallation
+
+You can found the license in:
+ "PlusLib/src/Utilities/InfraredTEEV2Camera/README.md"
+
+\section InfraredTEEV2CamConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "InfraredTEEV2Cam" \RequiredAtt
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+
+\section InfraredTEEV2CamExampleConfigFile Example configuration file PlusDeviceSet_Server_InfraredTEEV2Camera.xml
+
+\include "ConfigFiles/PlusDeviceSet_Server_InfraredTEEV2Camera.xml"
+
+*/

@@ -507,6 +507,22 @@ IF(PLUS_USE_INFRARED_TEQ1_CAM AND PLUS_RENDERING_ENABLED)
   TARGET_LINK_LIBRARIES(vtkInfraredTEQ1CamTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
 ENDIF()
 
+#*********************** InfraredTEEV2CameraDeviceTest *****************************
+IF(PLUS_USE_INFRARED_TEEV2_CAM AND PLUS_RENDERING_ENABLED)
+  ADD_EXECUTABLE(vtkInfraredTEEV2CamTest vtkInfraredTEEV2CamTest.cxx)
+  SET_TARGET_PROPERTIES(vtkInfraredTEEV2CamTest PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(vtkInfraredTEEV2CamTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
+ENDIF()
+
+#*********************** UltravioletPCOUVCameraDeviceTest *****************************
+IF(PLUS_USE_ULTRAVIOLET_PCOUV_CAM AND PLUS_RENDERING_ENABLED)
+  ADD_EXECUTABLE(vtkUltravioletPCOUVCamTest vtkUltravioletPCOUVCamTest.cxx)
+  SET_TARGET_PROPERTIES(vtkUltravioletPCOUVCamTest PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(vtkUltravioletPCOUVCamTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
+
+ ENDIF()
+
+
 #*************************** vtkOvrvisionProVideoSourceTest ***************************
 IF(PLUS_USE_OvrvisionPro AND PLUS_TEST_OvrvisionPro)
   ADD_EXECUTABLE(vtkOvrvisionProVideoSourceTest vtkOvrvisionProVideoSourceTest.cxx )
