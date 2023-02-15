@@ -28,9 +28,11 @@ See License.txt for details.
 #ifdef PLUS_USE_CAPISTRANO_VIDEO
   #include "vtkPlusCapistranoCommand.h"
 #endif
-
 #ifdef PLUS_USE_WINPROBE_VIDEO
   #include "vtkPlusWinProbeCommand.h"
+#endif
+#ifdef PLUS_USE_USDIGITALENCODERS_TRACKER
+  #include "vtkPlusUSDigitalEncoderCommand.h"
 #endif
 
 
@@ -100,6 +102,9 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
 #endif
 #ifdef PLUS_USE_WINPROBE_VIDEO
   RegisterPlusCommand(vtkSmartPointer<vtkPlusWinProbeCommand>::New());
+#endif
+#ifdef PLUS_USE_USDIGITALENCODERS_TRACKER
+  RegisterPlusCommand(vtkSmartPointer<vtkPlusUSDigitalEncoderCommand>::New());
 #endif
 }
 
