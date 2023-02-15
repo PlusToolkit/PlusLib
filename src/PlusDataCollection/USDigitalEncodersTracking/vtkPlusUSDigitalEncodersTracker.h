@@ -33,6 +33,10 @@ public:
   vtkTypeMacro(vtkPlusUSDigitalEncodersTracker, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  static const char* USDIGITALENCODER_COMMAND_SET_ORIGIN;
+  static const char* USDIGITALENCODER_COMMAND_SET_ALL_ORIGIN;
+  static const char* USDIGITALENCODER_COMMAND_GET_POSITION;
+
   bool IsTracker() const override
   {
     return true;

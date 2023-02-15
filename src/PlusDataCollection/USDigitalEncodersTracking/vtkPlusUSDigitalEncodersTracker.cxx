@@ -22,6 +22,12 @@ See License.txt for details.
 
 vtkStandardNewMacro(vtkPlusUSDigitalEncodersTracker);
 
+// Define command strings
+const char* vtkPlusUSDigitalEncodersTracker::USDIGITALENCODER_COMMAND_SET_ORIGIN = "SetOrigin";
+const char* vtkPlusUSDigitalEncodersTracker::USDIGITALENCODER_COMMAND_SET_ALL_ORIGIN = "SetAllOrigin";
+const char* vtkPlusUSDigitalEncodersTracker::USDIGITALENCODER_COMMAND_GET_POSITION = "GetPosition";
+
+
 class vtkPlusUSDigitalEncodersTracker::vtkPlusUSDigitalEncoderInfo
 {
 public:
