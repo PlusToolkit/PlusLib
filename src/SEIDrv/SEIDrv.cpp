@@ -1,6 +1,7 @@
 #include "SEIDrv.h"
 #include <string>
 #include <Windows.h> // for QueryDosDevice
+#include <chrono>
 
 ref struct Globals
 {
@@ -73,13 +74,29 @@ long InitializeSEI(long comm, long mode, int devicesExpected)
 
     try
     {
-        if (comm == 0)
+        int mRetryLimit = 5;
+        int retryCount = 0;
+        for (int retryCount = 0; retryCount < mRetryLimit; retryCount++)
         {
-            enumerateEncodersAll(mode, devicesExpected);
-        }
-        else
-        {
-            enumerateEncoders(comm, mode, devicesExpected);
+            if (comm == 0)
+            {
+                enumerateEncodersAll(mode, devicesExpected);
+            }
+            else
+            {
+                enumerateEncoders(comm, mode, devicesExpected);
+            }
+            if(GetNumberOfDevices() != devicesExpected && retryCount < mRetryLimit)
+            {
+                System::Console::WriteLine("SEI Retrying...Current number of devices: {0}", GetNumberOfDevices());
+                Globals::encoders.Clear();
+                Globals::addresses.Clear();
+                Sleep(30);
+            }
+            else
+            {
+                break;
+            }
         }
         Globals::initialized = 1;
         return 0;
