@@ -7,6 +7,7 @@ ref struct Globals
     static System::Collections::Generic::List<USDigital::A2^> encoders;
     static System::Collections::Generic::Dictionary<unsigned char, USDigital::A2^> addresses;
     static unsigned initialized = 0; // how many times initialization was called
+    static long activeCOM = 0;
 };
 
 void enumerateEncoders(long comPort, long mode, int devicesExpected)
@@ -24,6 +25,7 @@ void enumerateEncoders(long comPort, long mode, int devicesExpected)
         Globals::encoders.Add(a2Dev);
         Globals::addresses.Add(a2Dev->Address, a2Dev);
     }
+    Globals::activeCOM = comPort;
 }
 
 void enumerateEncodersAll(long mode, int devicesExpected)
@@ -127,6 +129,12 @@ void CloseSEI()
         Globals::encoders.Clear();
         Globals::addresses.Clear();
     }
+
+    System::String^ comPortString = "COM" + System::Convert::ToString(Globals::activeCOM);
+    USDigital::SEIBusManager mgr;
+    USDigital::SEIBus^ mSEIBus = mgr.GetBus(comPortString);
+    mSEIBus->Close();
+    Globals::activeCOM = 0;
 }
 
 
