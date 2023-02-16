@@ -32,11 +32,11 @@ public:
 
   vtkInternal(vtkPlusOptiTrack* external)
     : External(external)
+    , NNClient(nullptr)
+    , UnitsToMm(1.0)
+    , MotiveDataDescriptionsUpdateTimeSec(1.0)
+    , LastMotiveDataDescriptionsUpdateTimestamp(-1)
   {
-    this->NNClient = NULL;
-    this->UnitsToMm = 1.0;
-    this->MotiveDataDescriptionsUpdateTimeSec = 1.0;
-    this->LastMotiveDataDescriptionsUpdateTimestamp = -1;
   }
 
   virtual ~vtkInternal()
@@ -137,7 +137,7 @@ void vtkPlusOptiTrack::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOptiTrack::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  LOG_TRACE("vtkPlusOptiTrack::ReadConfiguration")
+  LOG_TRACE("vtkPlusOptiTrack::ReadConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
 #if MOTIVE_VERSION_MAJOR >= 2
@@ -215,7 +215,6 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
     // pick up recently-arrived cameras
     TT_Update();
 
-    
 #if MOTIVE_VERSION_MAJOR >= 2
     // open project file
     std::string profilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->Internal->Profile);
@@ -244,7 +243,6 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
       return PLUS_FAIL;
     }
 #endif
-    
 
     // enforce NatNet streaming enabled, this is required for PLUS tracking
     // this is the equivalent to checking the "Broadcast Frame Data" button in the Motive GUI
@@ -263,13 +261,13 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
       }
     }
 
-    LOG_INFO("\n---------------------------------MOTIVE SETTINGS--------------------------------")
-      // list connected cameras
-      LOG_INFO("Connected cameras:")
-      for (int i = 0; i < TT_CameraCount(); i++)
-      {
-        LOG_INFO(i << ": " << TT_CameraName(i));
-      }
+    LOG_INFO("\n---------------------------------MOTIVE SETTINGS--------------------------------");
+    // list connected cameras
+    LOG_INFO("Connected cameras:");
+    for (int i = 0; i < TT_CameraCount(); i++)
+    {
+      LOG_INFO(i << ": " << TT_CameraName(i));
+    }
     // list project file
 #if MOTIVE_VERSION_MAJOR >= 2
     LOG_INFO("\nUsing Motive profile located at:\n" << profilePath);
@@ -336,7 +334,7 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
 //-------------------------------------------------------------------------
 PlusStatus vtkPlusOptiTrack::InternalDisconnect()
 {
-  LOG_TRACE("vtkPlusOptiTrack::InternalDisconnect")
+  LOG_TRACE("vtkPlusOptiTrack::InternalDisconnect");
   if (!this->Internal->AttachToRunningMotive)
   {
     TT_Shutdown();
@@ -348,7 +346,7 @@ PlusStatus vtkPlusOptiTrack::InternalDisconnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOptiTrack::InternalStartRecording()
 {
-  LOG_TRACE("vtkPlusOptiTrack::InternalStartRecording")
+  LOG_TRACE("vtkPlusOptiTrack::InternalStartRecording");
   return PLUS_SUCCESS;
 }
 
@@ -363,7 +361,11 @@ PlusStatus vtkPlusOptiTrack::InternalUpdate()
 {
   LOG_TRACE("vtkPlusOptiTrack::InternalUpdate");
   // internal update is only called if usign Motive API
+#if MOTIVE_VERSION_MAJOR >= 2 && MOTIVE_VERSION_MINOR >= 3
+  TT_UpdateLatestFrame();
+#else
   TT_Update();
+#endif
   return PLUS_SUCCESS;
 }
 
