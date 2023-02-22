@@ -91,7 +91,7 @@ protected:
   Callback function used when connecting
   Input value is the udpPort.
   */
-  static void ConnectReturnFn(int udpPort);
+  static void ConnectReturnFn(int udpPort, int swRevMatch);
 
   /*!
   Callback function for raw data request
@@ -219,7 +219,7 @@ long long int vtkPlusClarius::vtkInternal::SecondsToNanoSeconds(double s)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusClarius::vtkInternal::ConnectReturnFn(int udpPort)
+void vtkPlusClarius::vtkInternal::ConnectReturnFn(int udpPort, int swRevMatch)
 {
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
   if (device == NULL)
@@ -228,6 +228,12 @@ void vtkPlusClarius::vtkInternal::ConnectReturnFn(int udpPort)
     return;
   }
   vtkInternal* self = device->Internal;
+
+  if (swRevMatch != CUS_SUCCESS)
+  {
+    LOG_ERROR("...Clarius version mismatch");
+    return;
+  }
 
   self->UdpPort = udpPort;
   device->Connected = 1;
@@ -1202,7 +1208,7 @@ PlusStatus vtkPlusClarius::InternalConnect()
     const char* ip = this->IpAddress.c_str();
     try
     {
-      CusReturnFn returnFunction = (CusReturnFn)(&vtkInternal::ConnectReturnFn);
+      CusConnectFn returnFunction = (CusConnectFn)(&vtkInternal::ConnectReturnFn);
       cusCastConnect(ip, this->TcpPort, "research", returnFunction);
 
       // Wait for the udp port to be determined.
