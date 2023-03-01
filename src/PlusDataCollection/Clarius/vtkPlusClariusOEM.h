@@ -137,6 +137,21 @@ public:
   /*! Set the time gain compensation (%) */
   PlusStatus SetTimeGainCompensationDb(const std::vector<double>& aTGC);
 
+  /*! Set the auto focus enabled */
+  PlusStatus SetEnableAutoFocus(bool aEnableAutoFocus);
+  /*! Get if the auto focus is enabled */
+  PlusStatus GetEnableAutoFocus(bool& aEnableAutoFocus);
+
+  /*! Get the focus depth of B-mode ultrasound (%) */
+  PlusStatus GetFocusDepthPercent(double& aFocusDepthPercent);
+  /*! Set the focus depth of B-mode ultrasound (%) */
+  PlusStatus SetFocusDepthPercent(double aFocusDepthPercent);
+
+  /*! Convert the depth in cm to a percent of the current depth */
+  double ConvertDepthCmToPercent(double aFocusDepthMm);
+  /*! Convert the depth in % of the current depth to cm */
+  double ConvertDepthPercentToCm(double aFocusDepthPercent);
+
 private:
 
   static vtkPlusClariusOEM* instance;

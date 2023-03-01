@@ -145,6 +145,8 @@ namespace
 
   static const std::vector<double> DEFAULT_TGC_DB = { 5, 5, 5 };
 
+  static const bool DEFAULT_ENABLE_AUTO_FOCUS = false;
+
   static std::map<int, std::string> ConnectEnumToString {
     {CusConnection::ProbeConnected, "CONNECT_SUCCESS"},
     {CusConnection::ProbeDisconnected, "CONNECT_DISCONNECT"},
@@ -243,6 +245,8 @@ protected:
                        // frames after button is clicked to ensure user can process
                        // it in Slicer even if a frame is skipped
 
+  bool EnableAutoFocus;
+
   enum class EXPECTED_LIST
   {
     PROBES,
@@ -262,27 +266,28 @@ private:
 
 //-------------------------------------------------------------------------------------------------
 vtkPlusClariusOEM::vtkInternal::vtkInternal(vtkPlusClariusOEM* ext)
-: External(ext)
-, ProbeSerialNum("")
-, PathToCert("")
-, FrameSize(DEFAULT_FRAME_SIZE)
-, ProbeType("")
-, ImagingApplication("")
-, EnableAutoGain(DEFAULT_ENABLE_AUTO_GAIN)
-, Enable5v(DEFAULT_ENABLE_5V_RAIL)
-, FreezeOnPoorWifiSignal(DEFAULT_FREEZE_ON_POOR_WIFI_SIGNAL)
-, ContactDetectionTimeoutSec(DEFAULT_CONTACT_DETECTION_TIMEOUT_SEC)
-, AutoFreezeTimeoutSec(DEFAULT_AUTO_FREEZE_TIMEOUT_SEC)
-, KeepAwakeTimeoutMin(DEFAULT_KEEP_AWAKE_TIMEOUT_SEC)
-, UpButtonMode(DEFAULT_UP_BUTTON_MODE)
-, DownButtonMode(DEFAULT_DOWN_BUTTON_MODE)
-, IpAddress("")
-, TcpPort(-1)
-, BModeSource(nullptr)
-, TransdSource(nullptr)
-, PressedButton(NO_BUTTON_TAG)
-, ButtonNumClicks(0)
-, ButtonSentCount(0)
+  : External(ext)
+  , ProbeSerialNum("")
+  , PathToCert("")
+  , FrameSize(DEFAULT_FRAME_SIZE)
+  , ProbeType("")
+  , ImagingApplication("")
+  , EnableAutoGain(DEFAULT_ENABLE_AUTO_GAIN)
+  , Enable5v(DEFAULT_ENABLE_5V_RAIL)
+  , FreezeOnPoorWifiSignal(DEFAULT_FREEZE_ON_POOR_WIFI_SIGNAL)
+  , ContactDetectionTimeoutSec(DEFAULT_CONTACT_DETECTION_TIMEOUT_SEC)
+  , AutoFreezeTimeoutSec(DEFAULT_AUTO_FREEZE_TIMEOUT_SEC)
+  , KeepAwakeTimeoutMin(DEFAULT_KEEP_AWAKE_TIMEOUT_SEC)
+  , UpButtonMode(DEFAULT_UP_BUTTON_MODE)
+  , DownButtonMode(DEFAULT_DOWN_BUTTON_MODE)
+  , IpAddress("")
+  , TcpPort(-1)
+  , BModeSource(nullptr)
+  , TransdSource(nullptr)
+  , PressedButton(NO_BUTTON_TAG)
+  , ButtonNumClicks(0)
+  , ButtonSentCount(0)
+  , EnableAutoFocus(DEFAULT_ENABLE_AUTO_FOCUS)
 {
 }
 
@@ -811,6 +816,10 @@ PlusStatus vtkPlusClariusOEM::ReadConfiguration(vtkXMLDataElement* rootConfigEle
     "USER", BUTTON_MODE::USER,
     "DISABLED", BUTTON_MODE::DISABLED
   );
+
+  // enable auto focus
+  XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(EnableAutoFocus,
+    this->Internal->EnableAutoFocus, deviceConfig);
 
   // read imaging parameters
   this->ImagingParameters->ReadConfiguration(deviceConfig);
@@ -1366,6 +1375,11 @@ PlusStatus vtkPlusClariusOEM::SetInitialUsParams()
     LOG_WARNING("Failed to set requested imaging time gain compensation in Clarius OEM device, unknown time gain compensation will be used");
   }
 
+  if (this->SetEnableAutoFocus(this->Internal->EnableAutoFocus) != PLUS_SUCCESS)
+  {
+    LOG_WARNING("Failed to set auto focus");
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -1672,6 +1686,17 @@ PlusStatus vtkPlusClariusOEM::InternalApplyImagingParameterChange()
     this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_TGC, false);
   }
 
+  // FOCUS DEPTH
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_FOCUS_DEPTH)
+    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_FOCUS_DEPTH))
+  {
+    if (this->SetFocusDepthPercent(this->ImagingParameters->GetFocusDepthPercent()) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to set focus depth percent imaging parameter");
+      status = PLUS_FAIL;
+    }
+  }
+
   return status;
 }
 
@@ -1898,4 +1923,119 @@ PlusStatus vtkPlusClariusOEM::SetTimeGainCompensationDb(const std::vector<double
   this->ImagingParameters->SetTimeGainCompensation(aTGC);
   LOG_INFO("Set US parameter TGC to [" << aTGC[0] << ", " << aTGC[1] << ", " << aTGC[2] << "]");
   return PLUS_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------
+PlusStatus vtkPlusClariusOEM::GetEnableAutoFocus(bool& aEnableAutoFocus)
+{
+  int oemState = solumIsConnected();
+  if (oemState != CLARIUS_STATE_CONNECTED)
+  {
+    // Connection has not been established yet, return cached parameter value
+    aEnableAutoFocus = this->Internal->EnableAutoFocus;
+    return PLUS_SUCCESS;
+  }
+
+  aEnableAutoFocus = solumGetParam(CusParam::AutoFocus) > 0;
+  return PLUS_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------
+PlusStatus vtkPlusClariusOEM::SetEnableAutoFocus(bool aEnableAutoFocus)
+{
+  this->Internal->EnableAutoFocus = aEnableAutoFocus;
+
+  int oemState = solumIsConnected();
+  if (oemState != CLARIUS_STATE_CONNECTED)
+  {
+    // Connection has not been established yet, parameter value will be set upon connection
+    LOG_INFO("Cached US parameter AutoFocus = " << aEnableAutoFocus);
+    return PLUS_SUCCESS;
+  }
+
+  // attempt to set parameter value
+  if (solumSetParam(AutoFocus, aEnableAutoFocus ? 1.0 : 0.0))
+  {
+    LOG_ERROR("Failed to set AutoFocus parameter");
+    return PLUS_FAIL;
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_SHORT_DELAY_MS));
+
+  return PLUS_SUCCESS;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+PlusStatus vtkPlusClariusOEM::GetFocusDepthPercent(double& aFocusDepthPercent)
+{
+  int oemState = solumIsConnected();
+  if (oemState != CLARIUS_STATE_CONNECTED)
+  {
+    // Connection has not been established yet, return cached parameter value
+    return this->ImagingParameters->GetFocusDepthPercent(aFocusDepthPercent);
+  }
+
+  double focusDepthCm = solumGetParam(CusParam::FocusDepth);
+  if (focusDepthCm < 0)
+  {
+    aFocusDepthPercent = -1;
+    LOG_ERROR("Failed to get FocusDepthPercent parameter");
+    return PLUS_FAIL;
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_SHORT_DELAY_MS));
+
+  // ensure ImagingParameters is up to date
+  this->ImagingParameters->SetFocusDepthPercent(this->ConvertDepthCmToPercent(focusDepthCm));
+
+  return PLUS_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------
+PlusStatus vtkPlusClariusOEM::SetFocusDepthPercent(double aFocusDepthPercent)
+{
+  int oemState = solumIsConnected();
+  if (oemState != CLARIUS_STATE_CONNECTED)
+  {
+    // Connection has not been established yet, parameter value will be set upon connection
+    this->ImagingParameters->SetFocusDepthPercent(aFocusDepthPercent);
+    LOG_INFO("Cached US parameter FocusDepthPercent = " << aFocusDepthPercent);
+    return PLUS_SUCCESS;
+  }
+
+  double focusDepthCm = this->ConvertDepthPercentToCm(aFocusDepthPercent);
+
+  // attempt to set parameter value
+  if (solumSetParam(CusParam::FocusDepth, focusDepthCm) < 0)
+  {
+    LOG_ERROR("Failed to set FocusDepthPercent parameter");
+    return PLUS_FAIL;
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_SHORT_DELAY_MS));
+
+  // update imaging parameters & return successfully
+  this->ImagingParameters->SetFocusDepthPercent(aFocusDepthPercent);
+  LOG_INFO("Set US parameter FocusDepthPercent to " << aFocusDepthPercent);
+  return PLUS_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------
+double vtkPlusClariusOEM::ConvertDepthCmToPercent(double aFocusDepthCm)
+{
+  double depthMm = 0.0;
+  if (this->GetDepthMm(depthMm) != PLUS_SUCCESS)
+  {
+    return 0.0;
+  }
+  return 100.0 * depthMm / (aFocusDepthCm * CM_TO_MM);
+}
+
+//-------------------------------------------------------------------------------------------------
+double vtkPlusClariusOEM::ConvertDepthPercentToCm(double aFocusDepthPercent)
+{
+  double depthMm = 0.0;
+  if (this->GetDepthMm(depthMm) != PLUS_SUCCESS)
+  {
+    return 0.0;
+  }
+  return (depthMm * MM_TO_CM) * (aFocusDepthPercent / 100.0);
 }
