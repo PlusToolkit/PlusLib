@@ -127,6 +127,8 @@ public:
   // helper function to load ftkGeometry from string
   ATRACSYS_RESULT LoadFtkGeometryFromString(const std::string& geomString, ftkGeometry& geom);
 
+  std::map<int, std::vector<std::array<float, 3>>> geometries;
+
   // correspondence between atracsys option name and its actual id in the sdk
   // this map is filled automatically by the sdk, DO NOT hardcode/change any id
   std::map<std::string, ftkOptionsInfo> DeviceOptionMap{};
@@ -476,9 +478,16 @@ public:
       }
     }
 
+    std::vector<std::array<float, 3>> pts;
+    for (uint32 i(0u); i < geometry.pointsCount; ++i)
+    {
+      std::array<float, 3> pt = { geometry.positions[i].x, geometry.positions[i].y, geometry.positions[i].z };
+      pts.push_back(pt);
+    }
+    geometries[geometry.geometryId] = pts;
+
     return true;
   }
-
 };
 
 //----------------------------------------------------------------------------
@@ -854,6 +863,13 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetMarkerInfo(std::string& mar
     return ERROR_CANNOT_GET_MARKER_INFO;
   }
   markerInfo = std::string(buffer.data, buffer.data + buffer.size);
+  return SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetLoadedGeometries(std::map<int, std::vector<std::array<float, 3>>>& geometries)
+{
+  geometries = this->Internal->geometries;
   return SUCCESS;
 }
 

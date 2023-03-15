@@ -33,14 +33,16 @@ public:
   std::string GetDeviceType();
 
   /*! Retrieves the cameras parameters :
-* leftIntrinsic = left camera focal length [0-1], optical center [2-3], lens distorsion [4-8] and skew [9]
-* rightIntrinsic = left camera focal length [0-1], optical center [2-3], lens distorsion [4-8] and skew [9]
-* rightPosition = position of the right camera in the coordinate system of the left camera
-* rightOrientation = orientation of the right camera in the coordinate system of the left camera
-*/
+  * leftIntrinsic = left camera focal length [0-1], optical center [2-3], lens distorsion [4-8] and skew [9]
+  * rightIntrinsic = left camera focal length [0-1], optical center [2-3], lens distorsion [4-8] and skew [9]
+  * rightPosition = position of the right camera in the coordinate system of the left camera
+  * rightOrientation = orientation of the right camera in the coordinate system of the left camera
+  */
   PlusStatus GetCamerasCalibration(
     std::array<float, 10>& leftIntrinsic, std::array<float, 10>& rightIntrinsic,
     std::array<float, 3>& rightPosition, std::array<float, 3>& rightOrientation);
+
+  PlusStatus GetLoadedGeometries(std::map<int, std::vector<std::array<float, 3>>>& geometries);
 
   /* Device is a hardware tracker. */
   virtual bool IsTracker() const { return true; }

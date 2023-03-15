@@ -164,6 +164,22 @@ PlusStatus vtkPlusAtracsysTracker::GetCamerasCalibration(
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusAtracsysTracker::GetLoadedGeometries(std::map<int, std::vector<std::array<float, 3>>>& geometries)
+{
+  if (this->Internal->Tracker.GetLoadedGeometries(geometries) != ATRACSYS_RESULT::SUCCESS)
+  {
+    LOG_ERROR("Could not get loaded geometries");
+    return PLUS_FAIL;
+  }
+  if (geometries.size() == 0)
+  {
+    LOG_ERROR("No loaded geometries");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusAtracsysTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   // Read and store all device options read in the xml config file
