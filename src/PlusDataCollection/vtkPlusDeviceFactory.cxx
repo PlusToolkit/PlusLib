@@ -224,6 +224,10 @@ See License.txt for details.
 #include "vtkPlusUltravioletPCOUVCam.h"
 #endif
 
+#ifdef PLUS_USE_DAQ_USB3FRM13B_CAM
+#include "vtkPlusDaqUsb3Frm13BCam.h"
+#endif
+
 #ifdef PLUS_USE_GENERIC_SENSOR_TRACKER
 #if WIN32
 #include "vtkPlusGenericSensorTracker.h"
@@ -432,6 +436,11 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 #ifdef PLUS_USE_ULTRAVIOLET_PCOUV_CAM
     RegisterDevice("UltravioletPCOUVCam", "vtkPlusUltravioletPCOUVCam", (PointerToDevice)&vtkPlusUltravioletPCOUVCam::New);
 #endif
+
+#ifdef PLUS_USE_DAQ_USB3FRM13B_CAM
+    RegisterDevice("DAQUsb3Frm13BCam", "vtkPlusDAQUsb3Frm13BCam", (PointerToDevice)&vtkPlusDAQUsb3Frm13BCam::New);
+#endif
+
 
 #ifdef PLUS_USE_CLARIUS
     RegisterDevice("Clarius", "vtkPlusClarius", (PointerToDevice)&vtkPlusClarius::New);
