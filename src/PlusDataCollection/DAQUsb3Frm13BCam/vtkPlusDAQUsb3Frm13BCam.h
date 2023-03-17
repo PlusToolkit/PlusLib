@@ -6,8 +6,8 @@ See License.txt for details.
 Developed by ULL & IACTEC-IAC group
 =========================================================Plus=header=end*/
 
-#ifndef __vtkPlusDAQUsb3Frm13BCam_h
-#define __vtkPlusDAQUsb3Frm13BCam_h
+#ifndef __vtkPlusDAQUSB3FRM13BCam_h
+#define __vtkPlusDAQUSB3FRM13BCam_h
 
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
@@ -15,17 +15,17 @@ Developed by ULL & IACTEC-IAC group
 
 
 /*!
-\class vtkPlusDAQUsb3Frm13BCam
+\class vtkPlusDAQUSB3FRM13BCam
 \brief Class for interfacing an Infrared Seek capture device and recording frames into a Plus buffer
 
 \ingroup PlusLibDataCollection
 */
 
-class vtkPlusDataCollectionExport vtkPlusDAQUsb3Frm13BCam : public vtkPlusDevice
+class vtkPlusDataCollectionExport vtkPlusDAQUSB3FRM13BCam : public vtkPlusDevice
 {
 public:
-  static vtkPlusDAQUsb3Frm13BCam* New();
-  vtkTypeMacro(vtkPlusDAQUsb3Frm13BCam, vtkPlusDevice);
+  static vtkPlusDAQUSB3FRM13BCam* New();
+  vtkTypeMacro(vtkPlusDAQUSB3FRM13BCam, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Read configuration from xml data */
@@ -44,8 +44,8 @@ public:
   virtual PlusStatus NotifyConfigured();
 
 protected:
-  vtkPlusDAQUsb3Frm13BCam();
-  ~vtkPlusDAQUsb3Frm13BCam();
+  vtkPlusDAQUSB3FRM13BCam();
+  ~vtkPlusDAQUSB3FRM13BCam();
 
   virtual PlusStatus InternalConnect() VTK_OVERRIDE;
   virtual PlusStatus InternalDisconnect() VTK_OVERRIDE;
@@ -61,4 +61,4 @@ protected:
   DWORD maxBuffSize;
 };
 
-#endif // __vtkPlusDAQUsb3Frm13BCam_h
+#endif // __vtkPlusDAQUSB3FRM13BCam_h

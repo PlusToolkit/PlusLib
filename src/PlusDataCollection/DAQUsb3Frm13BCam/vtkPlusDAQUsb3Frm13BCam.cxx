@@ -10,7 +10,7 @@ Developed by ULL & IACTEC-IAC group
 #include "PlusConfigure.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusDAQUsb3Frm13BCam.h"
+#include "vtkPlusDAQUSB3FRM13BCam.h"
 
 // VTK includes
 #include <vtkImageData.h>
@@ -21,29 +21,29 @@ Developed by ULL & IACTEC-IAC group
 
 //----------------------------------------------------------------------------
 
-vtkStandardNewMacro(vtkPlusDAQUsb3Frm13BCam);
+vtkStandardNewMacro(vtkPlusDAQUSB3FRM13BCam);
 
 //----------------------------------------------------------------------------
-vtkPlusDAQUsb3Frm13BCam::vtkPlusDAQUsb3Frm13BCam()
+vtkPlusDAQUSB3FRM13BCam::vtkPlusDAQUSB3FRM13BCam()
 {
   this->RequireImageOrientationInConfiguration = true;
   this->StartThreadForInternalUpdates = true;
 }
 
 //----------------------------------------------------------------------------
-vtkPlusDAQUsb3Frm13BCam::~vtkPlusDAQUsb3Frm13BCam()
+vtkPlusDAQUSB3FRM13BCam::~vtkPlusDAQUSB3FRM13BCam()
 {
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusDAQUsb3Frm13BCam::PrintSelf(ostream& os, vtkIndent indent)
+void vtkPlusDAQUSB3FRM13BCam::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-  os << indent << "DAQUsb3Frm13BCam: CameraLink Camera" << std::endl;
+  os << indent << "DAQUSB3FRM13BCam: CameraLink Camera" << std::endl;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDAQUsb3Frm13BCam::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
+PlusStatus vtkPlusDAQUSB3FRM13BCam::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
   LOG_DEBUG("Configure CameraLink Camera");
@@ -51,14 +51,14 @@ PlusStatus vtkPlusDAQUsb3Frm13BCam::ReadConfiguration(vtkXMLDataElement* rootCon
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDAQUsb3Frm13BCam::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
+PlusStatus vtkPlusDAQUSB3FRM13BCam::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDAQUsb3Frm13BCam::InternalConnect()
+PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalConnect()
 {
   this->deviceRunning = false;
 
@@ -92,7 +92,7 @@ PlusStatus vtkPlusDAQUsb3Frm13BCam::InternalConnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDAQUsb3Frm13BCam::InternalDisconnect()
+PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalDisconnect()
 {
   LVDS_Stop();
   CloseDAQDevice();
@@ -101,12 +101,12 @@ PlusStatus vtkPlusDAQUsb3Frm13BCam::InternalDisconnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDAQUsb3Frm13BCam::InternalUpdate()
+PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalUpdate()
 {
   DWORD dwCount; 
   if (!this->deviceRunning)
   {
-    LOG_ERROR("vtkPlusDAQUsb3Frm13BCam::InternalUpdate Unable to read data");
+    LOG_ERROR("vtkPlusDAQUSB3FRM13BCam::InternalUpdate Unable to read data");
     return PLUS_SUCCESS; 
   }
 
@@ -114,7 +114,7 @@ PlusStatus vtkPlusDAQUsb3Frm13BCam::InternalUpdate()
 
   if (!LVDS_GetFrame(&dwCount, this->pImgBuf))
   {
-    LOG_ERROR("vtkPlusDAQUsb3Frm13BCam::InternalUpdate Unable to receive frame");
+    LOG_ERROR("vtkPlusDAQUSB3FRM13BCam::InternalUpdate Unable to receive frame");
     return PLUS_SUCCESS; 
   }
 
@@ -145,16 +145,16 @@ PlusStatus vtkPlusDAQUsb3Frm13BCam::InternalUpdate()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDAQUsb3Frm13BCam::NotifyConfigured()
+PlusStatus vtkPlusDAQUSB3FRM13BCam::NotifyConfigured()
 {
   if (this->OutputChannels.size() > 1)
   {
-    LOG_WARNING("vtkPlusDAQUsb3Frm13BCam is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
+    LOG_WARNING("vtkPlusDAQUSB3FRM13BCam is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
   }
 
   if (this->OutputChannels.empty())
   {
-    LOG_ERROR("No output channels defined for vtkPlusDAQUsb3Frm13BCam. Cannot proceed.");
+    LOG_ERROR("No output channels defined for vtkPlusDAQUSB3FRM13BCam. Cannot proceed.");
     this->CorrectlyConfigured = false;
     return PLUS_FAIL;
   }

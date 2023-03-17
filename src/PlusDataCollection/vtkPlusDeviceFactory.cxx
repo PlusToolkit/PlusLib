@@ -225,7 +225,7 @@ See License.txt for details.
 #endif
 
 #ifdef PLUS_USE_DAQUSB3FRM13B_CAM
-#include "vtkPlusDAQUsb3Frm13BCam.h"
+#include "vtkPlusDAQUSB3FRM13BCam.h"
 #endif
 
 #ifdef PLUS_USE_GENERIC_SENSOR_TRACKER
@@ -438,7 +438,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 #endif
 
 #ifdef PLUS_USE_DAQUSB3FRM13B_CAM
-    RegisterDevice("DAQUsb3Frm13BCam", "vtkPlusDAQUsb3Frm13BCam", (PointerToDevice)&vtkPlusDAQUsb3Frm13BCam::New);
+    RegisterDevice("DAQUSB3FRM13BCam", "vtkPlusDAQUSB3FRM13BCam", (PointerToDevice)&vtkPlusDAQUSB3FRM13BCam::New);
 #endif
 
 
