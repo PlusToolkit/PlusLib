@@ -58,7 +58,7 @@ OPTION(PLUS_USE_ANDOR_CAMERA "Provide support for capturing images from Andor Ca
 OPTION(PLUS_USE_INFRARED_TEQ1_CAM "Provide support for capturing an Infrared Therma Expert Q1 Camera capture stream" OFF)
 OPTION(PLUS_USE_INFRARED_TEEV2_CAM "Provide support for capturing an Infrared Thermal Expert EV2 Camera capture stream" OFF)
 OPTION(PLUS_USE_ULTRAVIOLET_PCOUV_CAM "Provide support for capturing an PCO Ultraviolet Camera capture stream" OFF)
-OPTION(PLUS_USE_DAQ_USB3FRM13B_CAM "Provide support for capturing an CameraLink Camera using DAQ System USB3-FRM13-B Grabber"  OFF)
+OPTION(PLUS_USE_DAQUSB3FRM13B_CAM "Provide support for capturing an CameraLink Camera using DAQ System USB3-FRM13-B Grabber"  OFF)
 OPTION(PLUS_USE_WITMOTIONTRACKER "Provide support for the WitMotion class of inertial measurement units" OFF)
 
 OPTION(PLUS_USE_LEAPMOTION "Provide support for the LeapMotion hand tracker" OFF)
@@ -2400,28 +2400,28 @@ IF(PLUS_USE_ULTRAVIOLET_PCOUV_CAM)
 ENDIF()
 
 #---------------------------------------------------------------------------
-# DAQ_USB3FRM13B 
-IF(PLUS_USE_DAQ_USB3FRM13B_CAM)
+# DAQUSB3FRM13B 
+IF(PLUS_USE_DAQUSB3FRM13B_CAM)
   FIND_PACKAGE(DAQUSB3FRM13BSDK REQUIRED)
 
   # Compile
-  SET(DAQ_Usb3Frm13B_SRCS
-    DAQUsb3Frm13BCam/vtkPlusDAQUsb3Frm13BCam.cxx
+  SET(DAQUSB3FRM13B_SRCS
+    DAQUSB3FRM13BCam/vtkPlusDAQUSB3FRM13BCam.cxx
     )
-  SET(DAQ_Usb3Frm13B_HDRS
-      DAQUsb3Frm13BCam/vtkPlusDAQUsb3Frm13BCam.h
+  SET(DAQUSB3FRM13B_HDRS
+      DAQUSB3FRM13BCam/vtkPlusDAQUSB3FRM13BCam.h
   )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
-    ${DAQ_Usb3Frm13B_HDRS}
+    ${DAQUSB3FRM13B_HDRS}
   )
 
   LIST(APPEND ${PROJECT_NAME}_SRCS
-    ${DAQ_Usb3Frm13B_SRCS}
+    ${DAQUSB3FRM13B_SRCS}
   )
 
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/DAQUsb3Frm13BCam
+    ${CMAKE_CURRENT_SOURCE_DIR}/DAQUSB3FRM13BCam
     ${DAQUSB3FRM13B_SDK_LIBRARY}
     ${DAQUSB3FRM13B_SDK_INCLUDE_DIR}
   )
