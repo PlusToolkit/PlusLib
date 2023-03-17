@@ -523,9 +523,9 @@ IF(PLUS_USE_ULTRAVIOLET_PCOUV_CAM AND PLUS_RENDERING_ENABLED)
 
 #*********************** DAQUSB3FRM13BDeviceTest *****************************
 IF(PLUS_USE_DAQ_USB3FRM13B_CAM AND PLUS_RENDERING_ENABLED)
-  ADD_EXECUTABLE(vtkUltravioletDAQUSB3FRM13BCamTest vtkUltravioletDAQUSB3FRM13BCamTest.cxx)
-  SET_TARGET_PROPERTIES(vtkUltravioletDAQUSB3FRM13BCamTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkUltravioletDAQUSB3FRM13BCamTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
+  ADD_EXECUTABLE(vtkDAQUSB3FRM13BCamTest vtkDAQUSB3FRM13BCamTest.cxx)
+  SET_TARGET_PROPERTIES(vtkDAQUSB3FRM13BCamTest PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(vtkDAQUSB3FRM13BCamTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
  ENDIF()
 
 #*************************** vtkOvrvisionProVideoSourceTest ***************************
