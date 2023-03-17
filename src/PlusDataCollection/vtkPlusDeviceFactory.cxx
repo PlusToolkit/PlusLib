@@ -225,7 +225,7 @@ See License.txt for details.
 #endif
 
 #ifdef PLUS_USE_DAQ_USB3FRM13B_CAM
-#include "vtkPlusDaqUsb3Frm13BCam.h"
+#include "vtkPlusDAQUsb3Frm13BCam.h"
 #endif
 
 #ifdef PLUS_USE_GENERIC_SENSOR_TRACKER
