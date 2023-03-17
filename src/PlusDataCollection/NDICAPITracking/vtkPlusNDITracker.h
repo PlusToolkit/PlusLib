@@ -168,6 +168,16 @@ public:
   vtkGetMacro(MeasurementVolumeNumber, int);
 
   /*!
+  Tracking frequency number. It can be used for changing the frequency at which tools are tracked.
+  Default is 0, i.e. the tracking frequency is 1/3 of the frame frequency.
+  1 makes the tracking frequency 1/2 of the frame frequency.
+  2 makes the tracking frequency match the frame frequency.
+  See IRATE command in the NDI API documentation for details.
+*/
+  vtkSetMacro(TrackingFrequencyNumber, int);
+  vtkGetMacro(TrackingFrequencyNumber, int);
+
+  /*!
     Get an update from the tracking system and push the new transforms
     to the tools.  This should only be used within vtkTracker.cxx.
   */
@@ -275,6 +285,17 @@ protected:
   */
   PlusStatus SelectMeasurementVolumeDeprecated();
 
+  /*!
+  Select the tracking frequency, fallback to deprecated
+  */
+  PlusStatus SelectTrackingFrequency();
+
+  /*!
+    Select the tracking frequency using deprecated commands
+    Only used if newer commands are not supported by a device
+  */
+  PlusStatus SelectTrackingFrequencyDeprecated();
+
   /*! Lookup table function to convert from baudrate to enum */
   static int ConvertBaudToNDIEnum(int baudRate);
 
@@ -298,6 +319,7 @@ protected:
 
   std::string                       NetworkHostname;
   int                               NetworkPort;
+  int                               TrackingFrequencyNumber;
 
 private:
   vtkPlusNDITracker(const vtkPlusNDITracker&);

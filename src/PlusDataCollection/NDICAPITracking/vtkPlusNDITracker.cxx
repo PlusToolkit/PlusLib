@@ -91,6 +91,7 @@ vtkPlusNDITracker::vtkPlusNDITracker()
   , MeasurementVolumeNumber(0)
   , NetworkHostname("")
   , NetworkPort(8765)
+  , TrackingFrequencyNumber(0)
   , CommandMutex(vtkIGSIORecursiveCriticalSection::New())
 {
   memset(this->CommandReply, 0, VTK_NDI_REPLY_LEN);
@@ -131,6 +132,7 @@ void vtkPlusNDITracker::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "BaudRate: " << this->BaudRate << std::endl;
   os << indent << "IsDeviceTracking: " << this->IsDeviceTracking << std::endl;
   os << indent << "MeasurementVolumeNumber: " << this->MeasurementVolumeNumber << std::endl;
+  os << indent << "TrackingFrequencyNumber: " << this->TrackingFrequencyNumber << std::endl;
   os << indent << "CommandReply: " << this->CommandReply << std::endl;
   os << indent << "LastFrameNumber: " << this->LastFrameNumber << std::endl;
   os << indent << "LeaveDeviceOpenAfterProbe: " << this->LeaveDeviceOpenAfterProbe << std::endl;
@@ -313,6 +315,7 @@ PlusStatus vtkPlusNDITracker::InternalConnect()
   }
 
   SelectMeasurementVolume();
+  SelectTrackingFrequency();
 
   if (this->EnableToolPorts() != PLUS_SUCCESS)
   {
@@ -1041,6 +1044,7 @@ PlusStatus vtkPlusNDITracker::ReadConfiguration(vtkXMLDataElement* rootConfigEle
     this->BaudRate = 0;
   }
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MeasurementVolumeNumber, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, TrackingFrequencyNumber, deviceConfig);
 
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(NetworkHostname, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NetworkPort, deviceConfig);
@@ -1133,6 +1137,10 @@ PlusStatus vtkPlusNDITracker::WriteConfiguration(vtkXMLDataElement* rootConfig)
   if (this->MeasurementVolumeNumber > 0)
   {
     trackerConfig->SetIntAttribute("MeasurementVolumeNumber", this->MeasurementVolumeNumber);
+  }
+  if (this->TrackingFrequencyNumber > 0)
+  {
+    trackerConfig->SetIntAttribute("TrackingFrequencyNumber", this->TrackingFrequencyNumber);
   }
   trackerConfig->SetAttribute("CheckDSR", this->CheckDSR ? "true" : "false");
 
@@ -1363,6 +1371,49 @@ PlusStatus vtkPlusNDITracker::SelectMeasurementVolumeDeprecated()
   {
     LOG_ERROR("Failed to set measurement volume " << this->MeasurementVolumeNumber << ": " << ndiErrorString(errnum));
     LogVolumeList(this->MeasurementVolumeNumber, vtkPlusLogger::LOG_LEVEL_DEBUG);
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusNDITracker::SelectTrackingFrequency()
+{
+  if (this->TrackingFrequencyNumber > 0)
+  {
+    std::string reply = this->Command("GET:Param.Tracking.Track Frequency");
+
+    int errnum = ndiGetError(this->Device);
+    if (errnum)
+    {
+      return SelectTrackingFrequencyDeprecated();
+    }
+    else
+    {
+      // Use SET command with parameter
+      std::string frequencySelectCommandReply = this->Command("SET:Param.Tracking.Track Frequency=%d", this->TrackingFrequencyNumber);
+      int errnum = ndiGetError(this->Device);
+      if (errnum)
+      {
+        LOG_ERROR("Failed to set tracking frequency " << this->TrackingFrequencyNumber << ": " << ndiErrorString(errnum));
+        CloseDevice(this->Device);
+        return PLUS_FAIL;
+      }
+    }
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusNDITracker::SelectTrackingFrequencyDeprecated()
+{
+  auto frequencySelectCommandReply = this->Command("IRATE:%d", this->TrackingFrequencyNumber);
+  int errnum = ndiGetError(this->Device);
+  if (errnum)
+  {
+    LOG_ERROR("Failed to set tracking frequency " << this->TrackingFrequencyNumber << ": " << ndiErrorString(errnum));
     return PLUS_FAIL;
   }
 
