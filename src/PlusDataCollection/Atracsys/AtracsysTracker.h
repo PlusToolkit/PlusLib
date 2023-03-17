@@ -171,6 +171,9 @@ public:
   ATRACSYS_RESULT GetMarkerInfo(std::string& markerInfo);
 
   /*! */
+  ATRACSYS_RESULT GetLoadedGeometries(std::map<int, std::vector<std::array<float,3>>>& geometries);
+
+  /*! */
   std::string ResultToString(ATRACSYS_RESULT result);
 
   /*! */
