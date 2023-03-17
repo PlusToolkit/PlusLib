@@ -42,6 +42,10 @@ public:
     std::array<float, 10>& leftIntrinsic, std::array<float, 10>& rightIntrinsic,
     std::array<float, 3>& rightPosition, std::array<float, 3>& rightOrientation);
 
+  /*! Retrieves the loaded marker geometries :
+  * geometries maps a marker (described by its id) to the vector of x,y,z coordinates of each fiducial
+  * that composes the marker
+  */
   PlusStatus GetLoadedGeometries(std::map<int, std::vector<std::array<float, 3>>>& geometries);
 
   /* Device is a hardware tracker. */

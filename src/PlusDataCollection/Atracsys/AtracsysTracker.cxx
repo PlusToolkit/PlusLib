@@ -127,7 +127,7 @@ public:
   // helper function to load ftkGeometry from string
   ATRACSYS_RESULT LoadFtkGeometryFromString(const std::string& geomString, ftkGeometry& geom);
 
-  std::map<int, std::vector<std::array<float, 3>>> geometries;
+  std::map<int, std::vector<std::array<float, 3>>> Geometries;
 
   // correspondence between atracsys option name and its actual id in the sdk
   // this map is filled automatically by the sdk, DO NOT hardcode/change any id
