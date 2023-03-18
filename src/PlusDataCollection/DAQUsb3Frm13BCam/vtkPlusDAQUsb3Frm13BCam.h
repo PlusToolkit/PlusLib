@@ -51,13 +51,13 @@ protected:
   virtual PlusStatus InternalDisconnect() VTK_OVERRIDE;
 
 protected:
-  enum COLORDEPTH_E = {COLORDEPTH_8 = 8,COLORDEPTH_16 = 16,COLORDEPTH_32 = 32,COLORDEPTH_64 = 64} colorDepth;
-  enum DATAMODE_E = { DATAMODE_8,DATAMODE_16,DATAMODE_32,DATAMODE_64 } dataMode;
-  enum CAMERAMODE_E = { CAMERAMODE_SCAN, CAMERAMODE_LINE } cameraMode;
+  enum COLORDEPTH_E  {COLORDEPTH_8 = 8,COLORDEPTH_16 = 16,COLORDEPTH_32 = 32,COLORDEPTH_64 = 64} colorDepth;
+  enum DATAMODE_E  { DATAMODE_8,DATAMODE_16,DATAMODE_32,DATAMODE_64 } dataMode;
+  enum CAMERAMODE_E  { CAMERAMODE_SCAN, CAMERAMODE_LINE } cameraMode;
   bool deviceRunning;
-  uint32_t * pImgBuf; 
-  int width;
-  int height;
+  unsigned char * pImgBuf; 
+  DWORD width;
+  DWORD height;
   DWORD maxBuffSize;
 };
 

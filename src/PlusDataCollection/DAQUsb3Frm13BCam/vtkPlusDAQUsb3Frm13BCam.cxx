@@ -79,7 +79,7 @@ PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalConnect()
   this->cameraMode = CAMERAMODE_SCAN;
   LVDS_GetResolution(&(this->width), &(this->height));
   this->maxBuffSize = this->width * this->height * this->colorDepth;
-  this->pImgBuf = new unsigned short[this->maxBuffSize];
+  this->pImgBuf = new unsigned char[this->maxBuffSize];
 
   if (!LVDS_Start())
   {
@@ -129,7 +129,7 @@ PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalUpdate()
   {
     // Init the buffer with the metadata from the first frame
     aSource->SetImageType(US_IMG_BRIGHTNESS);
-    aSource->SetPixelType(VTK_UNSIGNED_INT);     
+    aSource->SetPixelType(VTK_UNSIGNED_CHAR);     
     aSource->SetNumberOfScalarComponents(1);
     aSource->SetInputFrameSize(this->width, this->height, 1);
   }

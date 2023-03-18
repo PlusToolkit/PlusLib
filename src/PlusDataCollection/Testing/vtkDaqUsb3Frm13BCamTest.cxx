@@ -69,7 +69,7 @@ int main(int argc, char **argv)
     exit(EXIT_SUCCESS); 
   }
 
-  vtkSmartPointer<vtkPlusDAQUSB3FRM13BCam> DAQUSB3FRM13BCam = vtkSmartPointer<vtkDAQUSB3FRM13BCam>::New();
+  vtkSmartPointer<vtkPlusDAQUSB3FRM13BCam> DAQUSB3FRM13BCam = vtkSmartPointer<vtkPlusDAQUSB3FRM13BCam>::New();
 
   DAQUSB3FRM13BCam->CreateDefaultOutputChannel();
 
