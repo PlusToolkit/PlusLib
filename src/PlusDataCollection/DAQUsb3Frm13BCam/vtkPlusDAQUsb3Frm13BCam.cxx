@@ -80,6 +80,10 @@ PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalConnect()
   LVDS_GetResolution(&(this->width), &(this->height));
   this->maxBuffSize = this->width * this->height * this->colorDepth;
   this->pImgBuf = new unsigned char[this->maxBuffSize];
+  
+  LVDS_CameraMode(this->cameraMode);
+  LVDS_SetDataMode(this->dataMode);
+  LVDS_SetDUse(true);
 
   if (!LVDS_Start())
   {
