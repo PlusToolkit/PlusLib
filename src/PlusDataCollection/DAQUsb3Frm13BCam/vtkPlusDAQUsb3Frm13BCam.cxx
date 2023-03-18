@@ -83,7 +83,7 @@ PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalConnect()
   
   LVDS_CameraMode(this->cameraMode);
   LVDS_SetDataMode(this->dataMode);
-  LVDS_SetDUse(true);
+  LVDS_SetDeUse(true);
 
   if (!LVDS_Start())
   {
