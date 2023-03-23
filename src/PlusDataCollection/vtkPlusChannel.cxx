@@ -64,6 +64,8 @@ vtkPlusChannel::~vtkPlusChannel(void)
 
   this->SetOwnerDevice(NULL);
 
+  this->SetChannelId(nullptr);
+
   DELETE_IF_NOT_NULL(this->BlankImage);
 
   DELETE_IF_NOT_NULL(this->RfProcessor);
