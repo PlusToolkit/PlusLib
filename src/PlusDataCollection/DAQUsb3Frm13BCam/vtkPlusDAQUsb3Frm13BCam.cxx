@@ -74,13 +74,16 @@ PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalConnect()
     return PLUS_FAIL;
   }
 
-  this->colorDepth = COLORDEPTH_32;
-  this->dataMode = DATAMODE_32;
+  //this->colorDepth = COLORDEPTH_32;
+  this->dataMode = DATAMODE_8;
   this->cameraMode = CAMERAMODE_SCAN;
-  LVDS_GetResolution(&(this->width), &(this->height));
-  this->maxBuffSize = this->width * this->height * this->colorDepth;
-  this->pImgBuf = new unsigned char[this->maxBuffSize];
-  
+  //LVDS_GetResolution(&(this->width), &(this->height));
+  this->width = 1280;
+  this->height = 481;
+  //this->maxBuffSize = this->width * this->height * this->colorDepth;
+  this->maxBuffSize = this->width * this->height * 2;
+  this->pImgBuf = new unsigned short[this->maxBuffSize];
+
   LVDS_CameraMode(this->cameraMode);
   LVDS_SetDataMode(this->dataMode);
   LVDS_SetDeUse(true);
@@ -116,7 +119,7 @@ PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalUpdate()
 
   dwCount = this->maxBuffSize;
 
-  if (!LVDS_GetFrame(&dwCount, this->pImgBuf))
+  if (!LVDS_GetFrame(&dwCount, (unsigned char*)(this->pImgBuf)))
   {
     LOG_ERROR("vtkPlusDAQUSB3FRM13BCam::InternalUpdate Unable to receive frame");
     return PLUS_SUCCESS; 
@@ -133,14 +136,16 @@ PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalUpdate()
   {
     // Init the buffer with the metadata from the first frame
     aSource->SetImageType(US_IMG_BRIGHTNESS);
-    aSource->SetPixelType(VTK_UNSIGNED_CHAR);     
+    aSource->SetPixelType(VTK_UNSIGNED_SHORT);
+    //aSource->SetPixelType(VTK_UNSIGNED_INT);
     aSource->SetNumberOfScalarComponents(1);
     aSource->SetInputFrameSize(this->width, this->height, 1);
   }
 
   // Add the frame to the stream buffer
   FrameSizeType frameSize = { static_cast<unsigned int>(this->width), static_cast<unsigned int>(this->height), 1 };
-   if (aSource->AddItem(this->pImgBuf, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
+  //if (aSource->AddItem(this->pImgBuf, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
+  if (aSource->AddItem(this->pImgBuf, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_SHORT, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
   {
     return PLUS_FAIL;
   }

@@ -55,7 +55,7 @@ protected:
   enum DATAMODE_E  { DATAMODE_8,DATAMODE_16,DATAMODE_32,DATAMODE_64 } dataMode;
   enum CAMERAMODE_E  { CAMERAMODE_SCAN, CAMERAMODE_LINE } cameraMode;
   bool deviceRunning;
-  unsigned char * pImgBuf; 
+  unsigned short * pImgBuf; 
   DWORD width;
   DWORD height;
   DWORD maxBuffSize;
