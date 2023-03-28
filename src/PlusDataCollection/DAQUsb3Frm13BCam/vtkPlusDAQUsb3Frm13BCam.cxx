@@ -68,25 +68,29 @@ PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalConnect()
     return PLUS_FAIL;
   }
 
+  //this->colorDepth = COLORDEPTH_32;
+  this->dataMode = DATAMODE_8;
+  this->cameraMode = CAMERAMODE_SCAN;
+  //this->width = 1280;
+  //this->height = 481;
+  //this->maxBuffSize = this->width * this->height * this->colorDepth;
+  LVDS_CameraMode(this->cameraMode);
+  LVDS_SetDataMode(this->dataMode);
+  LVDS_SetDeUse(true);
+
   if (!LVDS_Init())
   {
     LOG_ERROR("DAQ System CameraLink: Failed to init.");
     return PLUS_FAIL;
   }
 
-  //this->colorDepth = COLORDEPTH_32;
-  this->dataMode = DATAMODE_8;
-  this->cameraMode = CAMERAMODE_SCAN;
-  //LVDS_GetResolution(&(this->width), &(this->height));
-  this->width = 1280;
-  this->height = 481;
-  //this->maxBuffSize = this->width * this->height * this->colorDepth;
-  this->maxBuffSize = this->width * this->height * 2;
+  LVDS_GetResolution(&(this->width), &(this->height));
+  this->width = this->width / 2 ; 
+  this->height = this->height  ;
+
+  this->maxBuffSize = sizeof(unsigned short) *  this->width * this->height;
   this->pImgBuf = new unsigned short[this->maxBuffSize];
 
-  LVDS_CameraMode(this->cameraMode);
-  LVDS_SetDataMode(this->dataMode);
-  LVDS_SetDeUse(true);
 
   if (!LVDS_Start())
   {
@@ -129,7 +133,8 @@ PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalUpdate()
   if (this->GetFirstActiveOutputVideoSource(aSource) == PLUS_FAIL || aSource == nullptr)
   {
     LOG_ERROR("Unable to grab a video source. Skipping frame.");
-    return PLUS_FAIL;
+    return PLUS_SUCCESS; 
+    //return PLUS_FAIL;
   }
 
   if (aSource->GetNumberOfItems() == 0)
