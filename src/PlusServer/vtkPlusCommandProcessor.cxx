@@ -112,6 +112,11 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
 vtkPlusCommandProcessor::~vtkPlusCommandProcessor()
 {
   SetPlusServer(NULL);
+
+  for (auto& kv : this->RegisteredCommands)
+  {
+    kv.second->UnRegister(this);
+  }
 }
 
 //----------------------------------------------------------------------------

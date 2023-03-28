@@ -103,6 +103,8 @@ vtkPlusBuffer::~vtkPlusBuffer()
     this->StreamBuffer->Delete();
     this->StreamBuffer = NULL;
   }
+
+  this->SetDescriptiveName(nullptr);
 }
 
 //----------------------------------------------------------------------------

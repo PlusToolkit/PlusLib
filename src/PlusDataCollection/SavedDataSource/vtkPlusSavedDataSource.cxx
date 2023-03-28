@@ -45,6 +45,7 @@ vtkPlusSavedDataSource::~vtkPlusSavedDataSource()
     this->Disconnect();
   }
   DeleteLocalBuffers();
+  this->SetSequenceFile(nullptr);
 }
 
 //----------------------------------------------------------------------------
