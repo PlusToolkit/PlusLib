@@ -484,7 +484,7 @@ public:
       std::array<float, 3> pt = { geometry.positions[i].x, geometry.positions[i].y, geometry.positions[i].z };
       pts.push_back(pt);
     }
-    geometries[geometry.geometryId] = pts;
+    this->Geometries[geometry.geometryId] = pts;
 
     return true;
   }
@@ -869,7 +869,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetMarkerInfo(std::string& mar
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetLoadedGeometries(std::map<int, std::vector<std::array<float, 3>>>& geometries)
 {
-  geometries = this->Internal->geometries;
+  geometries = this->Internal->Geometries;
   return SUCCESS;
 }
 
