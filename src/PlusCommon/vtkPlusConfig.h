@@ -219,16 +219,16 @@ public:
   */
   std::string GetPlusExecutablePath(const std::string& executableName);
 
+  /*!
+  Get absolute path from a relative or absolute path
+  \param aPath Relative or absolute path of a directory.
+  \param aBasePath If aPath is a relative path then this aBasePath will be prepended to the input aPath
+  */
+  std::string GetAbsolutePath(const std::string& aPath, const std::string& aBasePath);
+
 protected:
   /*! Set program directory path */
   void SetProgramDirectory();
-
-  /*!
-    Get absolute path from a relative or absolute path
-    \param aPath Relative or absolute path of a directory.
-    \param aBasePath If aPath is a relative path then this aBasePath will be prepended to the input aPath
-  */
-  std::string GetAbsolutePath(const std::string& aPath, const std::string& aBasePath);
 
   /*! Get application configuration data */
   vtkGetObjectMacro(ApplicationConfigurationData, vtkXMLDataElement);
