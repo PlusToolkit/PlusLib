@@ -42,6 +42,10 @@ ENDFOREACH()
 target_include_directories(vtk${PROJECT_NAME} PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
 TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_LIBS} )
 PlusLibAddVersionInfo(vtk${PROJECT_NAME} "Library containing reusable rendering tools. Part of the Plus toolkit." vtk${PROJECT_NAME} vtk${PROJECT_NAME})
+IF(NOT VTK_VERSION VERSION_LESS 9.0.0)
+  # vtk_module_autoinit is needed
+  vtk_module_autoinit(TARGETS vtk${PROJECT_NAME} MODULES ${VTK_LIBRARIES})
+ENDIF()
 
 # --------------------------------------------------------------------------
 # Set external MS project
