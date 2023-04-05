@@ -51,14 +51,22 @@ protected:
   virtual PlusStatus InternalDisconnect() VTK_OVERRIDE;
 
 protected:
+  typedef unsigned short CAMERADATATYPE_t;
   enum COLORDEPTH_E  {COLORDEPTH_8 = 8,COLORDEPTH_16 = 16,COLORDEPTH_32 = 32,COLORDEPTH_64 = 64} colorDepth;
-  enum DATAMODE_E  { DATAMODE_8,DATAMODE_16,DATAMODE_32,DATAMODE_64 } dataMode;
+  enum DATAMODE_E  { DATAMODE_8 = 0,DATAMODE_16 = 1,DATAMODE_32 = 2,DATAMODE_64 = 3 } m_dataMode;
   enum CAMERAMODE_E  { CAMERAMODE_SCAN, CAMERAMODE_LINE } cameraMode;
   bool deviceRunning;
-  unsigned short * pImgBuf; 
-  DWORD width;
-  DWORD height;
-  DWORD maxBuffSize;
+  CAMERADATATYPE_t* pImgBuf;
+  unsigned char * pImgBufAux;
+  DWORD m_width;
+  DWORD m_height;
+  DWORD m_nwidth;
+  DWORD m_nheight;
+  DWORD m_maxBuffSize;
+  DWORD m_dwCharCount;
+  int m_nbytesMode;
+  double m_currentTime = UNDEFINED_TIMESTAMP;
+
 };
 
 #endif // __vtkPlusDAQUSB3FRM13BCam_h

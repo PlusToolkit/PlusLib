@@ -16,7 +16,7 @@ Developed by ULL & IACTEC-IAC group
 #include <vtkImageData.h>
 #include <vtkObjectFactory.h>
 
-// TEEV2
+// DAQ System
 #include "usb3_frm13_import.h"
 
 //----------------------------------------------------------------------------
@@ -47,6 +47,25 @@ PlusStatus vtkPlusDAQUSB3FRM13BCam::ReadConfiguration(vtkXMLDataElement* rootCon
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
   LOG_DEBUG("Configure CameraLink Camera");
+
+  this->m_dataMode = DATAMODE_8;
+  
+  const char* dataModeString = deviceConfig->GetAttribute("DataMode");
+  if (dataModeString)
+  {
+    switch(std::atoi(dataModeString)){
+    case 8:
+      this->m_dataMode = DATAMODE_8;
+      break;
+    case 16:
+      this->m_dataMode = DATAMODE_16;
+      break;
+    default:
+      this->m_dataMode = DATAMODE_8;
+    }
+  }
+
+
   return PLUS_SUCCESS;
 }
 
@@ -68,30 +87,31 @@ PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalConnect()
     return PLUS_FAIL;
   }
 
-  //this->colorDepth = COLORDEPTH_32;
-  this->dataMode = DATAMODE_8;
   this->cameraMode = CAMERAMODE_SCAN;
-  //this->width = 1280;
-  //this->height = 481;
-  //this->maxBuffSize = this->width * this->height * this->colorDepth;
-  LVDS_CameraMode(this->cameraMode);
-  LVDS_SetDataMode(this->dataMode);
-  LVDS_SetDeUse(true);
+  switch (this->m_dataMode) {
+  case DATAMODE_8:
+    this->m_nbytesMode = 2;
+    break;
+  default:
+    this->m_nbytesMode = 4;
+  }
 
   if (!LVDS_Init())
   {
     LOG_ERROR("DAQ System CameraLink: Failed to init.");
     return PLUS_FAIL;
   }
-
-  LVDS_GetResolution(&(this->width), &(this->height));
-  this->width = this->width / 2 ; 
-  this->height = this->height  ;
-
-  this->maxBuffSize = sizeof(unsigned short) *  this->width * this->height;
-  this->pImgBuf = new unsigned short[this->maxBuffSize];
-
-
+  LVDS_SetDataMode(this->m_dataMode);
+  LVDS_CameraMode(this->cameraMode);
+  LVDS_SetDeUse(true);
+  LVDS_GetResolution(&(this->m_width), &(this->m_height));
+  this->m_nwidth = this->m_width / 2;
+  this->m_nheight = this->m_height;
+  this->m_maxBuffSize = this->m_width * this->m_height;
+  this->pImgBuf = new CAMERADATATYPE_t[this->m_maxBuffSize];
+  this->m_dwCharCount = this->m_nbytesMode * this->m_maxBuffSize;
+  this->pImgBufAux = new unsigned char[this->m_dwCharCount];
+  
   if (!LVDS_Start())
   {
     LOG_ERROR("DAQ System CameraLink: Failed to start");
@@ -114,27 +134,33 @@ PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalDisconnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalUpdate()
 {
-  DWORD dwCount; 
+  std::ostringstream ss;
+  int ix,iy;
+
   if (!this->deviceRunning)
   {
     LOG_ERROR("vtkPlusDAQUSB3FRM13BCam::InternalUpdate Unable to read data");
     return PLUS_SUCCESS; 
   }
 
-  dwCount = this->maxBuffSize;
-
-  if (!LVDS_GetFrame(&dwCount, (unsigned char*)(this->pImgBuf)))
+  this->m_currentTime = vtkIGSIOAccurateTimer::GetSystemTime();
+  if (!LVDS_GetFrame(&m_dwCharCount, (unsigned char*)(this->pImgBufAux)))
   {
-    LOG_ERROR("vtkPlusDAQUSB3FRM13BCam::InternalUpdate Unable to receive frame");
+    LOG_DEBUG("vtkPlusDAQUSB3FRM13BCam::InternalUpdate Unable to receive frame");
     return PLUS_SUCCESS; 
+  }
+
+  // Byte assignment to output image buffer
+  for (ix = 0, iy = 0; ix < this->m_maxBuffSize; ix+=2, iy += this->m_nbytesMode) {
+    ((unsigned char*)this->pImgBuf)[ix + 0] = this->pImgBufAux[iy + 0] ;
+    ((unsigned char*)this->pImgBuf)[ix + 1] = this->pImgBufAux[iy + 1];
   }
 
   vtkPlusDataSource* aSource(nullptr);
   if (this->GetFirstActiveOutputVideoSource(aSource) == PLUS_FAIL || aSource == nullptr)
   {
-    LOG_ERROR("Unable to grab a video source. Skipping frame.");
-    return PLUS_SUCCESS; 
-    //return PLUS_FAIL;
+    LOG_DEBUG("Unable to grab a video source. Skipping frame.");
+    return PLUS_SUCCESS;
   }
 
   if (aSource->GetNumberOfItems() == 0)
@@ -142,15 +168,13 @@ PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalUpdate()
     // Init the buffer with the metadata from the first frame
     aSource->SetImageType(US_IMG_BRIGHTNESS);
     aSource->SetPixelType(VTK_UNSIGNED_SHORT);
-    //aSource->SetPixelType(VTK_UNSIGNED_INT);
     aSource->SetNumberOfScalarComponents(1);
-    aSource->SetInputFrameSize(this->width, this->height, 1);
+    aSource->SetInputFrameSize(this->m_nwidth, this->m_nheight, 1);
   }
 
   // Add the frame to the stream buffer
-  FrameSizeType frameSize = { static_cast<unsigned int>(this->width), static_cast<unsigned int>(this->height), 1 };
-  //if (aSource->AddItem(this->pImgBuf, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
-  if (aSource->AddItem(this->pImgBuf, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_SHORT, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
+  FrameSizeType frameSize = { static_cast<unsigned int>(this->m_nwidth), static_cast<unsigned int>(this->m_nheight), 1 };
+  if (aSource->AddItem(this->pImgBuf, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_SHORT, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber, this->m_currentTime, this->m_currentTime) == PLUS_FAIL)
   {
     return PLUS_FAIL;
   }
