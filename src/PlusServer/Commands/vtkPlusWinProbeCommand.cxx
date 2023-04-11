@@ -281,6 +281,8 @@ PlusStatus vtkPlusWinProbeCommand::Execute()
         || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_ARFI_STOP_SAMPLE)
         || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_ARFI_PRE_PUSH_LINE_REPEAT_COUNT)
         || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_ARFI_POST_PUSH_LINE_REPEAT_COUNT)
+        || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_ARFI_INTER_SET_DELAY)
+        || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_ARFI_INTER_PUSH_DELAY)
         || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_ARFI_LINE_TIMER)
         || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_ARFI_TX_CYCLE_COUNT)
         || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_ARFI_TX_CYCLE_WIDTH)
@@ -344,6 +346,10 @@ PlusStatus vtkPlusWinProbeCommand::Execute()
           res = std::to_string(device->GetARFIPrePushLineRepeatCount());
       else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_ARFI_POST_PUSH_LINE_REPEAT_COUNT))
           res = std::to_string(device->GetARFIPostPushLineRepeatCount());
+      else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_ARFI_INTER_SET_DELAY))
+          res = std::to_string(device->GetARFIInterSetDelay());
+      else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_ARFI_INTER_PUSH_DELAY))
+          res = std::to_string(device->GetARFIInterPushDelay());
       else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_ARFI_LINE_TIMER))
           res = std::to_string(device->GetARFILineTimer());
       else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_ARFI_TX_CYCLE_COUNT))
@@ -402,6 +408,8 @@ PlusStatus vtkPlusWinProbeCommand::Execute()
              || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_ARFI_STOP_SAMPLE)
              || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_ARFI_PRE_PUSH_LINE_REPEAT_COUNT)
              || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_ARFI_POST_PUSH_LINE_REPEAT_COUNT)
+             || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_ARFI_INTER_SET_DELAY)
+             || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_ARFI_INTER_PUSH_DELAY)
              || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_ARFI_LINE_TIMER)
              || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_ARFI_TX_CYCLE_COUNT)
              || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_ARFI_TX_CYCLE_WIDTH)
@@ -554,6 +562,16 @@ PlusStatus vtkPlusWinProbeCommand::Execute()
       {
         int32_t val = stoi(value);
         status = device->SetARFIPostPushLineRepeatCount(val);
+      }
+      else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_ARFI_INTER_SET_DELAY))
+      {
+        int32_t val = stoi(value);
+        status = device->SetARFIInterSetDelay(val);
+      }
+      else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_ARFI_INTER_PUSH_DELAY))
+      {
+        int32_t val = stoi(value);
+        status = device->SetARFIInterPushDelay(val);
       }
       else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_ARFI_LINE_TIMER))
       {
