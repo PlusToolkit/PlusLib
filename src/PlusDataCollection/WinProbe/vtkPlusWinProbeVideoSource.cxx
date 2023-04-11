@@ -75,6 +75,10 @@ const char* vtkPlusWinProbeVideoSource::SET_ARFI_PRE_PUSH_LINE_REPEAT_COUNT  = "
 const char* vtkPlusWinProbeVideoSource::GET_ARFI_PRE_PUSH_LINE_REPEAT_COUNT  = "GetARFIPrePushLineRepeatCount";
 const char* vtkPlusWinProbeVideoSource::SET_ARFI_POST_PUSH_LINE_REPEAT_COUNT = "SetARFIPostPushLineRepeatCount";
 const char* vtkPlusWinProbeVideoSource::GET_ARFI_POST_PUSH_LINE_REPEAT_COUNT = "GetARFIPostPushLineRepeatCount";
+const char* vtkPlusWinProbeVideoSource::GET_ARFI_INTER_SET_DELAY     = "GetARFIInterSetDelay";
+const char* vtkPlusWinProbeVideoSource::SET_ARFI_INTER_SET_DELAY     = "SetARFIInterSetDelay";
+const char* vtkPlusWinProbeVideoSource::GET_ARFI_INTER_PUSH_DELAY    = "GetARFIInterPushDelay";
+const char* vtkPlusWinProbeVideoSource::SET_ARFI_INTER_PUSH_DELAY    = "SetARFIInterPushDelay";
 const char* vtkPlusWinProbeVideoSource::SET_ARFI_LINE_TIMER          = "SetARFILineTimer";
 const char* vtkPlusWinProbeVideoSource::GET_ARFI_LINE_TIMER          = "GetARFILineTimer";
 const char* vtkPlusWinProbeVideoSource::SET_ARFI_TX_CYCLE_COUNT      = "SetARFITxCycleCount";
@@ -926,6 +930,8 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
     SetARFITxTxCycleWidth(m_ARFITxTxCycleWidth);
     SetARFITxCycleCount(m_ARFITxCycleCount);
     SetARFITxCycleWidth(m_ARFITxCycleWidth);
+    SetARFIInterSetDelay(m_ARFIInterSetDelay);
+    SetARFIInterPushDelay(m_ARFIInterPushDelay);
     SetARFILineTimer(m_ARFILineTimer);
     SetARFIStartSample(m_ARFIStartSample);
     SetARFIStopSample(m_ARFIStopSample);
@@ -1955,6 +1961,58 @@ int32_t vtkPlusWinProbeVideoSource::GetARFIPostPushLineRepeatCount()
     m_ARFIPostPushLineRepeatCount = ::GetARFIPostPushLineRepeatCount();
   }
   return m_ARFIPostPushLineRepeatCount;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusWinProbeVideoSource::SetARFIInterSetDelay(int32_t propertyValue)
+{
+  if(Connected)
+  {
+    if(propertyValue > 250 * 250)
+    {
+      LOG_ERROR("The maximum ARFI inter set delay is 250*250. Ignoring call to change to " << propertyValue);
+      return PLUS_FAIL;
+    }
+    m_ARFIInterSetDelay = propertyValue;
+    ::SetARFIInterSetDelay(propertyValue);  // API call includes SetPendingRecreateTables(true). Really just need SetPendingRestartSequencer(true);
+    return PLUS_SUCCESS;
+  }
+  return PLUS_FAIL;
+}
+
+int32_t vtkPlusWinProbeVideoSource::GetARFIInterSetDelay()
+{
+  if(Connected)
+  {
+    m_ARFIInterSetDelay = ::GetARFIInterSetDelay();
+  }
+  return m_ARFIInterSetDelay;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusWinProbeVideoSource::SetARFIInterPushDelay(int32_t propertyValue)
+{
+  if(Connected)
+  {
+    if(propertyValue > 250)
+    {
+      LOG_ERROR("The maximum ARFI inter push delay is 250. Ignoring call to change to " << propertyValue);
+      return PLUS_FAIL;
+    }
+    m_ARFIInterPushDelay = propertyValue;
+    ::SetARFIInterPushDelay(propertyValue);  // API call includes SetPendingRecreateTables(true). Really just need SetPendingRestartSequencer(true);
+    return PLUS_SUCCESS;
+  }
+  return PLUS_FAIL;
+}
+
+int32_t vtkPlusWinProbeVideoSource::GetARFIInterPushDelay()
+{
+  if(Connected)
+  {
+    m_ARFIInterPushDelay = ::GetARFIInterPushDelay();
+  }
+  return m_ARFIInterPushDelay;
 }
 
 //----------------------------------------------------------------------------

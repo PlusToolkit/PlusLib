@@ -83,6 +83,10 @@ public:
   static const char* GET_ARFI_PRE_PUSH_LINE_REPEAT_COUNT;
   static const char* SET_ARFI_POST_PUSH_LINE_REPEAT_COUNT;
   static const char* GET_ARFI_POST_PUSH_LINE_REPEAT_COUNT;
+  static const char* SET_ARFI_INTER_SET_DELAY;
+  static const char* GET_ARFI_INTER_SET_DELAY;
+  static const char* SET_ARFI_INTER_PUSH_DELAY;
+  static const char* GET_ARFI_INTER_PUSH_DELAY;
   static const char* SET_ARFI_LINE_TIMER;
   static const char* GET_ARFI_LINE_TIMER;
   static const char* SET_ARFI_TX_CYCLE_COUNT;
@@ -348,6 +352,27 @@ public:
   /* Get the number of repeats for the tracking lines after the push. */
   int32_t GetARFIPostPushLineRepeatCount();
 
+  /*!
+  Set the integer increment (1.05ms per increment) to delay after completion of the ARFIPushConfigurationString before it begins live streaming B-Mode frames again.
+
+  The interset delay is a post ARFI configuration string delay.
+  Example: "1,33,44;1,41,52;1,49,60;1,57,68;1,65,76;1,73,84;2,36,44;2,44,52;2,52,60;2,60,68;2,68,76;2,76,84(interset)"
+  */
+  PlusStatus SetARFIInterSetDelay(int32_t propertyValue);
+
+   /* Get the integer increment (1.05ms per increment) to delay after completion of the ARFIPushConfigurationString before it begins live streaming B-Mode frames again. */
+  int32_t GetARFIInterSetDelay();
+
+  /*!
+  Set the integer increment (1.05ms per increment) to delay after each push of the ARFIPushConfigurationString.
+
+  Example: "1,33,44;(interpush)1,41,52;(interpush)1,49,60;(interpush)1,57,68;(interpush)1,65,76;(interpush)1,73,84;(interpush)(interset)"
+  */
+  PlusStatus SetARFIInterPushDelay(int32_t propertyValue);
+
+  /* Get the integer increment (1.05ms per increment) to delay after each push of the ARFIPushConfigurationString. */
+  int32_t GetARFIInterPushDelay();
+
   int GetTransducerInternalID();
 
   /*!
@@ -483,6 +508,8 @@ protected:
   uint16_t m_ARFILineTimer = 100;
   int32_t m_ARFIPrePushLineRepeatCount = 8;
   int32_t m_ARFIPostPushLineRepeatCount = 56;
+  int32_t m_ARFIInterSetDelay = 0;
+  int32_t m_ARFIInterPushDelay = 100;
   std::string m_ARFIPushConfigurationString = "1,33,44;1,41,52;1,49,60;1,57,68;1,65,76;1,73,84";
   int m_ARFIPushConfigurationCount = 6;
   int32_t m_MPRF = 100;
