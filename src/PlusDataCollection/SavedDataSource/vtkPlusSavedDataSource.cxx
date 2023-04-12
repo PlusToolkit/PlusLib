@@ -769,6 +769,12 @@ void vtkPlusSavedDataSource::GetLoopTimeRange(double& loopStartTime, double& loo
 //-----------------------------------------------------------------------------
 void vtkPlusSavedDataSource::SetLoopTimeRange(double loopStartTime, double loopStopTime)
 {
+  if (!this->GetLocalBuffer())
+  {
+    LOG_ERROR("vtkPlusSavedDataSource::SetLoopTimeRange: Invalid local buffer");
+    return;
+  }
+
   this->LoopStartTime_Local = loopStartTime;
   this->LoopStopTime_Local = loopStopTime;
 
@@ -782,6 +788,12 @@ void vtkPlusSavedDataSource::SetLoopTimeRange(double loopStartTime, double loopS
 //----------------------------------------------------------------------------
 BufferItemUidType vtkPlusSavedDataSource::GetClosestFrameUidWithinTimeRange(double time_Local, double startTime_Local, double stopTime_Local)
 {
+  if (!this->GetLocalBuffer())
+  {
+    LOG_ERROR("vtkPlusSavedDataSource::GetClosestFrameUidWithinTimeRange: Invalid local buffer");
+    return 0;
+  }
+
   // time_Local should be within the specified interval
   if (time_Local < startTime_Local)
   {
@@ -793,9 +805,9 @@ BufferItemUidType vtkPlusSavedDataSource::GetClosestFrameUidWithinTimeRange(doub
   }
   // time_Local should be also within the local buffer time range
   double oldestTimestamp_Local = 0;
-  GetLocalBuffer()->GetOldestTimeStamp(oldestTimestamp_Local);
+  this->GetLocalBuffer()->GetOldestTimeStamp(oldestTimestamp_Local);
   double latestTimestamp_Local = 0;
-  GetLocalBuffer()->GetLatestTimeStamp(latestTimestamp_Local);
+  this->GetLocalBuffer()->GetLatestTimeStamp(latestTimestamp_Local);
 
   // if the asked time is outside of the loop range then return the closest element in the range
   if (time_Local < oldestTimestamp_Local)
@@ -809,9 +821,9 @@ BufferItemUidType vtkPlusSavedDataSource::GetClosestFrameUidWithinTimeRange(doub
 
   // Get the uid of the frame that has been most recently acquired
   BufferItemUidType closestFrameUid = 0;
-  GetLocalBuffer()->GetItemUidFromTime(time_Local, closestFrameUid);
+  this->GetLocalBuffer()->GetItemUidFromTime(time_Local, closestFrameUid);
   double closestFrameTime_Local = 0;
-  GetLocalBuffer()->GetTimeStamp(closestFrameUid, closestFrameTime_Local);
+  this->GetLocalBuffer()->GetTimeStamp(closestFrameUid, closestFrameTime_Local);
 
   // The closest frame is at the boundary, but it may be just outside the range:
   // use the next/previous frame if the closest frame is on the wrong side of the boundary
