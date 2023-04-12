@@ -64,8 +64,6 @@ PlusStatus vtkPlusDAQUSB3FRM13BCam::ReadConfiguration(vtkXMLDataElement* rootCon
       this->m_dataMode = DATAMODE_8;
     }
   }
-
-
   return PLUS_SUCCESS;
 }
 

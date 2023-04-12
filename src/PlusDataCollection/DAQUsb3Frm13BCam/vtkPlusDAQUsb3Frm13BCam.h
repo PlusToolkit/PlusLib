@@ -12,8 +12,6 @@ Developed by ULL & IACTEC-IAC group
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 
-
-
 /*!
 \class vtkPlusDAQUSB3FRM13BCam
 \brief Class for interfacing an Infrared Seek capture device and recording frames into a Plus buffer
