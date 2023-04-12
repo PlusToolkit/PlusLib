@@ -66,6 +66,23 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
+  vtkPlusDevice* device(NULL);
+  if (dataCollector->GetDevice(device, deviceId) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to retrieve recognizer device by Id: " << deviceId);
+    return EXIT_FAILURE;
+  }
+
+  vtkPlusVirtualTextRecognizer* textRecognizer = vtkPlusVirtualTextRecognizer::SafeDownCast(device);
+  if (textRecognizer == NULL)
+  {
+    LOG_ERROR("Unable to retrieve recognizer device by Id: " << deviceId);
+    return EXIT_FAILURE;
+  }
+  std::stringstream tessDataPathSS;
+  tessDataPathSS << vtkPlusConfig::GetInstance()->GetImagePath("../../tessdata");
+  textRecognizer->SetTessdataDirectory(vtkPlusConfig::GetInstance()->GetAbsolutePath("", tessDataPathSS.str()));
+
   if (dataCollector->Connect() != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to connect to devices!");
@@ -75,21 +92,6 @@ int main(int argc, char** argv)
   if (dataCollector->Start() != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to start data collection!");
-    return EXIT_FAILURE;
-  }
-
-  vtkPlusDevice* device(NULL);
-  if (dataCollector->GetDevice(device, deviceId) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Unable to retrieve recognizer device by Id: " << deviceId);
-    return EXIT_FAILURE;
-  }
-
-  vtkPlusVirtualTextRecognizer* textRecognizer = vtkPlusVirtualTextRecognizer::SafeDownCast(device);
-
-  if (textRecognizer == NULL)
-  {
-    LOG_ERROR("Unable to retrieve recognizer device by Id: " << deviceId);
     return EXIT_FAILURE;
   }
 

@@ -234,11 +234,11 @@ PlusStatus vtkPlusVirtualTextRecognizer::InternalConnect()
     if (!vtksys::SystemTools::GetEnv("TESSDATA_PREFIX", this->TessdataDirectory))
     {
       this->SetTessdataDirectory(vtkPlusConfig::GetInstance()->GetImagePath("tessdata"));
-      std::stringstream ss;
-      ss << "TESSDATA_PREFIX=" << this->TessdataDirectory;
-      vtksys::SystemTools::PutEnv(ss.str());
     }
   }
+  std::stringstream ss;
+  ss << "TESSDATA_PREFIX=" << this->TessdataDirectory;
+  vtksys::SystemTools::PutEnv(ss.str());
   LOG_DEBUG("Using tessdata directory: " << this->TessdataDirectory);
 
   this->TesseractAPI = new tesseract::TessBaseAPI();
