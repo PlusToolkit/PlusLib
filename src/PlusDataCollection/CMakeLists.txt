@@ -58,7 +58,7 @@ OPTION(PLUS_USE_ANDOR_CAMERA "Provide support for capturing images from Andor Ca
 OPTION(PLUS_USE_INFRARED_TEQ1_CAM "Provide support for capturing an Infrared Therma Expert Q1 Camera capture stream" OFF)
 OPTION(PLUS_USE_INFRARED_TEEV2_CAM "Provide support for capturing an Infrared Thermal Expert EV2 Camera capture stream" OFF)
 OPTION(PLUS_USE_ULTRAVIOLET_PCOUV_CAM "Provide support for capturing an PCO Ultraviolet Camera capture stream" OFF)
-OPTION(PLUS_USE_DAQUSB3FRM13B_CAM "Provide support for capturing an CameraLink Camera using DAQ System USB3-FRM13-B Grabber"  OFF)
+OPTION(PLUS_USE_DAQVIDEOSOURCE_CAM "Provide support for capturing an CameraLink Camera using DAQ System USB3-FRM13-B Grabber"  OFF)
 OPTION(PLUS_USE_WITMOTIONTRACKER "Provide support for the WitMotion class of inertial measurement units" OFF)
 
 OPTION(PLUS_USE_LEAPMOTION "Provide support for the LeapMotion hand tracker" OFF)
@@ -2400,40 +2400,40 @@ IF(PLUS_USE_ULTRAVIOLET_PCOUV_CAM)
 ENDIF()
 
 #---------------------------------------------------------------------------
-# DAQUSB3FRM13B 
-IF(PLUS_USE_DAQUSB3FRM13B_CAM)
-  FIND_PACKAGE(DAQUSB3FRM13BSDK REQUIRED)
+# DAQVIDEOSOURCE 
+IF(PLUS_USE_DAQVIDEOSOURCE_CAM)
+  FIND_PACKAGE(DAQVIDEOSOURCESDK REQUIRED)
 
   # Compile
-  SET(DAQUSB3FRM13B_SRCS
-    DAQUSB3FRM13BCam/vtkPlusDAQUSB3FRM13BCam.cxx
+  SET(DAQVIDEOSOURCE_SRCS
+    DAQVideoSourceCam/vtkPlusDAQVideoSourceCam.cxx
     )
-  SET(DAQUSB3FRM13B_HDRS
-      DAQUSB3FRM13BCam/vtkPlusDAQUSB3FRM13BCam.h
+  SET(DAQVIDEOSOURCE_HDRS
+      DAQVideoSourceCam/vtkPlusDAQVideoSourceCam.h
   )
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
-    ${DAQUSB3FRM13B_HDRS}
+    ${DAQVIDEOSOURCE_HDRS}
   )
 
   LIST(APPEND ${PROJECT_NAME}_SRCS
-    ${DAQUSB3FRM13B_SRCS}
+    ${DAQVIDEOSOURCE_SRCS}
   )
 
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/DAQUSB3FRM13BCam
-    ${DAQUSB3FRM13B_SDK_LIBRARY}
-    ${DAQUSB3FRM13B_SDK_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/DAQVideoSourceCam
+    ${DAQVIDEOSOURCE_SDK_LIBRARY}
+    ${DAQVIDEOSOURCE_SDK_INCLUDE_DIR}
   )
 
   LIST(APPEND ${PROJECT_NAME}_LIBS
-    ${DAQUSB3FRM13B_SDK_LIBRARY}
+    ${DAQVIDEOSOURCE_SDK_LIBRARY}
   )
   LIST(APPEND External_Libraries_Install
-    ${DAQUSB3FRM13B_SDK_BINARY}/${SDK_FILENAME}
+    ${DAQVIDEOSOURCE_SDK_BINARY}/${SDK_FILENAME}
   )
   LIST(APPEND External_Libraries_Debug
-    ${DAQUSB3FRM13B_SDK_BINARY}/${SDK_FILENAME}
+    ${DAQVIDEOSOURCE_SDK_BINARY}/${SDK_FILENAME}
   )
 
 ENDIF()
