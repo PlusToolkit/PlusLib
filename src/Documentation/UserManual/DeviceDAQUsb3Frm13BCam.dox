@@ -1,26 +1,26 @@
 /*!
-\page DeviceDAQUSB3FRM13BCam grabber for CameraLink camera
+\page DeviceDAQVideoSourceCam grabber for CameraLink camera
 
-\section DeviceDAQUSB3FRM13BCamera 
+\section DeviceDAQVideoSourceCamera 
 This device allow you to use a DAQ USB-FRM13-B grabber to capture and send images from a CameraLink camera.
 
 This device only works in Windows (2023-03-16). 
 
-\section DAQUSB3FRM13BCamConfigInstallation
+\section DAQVideoSourceCamConfigInstallation
 
 You can found the license in:
- "PlusLib/src/Utilities/DAQUSB3FRM13BCamera/README.md"
+ "PlusLib/src/Utilities/DAQVideoSourceCamera/README.md"
 
-\section DAQUSB3FRM13BCamConfigSettings Device configuration settings
+\section DAQVideoSourceCamConfigSettings Device configuration settings
 
-- \xmlAtt \ref DeviceType "Type" = \c "DAQUSB3FRM13BCam" \RequiredAtt
+- \xmlAtt \ref DeviceType "Type" = \c "DAQVideoSourceCam" \RequiredAtt
 
 - \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
 
-\section DAQUSB3FRM13BCamExampleConfigFile Example configuration file PlusDeviceSet_Server_DAQUSB3FRM13BCamera.xml
+\section DAQVideoSourceCamExampleConfigFile Example configuration file PlusDeviceSet_Server_DAQVideoSourceCamera.xml
 
-\include "ConfigFiles/PlusDeviceSet_Server_DAQUSB3FRM13BCamera.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_DAQVideoSourceCamera.xml"
 
 */
