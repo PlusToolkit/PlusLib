@@ -10,7 +10,7 @@ Developed by ULL & IACTEC-IAC group
 #include "PlusConfigure.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusDAQUSB3FRM13BCam.h"
+#include "vtkPlusDAQVideoSourceCam.h"
 
 // VTK includes
 #include <vtkImageData.h>
@@ -21,29 +21,29 @@ Developed by ULL & IACTEC-IAC group
 
 //----------------------------------------------------------------------------
 
-vtkStandardNewMacro(vtkPlusDAQUSB3FRM13BCam);
+vtkStandardNewMacro(vtkPlusDAQVideoSourceCam);
 
 //----------------------------------------------------------------------------
-vtkPlusDAQUSB3FRM13BCam::vtkPlusDAQUSB3FRM13BCam()
+vtkPlusDAQVideoSourceCam::vtkPlusDAQVideoSourceCam()
 {
   this->RequireImageOrientationInConfiguration = true;
   this->StartThreadForInternalUpdates = true;
 }
 
 //----------------------------------------------------------------------------
-vtkPlusDAQUSB3FRM13BCam::~vtkPlusDAQUSB3FRM13BCam()
+vtkPlusDAQVideoSourceCam::~vtkPlusDAQVideoSourceCam()
 {
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusDAQUSB3FRM13BCam::PrintSelf(ostream& os, vtkIndent indent)
+void vtkPlusDAQVideoSourceCam::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-  os << indent << "DAQUSB3FRM13BCam: CameraLink Camera" << std::endl;
+  os << indent << "DAQVideoSourceCam: CameraLink Camera" << std::endl;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDAQUSB3FRM13BCam::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
+PlusStatus vtkPlusDAQVideoSourceCam::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
   LOG_DEBUG("Configure CameraLink Camera");
@@ -68,20 +68,20 @@ PlusStatus vtkPlusDAQUSB3FRM13BCam::ReadConfiguration(vtkXMLDataElement* rootCon
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDAQUSB3FRM13BCam::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
+PlusStatus vtkPlusDAQVideoSourceCam::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalConnect()
+PlusStatus vtkPlusDAQVideoSourceCam::InternalConnect()
 {
   this->deviceRunning = false;
 
   if (!OpenDAQDevice())
   {
-    LOG_ERROR("DAQ System CameraLink: Failed to open.");
+    LOG_ERROR("DAQVideoSourceCam CameraLink: Failed to open.");
     return PLUS_FAIL;
   }
 
@@ -96,7 +96,7 @@ PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalConnect()
 
   if (!LVDS_Init())
   {
-    LOG_ERROR("DAQ System CameraLink: Failed to init.");
+    LOG_ERROR("DAQVideoSourceCam CameraLink: Failed to init.");
     return PLUS_FAIL;
   }
   LVDS_SetDataMode(this->m_dataMode);
@@ -112,7 +112,7 @@ PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalConnect()
   
   if (!LVDS_Start())
   {
-    LOG_ERROR("DAQ System CameraLink: Failed to start");
+    LOG_ERROR("DAQVideoSourceCam CameraLink: Failed to start");
     return PLUS_FAIL;
   }
   this->deviceRunning = true;
@@ -121,7 +121,7 @@ PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalConnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalDisconnect()
+PlusStatus vtkPlusDAQVideoSourceCam::InternalDisconnect()
 {
   LVDS_Stop();
   CloseDAQDevice();
@@ -130,21 +130,21 @@ PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalDisconnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalUpdate()
+PlusStatus vtkPlusDAQVideoSourceCam::InternalUpdate()
 {
   std::ostringstream ss;
   int ix,iy;
 
   if (!this->deviceRunning)
   {
-    LOG_ERROR("vtkPlusDAQUSB3FRM13BCam::InternalUpdate Unable to read data");
+    LOG_ERROR("vtkPlusDAQVideoSourceCam::InternalUpdate Unable to read data");
     return PLUS_SUCCESS; 
   }
 
   this->m_currentTime = vtkIGSIOAccurateTimer::GetSystemTime();
   if (!LVDS_GetFrame(&m_dwCharCount, (unsigned char*)(this->pImgBufAux)))
   {
-    LOG_DEBUG("vtkPlusDAQUSB3FRM13BCam::InternalUpdate Unable to receive frame");
+    LOG_DEBUG("vtkPlusDAQVideoSourceCam::InternalUpdate Unable to receive frame");
     return PLUS_SUCCESS; 
   }
 
@@ -181,16 +181,16 @@ PlusStatus vtkPlusDAQUSB3FRM13BCam::InternalUpdate()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDAQUSB3FRM13BCam::NotifyConfigured()
+PlusStatus vtkPlusDAQVideoSourceCam::NotifyConfigured()
 {
   if (this->OutputChannels.size() > 1)
   {
-    LOG_WARNING("vtkPlusDAQUSB3FRM13BCam is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
+    LOG_WARNING("vtkPlusDAQVideoSourceCam is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
   }
 
   if (this->OutputChannels.empty())
   {
-    LOG_ERROR("No output channels defined for vtkPlusDAQUSB3FRM13BCam. Cannot proceed.");
+    LOG_ERROR("No output channels defined for vtkPlusDAQVideoSourceCam. Cannot proceed.");
     this->CorrectlyConfigured = false;
     return PLUS_FAIL;
   }

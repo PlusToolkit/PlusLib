@@ -6,24 +6,24 @@ See License.txt for details.
 Developed by ULL & IACTEC-IAC group
 =========================================================Plus=header=end*/
 
-#ifndef __vtkPlusDAQUSB3FRM13BCam_h
-#define __vtkPlusDAQUSB3FRM13BCam_h
+#ifndef __vtkPlusDAQVideoSourceCam_h
+#define __vtkPlusDAQVideoSourceCam_h
 
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 
 /*!
-\class vtkPlusDAQUSB3FRM13BCam
+\class vtkPlusDAQVideoSourceCam
 \brief Class for interfacing an Infrared Seek capture device and recording frames into a Plus buffer
 
 \ingroup PlusLibDataCollection
 */
 
-class vtkPlusDataCollectionExport vtkPlusDAQUSB3FRM13BCam : public vtkPlusDevice
+class vtkPlusDataCollectionExport vtkPlusDAQVideoSourceCam : public vtkPlusDevice
 {
 public:
-  static vtkPlusDAQUSB3FRM13BCam* New();
-  vtkTypeMacro(vtkPlusDAQUSB3FRM13BCam, vtkPlusDevice);
+  static vtkPlusDAQVideoSourceCam* New();
+  vtkTypeMacro(vtkPlusDAQVideoSourceCam, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Read configuration from xml data */
@@ -42,8 +42,8 @@ public:
   virtual PlusStatus NotifyConfigured();
 
 protected:
-  vtkPlusDAQUSB3FRM13BCam();
-  ~vtkPlusDAQUSB3FRM13BCam();
+  vtkPlusDAQVideoSourceCam();
+  ~vtkPlusDAQVideoSourceCam();
 
   virtual PlusStatus InternalConnect() VTK_OVERRIDE;
   virtual PlusStatus InternalDisconnect() VTK_OVERRIDE;
@@ -67,4 +67,4 @@ protected:
 
 };
 
-#endif // __vtkPlusDAQUSB3FRM13BCam_h
+#endif // __vtkPlusDAQVideoSourceCam_h
