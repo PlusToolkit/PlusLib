@@ -14,7 +14,7 @@ Developed by ULL & IACTEC-IAC group
 
 /*!
 \class vtkPlusDAQVideoSourceCam
-\brief Class for interfacing an Infrared Seek capture device and recording frames into a Plus buffer
+\brief Class for interfacing an Infrared capture device and recording frames into a Plus buffer
 
 \ingroup PlusLibDataCollection
 */
@@ -30,7 +30,6 @@ public:
   PlusStatus ReadConfiguration(vtkXMLDataElement* config);
   /*! Write configuration to xml data */
   PlusStatus WriteConfiguration(vtkXMLDataElement* config);
-
 
   /*! Is this device a tracker */
   bool IsTracker() const { return false; }
@@ -64,7 +63,6 @@ protected:
   DWORD m_dwCharCount;
   int m_nbytesMode;
   double m_currentTime = UNDEFINED_TIMESTAMP;
-
 };
 
 #endif // __vtkPlusDAQVideoSourceCam_h
