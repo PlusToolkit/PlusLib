@@ -59,6 +59,10 @@ public:
   /*! return the singleton instance with no reference counting */
   static vtkPlusClariusOEM* GetInstance();
 
+  PlusStatus InternalUpdate() override;
+
+  PlusStatus UpdateProbeStatus();
+
 protected:
   vtkPlusClariusOEM();
   ~vtkPlusClariusOEM();

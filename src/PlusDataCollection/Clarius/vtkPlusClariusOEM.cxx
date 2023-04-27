@@ -245,6 +245,8 @@ protected:
                        // frames after button is clicked to ensure user can process
                        // it in Slicer even if a frame is skipped
 
+  CusStatusInfo CurrentStatus;
+
   bool EnableAutoFocus;
 
   enum class EXPECTED_LIST
@@ -399,6 +401,24 @@ void vtkPlusClariusOEM::vtkInternal::SpectralImageFn(const void* newImage, const
 }
 
 //-------------------------------------------------------------------------------------------------
+PlusStatus vtkPlusClariusOEM::InternalUpdate()
+{
+  this->UpdateProbeStatus();
+  return PLUS_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------
+PlusStatus vtkPlusClariusOEM::UpdateProbeStatus()
+{
+  if (solumStatusInfo(&this->Internal->CurrentStatus) != 0)
+  {
+    LOG_ERROR("Failed to retrieve solumStatusInfo");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------
 void vtkPlusClariusOEM::vtkInternal::ProcessedImageFn(const void* oemImage, const CusProcessedImageInfo* nfo, int npos, const CusPosInfo* pos)
 {
   vtkPlusClariusOEM* device = vtkPlusClariusOEM::GetInstance();
@@ -458,17 +478,12 @@ void vtkPlusClariusOEM::vtkInternal::ProcessedImageFn(const void* oemImage, cons
 
   // custom fields (battery & button clicks)
   igsioFieldMapType customFields;
-  CusStatusInfo stats;
-  if (solumStatusInfo(&stats) != 0)
-  {
-    LOG_WARNING("Failed to retrieve solumStatusInfo");
-  }
   customFields[BATTERY_FIELD_TAG].first = FRAMEFIELD_FORCE_SERVER_SEND;
-  customFields[BATTERY_FIELD_TAG].second = std::to_string(stats.battery);
+  customFields[BATTERY_FIELD_TAG].second = std::to_string(device->Internal->CurrentStatus.battery);
   customFields[TEMP_FIELD_TAG].first = FRAMEFIELD_FORCE_SERVER_SEND;
-  customFields[TEMP_FIELD_TAG].second = std::to_string(stats.temperature);
+  customFields[TEMP_FIELD_TAG].second = std::to_string(device->Internal->CurrentStatus.temperature);
   customFields[FRAME_RATE_FIELD_TAG].first = FRAMEFIELD_FORCE_SERVER_SEND;
-  customFields[FRAME_RATE_FIELD_TAG].second = std::to_string(stats.frameRate);
+  customFields[FRAME_RATE_FIELD_TAG].second = std::to_string(device->Internal->CurrentStatus.frameRate);
 
   customFields[BUTTON_FIELD_TAG].first = FRAMEFIELD_FORCE_SERVER_SEND;
   customFields[BUTTON_FIELD_TAG].second = device->Internal->PressedButton;
@@ -660,7 +675,7 @@ vtkPlusClariusOEM* vtkPlusClariusOEM::New()
 vtkPlusClariusOEM::vtkPlusClariusOEM()
   : Internal(new vtkInternal(this))
 {
-  this->StartThreadForInternalUpdates = false;
+  this->StartThreadForInternalUpdates = true;
   this->RequirePortNameInDeviceSetConfiguration = true;
 
   this->ImagingParameters->SetDepthMm(DEFAULT_DEPTH_MM);
@@ -1058,8 +1073,8 @@ PlusStatus vtkPlusClariusOEM::InitializeProbe()
   else
   {
     std::stringstream infoStream;
-    infoStream << "\tAvailable?: " << to_string(info.Available) << "\n";
-    infoStream << "\tWifi Mode : " << to_string(info.WifiMode) << "\n";
+    infoStream << "\tAvailable: " << to_string(info.Available) << "\n";
+    infoStream << "\tWifi Mode: " << to_string(info.WifiMode) << "\n";
     infoStream << "\tSSID: " << info.SSID << "\n";
     infoStream << "\tPassword: " << info.Password << "\n";
     infoStream << "\tIPv4: " << info.IPv4 << "\n";
@@ -1331,7 +1346,7 @@ PlusStatus vtkPlusClariusOEM::ConfigureProbeApplication()
   // configure probe mode
   if (solumLoadApplication(probeType.c_str(), imagingApplication.c_str()) == 0)
   {
-    LOG_INFO("Attempting to load " << imagingApplication << " application on a " << probeType << " probe");
+    LOG_INFO("Loaded " << imagingApplication << " application on a " << probeType << " probe");
   }
   else
   {
@@ -1440,7 +1455,7 @@ PlusStatus vtkPlusClariusOEM::InternalConnect()
   // CONFIGURE PROBE SETTINGS
   CusProbeSettings settings;
   settings.contactDetection = this->Internal->ContactDetectionTimeoutSec;
-  settings.autoFreeze = (this->Internal->AutoFreezeTimeoutSec ? 1 : 0);
+  settings.autoFreeze = this->Internal->AutoFreezeTimeoutSec;
   settings.keepAwake = this->Internal->KeepAwakeTimeoutMin;
   settings.wifiOptimization = this->Internal->FreezeOnPoorWifiSignal;
   settings.up = static_cast<CusButtonSetting>(this->Internal->UpButtonMode);
@@ -1461,11 +1476,7 @@ PlusStatus vtkPlusClariusOEM::InternalConnect()
   }
 
   // PRINT DEVICE STATS AND PROBE INFO
-  CusStatusInfo stats;
-  if (solumStatusInfo(&stats) != 0)
-  {
-    LOG_WARNING("Failed to retrieve solumStatusInfo");
-  }
+  this->UpdateProbeStatus();
   std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_LONG_DELAY_MS));
 
   CusProbeInfo probeInfo;
@@ -1475,8 +1486,8 @@ PlusStatus vtkPlusClariusOEM::InternalConnect()
   }
   std::stringstream ss;
   ss << "Version: " << probeInfo.version << std::endl;
-  ss << "Battery: " << stats.battery << "%" << std::endl;
-  ss << "Temperature: " << stats.temperature << "%" << std::endl;
+  ss << "Battery: " << this->Internal->CurrentStatus.battery << "%" << std::endl;
+  ss << "Temperature: " << this->Internal->CurrentStatus.temperature << "%" << std::endl;
   ss << "Elements: " << probeInfo.elements << std::endl;
   ss << "Pitch: " << probeInfo.pitch << std::endl;
   ss << "Radius: " << probeInfo.radius << "mm" << std::endl;
@@ -1604,7 +1615,19 @@ PlusStatus vtkPlusClariusOEM::InternalStartRecording()
 {
   LOG_TRACE("vtkPlusClariusOEM::InternalStartRecording");
 
-  if (solumRun(CLARIUS_RUN) < 0)
+  bool running = false;
+  for (int i = 0; i < 10; ++i)
+  {
+    // Attempt to connect. solumRun may not succeed the first time.
+    if (solumRun(CLARIUS_RUN) < 0)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_LONG_DELAY_MS));
+      continue;
+    }
+    running = true;
+  }
+
+  if (!running)
   {
     LOG_ERROR("Failed to start Clarius imaging");
     return PLUS_FAIL;

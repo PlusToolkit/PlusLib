@@ -582,7 +582,7 @@ void ClariusBLEPrivate::ProcessWifiInfo(std::string info)
   if (infoList.size() == 1)
   {
     // wifi disabled, so only state returned
-    if (infoList.at(0).find("disabled") == std::string::npos)
+    if (infoList.at(0).find("state") == std::string::npos)
     {
       throw std::runtime_error("Format of ClariusWifiInfo string has changed. Please report "
         "this info the the PLUS developers");
