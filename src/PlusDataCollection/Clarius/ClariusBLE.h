@@ -137,6 +137,11 @@ public:
   bool AwaitWifiInfoReady();
 
   /*!
+  * Read the current wifi state from the BLE characteristic.
+  */
+  PlusStatus ClariusBLE::ReadWifiInfo();
+
+  /*!
    * Configure the probe wifi to access-point mode, where the user will
    * directly connect to the probe's wifi network (DIRECT-**SN** SSID).
    */

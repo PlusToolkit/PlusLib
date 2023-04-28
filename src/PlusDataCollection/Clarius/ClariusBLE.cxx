@@ -67,7 +67,7 @@ static const winrt::guid WIFI_REQUEST_CHAR_UUID
 { 0xf9eb3fae, 0x947a, 0x4e5b, { 0xab, 0x7c, 0xc7, 0x99, 0xe9, 0x1e, 0xd7, 0x82 } };
 
 // max duration to wait for probe boot sequence to complete
-static const uint64_t POWER_ON_TIMEOUT_SEC = 20;
+static const uint64_t POWER_ON_TIMEOUT_SEC = 30;
 
 // max duration to block while waiting for a BLE operation to complete
 static const uint64_t BLE_OP_TIMEOUT_SEC = 5;
@@ -591,7 +591,6 @@ void ClariusBLEPrivate::ProcessWifiInfo(std::string info)
     ClariusWifiInfo newInfo;
     newInfo.Ready = false;
     this->WifiInfo = newInfo;
-    this->WifiInfoSet = true;
     return;
   }
   else if (infoList.size() != 10)
@@ -954,6 +953,14 @@ bool ClariusBLE::AwaitWifiInfoReady()
     return true;
   }
 
+  // check to see if wifi info is already availiable in the case that the probe is already on
+  // and wifi is availiable
+  this->ReadWifiInfo();
+  if (_impl->WifiInfoSet)
+  {
+    return true;
+  }
+
   // wait for wifi info to be set
   std::future<void> wifiInfoFuture = _impl->WifiInfoPromise.get_future();
 
@@ -964,16 +971,7 @@ bool ClariusBLE::AwaitWifiInfoReady()
 
   // TODO: WifiStateChanged callback is not currently being called.
   // After waiting for the timeout, try once to see if WifiPublishedChar has been updated.
-  IAsyncOperation<GattReadResult> wifiOp =
-    _impl->WifiPublishedChar.ReadValueAsync(BluetoothCacheMode::Uncached);
-  if (await_async(wifiOp) == PLUS_SUCCESS)
-  {
-    GattReadResult wifiResult = wifiOp.GetResults();
-    DataReader wifiReader = DataReader::FromBuffer(wifiResult.Value());
-    winrt::hstring wifiHString = wifiReader.ReadString(wifiReader.UnconsumedBufferLength());
-    std::string wifiStr = to_narrow_string(wifiHString);
-    _impl->ProcessWifiInfo(wifiStr);
-  }
+  this->ReadWifiInfo();
 
   if (!_impl->WifiInfoSet)
   {
@@ -985,6 +983,23 @@ bool ClariusBLE::AwaitWifiInfoReady()
   }
 
   return true;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus ClariusBLE::ReadWifiInfo()
+{
+  IAsyncOperation<GattReadResult> wifiOp =
+    _impl->WifiPublishedChar.ReadValueAsync(BluetoothCacheMode::Uncached);
+  if (await_async(wifiOp) == PLUS_SUCCESS)
+  {
+    GattReadResult wifiResult = wifiOp.GetResults();
+    DataReader wifiReader = DataReader::FromBuffer(wifiResult.Value());
+    winrt::hstring wifiHString = wifiReader.ReadString(wifiReader.UnconsumedBufferLength());
+    std::string wifiStr = to_narrow_string(wifiHString);
+    _impl->ProcessWifiInfo(wifiStr);
+  }
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
