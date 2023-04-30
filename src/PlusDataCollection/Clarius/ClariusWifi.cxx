@@ -229,7 +229,7 @@ PlusStatus ClariusWifi::ConnectToClariusWifi(std::string ssid, std::string passw
   res = WlanConnect(this->HClient, &this->InterfaceGuid, &wlan_params, NULL);
   if (res != ERROR_SUCCESS)
   {
-    LOG_ERROR("Failed to connect to Clarius wifi network");
+    LOG_ERROR("Failed to connect to Clarius wifi network: Error code " << res);
     return PLUS_FAIL;
   }
 
