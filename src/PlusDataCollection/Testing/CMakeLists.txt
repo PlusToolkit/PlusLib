@@ -522,10 +522,10 @@ IF(PLUS_USE_ULTRAVIOLET_PCOUV_CAM AND PLUS_RENDERING_ENABLED)
  ENDIF()
 
 #*********************** DAQVideoSourceDeviceTest *****************************
-IF(PLUS_USE_DAQVIDEOSOURCE_CAM AND PLUS_RENDERING_ENABLED)
-  ADD_EXECUTABLE(vtkDAQVideoSourceCamTest vtkDAQVideoSourceCamTest.cxx)
-  SET_TARGET_PROPERTIES(vtkDAQVideoSourceCamTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkDAQVideoSourceCamTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
+IF(PLUS_USE_DAQVIDEOSOURCE AND PLUS_RENDERING_ENABLED)
+  ADD_EXECUTABLE(vtkDAQVideoSourceTest vtkDAQVideoSourceTest.cxx)
+  SET_TARGET_PROPERTIES(vtkDAQVideoSourceTest PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(vtkDAQVideoSourceTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
  ENDIF()
 
 #*************************** vtkOvrvisionProVideoSourceTest ***************************

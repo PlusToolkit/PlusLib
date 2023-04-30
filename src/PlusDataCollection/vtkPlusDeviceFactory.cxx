@@ -224,8 +224,8 @@ See License.txt for details.
 #include "vtkPlusUltravioletPCOUVCam.h"
 #endif
 
-#ifdef PLUS_USE_DAQVIDEOSOURCE_CAM
-#include "vtkPlusDAQVideoSourceCam.h"
+#ifdef PLUS_USE_DAQVIDEOSOURCE
+#include "vtkPlusDAQVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_GENERIC_SENSOR_TRACKER
@@ -437,8 +437,8 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
     RegisterDevice("UltravioletPCOUVCam", "vtkPlusUltravioletPCOUVCam", (PointerToDevice)&vtkPlusUltravioletPCOUVCam::New);
 #endif
 
-#ifdef PLUS_USE_DAQVIDEOSOURCE_CAM
-    RegisterDevice("DAQVideoSourceCam", "vtkPlusDAQVideoSourceCam", (PointerToDevice)&vtkPlusDAQVideoSourceCam::New);
+#ifdef PLUS_USE_DAQVIDEOSOURCE
+    RegisterDevice("DAQVideoSource", "vtkPlusDAQVideoSource", (PointerToDevice)&vtkPlusDAQVideoSource::New);
 #endif
 
 

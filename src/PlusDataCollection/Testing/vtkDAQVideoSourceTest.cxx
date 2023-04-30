@@ -15,7 +15,7 @@
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusDAQVideoSourceCam.h"
+#include "vtkPlusDAQVideoSource.h"
 #include "vtksys/CommandLineArguments.hxx"
 
 void PrintLogsCallback(vtkObject* obj, unsigned long eid, void* clientdata, void* calldata); 
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
-    std::cout << "\n\nvtkDAQVideoSourceCamTest help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkDAQVideoSourceTest help:" << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -65,38 +65,38 @@ int main(int argc, char **argv)
   
   if ( printHelp ) 
   {
-    std::cout << "\n\nvtkDAQVideoSourceCamTest help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkDAQVideoSourceTest help:" << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS); 
   }
 
-  vtkSmartPointer<vtkPlusDAQVideoSourceCam> DAQVideoSourceCam = vtkSmartPointer<vtkPlusDAQVideoSourceCam>::New();
+  vtkSmartPointer<vtkPlusDAQVideoSource> DAQVideoSource = vtkSmartPointer<vtkPlusDAQVideoSource>::New();
 
-  DAQVideoSourceCam->CreateDefaultOutputChannel();
+  DAQVideoSource->CreateDefaultOutputChannel();
 
 // Add an observer to warning and error events for redirecting it to the stdout 
   vtkSmartPointer<vtkCallbackCommand> callbackCommand = vtkSmartPointer<vtkCallbackCommand>::New();
   callbackCommand->SetCallback(PrintLogsCallback);
-  DAQVideoSourceCam->AddObserver("WarningEvent", callbackCommand); 
-  DAQVideoSourceCam->AddObserver("ErrorEvent", callbackCommand); 
+  DAQVideoSource->AddObserver("WarningEvent", callbackCommand); 
+  DAQVideoSource->AddObserver("ErrorEvent", callbackCommand); 
   
   LOG_INFO("Initialize..."); 
-  DAQVideoSourceCam->Connect();
+  DAQVideoSource->Connect();
 
-  if ( DAQVideoSourceCam->GetConnected() )
+  if ( DAQVideoSource->GetConnected() )
   {
     LOG_INFO("Start recording..."); 
-    DAQVideoSourceCam->StartRecording(); 
+    DAQVideoSource->StartRecording(); 
   }
   else
   {
-    DAQVideoSourceCam->Disconnect();
+    DAQVideoSource->Disconnect();
     LOG_ERROR( "Unable to connect to DAQ USB3-FRM13-B device"); 
     exit(EXIT_FAILURE); 
   }
 
   LOG_INFO("Stop recording...");
-  DAQVideoSourceCam->StopRecording(); 
-  DAQVideoSourceCam->Disconnect();
+  DAQVideoSource->StopRecording(); 
+  DAQVideoSource->Disconnect();
   LOG_INFO("Exit successfully"); 
   exit(EXIT_SUCCESS); 
 }

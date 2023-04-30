@@ -6,24 +6,24 @@ See License.txt for details.
 Developed by ULL & IACTEC-IAC group
 =========================================================Plus=header=end*/
 
-#ifndef __vtkPlusDAQVideoSourceCam_h
-#define __vtkPlusDAQVideoSourceCam_h
+#ifndef __vtkPlusDAQVideoSource_h
+#define __vtkPlusDAQVideoSource_h
 
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 
 /*!
-\class vtkPlusDAQVideoSourceCam
+\class vtkPlusDAQVideoSource
 \brief Class for interfacing an Infrared capture device and recording frames into a Plus buffer
 
 \ingroup PlusLibDataCollection
 */
 
-class vtkPlusDataCollectionExport vtkPlusDAQVideoSourceCam : public vtkPlusDevice
+class vtkPlusDataCollectionExport vtkPlusDAQVideoSource : public vtkPlusDevice
 {
 public:
-  static vtkPlusDAQVideoSourceCam* New();
-  vtkTypeMacro(vtkPlusDAQVideoSourceCam, vtkPlusDevice);
+  static vtkPlusDAQVideoSource* New();
+  vtkTypeMacro(vtkPlusDAQVideoSource, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Read configuration from xml data */
@@ -41,8 +41,8 @@ public:
   virtual PlusStatus NotifyConfigured();
 
 protected:
-  vtkPlusDAQVideoSourceCam();
-  ~vtkPlusDAQVideoSourceCam();
+  vtkPlusDAQVideoSource();
+  ~vtkPlusDAQVideoSource();
 
   virtual PlusStatus InternalConnect() VTK_OVERRIDE;
   virtual PlusStatus InternalDisconnect() VTK_OVERRIDE;
@@ -65,4 +65,4 @@ protected:
   double m_currentTime = UNDEFINED_TIMESTAMP;
 };
 
-#endif // __vtkPlusDAQVideoSourceCam_h
+#endif // __vtkPlusDAQVideoSource_h
