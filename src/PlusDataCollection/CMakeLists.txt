@@ -58,6 +58,7 @@ OPTION(PLUS_USE_ANDOR_CAMERA "Provide support for capturing images from Andor Ca
 OPTION(PLUS_USE_INFRARED_TEQ1_CAM "Provide support for capturing an Infrared Therma Expert Q1 Camera capture stream" OFF)
 OPTION(PLUS_USE_INFRARED_TEEV2_CAM "Provide support for capturing an Infrared Thermal Expert EV2 Camera capture stream" OFF)
 OPTION(PLUS_USE_ULTRAVIOLET_PCOUV_CAM "Provide support for capturing an PCO Ultraviolet Camera capture stream" OFF)
+OPTION(PLUS_USE_DAQVIDEOSOURCE "Provide support for capturing an CameraLink Camera using DAQ System USB3-FRM13-B Grabber"  OFF)
 OPTION(PLUS_USE_WITMOTIONTRACKER "Provide support for the WitMotion class of inertial measurement units" OFF)
 
 OPTION(PLUS_USE_LEAPMOTION "Provide support for the LeapMotion hand tracker" OFF)
@@ -2398,7 +2399,44 @@ IF(PLUS_USE_ULTRAVIOLET_PCOUV_CAM)
 
 ENDIF()
 
+#---------------------------------------------------------------------------
+# DAQVIDEOSOURCE 
+IF(PLUS_USE_DAQVIDEOSOURCE)
+  FIND_PACKAGE(DAQVIDEOSOURCESDK REQUIRED)
 
+  # Compile
+  SET(DAQVIDEOSOURCE_SRCS
+    DAQVideoSource/vtkPlusDAQVideoSource.cxx
+    )
+  SET(DAQVIDEOSOURCE_HDRS
+      DAQVideoSource/vtkPlusDAQVideoSource.h
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${DAQVIDEOSOURCE_HDRS}
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${DAQVIDEOSOURCE_SRCS}
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/DAQVideoSource
+    ${DAQVIDEOSOURCE_SDK_LIBRARY}
+    ${DAQVIDEOSOURCE_SDK_INCLUDE_DIR}
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    ${DAQVIDEOSOURCE_SDK_LIBRARY}
+  )
+  LIST(APPEND External_Libraries_Install
+    ${DAQVIDEOSOURCE_SDK_BINARY}/${SDK_FILENAME}
+  )
+  LIST(APPEND External_Libraries_Debug
+    ${DAQVIDEOSOURCE_SDK_BINARY}/${SDK_FILENAME}
+  )
+
+ENDIF()
 
 
 # --------------------------------------------------------------------------
