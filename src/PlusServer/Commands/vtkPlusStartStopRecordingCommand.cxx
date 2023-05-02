@@ -372,10 +372,10 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
   }
   else if (igsioCommon::IsEqualInsensitive(this->Name, STOP_CMD))
   {
-    // it's stopped if: not in progress (it may be just suspended) and no frames have been recorded
-    if (!captureDevice->GetEnableCapturing() && captureDevice->GetTotalFramesRecorded() == 0)
+    // Don't bother closing the file if there aren't any frames
+    if (captureDevice->GetTotalFramesRecorded() == 0)
     {
-      this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", responseMessageBase + std::string("Recording to file is already stopped."));
+      this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", responseMessageBase + std::string("No frames to record."));
       return PLUS_FAIL;
     }
 
