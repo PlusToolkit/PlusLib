@@ -25,6 +25,7 @@ namespace
   static const std::string SUSPEND_CMD = "SuspendRecording";
   static const std::string RESUME_CMD = "ResumeRecording";
   static const std::string STOP_CMD = "StopRecording";
+  static const std::string HEADER_CMD = "AddCustomHeaders";
 }
 
 //----------------------------------------------------------------------------
@@ -44,6 +45,7 @@ void vtkPlusStartStopRecordingCommand::SetNameToStart() { SetName(START_CMD); }
 void vtkPlusStartStopRecordingCommand::SetNameToSuspend() { SetName(SUSPEND_CMD); }
 void vtkPlusStartStopRecordingCommand::SetNameToResume() { SetName(RESUME_CMD); }
 void vtkPlusStartStopRecordingCommand::SetNameToStop() { SetName(STOP_CMD); }
+void vtkPlusStartStopRecordingCommand::SetNameToHeader() { SetName(HEADER_CMD); }
 
 //----------------------------------------------------------------------------
 void vtkPlusStartStopRecordingCommand::GetCommandNames(std::list<std::string>& cmdNames)
@@ -53,6 +55,7 @@ void vtkPlusStartStopRecordingCommand::GetCommandNames(std::list<std::string>& c
   cmdNames.push_back(SUSPEND_CMD);
   cmdNames.push_back(RESUME_CMD);
   cmdNames.push_back(STOP_CMD);
+  cmdNames.push_back(HEADER_CMD);
 }
 
 //----------------------------------------------------------------------------
@@ -78,6 +81,11 @@ std::string vtkPlusStartStopRecordingCommand::GetDescription(const std::string& 
   {
     desc += STOP_CMD;
     desc += ": Stop collecting data into file with a VirtualCapture device. Attributes: OutputFilename: name of the output file (optional if base file name is specified in config file). CaptureDeviceId (optional)";
+  }
+  if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName, HEADER_CMD))
+  {
+    desc += HEADER_CMD;
+    desc += ": Add custom headers to the opened capture instance. Attributes: CaptureDeviceId (optional)";
   }
   return desc;
 }
@@ -120,6 +128,28 @@ PlusStatus vtkPlusStartStopRecordingCommand::ReadConfiguration(vtkXMLDataElement
   {
     XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableCompression, aConfig);
     XML_READ_STRING_ATTRIBUTE_OPTIONAL(CodecFourCC, aConfig);
+  }
+  else if (this->GetName() == HEADER_CMD)
+  {
+    this->RequestedCustomHeaders.clear();
+
+    // Parse nested elements and store requested parameter changes
+    for (int elemIndex = 0; elemIndex < aConfig->GetNumberOfNestedElements(); ++elemIndex)
+    {
+      vtkXMLDataElement* currentElem = aConfig->GetNestedElement(elemIndex);
+      if (igsioCommon::IsEqualInsensitive(currentElem->GetName(), "Header"))
+      {
+        const char* headerName = currentElem->GetAttribute("Name");
+        const char* headerValue = currentElem->GetAttribute("Value");
+        if (!headerName || !headerValue)
+        {
+          LOG_ERROR("Unable to find required Name or Value attribute in " << (currentElem->GetName() ? currentElem->GetName() : "(undefined)") << " element is AddCustomHeaders command");
+          continue;
+        }
+
+        this->RequestedCustomHeaders[headerName] = headerValue;
+      }
+    }
   }
 
   return PLUS_SUCCESS;
@@ -369,6 +399,23 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
     std::ostringstream ss;
     ss << "Recording " << numberOfFramesRecorded << " frames successful to file " << actualOutputFilename;
     this->QueueCommandResponse(PLUS_SUCCESS, responseMessageBase + ss.str());
+    return PLUS_SUCCESS;
+  }
+  else if (igsioCommon::IsEqualInsensitive(this->Name, HEADER_CMD))
+  {
+    std::map<std::string, std::string>::iterator headerIt;
+    for (headerIt = this->RequestedCustomHeaders.begin(); headerIt != this->RequestedCustomHeaders.end(); ++headerIt)
+    {
+      std::string headerName = headerIt->first;
+      std::string headerValue = headerIt->second;
+
+      if (captureDevice->SetCustomHeaderField(headerName, headerValue) != PLUS_SUCCESS)
+      {
+        this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", responseMessageBase + "Failed to write header: " + headerName + ", " + headerValue);
+        return PLUS_FAIL;
+      }
+    }
+    this->QueueCommandResponse(PLUS_SUCCESS, responseMessageBase + std::string(" All headers written."));
     return PLUS_SUCCESS;
   }
 
