@@ -62,6 +62,7 @@ public:
   void SetNameToSuspend();
   void SetNameToResume();
   void SetNameToStop();
+  void SetNameToHeader();
 
   /*!
     Helper function to get pointer to the capture device
@@ -85,6 +86,8 @@ private:
   std::string OutputFilename;
   std::string CaptureDeviceId;
   std::string ChannelId;
+
+  std::map<std::string, std::string> RequestedCustomHeaders;
 
   vtkPlusStartStopRecordingCommand(const vtkPlusStartStopRecordingCommand&);
   void operator=(const vtkPlusStartStopRecordingCommand&);
