@@ -395,7 +395,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
 
     long numberOfFramesRecorded = captureDevice->GetTotalFramesRecorded();
     std::string actualOutputFilename;
-    if (captureDevice->CloseFile(this->OutputFilename.c_str(), &actualOutputFilename) != PLUS_SUCCESS)
+    if (captureDevice->CloseFile(resultFilename.c_str(), &actualOutputFilename) != PLUS_SUCCESS)
     {
       this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", responseMessageBase + "Failed to finalize file: " + resultFilename);
       return PLUS_FAIL;
