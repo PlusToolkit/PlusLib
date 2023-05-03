@@ -65,7 +65,10 @@ std::string vtkPlusStartStopRecordingCommand::GetDescription(const std::string& 
   if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName, START_CMD))
   {
     desc += START_CMD;
-    desc += ": Start collecting data into file with a VirtualCapture device. Attributes: OutputFilename: name of the output file (optional if base file name is specified in config file). CaptureDeviceId: ID of the capture device, if not specified then the first VirtualCapture device will be started (optional)";
+    desc += ": Start collecting data into file with a VirtualCapture device.";
+    desc += " Attributes: OutputFilename: name of the output file (optional if base file name is specified in config file).";
+    desc += " CaptureDeviceId: ID of the capture device, if not specified then the first VirtualCapture device will be started (optional)";
+    desc += " PauseOnStart: Whether to enable capture when opening file. (optional)";
   }
   if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName, SUSPEND_CMD))
   {
@@ -127,6 +130,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::ReadConfiguration(vtkXMLDataElement
   if (this->GetName() == START_CMD)
   {
     XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableCompression, aConfig);
+    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(PauseOnStart, aConfig);
     XML_READ_STRING_ATTRIBUTE_OPTIONAL(CodecFourCC, aConfig);
   }
   else if (this->GetName() == HEADER_CMD)
@@ -344,7 +348,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
       this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", responseMessageBase + std::string("Failed to open file ") + (!this->OutputFilename.empty() ? this->OutputFilename : "(undefined)") + std::string("."));
       return PLUS_FAIL;
     }
-    captureDevice->SetEnableCapturing(true);
+    captureDevice->SetEnableCapturing(!this->GetPauseOnStart());
     this->QueueCommandResponse(PLUS_SUCCESS, responseMessageBase + "successful.");
     return PLUS_SUCCESS;
   }

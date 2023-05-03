@@ -55,6 +55,9 @@ public:
   vtkGetMacro(EnableCompression, bool);
   vtkSetMacro(EnableCompression, bool);
 
+  vtkGetMacro(PauseOnStart, bool);
+  vtkSetMacro(PauseOnStart, bool);
+
   vtkGetStdStringMacro(CodecFourCC);
   vtkSetStdStringMacro(CodecFourCC);
 
@@ -82,6 +85,7 @@ protected:
 
 private:
   bool        EnableCompression;
+  bool        PauseOnStart;
   std::string CodecFourCC;
   std::string OutputFilename;
   std::string CaptureDeviceId;
