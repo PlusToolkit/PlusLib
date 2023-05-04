@@ -1902,6 +1902,11 @@ PlusStatus vtkPlusWinProbeVideoSource::SetARFILineTimer(uint16_t propertyValue)
 
   if(Connected)
   {
+    if(propertyValue > 2000)
+    {
+      LOG_ERROR("The maximum ARFI line timer is 2000. Ignoring call to change to " << propertyValue);
+      return PLUS_FAIL;
+    }
     m_ARFILineTimer = propertyValue;
     ::SetARFILineTimer(propertyValue);
     SetPendingRecreateTables(true);
