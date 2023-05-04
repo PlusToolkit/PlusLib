@@ -1460,6 +1460,7 @@ PlusStatus vtkPlusClariusOEM::InternalConnect()
   settings.wifiOptimization = this->Internal->FreezeOnPoorWifiSignal;
   settings.up = static_cast<CusButtonSetting>(this->Internal->UpButtonMode);
   settings.down = static_cast<CusButtonSetting>(this->Internal->DownButtonMode);
+  settings.downHold = CusButtonHoldSetting::ButtonHoldShutdown;
   if (solumSetProbeSettings(&settings) != 0)
   {
     LOG_ERROR("Failed to set Clarius OEM probe settings");
