@@ -355,6 +355,8 @@ public:
   /*!
   Set the integer increment (1.05ms per increment) to delay after completion of the ARFIPushConfigurationString before it begins live streaming B-Mode frames again.
 
+  Setting to 0 will default to the clinical delay of approximately 1 second.
+
   The interset delay is a post ARFI configuration string delay.
   Example: "1,33,44;1,41,52;1,49,60;1,57,68;1,65,76;1,73,84;2,36,44;2,44,52;2,52,60;2,60,68;2,68,76;2,76,84(interset)"
   */
@@ -508,7 +510,7 @@ protected:
   uint16_t m_ARFILineTimer = 100;
   int32_t m_ARFIPrePushLineRepeatCount = 8;
   int32_t m_ARFIPostPushLineRepeatCount = 56;
-  int32_t m_ARFIInterSetDelay = 0;
+  int32_t m_ARFIInterSetDelay = 100;
   int32_t m_ARFIInterPushDelay = 100;
   std::string m_ARFIPushConfigurationString = "1,33,44;1,41,52;1,49,60;1,57,68;1,65,76;1,73,84";
   int m_ARFIPushConfigurationCount = 6;

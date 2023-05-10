@@ -1978,6 +1978,10 @@ PlusStatus vtkPlusWinProbeVideoSource::SetARFIInterSetDelay(int32_t propertyValu
       LOG_ERROR("The maximum ARFI inter set delay is 250*250. Ignoring call to change to " << propertyValue);
       return PLUS_FAIL;
     }
+    else if (propertyValue == 0)
+    {
+      LOG_WARNING("ARFI inter set delay defaulting to clinical delay mode of approximately 1 second.");
+    }
     m_ARFIInterSetDelay = propertyValue;
     ::SetARFIInterSetDelay(propertyValue);  // API call includes SetPendingRecreateTables(true). Really just need SetPendingRestartSequencer(true);
     return PLUS_SUCCESS;
