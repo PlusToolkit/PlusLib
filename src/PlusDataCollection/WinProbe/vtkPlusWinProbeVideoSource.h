@@ -327,7 +327,7 @@ public:
   void SetARFIEnabled(bool value);
   bool GetARFIEnabled();
   /*! If running in ARFI mode, does an ARFI push. Otherwise does nothing and returns failure status. */
-  PlusStatus ARFIPush();
+  PlusStatus ARFIPush(uint8_t maximumVoltage = 50);
   void SetARFIStartSample(int32_t value);
   int32_t GetARFIStartSample();
 

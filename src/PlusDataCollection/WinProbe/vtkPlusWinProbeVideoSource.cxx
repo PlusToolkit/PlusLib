@@ -2121,7 +2121,7 @@ bool vtkPlusWinProbeVideoSource::GetARFIEnabled()
   return arfiEnabled;
 }
 
-PlusStatus vtkPlusWinProbeVideoSource::ARFIPush()
+PlusStatus vtkPlusWinProbeVideoSource::ARFIPush(uint8_t maximumVoltage /* = 50 */)
 {
   if (this->Connected && m_Mode == Mode::ARFI)
   {
@@ -2134,6 +2134,18 @@ PlusStatus vtkPlusWinProbeVideoSource::ARFIPush()
       LOG_ERROR("The FPGA version must be '2020-10-24 24' to ARFIPush. Current version: " << m_FPGAVersion);
       return PLUS_FAIL;
     }
+
+    // Mitigate risk of burning out probes with high voltage pushes
+    // and ensure we're using the voltage that we think we are
+    uint8_t cappedVoltage = this->GetVoltage();
+    if (cappedVoltage > maximumVoltage)
+    {
+      LOG_WARNING("Voltage was higher than 50V before sending ARFI push. Capping voltage to " << std::to_string(maximumVoltage) << "V.");
+      cappedVoltage = maximumVoltage;
+    }
+    this->SetVoltage(cappedVoltage);
+    this->ImagingParameters->SetProbeVoltage(cappedVoltage);
+
     ::ARFIPush();
     return PLUS_SUCCESS;
   }
