@@ -380,17 +380,17 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
 
   // set frame options (internally passed to sdk during connection)
   // ------- maximum number of events per frame included in the device's output
-  itd = this->Internal->DeviceOptions.find("MaxEventsNumber");
+  itd = this->Internal->DeviceOptions.find("MaxAdditionalEventsNumber");
   if (itd != this->Internal->DeviceOptions.cend())
   {
     int value = -1;
     strToInt32(itd->second, value);
     if (value < 0) {
       LOG_WARNING("Invalid value for max events number per frame in output: " << itd->second
-        << ". Default value used (" << this->Internal->Tracker.GetMaxEventsNumber() << ")");
+        << ". Default value used (" << this->Internal->Tracker.GetMaxAdditionalEventsNumber() << ")");
     }
     else {
-      this->Internal->Tracker.SetMaxEventsNumber(value);
+      this->Internal->Tracker.SetMaxAdditionalEventsNumber(value);
     }
   }
   // ------- maximum number of 2D fiducials (in either left or right frame) included in the device's output

@@ -717,7 +717,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Connect()
     return ERROR_CANNOT_CREATE_FRAME_INSTANCE;
   }
 
-  if (ftkSetFrameOptions(false, this->MaxEventsNumber,
+  if (ftkSetFrameOptions(false, this->MaxAdditionalEventsNumber,
     this->Max2dFiducialsNumber, this->Max2dFiducialsNumber,
     this->Max3dFiducialsNumber, this->MaxMarkersNumber,
     this->Internal->Frame) != ftkError::FTK_OK)
@@ -1137,12 +1137,12 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerBatteryStr
 }
 
 //----------------------------------------------------------------------------
-AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMaxEventsNumber(int n)
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMaxAdditionalEventsNumber(int n)
 {
   if (n < 0) {
     return ERROR_SET_OPTION;
   }
-  this->MaxEventsNumber = n;
+  this->MaxAdditionalEventsNumber = n;
   return SUCCESS;
 }
 
