@@ -997,13 +997,6 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetMarkersInFrame(std::vector<
       ss << ptr->SensorId << " " << ptr->SensorValue;
       events.emplace("tempv4", ss.str());
     }
-    else if (event.Type == FtkEventType::fetSyntheticTemperaturesV1)
-    {
-      std::stringstream ss;
-      const EvtSyntheticTemperaturesV1Payload* ptr = reinterpret_cast<EvtSyntheticTemperaturesV1Payload*>(event.Data);
-      ss << ptr->CurrentValue << " " << ptr->ReferenceValue;
-      events.emplace("synthTempv1", ss.str());
-    }
   }
 
   return SUCCESS;
