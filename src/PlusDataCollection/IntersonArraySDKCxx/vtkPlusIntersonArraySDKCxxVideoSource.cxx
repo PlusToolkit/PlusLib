@@ -15,6 +15,7 @@ See License.txt for details.
 #include "vtkPlusUsScanConvertCurvilinear.h"
 
 // VTK includes
+#include <vtkImageCast.h>
 #include <vtkImageData.h>
 #include <vtkImageImport.h>
 #include <vtkObjectFactory.h>
@@ -105,13 +106,17 @@ public:
     this->BmodeClientData.ActiveIntersonArrayDevice = this->External;
     this->RfClientData.ActiveIntersonArrayDevice = this->External;
 
-    this->BModeBufferToVtkImage = vtkImageImport::New();
+    this->BModeBufferToVtkImage = vtkSmartPointer<vtkImageImport>::New();
     this->BModeBufferToVtkImage->SetDataScalarType(VTK_UNSIGNED_SHORT);
     this->BModeBufferToVtkImage->SetDataExtent(0, ContainerType::MAX_SAMPLES / 2 - 1, 0, ContainerType::NBOFLINES - 1, 0, 0);
     this->BModeBufferToVtkImage->SetWholeExtent(0, ContainerType::MAX_SAMPLES / 2 - 1, 0, ContainerType::NBOFLINES - 1, 0, 0);
 
-    this->RfBufferToVtkImage = vtkImageImport::New();
-    this->RfBufferToVtkImage->SetDataScalarType(VTK_SHORT);
+    this->BModeImageCast = vtkSmartPointer<vtkImageCast>::New();
+    this->BModeImageCast->SetOutputScalarTypeToUnsignedChar();
+    this->BModeImageCast->SetInputConnection(this->BModeBufferToVtkImage->GetOutputPort());
+
+    this->RfBufferToVtkImage = vtkSmartPointer<vtkImageImport>::New();
+    this->RfBufferToVtkImage->SetDataScalarType(VTK_UNSIGNED_CHAR);
     this->RfBufferToVtkImage->SetDataExtent(0, ContainerType::MAX_RFSAMPLES - 1, 0, ContainerType::NBOFLINES - 1, 0, 0);
     this->RfBufferToVtkImage->SetWholeExtent(0, ContainerType::MAX_RFSAMPLES - 1, 0, ContainerType::NBOFLINES - 1, 0, 0);
   }
@@ -123,9 +128,6 @@ public:
     delete HWControls;
     delete Container;
     delete IntersonClass;
-
-    this->BModeBufferToVtkImage->Delete();
-    this->RfBufferToVtkImage->Delete();
   }
 
   std::string GetSdkVersion()
@@ -146,8 +148,9 @@ public:
   vtkImageData* ConvertBModeBufferToVtkImage(unsigned char* pixelData)
   {
     this->BModeBufferToVtkImage->SetImportVoidPointer(pixelData);
-    this->BModeBufferToVtkImage->Update();
-    return this->BModeBufferToVtkImage->GetOutput();
+    this->BModeBufferToVtkImage->Modified();
+    this->BModeImageCast->Update();
+    return this->BModeImageCast->GetOutput();
   }
 
   vtkImageData* ConvertRfBufferToVtkImage(short* pixelData)
@@ -212,8 +215,9 @@ private:
   BmodeCallbackClientData BmodeClientData;
   RfCallbackClientData RfClientData;
 
-  vtkImageImport* BModeBufferToVtkImage;
-  vtkImageImport* RfBufferToVtkImage;
+  vtkSmartPointer<vtkImageImport> BModeBufferToVtkImage;
+  vtkSmartPointer<vtkImageCast> BModeImageCast;
+  vtkSmartPointer<vtkImageImport> RfBufferToVtkImage;
 };
 
 
@@ -339,9 +343,27 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalConnect()
   const bool cfm = 0;
   const bool doubler = false;
   const bool compound = false;
-  container->IdleInitScanConverter(depth, width_samples, heightLines, probeId,
+
+  if (hwControls->ValidDepth(depth) != depth)
+  {
+    LOG_ERROR("Invalid depth requested: " << depth);
+    return PLUS_FAIL;
+  }
+
+  auto converterErrorIdle = container->IdleInitScanConverter(depth, width_samples, heightLines, probeId,
     steering, depthCfm, doubler, compound, compoundAngle, cfm);
-  container->HardInitScanConverter(depth, width_samples, heightLines, steering, depthCfm);
+  if (converterErrorIdle != ContainerType::SUCCESS)
+  {
+    LOG_ERROR("Idle scan converter initialization error: " << converterErrorIdle);
+    return PLUS_FAIL;
+  }
+
+  auto converterErrorHard = container->HardInitScanConverter(depth, width_samples, heightLines, steering, depthCfm);
+  if (converterErrorHard != ContainerType::SUCCESS)
+  {
+    LOG_ERROR("Hard scan converter initialization error: " << converterErrorHard);
+    return PLUS_FAIL;
+  }
 
   std::vector<vtkPlusDataSource*> bmodeSources;
   this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, bmodeSources);
@@ -363,7 +385,7 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalConnect()
     }
     else
     {
-      source->SetPixelType(VTK_SHORT);
+      source->SetPixelType(VTK_UNSIGNED_CHAR);
       source->SetImageType(US_IMG_RF_REAL);
       source->SetOutputImageOrientation(US_IMG_ORIENT_FM);
       source->SetInputFrameSize(ContainerType::MAX_RFSAMPLES,
@@ -389,7 +411,7 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalConnect()
 
       // Clear buffer on connect because the new frames that we will acquire might have a different size
       source->Clear();
-      source->SetPixelType(VTK_UNSIGNED_SHORT);
+      source->SetPixelType(VTK_UNSIGNED_CHAR);
       source->SetImageType(US_IMG_BRIGHTNESS);
       vtkPlusRfProcessor* rfProcessor = channel->GetRfProcessor();
       if (rfProcessor != NULL)
@@ -433,7 +455,7 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalConnect()
     source = bmodeSources[0];
     // Clear buffer on connect because the new frames that we will acquire might have a different size
     source->Clear();
-    source->SetPixelType(VTK_UNSIGNED_SHORT);
+    source->SetPixelType(VTK_UNSIGNED_CHAR);
     source->SetImageType(US_IMG_BRIGHTNESS);
 
     vtkPlusChannel* channel = this->Internal->GetSourceChannel(source);
@@ -760,12 +782,6 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::AddBmodeFrameToBuffer(BmodePix
   vtkPlusRfProcessor* rfProcessor = channel->GetRfProcessor();
   if (rfProcessor != NULL)
   {
-    /*
-    // currently does not work.
-    rfProcessor->SetRfFrame( this->Internal->ConvertBModeBufferToVtkImage(buffer),
-                             US_IMG_BRIGHTNESS );
-    bufferVtkImageData = rfProcessor->GetBrightnessScanConvertedImage();
-    */
     vtkPlusUsScanConvert* scanConverter = rfProcessor->GetScanConverter();
     if (scanConverter != NULL)
     {
