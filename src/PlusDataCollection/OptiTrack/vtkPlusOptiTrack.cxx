@@ -286,9 +286,9 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
     if (streamEnable != ResultSuccess)
     {
 #if MOTIVE_VERSION_MAJOR < 3
-      LOG_ERROR("Failed to enable NatNet streaming. Motive error: " << TT_GetResultString(profileLoad));
+      LOG_ERROR("Failed to enable NatNet streaming. Motive error: " << TT_GetResultString(streamEnable));
 #else
-      LOG_ERROR_W("Failed to enable NatNet streaming. Motive error: " << TT_GetResultString(profileLoad));
+      LOG_ERROR_W("Failed to enable NatNet streaming. Motive error: " << TT_GetResultString(streamEnable));
 #endif
       return PLUS_FAIL;
     }
