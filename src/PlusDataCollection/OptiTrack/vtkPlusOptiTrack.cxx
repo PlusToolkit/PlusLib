@@ -13,11 +13,20 @@ See License.txt for details.
 #include <vtkMatrix4x4.h>
 #include <vtkMath.h>
 #include <vtkXMLDataElement.h>
+#include <vtksys/Encoding.hxx>
 
 // Motive API includes
 #include <NatNetClient.h>
 #include <NatNetTypes.h>
+#if MOTIVE_VERSION_MAJOR < 3
 #include <NPTrackingTools.h>
+#define ResultType NPRESULT
+#define ResultSuccess NPRESULT_SUCCESS
+#elif MOTIVE_VERSION_MAJOR >= 3
+#include <MotiveAPI.h>
+#define ResultType eMotiveAPIResult
+#define ResultSuccess kApiResult_Success
+#endif
 
 // std includes
 #include <set>
@@ -71,7 +80,7 @@ public:
   /*!
   Print user friendly Motive API message to console
   */
-  std::string GetMotiveErrorMessage(NPRESULT result);
+  std::string GetMotiveErrorMessage(ResultType result);
 
   /*!
   Receive updated tracking information from the server and push the new transforms to the tools
@@ -82,9 +91,10 @@ public:
 };
 
 //-----------------------------------------------------------------------
-std::string vtkPlusOptiTrack::vtkInternal::GetMotiveErrorMessage(NPRESULT result)
+std::string vtkPlusOptiTrack::vtkInternal::GetMotiveErrorMessage(ResultType result)
 {
-  return std::string(TT_GetResultString(result));
+  return "";
+  //return std::wstring(TT_GetResultString(result));
 }
 
 //-----------------------------------------------------------------------
@@ -204,9 +214,17 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
   LOG_TRACE("vtkPlusOptiTrack::InternalConnect");
   if (!this->Internal->AttachToRunningMotive)
   {
+#if MOTIVE_VERSION_MAJOR >= 2
+    if (TT_TestSoftwareMutex() != ResultSuccess)
+    {
+      LOG_ERROR("Failed to start Motive. Another instance is already running.");
+      return PLUS_FAIL;
+    }
+#endif
+
     // RUN MOTIVE IN BACKGROUND
     // initialize the API
-    if (TT_Initialize() != NPRESULT_SUCCESS)
+    if (TT_Initialize() != ResultSuccess)
     {
       LOG_ERROR("Failed to start Motive.");
       return PLUS_FAIL;
@@ -218,19 +236,37 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
 #if MOTIVE_VERSION_MAJOR >= 2
     // open project file
     std::string profilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->Internal->Profile);
-    NPRESULT profileLoad = TT_LoadProfile(profilePath.c_str());
-    if (profileLoad != NPRESULT_SUCCESS)
+#if MOTIVE_VERSION_MAJOR < 3
+    ResultType profileLoad = TT_LoadProfile(profilePath.c_str());
+#else
+    std::wstring wProfilePath = vtksys::Encoding::ToWide(profilePath);
+    ResultType profileLoad = TT_LoadProfile(wProfilePath.c_str());
+#endif
+    if (profileLoad != ResultSuccess)
     {
+#if MOTIVE_VERSION_MAJOR < 3
       LOG_ERROR("Failed to load Motive profile. Motive error: " << TT_GetResultString(profileLoad));
+#else
+      LOG_ERROR_W("Failed to load Motive profile. Motive error: " << TT_GetResultString(profileLoad));
+#endif
       return PLUS_FAIL;
     }
 
     // load calibration
     std::string calibrationPath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->Internal->Calibration);
-    NPRESULT calLoad = TT_LoadCalibration(calibrationPath.c_str());
-    if (profileLoad != NPRESULT_SUCCESS)
+#if MOTIVE_VERSION_MAJOR < 3
+    ResultType calLoad = TT_LoadCalibration(calibrationPath.c_str());
+#else
+    std::wstring wCalibrationPath = vtksys::Encoding::ToWide(calibrationPath);
+    ResultType calLoad = TT_LoadCalibration(wCalibrationPath.c_str());
+#endif
+    if (profileLoad != ResultSuccess)
     {
+#if MOTIVE_VERSION_MAJOR < 3
       LOG_ERROR("Failed to load Motive calibration. Motive error: " << TT_GetResultString(profileLoad));
+#else
+      LOG_ERROR_W("Failed to load Motive calibration. Motive error: " << TT_GetResultString(profileLoad));
+#endif
       return PLUS_FAIL;
     }
 #else
@@ -246,15 +282,29 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
 
     // enforce NatNet streaming enabled, this is required for PLUS tracking
     // this is the equivalent to checking the "Broadcast Frame Data" button in the Motive GUI
-    TT_StreamNP(true);
+    ResultType streamEnable = TT_StreamNP(true);
+    if (streamEnable != ResultSuccess)
+    {
+#if MOTIVE_VERSION_MAJOR < 3
+      LOG_ERROR("Failed to enable NatNet streaming. Motive error: " << TT_GetResultString(profileLoad));
+#else
+      LOG_ERROR_W("Failed to enable NatNet streaming. Motive error: " << TT_GetResultString(profileLoad));
+#endif
+      return PLUS_FAIL;
+    }
 
     // add any additional rigid body files to project
     std::string rbFilePath;
     for (auto it = this->Internal->AdditionalRigidBodyFiles.begin(); it != this->Internal->AdditionalRigidBodyFiles.end(); it++)
     {
       rbFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(*it);
-      NPRESULT addRBResult = TT_AddRigidBodies(rbFilePath.c_str());
-      if (addRBResult != NPRESULT_SUCCESS)
+#if MOTIVE_VERSION_MAJOR < 3
+      ResultType addRBResult = TT_AddRigidBodies(rbFilePath.c_str());
+#else
+      std::wstring wRBFilePath = vtksys::Encoding::ToWide(rbFilePath);
+      ResultType addRBResult = TT_AddRigidBodies(wRBFilePath.c_str());
+#endif
+      if (addRBResult != ResultSuccess)
       {
         LOG_ERROR("Failed to load rigid body file located at: " << rbFilePath << ". Motive error message: " << this->Internal->GetMotiveErrorMessage(addRBResult));
         return PLUS_FAIL;
@@ -266,7 +316,13 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
     LOG_INFO("Connected cameras:");
     for (int i = 0; i < TT_CameraCount(); i++)
     {
+#if MOTIVE_VERSION_MAJOR < 3
       LOG_INFO(i << ": " << TT_CameraName(i));
+#else
+      wchar_t cameraName[256];
+      TT_CameraName(i, cameraName, (int)sizeof(cameraName));
+      LOG_INFO_W(i << L": " << cameraName);
+#endif
     }
     // list project file
 #if MOTIVE_VERSION_MAJOR >= 2
@@ -279,7 +335,9 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
     LOG_INFO("\nTracked rigid bodies:");
     for (int i = 0; i < TT_RigidBodyCount(); ++i)
     {
-      LOG_INFO(TT_RigidBodyName(i));
+      wchar_t rigidBodyName[256];
+      TT_RigidBodyName(i, rigidBodyName, (int)sizeof(rigidBodyName));
+      LOG_INFO_W(rigidBodyName);
     }
     LOG_INFO("--------------------------------------------------------------------------------\n");
 
@@ -360,8 +418,10 @@ PlusStatus vtkPlusOptiTrack::InternalStopRecording()
 PlusStatus vtkPlusOptiTrack::InternalUpdate()
 {
   LOG_TRACE("vtkPlusOptiTrack::InternalUpdate");
-  // internal update is only called if usign Motive API
-#if MOTIVE_VERSION_MAJOR >= 2 && MOTIVE_VERSION_MINOR >= 3
+  // InternalUpdate is only called if using Motive API.
+#if MOTIVE_VERSION_MAJOR >= 3
+  TT_Update(); // In Motive 3.X, only updates the latest frame.
+#elif MOTIVE_VERSION_MAJOR >= 2 && MOTIVE_VERSION_MINOR >= 3
   TT_UpdateLatestFrame();
 #else
   TT_Update();
@@ -374,7 +434,7 @@ void vtkPlusOptiTrack::vtkInternal::InternalCallback(sFrameOfMocapData* data, vo
 {
   vtkPlusOptiTrack* self = (vtkPlusOptiTrack*)pUserData;
 
-  LOG_TRACE("vtkPlusOptiTrack::InternalCallback");
+  LOG_TRACE("vtkPlusOptiTrack::InternalCallback"); 
   const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
   if (self->Internal->LastMotiveDataDescriptionsUpdateTimestamp < 0)
