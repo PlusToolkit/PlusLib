@@ -335,9 +335,13 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
     LOG_INFO("\nTracked rigid bodies:");
     for (int i = 0; i < TT_RigidBodyCount(); ++i)
     {
+#if MOTIVE_VERSION_MAJOR < 3
+      LOG_INFO(TT_RigidBodyName(i));
+#else
       wchar_t rigidBodyName[256];
       TT_RigidBodyName(i, rigidBodyName, (int)sizeof(rigidBodyName));
       LOG_INFO_W(rigidBodyName);
+#endif
     }
     LOG_INFO("--------------------------------------------------------------------------------\n");
 
