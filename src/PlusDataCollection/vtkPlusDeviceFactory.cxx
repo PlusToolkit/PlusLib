@@ -228,6 +228,10 @@ See License.txt for details.
 #include "vtkPlusDAQVideoSource.h"
 #endif
 
+#ifdef PLUS_USE_DAQMMFCOMBINED_VIDEO
+#include "vtkPlusDAQMMFCombinedVideo.h"
+#endif
+
 #ifdef PLUS_USE_GENERIC_SENSOR_TRACKER
 #if WIN32
 #include "vtkPlusGenericSensorTracker.h"
@@ -439,6 +443,10 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 
 #ifdef PLUS_USE_DAQVIDEOSOURCE
     RegisterDevice("DAQVideoSource", "vtkPlusDAQVideoSource", (PointerToDevice)&vtkPlusDAQVideoSource::New);
+#endif
+
+#ifdef PLUS_USE_DAQMMFCOMBINED_VIDEO
+    RegisterDevice("DAQMMFCombinedVideo", "vtkPlusDAQMMFCombinedVideo", (PointerToDevice)&vtkPlusDAQMMFCombinedVideo::New);
 #endif
 
 
