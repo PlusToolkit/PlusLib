@@ -59,6 +59,7 @@ OPTION(PLUS_USE_INFRARED_TEQ1_CAM "Provide support for capturing an Infrared The
 OPTION(PLUS_USE_INFRARED_TEEV2_CAM "Provide support for capturing an Infrared Thermal Expert EV2 Camera capture stream" OFF)
 OPTION(PLUS_USE_ULTRAVIOLET_PCOUV_CAM "Provide support for capturing an PCO Ultraviolet Camera capture stream" OFF)
 OPTION(PLUS_USE_DAQVIDEOSOURCE "Provide support for capturing an CameraLink Camera using DAQ System USB3-FRM13-B Grabber"  OFF)
+OPTION(PLUS_USE_DAQMMFCOMBINED_VIDEO "Provide support for capturing an CameraLink Camera using DAQ System USB3-FRM13-B Grabber and MMF Video"  OFF)
 OPTION(PLUS_USE_WITMOTIONTRACKER "Provide support for the WitMotion class of inertial measurement units" OFF)
 
 OPTION(PLUS_USE_LEAPMOTION "Provide support for the LeapMotion hand tracker" OFF)
@@ -2454,7 +2455,23 @@ IF(PLUS_USE_DAQVIDEOSOURCE)
 
 ENDIF()
 
+IF(PLUS_USE_DAQMMFCOMBINED_VIDEO)
+  # Compile
+  SET(DAQMMFCOMBINED_VIDEO_SRCS
+    DAQMMFCombinedVideo/vtkPlusDAQMMFCombinedVideo.cxx
+    )
+  SET(DAQMMFCOMBINED_VIDEO_HDRS
+      DAQMMFCombinedVideo/vtkPlusDAQMMFCombinedVideo.h
+  )
+  
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${DAQMMFCOMBINED_VIDEO_HDRS}
+  )
 
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${DAQMMFCOMBINED_VIDEO_SRCS}
+  )
+ENDIF()
 # --------------------------------------------------------------------------
 # V4L2
 IF(PLUS_USE_V4L2)
