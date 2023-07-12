@@ -2471,6 +2471,10 @@ IF(PLUS_USE_DAQMMFCOMBINED_VIDEO)
   LIST(APPEND ${PROJECT_NAME}_SRCS
     ${DAQMMFCOMBINED_VIDEO_SRCS}
   )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/DAQMMFCombinedVideo
+  )
 ENDIF()
 # --------------------------------------------------------------------------
 # V4L2
