@@ -759,7 +759,8 @@ PlusStatus vtkPlusDAQMMFCombinedVideo::DAQ_InternalUpdate()
 
   // Add the frame to the stream buffer
   FrameSizeType frameSize = { static_cast<unsigned int>(this->m_nwidth), static_cast<unsigned int>(this->m_nheight), 1 };
-  if (aSource->AddItem(this->pImgBuf, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_SHORT, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber, this->m_currentTime, this->m_currentTime) == PLUS_FAIL)
+  //if (aSource->AddItem(this->pImgBuf, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_SHORT, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber, this->m_currentTime, this->m_currentTime) == PLUS_FAIL)
+  if (aSource->AddItem(this->pImgBuf, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_SHORT, 1, US_IMG_BRIGHTNESS, 0, this->FrameIndex, this->m_currentTime, this->m_currentTime) == PLUS_FAIL)
   {
     return PLUS_FAIL;
   }
@@ -773,6 +774,11 @@ PlusStatus vtkPlusDAQMMFCombinedVideo::AddFrame(unsigned char* bufferData, DWORD
     LOG_ERROR("vtkPlusDAQMMFCombinedVideo::AddFrame skipped, not recording anymore");
     return PLUS_SUCCESS;
   }
+  this->FrameIndex++;
+
+  //********** DAQ SECTION - Let's check what happens if this is called first.
+  PlusStatus status2 = this->DAQ_InternalUpdate();
+  //********** END DAQ SECTION
 
   vtkPlusDataSource* videoSource(NULL);
   /*
@@ -829,7 +835,7 @@ PlusStatus vtkPlusDAQMMFCombinedVideo::AddFrame(unsigned char* bufferData, DWORD
     return PLUS_FAIL;
   }
 
-  this->FrameIndex++;
+  //this->FrameIndex++;
   vtkPlusDataSource* aSource(NULL);
 
   // ESTO ES LO QUE HAY QUE CONTROLAR
@@ -866,7 +872,6 @@ PlusStatus vtkPlusDAQMMFCombinedVideo::AddFrame(unsigned char* bufferData, DWORD
   PlusStatus status = aSource->AddItem(&this->UncompressedVideoFrame, this->FrameIndex, currentTime);
 
   //********** DAQ SECTION
-  PlusStatus status2 =  this->DAQ_InternalUpdate();
   status = ((status == PLUS_SUCCESS) && (status2 == PLUS_SUCCESS))?PLUS_SUCCESS: PLUS_FAIL;
   //********** END DAQ SECTION
 
