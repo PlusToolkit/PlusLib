@@ -211,6 +211,12 @@ STDMETHODIMP DAQMmfVideoSourceReader::OnReadSample(HRESULT hrStatus, DWORD dwStr
       LOG_ERROR("No buffer available in the sample.");
       return S_FALSE;
     }
+
+    //**** DAQ Section
+    // We acquire DAQ Data here almost at the same time of MMF data. This frame will be processed later in DAQ_ProcessFrame
+    this->PlusDevice->DAQ_GetFrame();
+    //**** End DAQ Section
+
     pSample->GetBufferByIndex(0, &aBuffer);
     BYTE* bufferData = NULL;
     DWORD maxLength = 0;
@@ -329,9 +335,6 @@ PlusStatus vtkPlusDAQMMFCombinedVideo::DAQ_InternalConnect()
 
   return PLUS_SUCCESS;
 }
-
-
-
 
 PlusStatus vtkPlusDAQMMFCombinedVideo::InternalConnect()
 {
@@ -495,21 +498,6 @@ PlusStatus vtkPlusDAQMMFCombinedVideo::InternalStopRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDAQMMFCombinedVideo::NotifyConfigured()
 {
-  /**
-  if (this->OutputChannels.size() > 1)
-  {
-    LOG_WARNING("vtkPlusDAQMMFCombinedVideo is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
-    return PLUS_FAIL;
-  }
-
-  if (this->OutputChannels.size() == 0)
-  {
-    LOG_ERROR("No output channels defined for DAQMMFCombined video source. Cannot proceed.");
-    this->CorrectlyConfigured = false;
-    return PLUS_FAIL;
-  }
-  **/
-
   if (this->GetDataSource(this->MMFDataSourceName, this->MMFDataSource) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to locate data source for MMF Windows Video SOurce labelled: " << this->MMFDataSourceName);
@@ -714,7 +702,17 @@ std::wstring vtkPlusDAQMMFCombinedVideo::GetActiveDeviceName()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDAQMMFCombinedVideo::DAQ_InternalUpdate()
+PlusStatus vtkPlusDAQMMFCombinedVideo::DAQ_GetFrame()
+{
+  this->m_currentTime = vtkIGSIOAccurateTimer::GetSystemTime();
+  if (!LVDS_GetFrame(&(this->m_dwCharCount), (unsigned char*)(this->pImgBufAux)))
+  {
+    LOG_DEBUG("vtkPlusDAQMMFCombinedVideo::InternalUpdate Unable to receive DAQ frame");
+  }
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkPlusDAQMMFCombinedVideo::DAQ_ProcessFrame()
 {
   std::ostringstream ss;
   int ix, iy;
@@ -725,12 +723,7 @@ PlusStatus vtkPlusDAQMMFCombinedVideo::DAQ_InternalUpdate()
     return PLUS_SUCCESS;
   }
 
-  this->m_currentTime = vtkIGSIOAccurateTimer::GetSystemTime();
-  if (!LVDS_GetFrame(&m_dwCharCount, (unsigned char*)(this->pImgBufAux)))
-  {
-    LOG_DEBUG("vtkPlusDAQMMFCombinedVideo::InternalUpdate Unable to receive DAQ frame");
-    return PLUS_SUCCESS;
-  }
+  // DAQ Frame has been moved to OnReadSample to reduce the impact of frame processing between MMF and DAQ
 
   // Byte assignment to output image buffer
   for (ix = 0, iy = 0; ix < this->m_maxBuffSize; ix += 2, iy += this->m_nbytesMode) {
@@ -739,13 +732,7 @@ PlusStatus vtkPlusDAQMMFCombinedVideo::DAQ_InternalUpdate()
   }
 
   vtkPlusDataSource* aSource(nullptr);
-  // ESTO ES LO QUE HAY QUE CONTROLAR (EL OUTPUT SOURCE)
-  /*if (this->GetFirstActiveOutputVideoSource(aSource) == PLUS_FAIL || aSource == nullptr)
-  {
-    LOG_DEBUG("Unable to grab a video source. Skipping frame.");
-    return PLUS_SUCCESS;
-  }
-  */
+
   aSource = this->DAQDataSource;
 
   if (aSource->GetNumberOfItems() == 0)
@@ -777,7 +764,7 @@ PlusStatus vtkPlusDAQMMFCombinedVideo::AddFrame(unsigned char* bufferData, DWORD
   this->FrameIndex++;
 
   //********** DAQ SECTION - Let's check what happens if this is called first.
-  PlusStatus status2 = this->DAQ_InternalUpdate();
+  PlusStatus status2 = this->DAQ_ProcessFrame();
   //********** END DAQ SECTION
 
   vtkPlusDataSource* videoSource(NULL);
@@ -869,7 +856,9 @@ PlusStatus vtkPlusDAQMMFCombinedVideo::AddFrame(unsigned char* bufferData, DWORD
       return PLUS_SUCCESS;
     }
   }
-  PlusStatus status = aSource->AddItem(&this->UncompressedVideoFrame, this->FrameIndex, currentTime);
+  //PlusStatus status = aSource->AddItem(&this->UncompressedVideoFrame, this->FrameIndex, currentTime);
+  
+  PlusStatus status = aSource->AddItem(&this->UncompressedVideoFrame, this->FrameIndex, this->m_currentTime);
 
   //********** DAQ SECTION
   status = ((status == PLUS_SUCCESS) && (status2 == PLUS_SUCCESS))?PLUS_SUCCESS: PLUS_FAIL;

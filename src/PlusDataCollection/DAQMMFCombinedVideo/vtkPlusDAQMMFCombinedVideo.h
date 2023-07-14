@@ -136,10 +136,11 @@ private:
   vtkPlusDataSource* MMFDataSource;
   vtkPlusDataSource* DAQDataSource;
 
+  PlusStatus DAQ_GetFrame();
   PlusStatus DAQ_InternalConnect();
   PlusStatus DAQ_InternalDisconnect();
   PlusStatus DAQ_ReadConfiguration(vtkXMLDataElement* rootConfigElement);
-  PlusStatus DAQ_InternalUpdate();
+  PlusStatus DAQ_ProcessFrame();
 };
 
 #endif
