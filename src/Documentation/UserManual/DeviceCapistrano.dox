@@ -14,7 +14,8 @@
 
 \section CapistranoInstallation Installation
 
-- Requires SDK provided by Capistrano Labs for compilation. Windows 64 bits platform only supported by cSDK2019.3, cSDK2019.2, cSDK2019 and cSDK2018.
+- Requires SDK provided by Capistrano Labs for compilation. Windows 64 bits platform only supported by cSDK2018 and newer
+  - cSDK2023:   BmodeUSB DLL v317, USBprobe DLL v164
   - cSDK2019.3: BmodeUSB DLL v316, USBprobe DLL v159
   - cSDK2019.2: BmodeUSB DLL v315, USBprobe DLL v157
   - cSDK2019  : BmodeUSB DLL v314, USBprobe DLL v154
