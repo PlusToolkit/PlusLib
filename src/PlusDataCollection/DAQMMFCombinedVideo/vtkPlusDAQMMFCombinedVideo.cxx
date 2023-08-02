@@ -9,7 +9,7 @@ The following copyright notice is applicable to parts of this file:
 Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 All rights reserved.
 See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
-Authors include: Adam Rankin
+Authors include: Adam Rankin, Francisco Marcano (University of La Laguna)
 =========================================================================*/
 
 // Local includes
@@ -212,10 +212,8 @@ STDMETHODIMP DAQMmfVideoSourceReader::OnReadSample(HRESULT hrStatus, DWORD dwStr
       return S_FALSE;
     }
 
-    //**** DAQ Section
     // We acquire DAQ Data here almost at the same time of MMF data. This frame will be processed later in DAQ_ProcessFrame
     this->PlusDevice->DAQ_GetFrame();
-    //**** End DAQ Section
 
     pSample->GetBufferByIndex(0, &aBuffer);
     BYTE* bufferData = NULL;
@@ -400,11 +398,7 @@ PlusStatus vtkPlusDAQMMFCombinedVideo::InternalConnect()
 
   this->FrameIndex = 0;
 
-  //**** DAQ SECTION
   return(this->DAQ_InternalConnect());
-  //**** END DAQ SECTION
-
-  //return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -423,11 +417,7 @@ PlusStatus vtkPlusDAQMMFCombinedVideo::InternalDisconnect()
   MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().CloseDevice(this->ActiveVideoFormat.DeviceId);
   this->MmfSourceReader->CaptureSource = NULL;
 
-  //**** DAQ SECTION
   return (this->InternalDisconnect());
-  //**** END DAQ SECTION
-
-  // return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -518,7 +508,7 @@ PlusStatus vtkPlusDAQMMFCombinedVideo::UpdateFrameSize()
   if (this->MmfSourceReader->CaptureSourceReader != NULL)
   {
     vtkPlusDataSource* videoSource(NULL);
-    //this->GetFirstVideoSource(videoSource);
+
     videoSource = this->MMFDataSource;
     FrameSizeType currentFrameSize = videoSource->GetInputFrameSize();
     if (currentFrameSize[0] != this->ActiveVideoFormat.FrameSize[0] || currentFrameSize[1] != this->ActiveVideoFormat.FrameSize[1] || currentFrameSize[2] != 1)
@@ -541,7 +531,6 @@ PlusStatus vtkPlusDAQMMFCombinedVideo::UpdateFrameSize()
 
 PlusStatus vtkPlusDAQMMFCombinedVideo::DAQ_ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  //**** DAQ SECTION
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
   this->m_dataMode = DATAMODE_8;
   const char* dataModeString = deviceConfig->GetAttribute("DataMode");
@@ -559,8 +548,6 @@ PlusStatus vtkPlusDAQMMFCombinedVideo::DAQ_ReadConfiguration(vtkXMLDataElement* 
     }
   }
   return PLUS_SUCCESS;
-  //**** End DAQ SECTION
-
 }
 
 //----------------------------------------------------------------------------
@@ -603,9 +590,7 @@ PlusStatus vtkPlusDAQMMFCombinedVideo::ReadConfiguration(vtkXMLDataElement* root
     this->RequestedVideoFormat.PixelFormatName = std::wstring(attr.begin(), attr.end());
   }
 
-  //**** DAQ SECTION
   this->DAQ_ReadConfiguration(rootConfigElement);
-  //**** End DAQ SECTION
 
   return PLUS_SUCCESS;
 }
@@ -746,7 +731,6 @@ PlusStatus vtkPlusDAQMMFCombinedVideo::DAQ_ProcessFrame()
 
   // Add the frame to the stream buffer
   FrameSizeType frameSize = { static_cast<unsigned int>(this->m_nwidth), static_cast<unsigned int>(this->m_nheight), 1 };
-  //if (aSource->AddItem(this->pImgBuf, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_SHORT, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber, this->m_currentTime, this->m_currentTime) == PLUS_FAIL)
   if (aSource->AddItem(this->pImgBuf, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_SHORT, 1, US_IMG_BRIGHTNESS, 0, this->FrameIndex, this->m_currentTime, this->m_currentTime) == PLUS_FAIL)
   {
     return PLUS_FAIL;
@@ -763,17 +747,10 @@ PlusStatus vtkPlusDAQMMFCombinedVideo::AddFrame(unsigned char* bufferData, DWORD
   }
   this->FrameIndex++;
 
-  //********** DAQ SECTION - Let's check what happens if this is called first.
   PlusStatus status2 = this->DAQ_ProcessFrame();
-  //********** END DAQ SECTION
 
   vtkPlusDataSource* videoSource(NULL);
-  /*
-  if (this->GetFirstVideoSource(videoSource) != PLUS_SUCCESS)
-  {
-    return PLUS_FAIL;
-  }
-  */
+
   videoSource = this->MMFDataSource;
   FrameSizeType frameSize = videoSource->GetInputFrameSize();
 
@@ -822,17 +799,8 @@ PlusStatus vtkPlusDAQMMFCombinedVideo::AddFrame(unsigned char* bufferData, DWORD
     return PLUS_FAIL;
   }
 
-  //this->FrameIndex++;
   vtkPlusDataSource* aSource(NULL);
 
-  // ESTO ES LO QUE HAY QUE CONTROLAR
-  /*
-  if (this->GetFirstVideoSource(aSource) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Unable to retrieve the video source in the media foundation capture device.");
-    return PLUS_FAIL;
-  }
-  */
   aSource = this->MMFDataSource;  
 
   const double maximumFrameTimeVariance = 0.2;  // to make sure we don't drop frames because of slight variance in acquisition rate, we allow up to 20% higher frame rate before we start dropping frames
@@ -856,13 +824,11 @@ PlusStatus vtkPlusDAQMMFCombinedVideo::AddFrame(unsigned char* bufferData, DWORD
       return PLUS_SUCCESS;
     }
   }
-  //PlusStatus status = aSource->AddItem(&this->UncompressedVideoFrame, this->FrameIndex, currentTime);
+  PlusStatus status = aSource->AddItem(&this->UncompressedVideoFrame, this->FrameIndex, currentTime);
   
-  PlusStatus status = aSource->AddItem(&this->UncompressedVideoFrame, this->FrameIndex, this->m_currentTime);
-
-  //********** DAQ SECTION
   status = ((status == PLUS_SUCCESS) && (status2 == PLUS_SUCCESS))?PLUS_SUCCESS: PLUS_FAIL;
-  //********** END DAQ SECTION
+  
+  LOG_DEBUG("FrameIndex;" << this->FrameIndex << "; currentTimeMMF; " << currentTime << "; m_currentTimeDAQ; " << this->m_currentTime);
 
   this->Modified();
   return status;
