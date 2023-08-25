@@ -636,7 +636,8 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
       mos.precision(3);
       mos << std::fixed << mit->GetMarkerStatus() << " " << mit->GetTrackingID() << " ";
       mos << mit->GetGeometryID() << " " << mit->GetGeometryPresenceMask() << " ";
-      mos << mit->GetFiducialRegistrationErrorMm();
+      mos << mit->GetFiducialRegistrationErrorMm() << " ";
+      mos << mit->GetFiducials().size(); // add number of fiducials
       customFields[it->second + "_info"].first = FRAMEFIELD_NONE;
       customFields[it->second + "_info"].second = mos.str();
 
