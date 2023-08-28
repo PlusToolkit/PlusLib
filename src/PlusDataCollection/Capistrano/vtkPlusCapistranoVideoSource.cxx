@@ -814,7 +814,7 @@ std::string vtkPlusCapistranoVideoSource::GetSdkVersion()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::GetHardwareVersion(int& HardwareVersion)
 {
-#if (CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2) || defined(CAPISTRANO_SDK2019) || defined(CAPISTRANO_SDK2018)
+#if defined(CAPISTRANO_SDK2023) || defined(CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2) || defined(CAPISTRANO_SDK2019) || defined(CAPISTRANO_SDK2018)
   HardwareVersion = usbHardwareVersion();
   return PLUS_SUCCESS;
 #else
@@ -826,7 +826,7 @@ PlusStatus vtkPlusCapistranoVideoSource::GetHardwareVersion(int& HardwareVersion
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::GetHighPassFilter(int& HighPassFilter)
 {
-#if (CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2) || defined(CAPISTRANO_SDK2019) || defined(CAPISTRANO_SDK2018)
+#if defined(CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2) || defined(CAPISTRANO_SDK2019) || defined(CAPISTRANO_SDK2018)
   HighPassFilter = usbHighPassFilter();
   return PLUS_SUCCESS;
 #else
@@ -932,7 +932,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InitializeCapistranoProbe()
   // After a successful call to usbFindProbes, other probe-related functions may be called.
   // These include: usbInitializeProbes, usbProbeHandle, usbSelectProbe.
   usbErrorString errorStatus = {0};
-#ifdef CAPISTRANO_SDK2019_3
+#if defined(CAPISTRANO_SDK2023) || defined(CAPISTRANO_SDK2019_3)
   wchar_t* appData = _wgetenv(L"APPDATA");
   std::wstring path = appData + std::wstring(L"\\CLI");
   wchar_t* filename_uni = L"debug.txt";
@@ -984,7 +984,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetupProbe(int probeID)
   }
 
   // Check How many US probe are connected. --------------------------------
-#if defined(CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2) || defined(CAPISTRANO_SDK2019) || defined(CAPISTRANO_SDK2018)
+#if defined(CAPISTRANO_SDK2023) || defined(CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2) || defined(CAPISTRANO_SDK2019) || defined(CAPISTRANO_SDK2018)
   int numberOfAttachedBoards = usbNumberAttachedBoards();
 #else //cSDK2013 or cSDK2016
   int numberOfAttachedBoards = usbNumberAttachedProbes();
@@ -1486,7 +1486,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetUpdateParameters(bool b)
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::SetMISMode(bool mode)
 {
-#if defined(CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2)
+#if defined(CAPISTRANO_SDK2023) || defined(CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2)
   this->MISMode = mode;
   usbWriteSpecialFunction(0x6d697300, mode);
   this->BidirectionalMode = mode;
@@ -1499,7 +1499,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetMISMode(bool mode)
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::GetMISMode(bool& MISMode)
 {
-#if defined(CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2)
+#if defined(CAPISTRANO_SDK2023) || defined(CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2)
   MISMode = this->MISMode;
   return PLUS_SUCCESS;
 #else
@@ -1511,7 +1511,7 @@ PlusStatus vtkPlusCapistranoVideoSource::GetMISMode(bool& MISMode)
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::SetMISPulsePeriod(unsigned int val)
 {
-#if defined(CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2)
+#if defined(CAPISTRANO_SDK2023) || defined(CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2)
   usbWriteSpecialFunction(0x6d697301, val);
   return PLUS_SUCCESS;
 #else
@@ -1522,7 +1522,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetMISPulsePeriod(unsigned int val)
 // ----------------------------------------------------------------------------
 PlusStatus  vtkPlusCapistranoVideoSource::GetMISPulsePeriod(unsigned int& PulsePeriod)
 {
-#if defined(CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2)
+#if defined(CAPISTRANO_SDK2023) || defined(CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2)
   PulsePeriod = usbWriteSpecialFunction(0x6d697302, 0);
   return PLUS_SUCCESS;
 #else
