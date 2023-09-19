@@ -299,27 +299,34 @@ protected:
   /*! Lookup table function to convert from baudrate to enum */
   static int ConvertBaudToNDIEnum(int baudRate);
 
+  /*! Perform a frame parse from a BX request */
+  PlusStatus DoBXUpdate();
+
+  /*! Perform a frame parse from a BX2 request */
+  PlusStatus DoBX2Update();
+
 #if defined(HAVE_FUTURE)
   PlusStatus ProbeSerialInternal();
 #endif
 
 protected:
-  unsigned long                     LastFrameNumber; // Index of the last frame number, used for providing a frame number when the tracker doesn't return any transform
-  ndicapi*                          Device;
-  std::string                       SerialDevice;
-  int                               SerialPort;
-  int                               BaudRate;
-  int                               IsDeviceTracking;
-  int                               MeasurementVolumeNumber;
-  bool                              LeaveDeviceOpenAfterProbe;
-  bool                              CheckDSR;
-  NdiToolDescriptorsType            NdiToolDescriptors; // Maps Plus tool source IDs to NDI tool descriptors
+  unsigned long                      LastFrameNumber; // Index of the last frame number, used for providing a frame number when the tracker doesn't return any transform
+  ndicapi*                           Device;
+  std::string                        SerialDevice;
+  int                                SerialPort;
+  int                                BaudRate;
+  int                                IsDeviceTracking;
+  int                                MeasurementVolumeNumber;
+  bool                               LeaveDeviceOpenAfterProbe;
+  bool                               CheckDSR;
+  NdiToolDescriptorsType             NdiToolDescriptors; // Maps Plus tool source IDs to NDI tool descriptors
   vtkIGSIORecursiveCriticalSection*  CommandMutex;
-  char                              CommandReply[VTK_NDI_REPLY_LEN];
+  char                               CommandReply[VTK_NDI_REPLY_LEN];
+  uint32_t                           FirmwareMajorRevision;
 
-  std::string                       NetworkHostname;
-  int                               NetworkPort;
-  int                               TrackingFrequencyNumber;
+  std::string                        NetworkHostname;
+  int                                NetworkPort;
+  int                                TrackingFrequencyNumber;
 
 private:
   vtkPlusNDITracker(const vtkPlusNDITracker&);
