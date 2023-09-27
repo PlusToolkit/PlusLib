@@ -9,6 +9,7 @@ See License.txt for details.
 
 // System includes
 #include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <map>
 #include <string>
