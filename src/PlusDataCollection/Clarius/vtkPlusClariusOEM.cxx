@@ -1746,6 +1746,7 @@ PlusStatus vtkPlusClariusOEM::InternalApplyImagingParameterChange()
       LOG_ERROR("Failed to set focus depth percent imaging parameter");
       status = PLUS_FAIL;
     }
+    this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_FOCUS_DEPTH, false);
   }
 
   return status;
