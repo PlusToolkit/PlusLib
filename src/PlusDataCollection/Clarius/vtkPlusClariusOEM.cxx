@@ -321,6 +321,25 @@ void vtkPlusClariusOEM::vtkInternal::ListFn(const char* list, int sz)
 //-------------------------------------------------------------------------------------------------
 void vtkPlusClariusOEM::vtkInternal::ConnectFn(CusConnection ret, int port, const char* status)
 {
+  switch (ret)
+  {
+  case ConnectionError:
+    LOG_INFO("Connection status: error");
+    break;
+  case ProbeConnected:
+    LOG_INFO("Connection status: probe connected");
+    break;
+  case ProbeDisconnected:
+    LOG_INFO("Connection status: probe disconnected");
+    break;
+  case ConnectionFailed:
+    LOG_INFO("Connection status: connection failed");
+    break;
+  case SwUpdateRequired:
+    LOG_INFO("Connection status: software update required");
+    break;
+  }
+
   if (ret == CusConnection::ProbeConnected)
   {
     // connection succeeded, set Internal->Connected variable to end busy wait in InternalConnect
@@ -574,6 +593,14 @@ void vtkPlusClariusOEM::vtkInternal::ImagingFn(CusImagingState ready, int imagin
   else if (ready == CusImagingState::ChargingChanged)
   {
     LOG_WARNING("Clarius started / stopped imaging due to a change in charging status");
+  }
+  else if (ready == CusImagingState::LowBandwidth)
+  {
+    LOG_INFO("Clarius low bandwidth was detected, imaging parameters were adjusted");
+  }
+  else if (ready == CusImagingState::MotionSensor)
+  {
+    LOG_INFO("Clarius started running or stopped due to change in motion sensor");
   }
   else
   {
