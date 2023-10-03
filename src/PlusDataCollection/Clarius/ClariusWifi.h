@@ -36,6 +36,9 @@ public:
   /*! Disconnect from the Clarius probe wifi network */
   PlusStatus DisconnectFromClariusWifi();
 
+  /*! Update the contents of the profile for the Clarius Wi-Fi network */
+  PlusStatus UpdateClariusWifiProfile(std::string ssid, std::string password);
+
 private:
 
   /*! Helper function to convert a std::string to WLAN api SSID */
@@ -45,6 +48,7 @@ private:
   HANDLE HClient; // client handle
   DWORD CurApiVersion; // negotiated WLAN api version
   GUID InterfaceGuid; // WLAN interface to connect to the Clarius over
+  DOT11_BSS_TYPE BssType; // BSS type to connect to
 };
 
 #endif // _CLARIUSWIFI_H
