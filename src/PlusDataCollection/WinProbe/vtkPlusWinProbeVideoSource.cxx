@@ -64,6 +64,12 @@ const char* vtkPlusWinProbeVideoSource::SET_B_FRAME_RATE_LIMIT       = "SetBFram
 const char* vtkPlusWinProbeVideoSource::GET_B_FRAME_RATE_LIMIT       = "GetBFrameRateLimit";
 const char* vtkPlusWinProbeVideoSource::SET_B_HARMONIC_ENABLED       = "SetBHarmonicEnabled";
 const char* vtkPlusWinProbeVideoSource::GET_B_HARMONIC_ENABLED       = "GetBHarmonicEnabled";
+const char* vtkPlusWinProbeVideoSource::SET_B_TRANSMIT_CURRENT       = "SetBTransmitCurrent";
+const char* vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_CURRENT       = "GetBTransmitCurrent";
+const char* vtkPlusWinProbeVideoSource::SET_B_TRANSMIT_CYCLE_COUNT   = "SetBTransmitCycleCount";
+const char* vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_CYCLE_COUNT   = "GetBTransmitCycleCount";
+const char* vtkPlusWinProbeVideoSource::SET_B_TRANSMIT_FNUMBER       = "SetBTransmitFNumber";
+const char* vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_FNUMBER       = "GetBTransmitFNumber";
 const char* vtkPlusWinProbeVideoSource::GET_TRANSDUCER_INTERNAL_ID   = "GetTransducerInternalID";
 const char* vtkPlusWinProbeVideoSource::SET_ARFI_ENABLED             = "SetARFIEnabled";
 const char* vtkPlusWinProbeVideoSource::GET_ARFI_ENABLED             = "GetARFIEnabled";
@@ -262,6 +268,8 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
   deviceConfig->SetIntAttribute("MWidthLines", this->m_MWidth);
   deviceConfig->SetIntAttribute("MAcousticLineCount", this->GetMAcousticLineCount());
   deviceConfig->SetIntAttribute("MDepth", this->GetMDepth());
+  deviceConfig->SetIntAttribute("BTransmitCurrent", this->GetBTransmitCurrent());
+  deviceConfig->SetIntAttribute("BTransmitCycleCount", this->GetBTransmitCycleCount());
   deviceConfig->SetUnsignedLongAttribute("Voltage", this->GetVoltage());
   deviceConfig->SetUnsignedLongAttribute("MinValue", this->GetMinValue());
   deviceConfig->SetUnsignedLongAttribute("MaxValue", this->GetMaxValue());
@@ -271,6 +279,7 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
   deviceConfig->SetAttribute("Mode", ModeToString(this->m_Mode).c_str());
   deviceConfig->SetDoubleAttribute("FirstGainValue", this->GetFirstGainValue());
   deviceConfig->SetDoubleAttribute("OverallTimeGainCompensation", this->GetOverallTimeGainCompensation());
+  deviceConfig->SetDoubleAttribute("BTransmitFNumber", this->GetBTransmitFNumber());
   deviceConfig->SetIntAttribute("BFrameRateLimit", this->GetBFrameRateLimit());
 
   deviceConfig->SetVectorAttribute("TimeGainCompensation", 8, m_TimeGainCompensation);
@@ -944,6 +953,10 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   // Update decimation variable on start, based on scan depth
   m_SSDecimation = ::GetSSDecimation();
   this->SetSpatialCompoundEnabled(m_SpatialCompoundEnabled); // also takes care of angle  and count
+  this->SetBHarmonicEnabled(m_BHarmonicEnabled);
+  this->SetBTransmitCurrent(m_BTransmitCurrent);
+  this->SetBTransmitCycleCount(m_BTransmitCycleCount);
+  this->SetBTransmitFNumber(m_BTransmitFNumber);
 
   //setup size for DirectX image
   LOG_DEBUG("Setting output size to " << m_PrimaryFrameSize[0] << "x" << m_PrimaryFrameSize[1]);
@@ -1703,6 +1716,63 @@ bool vtkPlusWinProbeVideoSource::GetBHarmonicEnabled()
     m_BHarmonicEnabled = GetBIsHarmonic();
   }
   return m_BHarmonicEnabled;
+}
+
+void vtkPlusWinProbeVideoSource::SetBTransmitCurrent(int value)
+{
+  if(Connected)
+  {
+    SetBTxCurrent(value);
+    SetPendingRecreateTables(true);
+  }
+  m_BTransmitCurrent = GetBTxCurrent();
+}
+
+int vtkPlusWinProbeVideoSource::GetBTransmitCurrent()
+{
+  if(Connected)
+  {
+    m_BTransmitCurrent = GetBTxCurrent();
+  }
+  return m_BTransmitCurrent;
+}
+
+void vtkPlusWinProbeVideoSource::SetBTransmitCycleCount(uint16_t value)
+{
+  if(Connected)
+  {
+    SetTxTxCycleCount(value);
+    SetPendingRecreateTables(true);
+  }
+  m_BTransmitCycleCount = GetBTransmitCycleCount();
+}
+
+uint16_t vtkPlusWinProbeVideoSource::GetBTransmitCycleCount()
+{
+  if(Connected)
+  {
+    m_BTransmitCycleCount = GetTxTxCycleCount();
+  }
+  return m_BTransmitCycleCount;
+}
+
+void vtkPlusWinProbeVideoSource::SetBTransmitFNumber(double value)
+{
+  if(Connected)
+  {
+    SetTxTxFNumber(value);
+    SetPendingRecreateTables(true);
+  }
+  m_BTransmitFNumber = GetBTransmitFNumber();
+}
+
+double vtkPlusWinProbeVideoSource::GetBTransmitFNumber()
+{
+  if(Connected)
+  {
+    m_BTransmitFNumber = GetTxTxFNumber();
+  }
+  return m_BTransmitFNumber;
 }
 
 bool vtkPlusWinProbeVideoSource::GetMModeEnabled()
