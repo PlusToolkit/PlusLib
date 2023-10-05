@@ -1342,6 +1342,6 @@ PlusStatus vtkPlusClarius::RequestRawData(long long int startTimestamp, long lon
   this->Internal->IsReceivingRawData = true;
 
   CusReturnFn returnFunction = (CusReturnFn)(&vtkInternal::RawDataRequestFn);
-  cusCastRequestRawData(startTimestamp, endTimestamp, returnFunction);
+  cusCastRequestRawData(startTimestamp, endTimestamp, 0, returnFunction);
   return PLUS_SUCCESS;
 }
