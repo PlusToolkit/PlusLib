@@ -1116,6 +1116,23 @@ PlusStatus vtkPlusClariusOEM::InitializeProbe()
     this->Internal->Password = info.Password;
     this->Internal->IpAddress = info.IPv4;
     this->Internal->TcpPort = info.ControlPort;
+
+    // Remove leading/trailing quotes from SSID
+    if (this->Internal->Ssid[0] == '"')
+    {
+      this->Internal->Ssid = this->Internal->Ssid.substr(1, this->Internal->Ssid.size() - 2);
+    }
+    // Remove leading/trailing quotes from password
+    if (this->Internal->Password[0] == '"')
+    {
+      this->Internal->Password = this->Internal->Password.substr(1, this->Internal->Password.size() - 2);
+    }
+    // Remove leading/trailing quotes from IP address
+    if (this->Internal->IpAddress[0] == '"')
+    {
+      this->Internal->IpAddress = this->Internal->IpAddress.substr(1, this->Internal->IpAddress.size() - 2);
+    }
+
   }
 
   return PLUS_SUCCESS;
