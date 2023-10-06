@@ -127,6 +127,8 @@ namespace
 
   static const bool DEFAULT_FREEZE_ON_POOR_WIFI_SIGNAL = true;
 
+  static const bool DEFAULT_PENETRATION_MODE_ENABLED = false;
+
   static const int DEFAULT_CONTACT_DETECTION_TIMEOUT_SEC = 15;
 
   static const int DEFAULT_AUTO_FREEZE_TIMEOUT_SEC = 60;
@@ -217,6 +219,7 @@ protected:
   bool EnableAutoGain;
   bool Enable5v;
   bool FreezeOnPoorWifiSignal;
+  bool EnablePenetrationMode;
   int ContactDetectionTimeoutSec;
   int AutoFreezeTimeoutSec;
   int KeepAwakeTimeoutMin;
@@ -277,6 +280,7 @@ vtkPlusClariusOEM::vtkInternal::vtkInternal(vtkPlusClariusOEM* ext)
   , EnableAutoGain(DEFAULT_ENABLE_AUTO_GAIN)
   , Enable5v(DEFAULT_ENABLE_5V_RAIL)
   , FreezeOnPoorWifiSignal(DEFAULT_FREEZE_ON_POOR_WIFI_SIGNAL)
+  , EnablePenetrationMode(DEFAULT_PENETRATION_MODE_ENABLED)
   , ContactDetectionTimeoutSec(DEFAULT_CONTACT_DETECTION_TIMEOUT_SEC)
   , AutoFreezeTimeoutSec(DEFAULT_AUTO_FREEZE_TIMEOUT_SEC)
   , KeepAwakeTimeoutMin(DEFAULT_KEEP_AWAKE_TIMEOUT_SEC)
@@ -677,6 +681,7 @@ void vtkPlusClariusOEM::vtkInternal::LogUserSettings()
   ss << "EnableAutoGain: " << (this->EnableAutoGain ? "TRUE" : "FALSE") << std::endl;
   ss << "Enable5v: " << (this->Enable5v ? "TRUE" : "FALSE") << std::endl;
   ss << "FreezeOnPoorWifiSignal: " << (this->FreezeOnPoorWifiSignal ? "TRUE" : "FALSE") << std::endl;
+  ss << "EnablePenetrationMode: " << (this->EnablePenetrationMode ? "TRUE" : "FALSE") << std::endl;
   ss << "ContactDetectionTimeoutSec: " << this->ContactDetectionTimeoutSec << std::endl;
   ss << "AutoFreezeTimeoutSec: " << this->AutoFreezeTimeoutSec << std::endl;
   ss << "KeepAwakeTimeoutMin: " << this->KeepAwakeTimeoutMin << std::endl;
@@ -762,6 +767,7 @@ void vtkPlusClariusOEM::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "EnableAutoGain: " << (this->Internal->EnableAutoGain ? "TRUE" : "FALSE") << std::endl;
   os << indent << "Enable5v: " << (this->Internal->Enable5v ? "TRUE" : "FALSE") << std::endl;
   os << indent << "FreezeOnPoorWifiSignal: " << (this->Internal->FreezeOnPoorWifiSignal ? "TRUE" : "FALSE") << std::endl;
+  os << indent << "EnablePenetrationMode: " << (this->Internal->EnablePenetrationMode ? "TRUE" : "FALSE") << std::endl;
   os << indent << "ContactDetectionTimeoutSec: " << this->Internal->ContactDetectionTimeoutSec << std::endl;
   os << indent << "AutoFreezeTimeoutSec: " << this->Internal->AutoFreezeTimeoutSec << std::endl;
   os << indent << "KeepAwakeTimeoutMin: " << this->Internal->KeepAwakeTimeoutMin << std::endl;
@@ -830,6 +836,10 @@ PlusStatus vtkPlusClariusOEM::ReadConfiguration(vtkXMLDataElement* rootConfigEle
   // freeze on poor wifi signal
   XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(FreezeOnPoorWifiSignal,
     this->Internal->FreezeOnPoorWifiSignal, deviceConfig);
+
+  // penetration mode enabled
+  XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(EnablePenetrationMode,
+    this->Internal->EnablePenetrationMode, deviceConfig);
 
   // contact detection timeout (seconds)
   XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, ContactDetectionTimeoutSec,
@@ -1439,6 +1449,11 @@ PlusStatus vtkPlusClariusOEM::SetInitialUsParams()
     LOG_WARNING("Failed to set auto focus");
   }
 
+  if (this->SetEnablePenetrationMode(this->Internal->EnablePenetrationMode) != PLUS_SUCCESS)
+  {
+    LOG_WARNING("Failed to set penetration mode");
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -2033,6 +2048,36 @@ PlusStatus vtkPlusClariusOEM::SetEnableAutoFocus(bool aEnableAutoFocus)
   return PLUS_SUCCESS;
 }
 
+//-------------------------------------------------------------------------------------------------
+PlusStatus vtkPlusClariusOEM::GetEnablePenetrationMode(bool& aEnablePenetrationMode)
+{
+  int oemState = solumIsConnected();
+  if (oemState != CLARIUS_STATE_CONNECTED)
+  {
+    // Connection has not been established yet, return cached parameter value
+    aEnablePenetrationMode = this->Internal->EnablePenetrationMode;
+    return PLUS_SUCCESS;
+  }
+
+  aEnablePenetrationMode = solumGetParam(PenetrationMode) > 0;
+  return PLUS_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------
+PlusStatus vtkPlusClariusOEM::SetEnablePenetrationMode(bool aEnablePenetrationMode)
+{
+  LOG_TRACE("vtkPlusClariusOEM::SetEnablePenetrationMode");
+
+  // attempt to set parameter value
+  if (solumSetParam(PenetrationMode, aEnablePenetrationMode ? 1.0 : 0.0))
+  {
+    LOG_ERROR("Failed to set PenetrationMode parameter");
+    return PLUS_FAIL;
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_SHORT_DELAY_MS));
+
+  return PLUS_SUCCESS;
+}
 
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::GetFocusDepthPercent(double& aFocusDepthPercent)

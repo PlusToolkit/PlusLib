@@ -95,7 +95,7 @@ protected:
 
   /*! Disconnect from Clarius OEM library */
   void DeInitializeOEM();
-  
+
   /*! Disconnect from the Clarius probe's Wi-Fi network */
   void DeInitializeWifi();
 
@@ -145,6 +145,11 @@ public:
   PlusStatus SetEnableAutoFocus(bool aEnableAutoFocus);
   /*! Get if the auto focus is enabled */
   PlusStatus GetEnableAutoFocus(bool& aEnableAutoFocus);
+
+  /*! Set the penetration mode enabled */
+  PlusStatus SetEnablePenetrationMode(bool aEnablePenetrationMode);
+  /*! Get if the penetration mode is enabled */
+  PlusStatus GetEnablePenetrationMode(bool& aEnablePenetrationMode);
 
   /*! Get the focus depth of B-mode ultrasound (%) */
   PlusStatus GetFocusDepthPercent(double& aFocusDepthPercent);
