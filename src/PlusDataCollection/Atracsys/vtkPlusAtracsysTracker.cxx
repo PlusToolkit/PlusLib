@@ -469,6 +469,13 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
         this->Internal->Tracker.SetOption("Embedded " + translatedOptionName, i.second);
       }
     }
+    else if (i.first.find('_') != std::string::npos) // just try to infer the option name by replacing _ by spaces
+    {
+      std::string optionName = i.first;
+      std::replace(optionName.begin(), optionName.end(), '_', ' ');
+      if (this->Internal->Tracker.SetOption(optionName, i.second) == ATRACSYS_RESULT::SUCCESS)
+        LOG_WARNING("Inferred option \"" << optionName << "\" successfully set to " << i.second);
+    }
   }
 
   // if spryTrack, setup for onboard processing
