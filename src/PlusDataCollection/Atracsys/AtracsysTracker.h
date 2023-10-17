@@ -200,9 +200,10 @@ public:
   // ------------------------------------------
   // frame options
   // ------------------------------------------
-  /*! Set/get the maximum number of events per frame included in the device's output */
-  ATRACSYS_RESULT SetMaxEventsNumber(int n);
-  int GetMaxEventsNumber() { return MaxEventsNumber; }
+  /*! Set/get the maximum number of additional events per frame included in the device's output.
+  This extends the default allocation of 20, for a total of 20 + n events allowed per frame. */
+  ATRACSYS_RESULT SetMaxAdditionalEventsNumber(int n);
+  int GetMaxAdditionalEventsNumber() { return MaxAdditionalEventsNumber; }
 
   /*! Set/get the maximum number of 2D fiducials (in either left or right frame) included in the device's output */
   ATRACSYS_RESULT SetMax2dFiducialsNumber(int n);
@@ -247,7 +248,7 @@ protected:
 private:
   DEVICE_TYPE DeviceType = UNKNOWN_DEVICE;
 
-  int MaxEventsNumber = 0;
+  int MaxAdditionalEventsNumber = 0; // beyond the default allocation of 20 events
   int Max2dFiducialsNumber = 256;
   int Max3dFiducialsNumber = 256;
   int MaxMarkersNumber = 16;
