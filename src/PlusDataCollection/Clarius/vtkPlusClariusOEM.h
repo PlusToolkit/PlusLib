@@ -40,6 +40,8 @@ public:
   bool IsTracker() const override { return true; };
   bool IsVirtual() const override { return false; };
 
+  static const std::string OVERLAY_PORT_NAME;
+
 public:
 
   /*! Read configuration from xml data */
@@ -160,6 +162,8 @@ public:
   double ConvertDepthCmToPercent(double aFocusDepthMm);
   /*! Convert the depth in % of the current depth to cm */
   double ConvertDepthPercentToCm(double aFocusDepthPercent);
+
+  PlusStatus UpdateFrameSize();
 
 private:
 
