@@ -2188,6 +2188,7 @@ PlusStatus vtkPlusClariusOEM::GetFocusDepthPercent(double& aFocusDepthPercent)
 
   // ensure ImagingParameters is up to date
   this->ImagingParameters->SetFocusDepthPercent(this->ConvertDepthCmToPercent(focusDepthCm));
+  this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_FOCUS_DEPTH, false);
 
   return PLUS_SUCCESS;
 }
@@ -2203,6 +2204,13 @@ PlusStatus vtkPlusClariusOEM::SetFocusDepthPercent(double aFocusDepthPercent)
     LOG_INFO("Cached US parameter FocusDepthPercent = " << aFocusDepthPercent);
     return PLUS_SUCCESS;
   }
+
+  if (aFocusDepthPercent < 0)
+  {
+    this->SetEnableAutoFocus(true);
+    return;
+  }
+  this->SetEnableAutoFocus(false);
 
   double focusDepthCm = this->ConvertDepthPercentToCm(aFocusDepthPercent);
 
