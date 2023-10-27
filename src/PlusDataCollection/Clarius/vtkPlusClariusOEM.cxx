@@ -2208,7 +2208,7 @@ PlusStatus vtkPlusClariusOEM::SetFocusDepthPercent(double aFocusDepthPercent)
   if (aFocusDepthPercent < 0)
   {
     this->SetEnableAutoFocus(true);
-    return;
+    return PLUS_SUCCESS;
   }
   this->SetEnableAutoFocus(false);
 
