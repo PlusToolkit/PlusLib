@@ -2080,6 +2080,19 @@ PlusStatus vtkPlusClariusOEM::SetTimeGainCompensationDb(const std::vector<double
     return PLUS_SUCCESS;
   }
 
+  for (int i = 0; i < 3; ++i)
+  {
+    if (std::abs(aTGC[i]) > 20)
+    {
+      LOG_ERROR("Invalid time gain compensation parameter at index: " << i << " ["
+        << aTGC[0] << ", "
+        << aTGC[1] << ", "
+        << aTGC[2] << "]. "
+        << "Valid range is [-20, 20]");
+      return PLUS_FAIL;
+    }
+  }
+
   CusTgc cTGC;
   cTGC.top = aTGC[0];
   cTGC.mid = aTGC[1];
