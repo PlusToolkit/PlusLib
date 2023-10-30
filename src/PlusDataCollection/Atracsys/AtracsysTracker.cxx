@@ -9,6 +9,7 @@ See License.txt for details.
 
 // System includes
 #include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <map>
 #include <string>
@@ -717,7 +718,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Connect()
     return ERROR_CANNOT_CREATE_FRAME_INSTANCE;
   }
 
-  if (ftkSetFrameOptions(false, this->MaxEventsNumber,
+  if (ftkSetFrameOptions(false, this->MaxAdditionalEventsNumber,
     this->Max2dFiducialsNumber, this->Max2dFiducialsNumber,
     this->Max3dFiducialsNumber, this->MaxMarkersNumber,
     this->Internal->Frame) != ftkError::FTK_OK)
@@ -997,13 +998,6 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetMarkersInFrame(std::vector<
       ss << ptr->SensorId << " " << ptr->SensorValue;
       events.emplace("tempv4", ss.str());
     }
-    else if (event.Type == FtkEventType::fetSyntheticTemperaturesV1)
-    {
-      std::stringstream ss;
-      const EvtSyntheticTemperaturesV1Payload* ptr = reinterpret_cast<EvtSyntheticTemperaturesV1Payload*>(event.Data);
-      ss << ptr->CurrentValue << " " << ptr->ReferenceValue;
-      events.emplace("synthTempv1", ss.str());
-    }
   }
 
   return SUCCESS;
@@ -1137,12 +1131,12 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerBatteryStr
 }
 
 //----------------------------------------------------------------------------
-AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMaxEventsNumber(int n)
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMaxAdditionalEventsNumber(int n)
 {
   if (n < 0) {
     return ERROR_SET_OPTION;
   }
-  this->MaxEventsNumber = n;
+  this->MaxAdditionalEventsNumber = n;
   return SUCCESS;
 }
 

@@ -380,17 +380,17 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
 
   // set frame options (internally passed to sdk during connection)
   // ------- maximum number of events per frame included in the device's output
-  itd = this->Internal->DeviceOptions.find("MaxEventsNumber");
+  itd = this->Internal->DeviceOptions.find("MaxAdditionalEventsNumber");
   if (itd != this->Internal->DeviceOptions.cend())
   {
     int value = -1;
     strToInt32(itd->second, value);
     if (value < 0) {
       LOG_WARNING("Invalid value for max events number per frame in output: " << itd->second
-        << ". Default value used (" << this->Internal->Tracker.GetMaxEventsNumber() << ")");
+        << ". Default value used (" << this->Internal->Tracker.GetMaxAdditionalEventsNumber() << ")");
     }
     else {
-      this->Internal->Tracker.SetMaxEventsNumber(value);
+      this->Internal->Tracker.SetMaxAdditionalEventsNumber(value);
     }
   }
   // ------- maximum number of 2D fiducials (in either left or right frame) included in the device's output
@@ -468,6 +468,13 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
       {
         this->Internal->Tracker.SetOption("Embedded " + translatedOptionName, i.second);
       }
+    }
+    else if (i.first.find('_') != std::string::npos) // just try to infer the option name by replacing _ by spaces
+    {
+      std::string optionName = i.first;
+      std::replace(optionName.begin(), optionName.end(), '_', ' ');
+      if (this->Internal->Tracker.SetOption(optionName, i.second) == ATRACSYS_RESULT::SUCCESS)
+        LOG_WARNING("Inferred option \"" << optionName << "\" successfully set to " << i.second);
     }
   }
 
@@ -636,7 +643,8 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
       mos.precision(3);
       mos << std::fixed << mit->GetMarkerStatus() << " " << mit->GetTrackingID() << " ";
       mos << mit->GetGeometryID() << " " << mit->GetGeometryPresenceMask() << " ";
-      mos << mit->GetFiducialRegistrationErrorMm();
+      mos << mit->GetFiducialRegistrationErrorMm() << " ";
+      mos << mit->GetFiducials().size(); // add number of fiducials
       customFields[it->second + "_info"].first = FRAMEFIELD_NONE;
       customFields[it->second + "_info"].second = mos.str();
 

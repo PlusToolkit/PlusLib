@@ -40,6 +40,8 @@ public:
   bool IsTracker() const override { return true; };
   bool IsVirtual() const override { return false; };
 
+  static const std::string OVERLAY_PORT_NAME;
+
 public:
 
   /*! Read configuration from xml data */
@@ -95,7 +97,7 @@ protected:
 
   /*! Disconnect from Clarius OEM library */
   void DeInitializeOEM();
-  
+
   /*! Disconnect from the Clarius probe's Wi-Fi network */
   void DeInitializeWifi();
 
@@ -146,6 +148,11 @@ public:
   /*! Get if the auto focus is enabled */
   PlusStatus GetEnableAutoFocus(bool& aEnableAutoFocus);
 
+  /*! Set the penetration mode enabled */
+  PlusStatus SetEnablePenetrationMode(bool aEnablePenetrationMode);
+  /*! Get if the penetration mode is enabled */
+  PlusStatus GetEnablePenetrationMode(bool& aEnablePenetrationMode);
+
   /*! Get the focus depth of B-mode ultrasound (%) */
   PlusStatus GetFocusDepthPercent(double& aFocusDepthPercent);
   /*! Set the focus depth of B-mode ultrasound (%) */
@@ -155,6 +162,8 @@ public:
   double ConvertDepthCmToPercent(double aFocusDepthMm);
   /*! Convert the depth in % of the current depth to cm */
   double ConvertDepthPercentToCm(double aFocusDepthPercent);
+
+  PlusStatus UpdateFrameSize();
 
 private:
 

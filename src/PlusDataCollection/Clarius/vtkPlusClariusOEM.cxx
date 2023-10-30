@@ -50,6 +50,8 @@
 #define CLARIUS_STATE_NOT_CONNECTED 0
 #define CLARIUS_STATE_CONNECTED 1
 
+const std::string vtkPlusClariusOEM::OVERLAY_PORT_NAME = "Overlay";
+
 //-------------------------------------------------------------------------------------------------
 // instance memory
 vtkPlusClariusOEM* vtkPlusClariusOEM::instance;
@@ -102,21 +104,33 @@ namespace
     {BUTTON_MODE::DISABLED, "DISABLED"}
   };
 
+  static std::map<int, std::string> ImagingModeStrings{
+    {CusMode::BMode, "BMode"},
+    {CusMode::Compounding, "Compounding"},
+    {CusMode::MMode, "MMode"},
+    {CusMode::ColorMode, "ColorMode"},
+    {CusMode::PowerMode, "PowerMode"},
+    {CusMode::PwMode, "PwMode"},
+    {CusMode::NeedleEnhance, "NeedleEnhance"},
+    {CusMode::Strain, "Strain"},
+    {CusMode::RfMode, "RfMode"},
+  };
+
   static const double CM_TO_MM = 10.0;
   static const double MM_TO_CM = 0.1;
   static const double UM_TO_MM = 0.001;
 
   static const int CLARIUS_SHORT_DELAY_MS = 10;
-  static const int CLARIUS_LONG_DELAY_MS  = 1000;
+  static const int CLARIUS_LONG_DELAY_MS = 1000;
 
-  static const std::string BATTERY_FIELD_TAG      = "ClariusBattery";
-  static const std::string TEMP_FIELD_TAG         = "ClariusTemp";
-  static const std::string FRAME_RATE_FIELD_TAG   = "ClariusFrameRate";
-  static const std::string BUTTON_FIELD_TAG       = "ClariusButton";
-  static const std::string UP_BUTTON_TAG          = "Up";
-  static const std::string DOWN_BUTTON_TAG        = "Down";
-  static const std::string NO_BUTTON_TAG          = "None";
-  static const std::string NUM_CLICKS_FIELD_TAG   = "ClariusNumClicks";
+  static const std::string BATTERY_FIELD_TAG = "ClariusBattery";
+  static const std::string TEMP_FIELD_TAG = "ClariusTemp";
+  static const std::string FRAME_RATE_FIELD_TAG = "ClariusFrameRate";
+  static const std::string BUTTON_FIELD_TAG = "ClariusButton";
+  static const std::string UP_BUTTON_TAG = "Up";
+  static const std::string DOWN_BUTTON_TAG = "Down";
+  static const std::string NO_BUTTON_TAG = "None";
+  static const std::string NUM_CLICKS_FIELD_TAG = "ClariusNumClicks";
   static const int SEND_BUTTON_STATE_FOR_N_FRAMES = 20;
 
   static const FrameSizeType DEFAULT_FRAME_SIZE = { 512, 512, 1 };
@@ -126,6 +140,8 @@ namespace
   static const bool DEFAULT_ENABLE_5V_RAIL = false;
 
   static const bool DEFAULT_FREEZE_ON_POOR_WIFI_SIGNAL = true;
+
+  static const bool DEFAULT_PENETRATION_MODE_ENABLED = false;
 
   static const int DEFAULT_CONTACT_DETECTION_TIMEOUT_SEC = 15;
 
@@ -147,7 +163,7 @@ namespace
 
   static const bool DEFAULT_ENABLE_AUTO_FOCUS = false;
 
-  static std::map<int, std::string> ConnectEnumToString {
+  static std::map<int, std::string> ConnectEnumToString{
     {CusConnection::ProbeConnected, "CONNECT_SUCCESS"},
     {CusConnection::ProbeDisconnected, "CONNECT_DISCONNECT"},
     {CusConnection::ConnectionFailed, "CONNECT_FAILED"},
@@ -201,6 +217,18 @@ protected:
 
   static void ErrorFn(const char* msg);
 
+  std::string ImagingModeToString(int mode)
+  {
+    if (ImagingModeStrings.find(mode) != ImagingModeStrings.end())
+    {
+      return ImagingModeStrings[mode];
+    }
+    else
+    {
+      return "Unknown Imaging Mode";
+    }
+  }
+
   // log user settings to console
   void LogUserSettings();
 
@@ -217,11 +245,13 @@ protected:
   bool EnableAutoGain;
   bool Enable5v;
   bool FreezeOnPoorWifiSignal;
+  bool EnablePenetrationMode;
   int ContactDetectionTimeoutSec;
   int AutoFreezeTimeoutSec;
   int KeepAwakeTimeoutMin;
   BUTTON_MODE UpButtonMode;
   BUTTON_MODE DownButtonMode;
+  int ImagingMode;
 
   // parameters retrieved from the probe over BLE
   std::string Ssid;
@@ -235,15 +265,16 @@ protected:
   std::promise<void> ConnectionBarrier;
 
   // pointers to DataSources
-  vtkPlusDataSource* BModeSource;
+  std::vector<vtkPlusDataSource*> BModeSources;
+  std::vector<vtkPlusDataSource*> OverlaySources;
   vtkPlusDataSource* TransdSource;
 
   // button press info
   std::string PressedButton;
   int ButtonNumClicks;
   int ButtonSentCount; // button state is sent for SEND_BUTTON_STATE_FOR_N_FRAMES
-                       // frames after button is clicked to ensure user can process
-                       // it in Slicer even if a frame is skipped
+  // frames after button is clicked to ensure user can process
+  // it in Slicer even if a frame is skipped
 
   CusStatusInfo CurrentStatus;
 
@@ -277,14 +308,15 @@ vtkPlusClariusOEM::vtkInternal::vtkInternal(vtkPlusClariusOEM* ext)
   , EnableAutoGain(DEFAULT_ENABLE_AUTO_GAIN)
   , Enable5v(DEFAULT_ENABLE_5V_RAIL)
   , FreezeOnPoorWifiSignal(DEFAULT_FREEZE_ON_POOR_WIFI_SIGNAL)
+  , EnablePenetrationMode(DEFAULT_PENETRATION_MODE_ENABLED)
   , ContactDetectionTimeoutSec(DEFAULT_CONTACT_DETECTION_TIMEOUT_SEC)
   , AutoFreezeTimeoutSec(DEFAULT_AUTO_FREEZE_TIMEOUT_SEC)
   , KeepAwakeTimeoutMin(DEFAULT_KEEP_AWAKE_TIMEOUT_SEC)
   , UpButtonMode(DEFAULT_UP_BUTTON_MODE)
   , DownButtonMode(DEFAULT_DOWN_BUTTON_MODE)
+  , ImagingMode(CusMode::BMode)
   , IpAddress("")
   , TcpPort(-1)
-  , BModeSource(nullptr)
   , TransdSource(nullptr)
   , PressedButton(NO_BUTTON_TAG)
   , ButtonNumClicks(0)
@@ -321,6 +353,25 @@ void vtkPlusClariusOEM::vtkInternal::ListFn(const char* list, int sz)
 //-------------------------------------------------------------------------------------------------
 void vtkPlusClariusOEM::vtkInternal::ConnectFn(CusConnection ret, int port, const char* status)
 {
+  switch (ret)
+  {
+  case ConnectionError:
+    LOG_INFO("Connection status: error");
+    break;
+  case ProbeConnected:
+    LOG_INFO("Connection status: probe connected");
+    break;
+  case ProbeDisconnected:
+    LOG_INFO("Connection status: probe disconnected");
+    break;
+  case ConnectionFailed:
+    LOG_INFO("Connection status: connection failed");
+    break;
+  case SwUpdateRequired:
+    LOG_INFO("Connection status: software update required");
+    break;
+  }
+
   if (ret == CusConnection::ProbeConnected)
   {
     // connection succeeded, set Internal->Connected variable to end busy wait in InternalConnect
@@ -443,38 +494,61 @@ void vtkPlusClariusOEM::vtkInternal::ProcessedImageFn(const void* oemImage, cons
   }
 
   // check if source is valid, if not - nothing to do
-  if (!device->Internal->BModeSource)
+  if (!nfo->overlay && device->Internal->BModeSources.size() == 0)
+  {
+    return;
+  }
+  else if (nfo->overlay && device->Internal->OverlaySources.size() == 0)
   {
     return;
   }
 
   // setup source
   const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
-  device->Internal->BModeSource->SetInputFrameSize(nfo->width, nfo->height, 1);
-  device->Internal->BModeSource->SetNumberOfScalarComponents(1);
 
-  // convert Clarius RGBA to grayscale
-  // format is:
-  // R = ultrasound value
-  // G = ultrasound value
-  // B = ultrasound value
-  // A = 255
   vtkSmartPointer<vtkImageData> vtkImage = vtkSmartPointer<vtkImageData>::New();
   vtkNew<vtkInformation> info;
-  vtkImage->SetExtent(0, nfo->width-1, 0, nfo->height-1, 0, 1);
+  vtkImage->SetExtent(0, nfo->width - 1, 0, nfo->height - 1, 0, 1);
   vtkImage->SetOrigin(0.0, 0.0, 0.0);
   vtkImage->SetSpacing(1.0, 1.0, 1.0);
-  vtkImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
 
-  std::vector<unsigned char> _gray_img;
-  _gray_img.resize(nfo->imageSize / 4);
-  PixelCodec::ConvertToGray(
-    PixelCodec::PixelEncoding_RGBA32,
-    nfo->width,
-    nfo->height,
-    (unsigned char*)oemImage,
-    (unsigned char*)vtkImage->GetScalarPointer()
-  );
+  std::vector<vtkPlusDataSource*> dataSources = device->Internal->BModeSources;
+  if (nfo->overlay)
+  {
+    dataSources = device->Internal->OverlaySources;
+  }
+
+  for (auto dataSource : dataSources)
+  {
+    if (dataSource->GetImageType() == US_IMG_RGB_COLOR)
+    {
+      vtkImage->AllocateScalars(VTK_UNSIGNED_CHAR, 3);
+      PixelCodec::BGRA32ToRGB24(
+        nfo->width,
+        nfo->height,
+        (unsigned char*)oemImage,
+        (unsigned char*)vtkImage->GetScalarPointer()
+      );
+    }
+    else
+    {
+      // convert Clarius RGBA to grayscale
+      // format is:
+      // B = ultrasound value
+      // G = ultrasound value
+      // R = ultrasound value
+      // A = 255
+      vtkImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+      PixelCodec::ConvertToGray(
+        PixelCodec::PixelEncoding_RGBA32,
+        nfo->width,
+        nfo->height,
+        (unsigned char*)oemImage,
+        (unsigned char*)vtkImage->GetScalarPointer()
+      );
+    }
+  }
+
 
   // custom fields (battery & button clicks)
   igsioFieldMapType customFields;
@@ -501,20 +575,23 @@ void vtkPlusClariusOEM::vtkInternal::ProcessedImageFn(const void* oemImage, cons
     device->Internal->ButtonNumClicks = 0;
   }
 
-  // update the b-mode image
-  device->Internal->BModeSource->AddItem(
-    vtkImage->GetScalarPointer(),
-    device->Internal->BModeSource->GetInputImageOrientation(),
-    device->Internal->BModeSource->GetInputFrameSize(),
-    VTK_UNSIGNED_CHAR,
-    1,
-    US_IMG_BRIGHTNESS,
-    0,
-    device->FrameNumber,
-    unfilteredTimestamp,
-    unfilteredTimestamp,
-    &customFields
-  );
+  // update the image
+  for (auto dataSource : dataSources)
+  {
+    dataSource->AddItem(
+      vtkImage->GetScalarPointer(),
+      dataSource->GetInputImageOrientation(),
+      dataSource->GetInputFrameSize(),
+      VTK_UNSIGNED_CHAR,
+      dataSource->GetImageType() == US_IMG_RGB_COLOR ? 3 : 1,
+      dataSource->GetImageType(),
+      0,
+      device->FrameNumber,
+      unfilteredTimestamp,
+      unfilteredTimestamp,
+      &customFields
+    );
+  }
 
   // if transd source is valid, update the ImageToTransd (or similarly named)
   // transform which localizes the image to the center of the transducer
@@ -574,6 +651,14 @@ void vtkPlusClariusOEM::vtkInternal::ImagingFn(CusImagingState ready, int imagin
   else if (ready == CusImagingState::ChargingChanged)
   {
     LOG_WARNING("Clarius started / stopped imaging due to a change in charging status");
+  }
+  else if (ready == CusImagingState::LowBandwidth)
+  {
+    LOG_INFO("Clarius low bandwidth was detected, imaging parameters were adjusted");
+  }
+  else if (ready == CusImagingState::MotionSensor)
+  {
+    LOG_INFO("Clarius started running or stopped due to change in motion sensor");
   }
   else
   {
@@ -648,13 +733,17 @@ void vtkPlusClariusOEM::vtkInternal::LogUserSettings()
   ss << "ImagingApplication: " << this->ImagingApplication << std::endl;
   ss << "FrameSize: [" << this->FrameSize[0] << ", " << this->FrameSize[1] << ", " << this->FrameSize[2] << "]" << std::endl;
   ss << "EnableAutoGain: " << (this->EnableAutoGain ? "TRUE" : "FALSE") << std::endl;
+  ss << "EnableAutoFocus: " << (this->EnableAutoFocus ? "TRUE" : "FALSE") << std::endl;
   ss << "Enable5v: " << (this->Enable5v ? "TRUE" : "FALSE") << std::endl;
+  ss << "EnablePenetrationMode: " << (this->EnablePenetrationMode ? "TRUE" : "FALSE") << std::endl;
   ss << "FreezeOnPoorWifiSignal: " << (this->FreezeOnPoorWifiSignal ? "TRUE" : "FALSE") << std::endl;
+  ss << "EnablePenetrationMode: " << (this->EnablePenetrationMode ? "TRUE" : "FALSE") << std::endl;
   ss << "ContactDetectionTimeoutSec: " << this->ContactDetectionTimeoutSec << std::endl;
   ss << "AutoFreezeTimeoutSec: " << this->AutoFreezeTimeoutSec << std::endl;
   ss << "KeepAwakeTimeoutMin: " << this->KeepAwakeTimeoutMin << std::endl;
   ss << "UpButtonMode: " << ButtonModeEnumToString[this->UpButtonMode] << std::endl;
   ss << "DownButtonMode: " << ButtonModeEnumToString[this->DownButtonMode] << std::endl;
+  ss << "ImagingMode: " << this->ImagingModeToString(this->ImagingMode) << std::endl;
 
   LOG_INFO(std::endl << "User settings:" << std::endl << ss.str());
 }
@@ -735,11 +824,13 @@ void vtkPlusClariusOEM::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "EnableAutoGain: " << (this->Internal->EnableAutoGain ? "TRUE" : "FALSE") << std::endl;
   os << indent << "Enable5v: " << (this->Internal->Enable5v ? "TRUE" : "FALSE") << std::endl;
   os << indent << "FreezeOnPoorWifiSignal: " << (this->Internal->FreezeOnPoorWifiSignal ? "TRUE" : "FALSE") << std::endl;
+  os << indent << "EnablePenetrationMode: " << (this->Internal->EnablePenetrationMode ? "TRUE" : "FALSE") << std::endl;
   os << indent << "ContactDetectionTimeoutSec: " << this->Internal->ContactDetectionTimeoutSec << std::endl;
   os << indent << "AutoFreezeTimeoutSec: " << this->Internal->AutoFreezeTimeoutSec << std::endl;
   os << indent << "KeepAwakeTimeoutMin: " << this->Internal->KeepAwakeTimeoutMin << std::endl;
   os << indent << "UpButtonMode: " << ButtonModeEnumToString[this->Internal->UpButtonMode] << std::endl;
   os << indent << "DownButtonMode: " << ButtonModeEnumToString[this->Internal->DownButtonMode] << std::endl;
+  os << indent << "ImagingMode: " << this->Internal->ImagingModeToString(this->Internal->ImagingMode) << std::endl;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -804,6 +895,10 @@ PlusStatus vtkPlusClariusOEM::ReadConfiguration(vtkXMLDataElement* rootConfigEle
   XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(FreezeOnPoorWifiSignal,
     this->Internal->FreezeOnPoorWifiSignal, deviceConfig);
 
+  // penetration mode enabled
+  XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(EnablePenetrationMode,
+    this->Internal->EnablePenetrationMode, deviceConfig);
+
   // contact detection timeout (seconds)
   XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, ContactDetectionTimeoutSec,
     this->Internal->ContactDetectionTimeoutSec, deviceConfig);
@@ -835,6 +930,9 @@ PlusStatus vtkPlusClariusOEM::ReadConfiguration(vtkXMLDataElement* rootConfigEle
   // enable auto focus
   XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(EnableAutoFocus,
     this->Internal->EnableAutoFocus, deviceConfig);
+
+  // imaging mode
+  XML_READ_ENUM_ATTRIBUTE_NONMEMBER_OPTIONAL(ImagingMode, this->Internal->ImagingMode, deviceConfig, this->Internal->ImagingModeToString, 0, ImagingModeStrings.size());
 
   // read imaging parameters
   this->ImagingParameters->ReadConfiguration(deviceConfig);
@@ -893,12 +991,8 @@ PlusStatus vtkPlusClariusOEM::ReadConfiguration(vtkXMLDataElement* rootConfigEle
   }
 
   // set vtkInternal pointer to b-mode data source
-  std::vector<vtkPlusDataSource*> bModeSources;
-  this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, bModeSources);
-  if (!bModeSources.empty())
-  {
-    this->Internal->BModeSource = bModeSources[0];
-  }
+  this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, this->Internal->BModeSources);
+  this->GetVideoSourcesByPortName(vtkPlusClariusOEM::OVERLAY_PORT_NAME, this->Internal->OverlaySources);
 
   return PLUS_SUCCESS;
 }
@@ -1089,6 +1183,23 @@ PlusStatus vtkPlusClariusOEM::InitializeProbe()
     this->Internal->Password = info.Password;
     this->Internal->IpAddress = info.IPv4;
     this->Internal->TcpPort = info.ControlPort;
+
+    // Remove leading/trailing quotes from SSID
+    if (this->Internal->Ssid[0] == '"')
+    {
+      this->Internal->Ssid = this->Internal->Ssid.substr(1, this->Internal->Ssid.size() - 2);
+    }
+    // Remove leading/trailing quotes from password
+    if (this->Internal->Password[0] == '"')
+    {
+      this->Internal->Password = this->Internal->Password.substr(1, this->Internal->Password.size() - 2);
+    }
+    // Remove leading/trailing quotes from IP address
+    if (this->Internal->IpAddress[0] == '"')
+    {
+      this->Internal->IpAddress = this->Internal->IpAddress.substr(1, this->Internal->IpAddress.size() - 2);
+    }
+
   }
 
   return PLUS_SUCCESS;
@@ -1147,7 +1258,7 @@ PlusStatus vtkPlusClariusOEM::InitializeOEM()
   // no b-mode data sources, disable b mode callback
   std::vector<vtkPlusDataSource*> bModeSources;
   this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, bModeSources);
-  if (bModeSources.empty())
+  if (this->Internal->BModeSources.empty() && this->Internal->OverlaySources.empty())
   {
     newProcessedImageFnPtr = nullptr;
   }
@@ -1395,6 +1506,11 @@ PlusStatus vtkPlusClariusOEM::SetInitialUsParams()
     LOG_WARNING("Failed to set auto focus");
   }
 
+  if (this->SetEnablePenetrationMode(this->Internal->EnablePenetrationMode) != PLUS_SUCCESS)
+  {
+    LOG_WARNING("Failed to set penetration mode");
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -1506,6 +1622,20 @@ PlusStatus vtkPlusClariusOEM::InternalConnect()
   // set imaging parameters
   this->SetInitialUsParams();
 
+  CusMode mode = CusMode(this->Internal->ImagingMode);
+  if (solumSetMode(mode) != 0)
+  {
+    LOG_ERROR("Failed to set Clarius OEM imaging mode");
+    return PLUS_FAIL;
+  }
+
+  // set separate overlays
+  if (solumSeparateOverlays(1) != 0)
+  {
+    LOG_ERROR("Failed to set Clarius separate overlays");
+    return PLUS_FAIL;
+  }
+
   return PLUS_SUCCESS;
 };
 
@@ -1616,6 +1746,8 @@ PlusStatus vtkPlusClariusOEM::InternalStartRecording()
 {
   LOG_TRACE("vtkPlusClariusOEM::InternalStartRecording");
 
+  this->UpdateFrameSize();
+
   bool running = false;
   for (int i = 0; i < 10; ++i)
   {
@@ -1635,6 +1767,21 @@ PlusStatus vtkPlusClariusOEM::InternalStartRecording()
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_LONG_DELAY_MS));
 
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusClariusOEM::UpdateFrameSize()
+{
+  vtkPlusDataSource* videoSource(NULL);
+  this->GetFirstVideoSource(videoSource);
+  videoSource->SetInputFrameSize(this->Internal->FrameSize);
+  videoSource->SetPixelType(VTK_UNSIGNED_CHAR);
+  unsigned int numberOfScalarComponents = (videoSource->GetImageType() == US_IMG_RGB_COLOR ? 3 : 1);
+  videoSource->SetNumberOfScalarComponents(numberOfScalarComponents);
+  //this->UncompressedVideoFrame.SetImageType(videoSource->GetImageType());
+  //this->UncompressedVideoFrame.SetImageOrientation(videoSource->GetInputImageOrientation());
+  //this->UncompressedVideoFrame.AllocateFrame(currentFrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents);
   return PLUS_SUCCESS;
 }
 
@@ -1719,6 +1866,7 @@ PlusStatus vtkPlusClariusOEM::InternalApplyImagingParameterChange()
       LOG_ERROR("Failed to set focus depth percent imaging parameter");
       status = PLUS_FAIL;
     }
+    this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_FOCUS_DEPTH, false);
   }
 
   return status;
@@ -1932,6 +2080,19 @@ PlusStatus vtkPlusClariusOEM::SetTimeGainCompensationDb(const std::vector<double
     return PLUS_SUCCESS;
   }
 
+  for (int i = 0; i < 3; ++i)
+  {
+    if (std::abs(aTGC[i]) > 20)
+    {
+      LOG_ERROR("Invalid time gain compensation parameter at index: " << i << " ["
+        << aTGC[0] << ", "
+        << aTGC[1] << ", "
+        << aTGC[2] << "]. "
+        << "Valid range is [-20, 20]");
+      return PLUS_FAIL;
+    }
+  }
+
   CusTgc cTGC;
   cTGC.top = aTGC[0];
   cTGC.mid = aTGC[1];
@@ -1988,6 +2149,36 @@ PlusStatus vtkPlusClariusOEM::SetEnableAutoFocus(bool aEnableAutoFocus)
   return PLUS_SUCCESS;
 }
 
+//-------------------------------------------------------------------------------------------------
+PlusStatus vtkPlusClariusOEM::GetEnablePenetrationMode(bool& aEnablePenetrationMode)
+{
+  int oemState = solumIsConnected();
+  if (oemState != CLARIUS_STATE_CONNECTED)
+  {
+    // Connection has not been established yet, return cached parameter value
+    aEnablePenetrationMode = this->Internal->EnablePenetrationMode;
+    return PLUS_SUCCESS;
+  }
+
+  aEnablePenetrationMode = solumGetParam(PenetrationMode) > 0;
+  return PLUS_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------
+PlusStatus vtkPlusClariusOEM::SetEnablePenetrationMode(bool aEnablePenetrationMode)
+{
+  LOG_TRACE("vtkPlusClariusOEM::SetEnablePenetrationMode");
+
+  // attempt to set parameter value
+  if (solumSetParam(PenetrationMode, aEnablePenetrationMode ? 1.0 : 0.0))
+  {
+    LOG_ERROR("Failed to set PenetrationMode parameter");
+    return PLUS_FAIL;
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_SHORT_DELAY_MS));
+
+  return PLUS_SUCCESS;
+}
 
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::GetFocusDepthPercent(double& aFocusDepthPercent)
@@ -2010,6 +2201,7 @@ PlusStatus vtkPlusClariusOEM::GetFocusDepthPercent(double& aFocusDepthPercent)
 
   // ensure ImagingParameters is up to date
   this->ImagingParameters->SetFocusDepthPercent(this->ConvertDepthCmToPercent(focusDepthCm));
+  this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_FOCUS_DEPTH, false);
 
   return PLUS_SUCCESS;
 }
@@ -2025,6 +2217,13 @@ PlusStatus vtkPlusClariusOEM::SetFocusDepthPercent(double aFocusDepthPercent)
     LOG_INFO("Cached US parameter FocusDepthPercent = " << aFocusDepthPercent);
     return PLUS_SUCCESS;
   }
+
+  if (aFocusDepthPercent < 0)
+  {
+    this->SetEnableAutoFocus(true);
+    return PLUS_SUCCESS;
+  }
+  this->SetEnableAutoFocus(false);
 
   double focusDepthCm = this->ConvertDepthPercentToCm(aFocusDepthPercent);
 

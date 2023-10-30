@@ -114,7 +114,7 @@ PlusStatus ClariusWifi::IsClariusNetworkReady(std::string ssid)
     {
       nw_info = (WLAN_AVAILABLE_NETWORK*)&networks->Network[j];
 
-      std::string candidate_ssid = (char*) nw_info->dot11Ssid.ucSSID;
+      std::string candidate_ssid = (char*)nw_info->dot11Ssid.ucSSID;
       if (ssid.compare(candidate_ssid) == 0)
       {
         this->InterfaceGuid = if_info->InterfaceGuid;
@@ -179,37 +179,13 @@ PlusStatus ClariusWifi::ConnectToClariusWifi(std::string ssid, std::string passw
     network_ready = this->IsClariusNetworkReady(ssid);
   }
 
-  std::string clarius_profile;
-  PWLAN_PROFILE_INFO_LIST profiles = NULL;
-  PWLAN_PROFILE_INFO pf_info = NULL;
-  DWORD res = WlanGetProfileList(this->HClient, &this->InterfaceGuid, NULL, &profiles);
-  if (res != ERROR_SUCCESS)
+  if (this->UpdateClariusWifiProfile(ssid, password) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Failed to list avilable WLAN interface profiles");
+    LOG_ERROR("Failed to update Clarius wifi profile");
     return PLUS_FAIL;
   }
 
-  for (int i = 0; i < profiles->dwNumberOfItems; i++)
-  {
-    pf_info = &profiles->ProfileInfo[i];
-    std::wstring w_pf_name = pf_info->strProfileName;
-    std::string pf_name(w_pf_name.begin(), w_pf_name.end());
-    
-    if (pf_name == ssid)
-    {
-      clarius_profile = pf_name;
-      break;
-    }
-  }
-
-  // free profiles memory
-  if (profiles != NULL)
-  {
-    WlanFreeMemory(profiles);
-    profiles = NULL;
-  }
-
-  // convert ssid string to DOT11_SSID
+  // Convert ssid string to DOT11_SSID
   DOT11_SSID dot11_ssid = { 0 };
   if (this->StringToSsid(ssid, &dot11_ssid) != PLUS_SUCCESS)
   {
@@ -217,16 +193,17 @@ PlusStatus ClariusWifi::ConnectToClariusWifi(std::string ssid, std::string passw
     return PLUS_FAIL;
   }
 
-  // connect
+  // Connect
+  std::wstring w_ssid = std::wstring(ssid.begin(), ssid.end());
   WLAN_CONNECTION_PARAMETERS wlan_params;
+  wlan_params.pDot11Ssid = NULL;
+  wlan_params.strProfile = w_ssid.c_str();
   wlan_params.wlanConnectionMode = wlan_connection_mode_profile;
-  std::wstring w_clarius_profile(clarius_profile.begin(), clarius_profile.end());
-  wlan_params.strProfile = w_clarius_profile.c_str();
-  wlan_params.pDot11Ssid = &dot11_ssid;
-  wlan_params.dot11BssType = dot11_BSS_type_infrastructure;
   wlan_params.pDesiredBssidList = NULL;
+  wlan_params.dot11BssType = this->BssType;
   wlan_params.dwFlags = 0;
-  res = WlanConnect(this->HClient, &this->InterfaceGuid, &wlan_params, NULL);
+
+  DWORD res = WlanConnect(this->HClient, &this->InterfaceGuid, &wlan_params, NULL);
   if (res != ERROR_SUCCESS)
   {
     LOG_ERROR("Failed to connect to Clarius wifi network: Error code " << res);
@@ -234,6 +211,138 @@ PlusStatus ClariusWifi::ConnectToClariusWifi(std::string ssid, std::string passw
   }
 
   this->Connected = true;
+  return PLUS_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------
+PlusStatus ClariusWifi::UpdateClariusWifiProfile(std::string ssid, std::string password)
+{
+  bool profileUpdated = false;
+
+  PWLAN_AVAILABLE_NETWORK_LIST networks = NULL;
+  PWLAN_AVAILABLE_NETWORK nw_info = NULL;
+  DWORD res = WlanGetAvailableNetworkList(this->HClient, &this->InterfaceGuid,
+    0, NULL, &networks);
+  if (res != ERROR_SUCCESS)
+  {
+    LOG_WARNING("Failed to list available networks");
+    return PLUS_FAIL;
+  }
+
+  for (int j = 0; j < networks->dwNumberOfItems; j++)
+  {
+    nw_info = (WLAN_AVAILABLE_NETWORK*)&networks->Network[j];
+
+    std::string candidate_ssid = (char*)nw_info->dot11Ssid.ucSSID;
+    if (ssid.compare(candidate_ssid) != 0)
+    {
+      continue;
+    }
+
+    std::wstring authenticationAlgorithm;
+    switch (nw_info->dot11DefaultAuthAlgorithm)
+    {
+    case DOT11_AUTH_ALGO_80211_OPEN:
+      authenticationAlgorithm = L"OPEN";
+      break;
+    case DOT11_AUTH_ALGO_80211_SHARED_KEY:
+      authenticationAlgorithm = L"SHARED";
+      break;
+    case DOT11_AUTH_ALGO_WPA:
+    case DOT11_AUTH_ALGO_WPA_PSK:
+    case DOT11_AUTH_ALGO_WPA_NONE:
+      authenticationAlgorithm = L"WPAPSK";
+      break;
+    case DOT11_AUTH_ALGO_RSNA:
+    case DOT11_AUTH_ALGO_RSNA_PSK:
+      authenticationAlgorithm = L"WPA2PSK";
+      break;
+    default:
+      authenticationAlgorithm = L"UNKNOWN";
+    }
+
+    std::wstring encryptionAlgorithm;
+    std::wstring keyType = L"passPhrase";
+    switch (nw_info->dot11DefaultCipherAlgorithm)
+    {
+    case DOT11_CIPHER_ALGO_NONE:
+      encryptionAlgorithm = L"NONE";
+      break;
+    case DOT11_CIPHER_ALGO_TKIP:
+      encryptionAlgorithm = L"TKIP";
+      break;
+
+    case DOT11_CIPHER_ALGO_CCMP:
+      encryptionAlgorithm = L"AES";
+      break;
+    default:
+      encryptionAlgorithm = L"WEP";
+      keyType = L"networkKey";
+    }
+
+    std::wstringstream ss_w_clarius_profile_xml;
+    ss_w_clarius_profile_xml << "<?xml version=\"1.0\" encoding=\"US-ASCII\"?>" << std::endl;
+    ss_w_clarius_profile_xml << "<WLANProfile xmlns=\"http://www.microsoft.com/networking/WLAN/profile/v1\">" << std::endl;
+    ss_w_clarius_profile_xml << "    <name>" << std::wstring(ssid.begin(), ssid.end()) << "</name>" << std::endl;
+    ss_w_clarius_profile_xml << "    <SSIDConfig>" << std::endl;
+    ss_w_clarius_profile_xml << "        <SSID>" << std::endl;
+    ss_w_clarius_profile_xml << "            <name>" << std::wstring(ssid.begin(), ssid.end()) << "</name>" << std::endl;
+    ss_w_clarius_profile_xml << "        </SSID>" << std::endl;
+    ss_w_clarius_profile_xml << "    </SSIDConfig>" << std::endl;
+    ss_w_clarius_profile_xml << "    <connectionType>ESS</connectionType>" << std::endl;
+    ss_w_clarius_profile_xml << "    <connectionMode>auto</connectionMode>" << std::endl;
+    ss_w_clarius_profile_xml << "    <autoSwitch>false</autoSwitch>" << std::endl;
+    ss_w_clarius_profile_xml << "    <MSM>" << std::endl;
+    ss_w_clarius_profile_xml << "        <security>" << std::endl;
+    ss_w_clarius_profile_xml << "            <authEncryption>" << std::endl;
+    ss_w_clarius_profile_xml << "                <authentication>" << authenticationAlgorithm << "</authentication>" << std::endl;
+    ss_w_clarius_profile_xml << "                <encryption>" << encryptionAlgorithm << "</encryption>" << std::endl;
+    ss_w_clarius_profile_xml << "                <useOneX>false</useOneX>" << std::endl;
+    ss_w_clarius_profile_xml << "            </authEncryption>" << std::endl;
+    if (nw_info->dot11DefaultCipherAlgorithm != DOT11_CIPHER_ALGO_NONE)
+    {
+      ss_w_clarius_profile_xml << "          <sharedKey>" << std::endl;
+      ss_w_clarius_profile_xml << "              <keyType>" << keyType << "</keyType>" << std::endl;
+      ss_w_clarius_profile_xml << "              <protected>false</protected>" << std::endl;
+      ss_w_clarius_profile_xml << "              <keyMaterial>" << std::wstring(password.begin(), password.end()) << "</keyMaterial>" << std::endl;
+      ss_w_clarius_profile_xml << "          </sharedKey>" << std::endl;
+    }
+    ss_w_clarius_profile_xml << "        </security>" << std::endl;
+    ss_w_clarius_profile_xml << "    </MSM>" << std::endl;
+    ss_w_clarius_profile_xml << "</WLANProfile>";
+    std::wstring w_clarius_profile_xml = ss_w_clarius_profile_xml.str();
+    LOG_DEBUG_W(L"WLAN Profile: \n" << ss_w_clarius_profile_xml.str());
+
+    // Create/update the Wi-Fi profile
+    DWORD reasonCode = 0;
+    res = WlanSetProfile(this->HClient, &this->InterfaceGuid, 0, w_clarius_profile_xml.c_str(), NULL, TRUE, NULL, &reasonCode);
+    if (res != ERROR_SUCCESS)
+    {
+      WCHAR reasonCodeStr[256] = L"\0";
+      WlanReasonCodeToString(reasonCode, 256, reasonCodeStr, NULL);
+      LOG_ERROR("Failed to set Wi-Fi profile: " << nw_info->strProfileName);
+      LOG_ERROR("Error code: " << res);
+      LOG_ERROR_W(L"Reason: (" << reasonCode << ") " << reasonCodeStr);
+      continue;
+    }
+
+    this->BssType = nw_info->dot11BssType;
+    profileUpdated = true;
+    break;
+  }
+
+  // free networks memory
+  if (networks != NULL)
+  {
+    WlanFreeMemory(networks);
+    networks = NULL;
+  }
+
+  if (!profileUpdated)
+  {
+    LOG_ERROR("Failed to find Clarius Wi-Fi network");
+    return PLUS_FAIL;
+  }
   return PLUS_SUCCESS;
 }
 
