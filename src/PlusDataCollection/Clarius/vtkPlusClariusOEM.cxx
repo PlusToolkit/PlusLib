@@ -1506,6 +1506,11 @@ PlusStatus vtkPlusClariusOEM::SetInitialUsParams()
     LOG_WARNING("Failed to set auto focus");
   }
 
+  if (this->SetEnableAutoGain(this->Internal->EnableAutoGain) != PLUS_SUCCESS)
+  {
+    LOG_WARNING("Failed to set auto gain");
+  }
+
   if (this->SetEnablePenetrationMode(this->Internal->EnablePenetrationMode) != PLUS_SUCCESS)
   {
     LOG_WARNING("Failed to set penetration mode");
@@ -2139,7 +2144,7 @@ PlusStatus vtkPlusClariusOEM::SetEnableAutoFocus(bool aEnableAutoFocus)
   }
 
   // attempt to set parameter value
-  if (solumSetParam(AutoFocus, aEnableAutoFocus ? 1.0 : 0.0))
+  if (solumSetParam(AutoFocus, aEnableAutoFocus ? CLARIUS_TRUE : CLARIUS_FALSE))
   {
     LOG_ERROR("Failed to set AutoFocus parameter");
     return PLUS_FAIL;
@@ -2170,7 +2175,7 @@ PlusStatus vtkPlusClariusOEM::SetEnablePenetrationMode(bool aEnablePenetrationMo
   LOG_TRACE("vtkPlusClariusOEM::SetEnablePenetrationMode");
 
   // attempt to set parameter value
-  if (solumSetParam(PenetrationMode, aEnablePenetrationMode ? 1.0 : 0.0))
+  if (solumSetParam(PenetrationMode, aEnablePenetrationMode ? CLARIUS_TRUE : CLARIUS_FALSE))
   {
     LOG_ERROR("Failed to set PenetrationMode parameter");
     return PLUS_FAIL;
@@ -2261,4 +2266,43 @@ double vtkPlusClariusOEM::ConvertDepthPercentToCm(double aFocusDepthPercent)
     return 0.0;
   }
   return (depthMm * MM_TO_CM) * (aFocusDepthPercent / 100.0);
+}
+
+//-------------------------------------------------------------------------------------------------
+PlusStatus vtkPlusClariusOEM::GetEnableAutoGain(bool& aEnableAutoGain)
+{
+  int oemState = solumIsConnected();
+  if (oemState != CLARIUS_STATE_CONNECTED)
+  {
+    // Connection has not been established yet, return cached parameter value
+    aEnableAutoGain = this->Internal->EnableAutoGain;
+    return PLUS_SUCCESS;
+  }
+
+  aEnableAutoGain = solumGetParam(CusParam::AutoGain) > 0;
+  return PLUS_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------
+PlusStatus vtkPlusClariusOEM::SetEnableAutoGain(bool aEnableAutoGain)
+{
+  this->Internal->EnableAutoGain = aEnableAutoGain;
+
+  int oemState = solumIsConnected();
+  if (oemState != CLARIUS_STATE_CONNECTED)
+  {
+    // Connection has not been established yet, parameter value will be set upon connection
+    LOG_INFO("Cached US parameter AutoGain = " << aEnableAutoGain);
+    return PLUS_SUCCESS;
+  }
+
+  // attempt to set parameter value
+  if (solumSetParam(AutoGain, aEnableAutoGain ? CLARIUS_TRUE : CLARIUS_FALSE))
+  {
+    LOG_ERROR("Failed to set AutoGain parameter");
+    return PLUS_FAIL;
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_SHORT_DELAY_MS));
+
+  return PLUS_SUCCESS;
 }

@@ -148,6 +148,11 @@ public:
   /*! Get if the auto focus is enabled */
   PlusStatus GetEnableAutoFocus(bool& aEnableAutoFocus);
 
+  /*! Set the auto gain enabled */
+  PlusStatus SetEnableAutoGain(bool aEnableAutoGain);
+  /*! Get if the auto gain is enabled */
+  PlusStatus GetEnableAutoGain(bool& aEnableAutoGain);
+
   /*! Set the penetration mode enabled */
   PlusStatus SetEnablePenetrationMode(bool aEnablePenetrationMode);
   /*! Get if the penetration mode is enabled */
