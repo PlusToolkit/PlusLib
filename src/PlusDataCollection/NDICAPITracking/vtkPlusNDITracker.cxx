@@ -59,6 +59,9 @@ POSSIBILITY OF SUCH DAMAGES.
 #include <vtkTimerLog.h>
 #include <vtkTransform.h>
 
+// igsio includes
+#include <igsioCommon.h>
+
 // System includes
 #include <ctype.h>
 #include <float.h>
@@ -92,6 +95,9 @@ vtkPlusNDITracker::vtkPlusNDITracker()
   , NetworkHostname("")
   , NetworkPort(8765)
   , TrackingFrequencyNumber(0)
+  , FirmwareMajorRevision(1)
+  , FirmwareMinorRevision(1)
+  , HardwareDataAveragingDepth(1)
   , CommandMutex(vtkIGSIORecursiveCriticalSection::New())
 {
   memset(this->CommandReply, 0, VTK_NDI_REPLY_LEN);
@@ -137,6 +143,9 @@ void vtkPlusNDITracker::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "LastFrameNumber: " << this->LastFrameNumber << std::endl;
   os << indent << "LeaveDeviceOpenAfterProbe: " << this->LeaveDeviceOpenAfterProbe << std::endl;
   os << indent << "CheckDSR: " << this->CheckDSR << std::endl;
+  os << indent << "HardwareDataAveragingDepth" << this->HardwareDataAveragingDepth << std::endl;
+  os << indent << "FirmwareMajorRevision" << this->FirmwareMajorRevision << std::endl;
+  os << indent << "FirmwareMinorRevision" << this->FirmwareMinorRevision << std::endl;
   for (auto iter = this->NdiToolDescriptors.begin(); iter != this->NdiToolDescriptors.end(); ++iter)
   {
     os << indent << iter->first << ": " << std::endl;
@@ -272,22 +281,26 @@ std::string vtkPlusNDITracker::Command(const char* format, ...)
   {
     cmd = cmd.substr(0, cmd.find(' '));
   }
-  bool isBinary = (cmd == "BX" || cmd == "GETLOG" || cmd == "VGET");
-  if (!isBinary)
+  bool isBinary = (cmd == "BX" || cmd == "BX2" || cmd == "GETLOG" || cmd == "VGET");
+
+  if (vtkIGSIOLogger::Instance()->GetLogLevel() >= vtkIGSIOLogger::LOG_LEVEL_DEBUG)
   {
-    LOG_DEBUG("NDI Reply: " << this->CommandReply);
-  }
-  else
-  {
-    std::stringstream ss;
-    ss << "NDI Reply: ";
-    ss << std::hex;
-    for (unsigned short i = 0 ; i < ndiGetBXReplyLength(this->Device); ++i)
+    if (!isBinary)
     {
-      ss << std::setfill('0') << std::setw(2) << (unsigned int)(unsigned char)this->CommandReply[i];
+      LOG_DEBUG("NDI Reply: " << this->CommandReply);
     }
-    ss << std::endl;
-    LOG_DEBUG(ss.str());
+    else
+    {
+      std::stringstream ss;
+      ss << "NDI Reply: ";
+      ss << std::hex;
+      for (unsigned int i = 0; i < ndiGetBX2ReplyLength(this->Device); ++i)
+      {
+        ss << std::setfill('0') << std::setw(2) << (unsigned int)(unsigned char)this->CommandReply[i];
+      }
+      ss << std::endl;
+      LOG_DEBUG(ss.str());
+    }
   }
 
   va_end(ap);
@@ -314,6 +327,10 @@ PlusStatus vtkPlusNDITracker::InternalConnect()
     return result;
   }
 
+  GetFirmwareRevision();
+
+  SelectDataAveraging();
+
   SelectMeasurementVolume();
   SelectTrackingFrequency();
 
@@ -321,6 +338,50 @@ PlusStatus vtkPlusNDITracker::InternalConnect()
   {
     LOG_ERROR("Failed to enable tool ports");
     return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusNDITracker::GetFirmwareRevision()
+{
+  this->FirmwareMajorRevision = 1;
+  std::string revision = "";
+  revision = this->Command("GET:%s", "Features.Firmware.API Revision");
+  int errnum = ndiGetError(this->Device);
+  if (errnum)
+  {
+    revision = this->Command("APIREV ");
+    int errnum = ndiGetError(this->Device);
+    if (errnum)
+    {
+      LOG_ERROR(ndiErrorString(errnum));
+      return PLUS_FAIL;
+    }
+    else
+    {
+      // Parse APIREV reply
+      // revision format "G.00X.00Y"
+      std::vector<std::string> result = igsioCommon::SplitStringIntoTokens(revision, '.', false);
+      uint32_t ver;
+      igsioCommon::StringToNumber<uint32_t>(result[1].c_str(), ver);
+      this->FirmwareMajorRevision = ver;
+      igsioCommon::StringToNumber<uint32_t>(result[2].c_str(), ver);
+      this->FirmwareMinorRevision = ver;
+    }
+  }
+  else
+  {
+    // Parse GET reply
+    // revision format "G.00X.00Y"
+    std::vector<std::string> answers = igsioCommon::SplitStringIntoTokens(revision, '=', false);
+    std::vector<std::string> result = igsioCommon::SplitStringIntoTokens(answers[1], '.', false);
+    uint32_t ver;
+    igsioCommon::StringToNumber<uint32_t>(result[1].c_str(), ver);
+    this->FirmwareMajorRevision = ver;
+    igsioCommon::StringToNumber<uint32_t>(result[2].c_str(), ver);
+    this->FirmwareMinorRevision = ver;
   }
 
   return PLUS_SUCCESS;
@@ -487,104 +548,15 @@ PlusStatus vtkPlusNDITracker::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  int errnum = 0;
-  // get the transforms for all tools from the NDI
-  this->Command("BX:0801");
-  errnum = ndiGetError(this->Device);
-  if (errnum)
+  if (this->FirmwareMajorRevision < 3)
   {
-    if (errnum == NDI_BAD_CRC || errnum == NDI_TIMEOUT)   // common errors
-    {
-      LOG_WARNING(ndiErrorString(errnum));
-    }
-    else
-    {
-      LOG_ERROR(ndiErrorString(errnum));
-    }
-    return PLUS_FAIL;
+    return this->DoBXUpdate();
   }
-
-  // default to incrementing frame count by one (in case a frame index cannot be retrieved from the tracker for a specific tool)
-  this->LastFrameNumber++;
-  int defaultToolFrameNumber = this->LastFrameNumber;
-  const double toolTimestamp = vtkIGSIOAccurateTimer::GetSystemTime(); // unfiltered timestamp
-  vtkSmartPointer<vtkMatrix4x4> toolToTrackerTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-  for (DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  else
   {
-    ToolStatus toolFlags = TOOL_OK;
-    toolToTrackerTransform->Identity();
-    unsigned long toolFrameNumber = defaultToolFrameNumber;
-    vtkPlusDataSource* trackerTool = it->second;
-    std::string toolSourceId = trackerTool->GetId();
-    NdiToolDescriptorsType::iterator ndiToolDescriptorIt = this->NdiToolDescriptors.find(toolSourceId);
-    if (ndiToolDescriptorIt == this->NdiToolDescriptors.end())
-    {
-      LOG_ERROR("Tool descriptor is not found for tool " << toolSourceId);
-      this->ToolTimeStampedUpdate(trackerTool->GetId(), toolToTrackerTransform, toolFlags, toolFrameNumber, toolTimestamp);
-      continue;
-    }
-    int portHandle = ndiToolDescriptorIt->second.PortHandle;
-    if (portHandle <= 0)
-    {
-      LOG_ERROR("Port handle is invalid for tool " << toolSourceId);
-      this->ToolTimeStampedUpdate(toolSourceId.c_str(), toolToTrackerTransform, toolFlags, toolFrameNumber, toolTimestamp);
-      continue;
-    }
-
-    float ndiTransform[8] = {1, 0, 0, 0, 0, 0, 0, 0};
-    int ndiToolAbsent = ndiGetBXTransform(this->Device, portHandle, ndiTransform);
-    int ndiPortStatus = ndiGetBXPortStatus(this->Device, portHandle);
-    unsigned long ndiFrameIndex = ndiGetBXFrame(this->Device, portHandle);
-
-    // convert status flags from NDI to Plus format
-    const unsigned long ndiPortStatusValidFlags = NDI_TOOL_IN_PORT | NDI_INITIALIZED | NDI_ENABLED;
-    if ((ndiPortStatus & ndiPortStatusValidFlags) != ndiPortStatusValidFlags)
-    {
-      toolFlags = TOOL_MISSING;
-    }
-    else
-    {
-      if (ndiToolAbsent)
-      {
-        toolFlags = TOOL_OUT_OF_VIEW;
-      }
-      if (ndiPortStatus & NDI_OUT_OF_VOLUME)
-      {
-        toolFlags = TOOL_OUT_OF_VOLUME;
-      }
-      // TODO all these button state toolFlags are on regardless of the actual state
-      //if (ndiPortStatus & NDI_SWITCH_1_ON)  { toolFlags = TOOL_SWITCH1_IS_ON; }
-      //if (ndiPortStatus & NDI_SWITCH_2_ON)  { toolFlags = TOOL_SWITCH2_IS_ON; }
-      //if (ndiPortStatus & NDI_SWITCH_3_ON)  { toolFlags = TOOL_SWITCH3_IS_ON; }
-    }
-
-    ndiTransformToMatrixfd(ndiTransform, *toolToTrackerTransform->Element);
-    toolToTrackerTransform->Transpose();
-
-    // by default (if there is no camera frame number associated with
-    // the tool transformation) the most recent timestamp is used.
-    if (!ndiToolAbsent && ndiFrameIndex)
-    {
-      // this will create a timestamp from the frame number
-      toolFrameNumber = ndiFrameIndex;
-      if (ndiFrameIndex > this->LastFrameNumber)
-      {
-        this->LastFrameNumber = ndiFrameIndex;
-      }
-    }
-
-    // send the matrix and status to the tool's vtkPlusDataBuffer
-    this->ToolTimeStampedUpdate(toolSourceId.c_str(), toolToTrackerTransform, toolFlags, toolFrameNumber, toolTimestamp);
+    return this->DoBX2Update();
   }
-
-  // Update tool connections if a wired tool is plugged in
-  if (ndiGetBXSystemStatus(this->Device) & NDI_PORT_OCCUPIED)
-  {
-    LOG_WARNING("A wired tool has been plugged into tracker " << (this->GetDeviceId().empty() ? this->GetDeviceId() : "(unknown NDI tracker"));
-    // Make the newly connected tools available
-    this->EnableToolPorts();
-  }
-
+  
   return PLUS_SUCCESS;
 }
 
@@ -1045,6 +1017,7 @@ PlusStatus vtkPlusNDITracker::ReadConfiguration(vtkXMLDataElement* rootConfigEle
   }
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MeasurementVolumeNumber, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, TrackingFrequencyNumber, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, HardwareDataAveragingDepth, deviceConfig);
 
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(NetworkHostname, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NetworkPort, deviceConfig);
@@ -1128,6 +1101,11 @@ PlusStatus vtkPlusNDITracker::WriteConfiguration(vtkXMLDataElement* rootConfig)
   if (!this->NetworkHostname.empty())
   {
     trackerConfig->SetIntAttribute("NetworkPort", this->NetworkPort);
+  }
+
+  if (this->HardwareDataAveragingDepth != 1)
+  {
+    trackerConfig->SetIntAttribute("HardwareDataAveragingDepth", this->HardwareDataAveragingDepth);
   }
 
   if (this->BaudRate > 0)
@@ -1380,6 +1358,44 @@ PlusStatus vtkPlusNDITracker::SelectMeasurementVolumeDeprecated()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNDITracker::SelectTrackingFrequency()
 {
+  /*
+  Frame Frequency (or Frame Rate)
+  
+    The frequency in [Hz] at which
+      the image sensors are read
+      out.
+
+    Param.Tracking.Frame Frequency
+      Vega ST/VT: fixed at 60 Hz
+      Vega XT: configurable 60-400 Hz
+      Lyra: configurable 10-120 Hz (10-250 Hz with the MR125 option)
+
+   Track Frequency 
+    The frequency at which unaveraged tracking data is reported. The actual track frequency is influenced by:
+      • The parameter setting
+      • The number of different tool types tracked (active wired/active wireless/passive)
+
+      For Vega, when tracking a single tool type, the Track Frequency is equal to the
+        Frame Frequency. If more than one tool type is tracked, the Track Frequency is a fraction
+        (1/2 or 1/3) of that, even if the parameter is set to 1/1 of Frame Frequency.
+
+      For Lyra, when tracking one or two tool types, the Track Frequency is 1/2. When
+        tracking three tool types, the Track Frequency is 1/3.
+      
+    Param.Tracking.Track Frequency
+      This parameter is an enumeration whose values are derived from the frame frequency.
+      For Vega, this can be:
+        • 1/3 of frame frequency
+        • 1/2 of frame frequency
+        • 1/1 of frame frequency
+      For Lyra, this can be:
+        • 1/3 of frame frequency
+        • 1/2 of frame frequency
+      
+   Reporting
+    Frequency The result of the actual track frequency divided by the averaging depth specified by Param.Data Averaging.Depth.
+  */
+
   if (this->TrackingFrequencyNumber > 0)
   {
     std::string reply = this->Command("GET:Param.Tracking.Track Frequency");
@@ -1397,7 +1413,6 @@ PlusStatus vtkPlusNDITracker::SelectTrackingFrequency()
       if (errnum)
       {
         LOG_ERROR("Failed to set tracking frequency " << this->TrackingFrequencyNumber << ": " << ndiErrorString(errnum));
-        CloseDevice(this->Device);
         return PLUS_FAIL;
       }
     }
@@ -1415,6 +1430,89 @@ PlusStatus vtkPlusNDITracker::SelectTrackingFrequencyDeprecated()
   {
     LOG_ERROR("Failed to set tracking frequency " << this->TrackingFrequencyNumber << ": " << ndiErrorString(errnum));
     return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusNDITracker::SelectDataAveraging()
+{
+  if (this->GetFirmwareMajorRevision() >= 3 && this->GetFirmwareMinorRevision() >= 6)
+  {
+    std::string model = this->Command("GET:%s", "Features.Hardware.Model");
+
+    this->Command("SET:%s=%d", "Param.Data Averaging.Depth", this->HardwareDataAveragingDepth);
+    int errnum = ndiGetError(this->Device);
+    if (errnum)
+    {
+      LOG_ERROR("Unable to set data averaging depth: " << ndiErrorString(errnum));
+      return PLUS_FAIL;
+    }
+
+    if (this->HardwareDataAveragingDepth > 1)
+    {
+      // Calculate the new timeout
+      std::string result = this->Command("GET:%s", "Param.Tracking.Frame Frequency");
+      std::vector<std::string> tokens = igsioCommon::SplitStringIntoTokens(result, '=');
+      unsigned int frameFreq;
+      igsioCommon::StringToNumber<unsigned int>(tokens[1], frameFreq);
+
+      result = this->Command("GET:%s", "Param.Tracking.Track Frequency");
+      tokens = igsioCommon::SplitStringIntoTokens(result, '=');
+      unsigned int trackFreqEnum;
+      igsioCommon::StringToNumber<unsigned int>(tokens[1], trackFreqEnum);
+
+      /*
+          Param.Tracking.Track Frequency
+      This parameter is an enumeration whose values are derived from the frame frequency.
+      For Vega, this can be:
+        • 1/3 of frame frequency
+        • 1/2 of frame frequency
+        • 1/1 of frame frequency
+      For Lyra, this can be:
+        • 1/3 of frame frequency
+        • 1/2 of frame frequency
+      */
+      double trackFreq(0);
+      if (model.find("Vega") != std::string::npos)
+      {
+        switch (trackFreqEnum)
+        {
+        case 0:
+          trackFreq = frameFreq / 3;
+          break;
+        case 1:
+          trackFreq = frameFreq / 2;
+          break;
+        case 2:
+          trackFreq = frameFreq;
+          break;
+        default:
+          break;
+        }
+      }
+      else if (model.find("Lyra") != std::string::npos)
+      {
+        switch (trackFreqEnum)
+        {
+        case 0:
+          trackFreq = frameFreq / 3;
+          break;
+        case 1:
+          trackFreq = frameFreq / 2;
+          break;
+        default:
+          break;
+        }
+      }
+
+      if (trackFreq != 0)
+      {
+        double timeoutMs = 1. / trackFreq * 1000 * this->HardwareDataAveragingDepth;
+        ndiTimeoutSocket(this->Device, static_cast<unsigned int>(timeoutMs) + 25); // Add 25 ms buffer for kicks
+      }
+    }
   }
 
   return PLUS_SUCCESS;
@@ -1446,6 +1544,217 @@ int vtkPlusNDITracker::ConvertBaudToNDIEnum(int baudRate)
     default:
       return -1;
   }
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusNDITracker::DoBXUpdate()
+{
+  int errnum = 0;
+  // get the transforms for all tools from the NDI
+  this->Command("BX:0801");
+  errnum = ndiGetError(this->Device);
+  if (errnum)
+  {
+    if (errnum == NDI_BAD_CRC || errnum == NDI_TIMEOUT)   // common errors
+    {
+      LOG_WARNING(ndiErrorString(errnum));
+    }
+    else
+    {
+      LOG_ERROR(ndiErrorString(errnum));
+    }
+    return PLUS_FAIL;
+  }
+
+  // default to incrementing frame count by one (in case a frame index cannot be retrieved from the tracker for a specific tool)
+  this->LastFrameNumber++;
+  int defaultToolFrameNumber = this->LastFrameNumber;
+  const double toolTimestamp = vtkIGSIOAccurateTimer::GetSystemTime(); // unfiltered timestamp
+  vtkSmartPointer<vtkMatrix4x4> toolToTrackerTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+  for (DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  {
+    ToolStatus toolFlags = TOOL_OK;
+    toolToTrackerTransform->Identity();
+    unsigned long toolFrameNumber = defaultToolFrameNumber;
+    vtkPlusDataSource* trackerTool = it->second;
+    std::string toolSourceId = trackerTool->GetId();
+    NdiToolDescriptorsType::iterator ndiToolDescriptorIt = this->NdiToolDescriptors.find(toolSourceId);
+    if (ndiToolDescriptorIt == this->NdiToolDescriptors.end())
+    {
+      LOG_ERROR("Tool descriptor is not found for tool " << toolSourceId);
+      this->ToolTimeStampedUpdate(trackerTool->GetId(), toolToTrackerTransform, toolFlags, toolFrameNumber, toolTimestamp);
+      continue;
+    }
+    int portHandle = ndiToolDescriptorIt->second.PortHandle;
+    if (portHandle <= 0)
+    {
+      LOG_ERROR("Port handle is invalid for tool " << toolSourceId);
+      this->ToolTimeStampedUpdate(toolSourceId.c_str(), toolToTrackerTransform, toolFlags, toolFrameNumber, toolTimestamp);
+      continue;
+    }
+
+    float ndiTransform[8] = { 1, 0, 0, 0, 0, 0, 0, 0 };
+    int ndiToolAbsent = ndiGetBXTransform(this->Device, portHandle, ndiTransform);
+    int ndiPortStatus = ndiGetBXPortStatus(this->Device, portHandle);
+    unsigned long ndiFrameIndex = ndiGetBXFrame(this->Device, portHandle);
+
+    // convert status flags from NDI to Plus format
+    const unsigned long ndiPortStatusValidFlags = NDI_TOOL_IN_PORT | NDI_INITIALIZED | NDI_ENABLED;
+    if ((ndiPortStatus & ndiPortStatusValidFlags) != ndiPortStatusValidFlags)
+    {
+      toolFlags = TOOL_MISSING;
+    }
+    else
+    {
+      if (ndiToolAbsent)
+      {
+        toolFlags = TOOL_OUT_OF_VIEW;
+      }
+      if (ndiPortStatus & NDI_OUT_OF_VOLUME)
+      {
+        toolFlags = TOOL_OUT_OF_VOLUME;
+      }
+      // TODO all these button state toolFlags are on regardless of the actual state
+      //if (ndiPortStatus & NDI_SWITCH_1_ON)  { toolFlags = TOOL_SWITCH1_IS_ON; }
+      //if (ndiPortStatus & NDI_SWITCH_2_ON)  { toolFlags = TOOL_SWITCH2_IS_ON; }
+      //if (ndiPortStatus & NDI_SWITCH_3_ON)  { toolFlags = TOOL_SWITCH3_IS_ON; }
+    }
+
+    ndiTransformToMatrixfd(ndiTransform, *toolToTrackerTransform->Element);
+    toolToTrackerTransform->Transpose();
+
+    // by default (if there is no camera frame number associated with
+    // the tool transformation) the most recent timestamp is used.
+    if (!ndiToolAbsent && ndiFrameIndex)
+    {
+      // this will create a timestamp from the frame number
+      toolFrameNumber = ndiFrameIndex;
+      if (ndiFrameIndex > this->LastFrameNumber)
+      {
+        this->LastFrameNumber = ndiFrameIndex;
+      }
+    }
+
+    // send the matrix and status to the tool's vtkPlusDataBuffer
+    this->ToolTimeStampedUpdate(toolSourceId.c_str(), toolToTrackerTransform, toolFlags, toolFrameNumber, toolTimestamp);
+  }
+
+  // Update tool connections if a wired tool is plugged in
+  if (ndiGetBXSystemStatus(this->Device) & NDI_PORT_OCCUPIED)
+  {
+    LOG_WARNING("A wired tool has been plugged into tracker " << (this->GetDeviceId().empty() ? this->GetDeviceId() : "(unknown NDI tracker"));
+    // Make the newly connected tools available
+    this->EnableToolPorts();
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusNDITracker::DoBX2Update()
+{
+  int errnum = 0;
+  // get the transforms for all tools from the NDI
+  this->Command("BX2:--6d=tools --1d=none");
+  errnum = ndiGetError(this->Device);
+  if (errnum)
+  {
+    if (errnum == NDI_BAD_CRC || errnum == NDI_TIMEOUT)   // common errors
+    {
+      LOG_WARNING(ndiErrorString(errnum));
+    }
+    else
+    {
+      LOG_ERROR(ndiErrorString(errnum));
+    }
+    return PLUS_FAIL;
+  }
+
+  // default to incrementing frame count by one (in case a frame index cannot be retrieved from the tracker for a specific tool)
+  this->LastFrameNumber++;
+  int defaultToolFrameNumber = this->LastFrameNumber;
+  const double toolTimestamp = vtkIGSIOAccurateTimer::GetSystemTime(); // unfiltered timestamp
+  vtkSmartPointer<vtkMatrix4x4> toolToTrackerTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+  unsigned long ndiFrameIndex = ndiGetBX2Frame(this->Device);
+  for (DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  {
+    ToolStatus toolFlags = TOOL_OK;
+    toolToTrackerTransform->Identity();
+    unsigned long toolFrameNumber = defaultToolFrameNumber;
+    vtkPlusDataSource* trackerTool = it->second;
+    std::string toolSourceId = trackerTool->GetId();
+    NdiToolDescriptorsType::iterator ndiToolDescriptorIt = this->NdiToolDescriptors.find(toolSourceId);
+    if (ndiToolDescriptorIt == this->NdiToolDescriptors.end())
+    {
+      LOG_ERROR("Tool descriptor is not found for tool " << toolSourceId);
+      this->ToolTimeStampedUpdate(trackerTool->GetId(), toolToTrackerTransform, toolFlags, toolFrameNumber, toolTimestamp);
+      continue;
+    }
+    int portHandle = ndiToolDescriptorIt->second.PortHandle;
+    if (portHandle <= 0)
+    {
+      LOG_ERROR("Port handle is invalid for tool " << toolSourceId);
+      this->ToolTimeStampedUpdate(toolSourceId.c_str(), toolToTrackerTransform, toolFlags, toolFrameNumber, toolTimestamp);
+      continue;
+    }
+
+    float ndiTransform[8] = { 1, 0, 0, 0, 0, 0, 0, 0 };
+    int ndiToolAbsent = ndiGetBX2Transform(this->Device, portHandle, ndiTransform);
+    int ndiPortStatus = ndiGetBX2PortStatus(this->Device, portHandle);
+
+    // convert status flags from NDI to Plus format
+    if (ndiPortStatus & NDI_BX2_MISSING_BIT)
+    {
+      toolFlags = TOOL_MISSING;
+    }
+    else
+    {
+      if (ndiPortStatus == NDI_BX2_PARTIAL_VIEW)
+      {
+        toolFlags = TOOL_OUT_OF_VIEW;
+      }
+      if (ndiPortStatus == NDI_BX2_OUT_OF_VOLUME)
+      {
+        toolFlags = TOOL_OUT_OF_VOLUME;
+      }
+      // TODO all these button state toolFlags are on regardless of the actual state
+      //if (ndiPortStatus & NDI_SWITCH_1_ON)  { toolFlags = TOOL_SWITCH1_IS_ON; }
+      //if (ndiPortStatus & NDI_SWITCH_2_ON)  { toolFlags = TOOL_SWITCH2_IS_ON; }
+      //if (ndiPortStatus & NDI_SWITCH_3_ON)  { toolFlags = TOOL_SWITCH3_IS_ON; }
+    }
+
+    ndiTransformToMatrixfd(ndiTransform, *toolToTrackerTransform->Element);
+    toolToTrackerTransform->Transpose();
+
+    // by default (if there is no camera frame number associated with
+    // the tool transformation) the most recent timestamp is used.
+    if (ndiToolAbsent == NDI_BX2_ENABLED && ndiFrameIndex)
+    {
+      // this will create a timestamp from the frame number
+      toolFrameNumber = ndiFrameIndex;
+      if (ndiFrameIndex > this->LastFrameNumber)
+      {
+        this->LastFrameNumber = ndiFrameIndex;
+      }
+    }
+
+    // send the matrix and status to the tool's vtkPlusDataBuffer
+    this->ToolTimeStampedUpdate(toolSourceId.c_str(), toolToTrackerTransform, toolFlags, toolFrameNumber, toolTimestamp);
+  }
+
+  int alerts = ndiGetBX2SystemAlertsCount(this->Device);
+  for (int i = 0; i < alerts; ++i)
+  {
+    unsigned short* alert = ndiGetBX2SystemAlert(this->Device, i);
+    if (alert[1] == NDI_SYS_EVENT_TOOL_CONNECTED)
+    {
+      LOG_WARNING("A wired tool has been plugged into tracker " << (this->GetDeviceId().empty() ? this->GetDeviceId() : "(unknown NDI tracker"));
+      // Make the newly connected tools available
+      this->EnableToolPorts();
+    }
+  }
+
+  return PLUS_SUCCESS;
 }
 
 #if defined(HAVE_FUTURE)
