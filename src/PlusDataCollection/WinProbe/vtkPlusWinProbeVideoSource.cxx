@@ -774,7 +774,6 @@ vtkPlusWinProbeVideoSource::vtkPlusWinProbeVideoSource()
   Callback funcPtr = &frameCallback;
   thisPtr = this;
   WPSetCallback(funcPtr);
-  WPInitialize();
 
   if (m_UseDeviceFrameReconstruction)
   {
@@ -790,13 +789,12 @@ vtkPlusWinProbeVideoSource::~vtkPlusWinProbeVideoSource()
   {
     this->Disconnect();
   }
-  WPDXDispose();
-  WPDispose();
 }
 
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
 {
+  WPInitialize();
   this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, m_ExtraSources);
   this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, m_PrimarySources);
   if(m_ExtraSources.empty() && m_PrimarySources.empty())
@@ -996,6 +994,8 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalDisconnect()
   }
   WPDisconnect();
   LOG_DEBUG("Disconnect from WinProbe finished");
+  WPDXDispose();
+  WPDispose();
   return PLUS_SUCCESS;
 }
 
