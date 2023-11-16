@@ -409,7 +409,8 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
       LOG_WARNING("Invalid value for max events number per frame in output: " << itd->second
         << ". Default value used (" << this->Internal->Tracker.GetMaxAdditionalEventsNumber() << ")");
     }
-    else {
+    else
+    {
       this->Internal->Tracker.SetMaxAdditionalEventsNumber(value);
     }
   }
@@ -419,11 +420,13 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   {
     int value = -1;
     strToInt32(itd->second, value);
-    if (value < 0) {
+    if (value < 0)
+    {
       LOG_WARNING("Invalid value for max 2D fiducials number in output: " << itd->second
         << ". Default value used (" << this->Internal->Tracker.GetMax2dFiducialsNumber() << ")");
     }
-    else {
+    else
+    {
       this->Internal->Tracker.SetMax2dFiducialsNumber(value);
     }
   }
@@ -433,11 +436,13 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   {
     int value = -1;
     strToInt32(itd->second, value);
-    if (value < 0) {
+    if (value < 0)
+    {
       LOG_WARNING("Invalid value for max 3D fiducials number in output: " << itd->second
         << ". Default value used (" << this->Internal->Tracker.GetMax3dFiducialsNumber() << ")");
     }
-    else {
+    else
+    {
       this->Internal->Tracker.SetMax3dFiducialsNumber(value);
     }
   }
@@ -447,11 +452,13 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   {
     int value = -1;
     strToInt32(itd->second, value);
-    if (value < 0) {
+    if (value < 0)
+    {
       LOG_WARNING("Invalid value for max markers number in output: " << itd->second
         << ". Default value used (" << this->Internal->Tracker.GetMaxMarkersNumber() << ")");
     }
-    else {
+    else
+    {
       this->Internal->Tracker.SetMaxMarkersNumber(value);
     }
   }

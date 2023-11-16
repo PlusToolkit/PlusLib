@@ -586,7 +586,9 @@ bool AtracsysTracker::GetOptionInfo(const std::string& optionName, const ftkOpti
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetOption(const std::string& optionName, const std::string& attributeValue)
 {
   if (this->Internal->isVirtual)
+  {
     return SUCCESS;
+  }
 
   std::string optionStr{ optionName };
   // if Embedded processing is on and the option has an Embedded variant, add the prefix
@@ -785,6 +787,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Connect()
 
   // Check whether onboard processing is off or on (spryTrack only)
   if (this->DeviceType == SPRYTRACK_180 || this->DeviceType == SPRYTRACK_300)
+  {
     if (!this->GetOptionInfo("Enable embedded processing", info))
     {
       LOG_WARNING(std::string("Embedded processing not part of the option list."));
@@ -797,6 +800,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Connect()
       isOnboardProcessing = (val == 1) ? true : false;
       LOG_INFO("Embedded processing is initially " << (isOnboardProcessing ? "enabled" : "disabled"));
     }
+  }
 
   return SUCCESS;
 }
@@ -805,7 +809,9 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Connect()
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Disconnect()
 {
   if (this->Internal->isVirtual)
+  {
     return SUCCESS;
+  }
 
   if (this->Internal->FtkLib == nullptr && this->Internal->TrackerSN == 0)
   {
@@ -927,7 +933,9 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::LoadMarkerGeometryFromString(s
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetMarkerInfo(std::string& markerInfo)
 {
   if (this->Internal->isVirtual)
+  {
     return ERROR_CANNOT_GET_MARKER_INFO;
+  }
 
   // get correct device option number
   const ftkOptionsInfo* info;
@@ -1089,7 +1097,9 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetMarkersInFrame(std::vector<
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetUserLEDState(int red, int green, int blue, int frequency, bool enabled /* = true */)
 {
   if (this->Internal->isVirtual)
+  {
     return SUCCESS;
+  }
 
   // get correct device option number
   const ftkOptionsInfo* info;
@@ -1133,7 +1143,9 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetUserLEDState(int red, int g
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableUserLED(bool enabled)
 {
   if (this->Internal->isVirtual)
+  {
     return SUCCESS;
+  }
 
   // get correct device option number
   const ftkOptionsInfo* info;
@@ -1152,7 +1164,9 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableUserLED(bool enabled)
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetLaserEnabled(bool enabled)
 {
   if (this->Internal->isVirtual)
+  {
     return SUCCESS;
+  }
 
   // get correct device option number
   const ftkOptionsInfo* info;
@@ -1174,7 +1188,9 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetLaserEnabled(bool enabled)
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerPairing(bool enabled)
 {
   if (this->Internal->isVirtual)
+  {
     return SUCCESS;
+  }
 
   // get correct device option number
   const ftkOptionsInfo* info;
@@ -1194,7 +1210,9 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerPairing(bo
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerStatusStreaming(bool enabled)
 {
   if (this->Internal->isVirtual)
+  {
     return SUCCESS;
+  }
 
   // get correct device option number
   const ftkOptionsInfo* info;
@@ -1214,7 +1232,9 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerStatusStre
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerBatteryStreaming(bool enabled)
 {
   if (this->Internal->isVirtual)
+  {
     return SUCCESS;
+  }
 
   // get correct device option number
   const ftkOptionsInfo* info;
@@ -1233,7 +1253,8 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerBatteryStr
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMaxAdditionalEventsNumber(int n)
 {
-  if (n < 0) {
+  if (n < 0)
+  {
     return ERROR_SET_OPTION;
   }
   this->MaxAdditionalEventsNumber = n;
@@ -1243,7 +1264,8 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMaxAdditionalEventsNumber(i
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMax2dFiducialsNumber(int n)
 {
-  if (n < 0) {
+  if (n < 0)
+  {
     return ERROR_SET_OPTION;
   }
   this->Max2dFiducialsNumber = n;
@@ -1253,7 +1275,8 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMax2dFiducialsNumber(int n)
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMax3dFiducialsNumber(int n)
 {
-  if (n < 0) {
+  if (n < 0)
+  {
     return ERROR_SET_OPTION;
   }
   this->Max3dFiducialsNumber = n;
@@ -1263,7 +1286,8 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMax3dFiducialsNumber(int n)
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMaxMarkersNumber(int n)
 {
-  if (n < 0) {
+  if (n < 0)
+  {
     return ERROR_SET_OPTION;
   }
   this->MaxMarkersNumber = n;
@@ -1277,7 +1301,9 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMaxMarkersNumber(int n)
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableOnboardProcessing(bool enabled)
 {
   if (this->Internal->isVirtual)
+  {
     return SUCCESS;
+  }
 
   // get correct device option number
   const ftkOptionsInfo* info;
@@ -1298,7 +1324,9 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableOnboardProcessing(bool e
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableImageStreaming(bool enabled)
 {
   if (this->Internal->isVirtual)
+  {
     return SUCCESS;
+  }
 
   // get correct device option number
   const ftkOptionsInfo* info;
@@ -1382,7 +1410,9 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetDroppedFrameCount(int& drop
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::ResetLostFrameCount()
 {
   if (this->Internal->isVirtual)
+  {
     return SUCCESS;
+  }
 
   if (this->DeviceType == FUSIONTRACK_250 || this->DeviceType == FUSIONTRACK_500)
   {
@@ -1462,5 +1492,7 @@ bool AtracsysTracker::Marker::AddFiducial(AtracsysTracker::Fiducial fid)
     return true;
   }
   else
+  {
     return false;
+  }
 }
