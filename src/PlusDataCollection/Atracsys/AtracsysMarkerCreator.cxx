@@ -212,7 +212,8 @@ PlusStatus CollectFiducials(fidsFrameList& fidFrameList, int numFrames)
   {
     // ensure vector is empty
     markerFrame.clear();
-    ATRACSYS_RESULT result = Tracker.GetMarkersInFrame(markerFrame, events);
+    uint64_t ts = 0;
+    ATRACSYS_RESULT result = Tracker.GetMarkersInFrame(markerFrame, events, ts);
     if (result == ATR_SUCCESS)
     {
       m++;

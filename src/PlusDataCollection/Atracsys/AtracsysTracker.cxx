@@ -104,14 +104,24 @@ public:
   {
     FtkLib = nullptr;
     LibVersion = "";
+    CalibrationDate = "";
     TrackerSN = 0;
   }
+
+  // is virtual device or not
+  bool isVirtual = false;
+
+  // is paused or not
+  bool isPaused = true;
 
   // handle to FtkLib library
   ftkLibrary FtkLib = nullptr;
 
   // library version 
   std::string LibVersion;
+
+  // calibration date
+  std::string CalibrationDate;
 
   // serial number of tracker
   uint64 TrackerSN = 0;
@@ -575,13 +585,23 @@ bool AtracsysTracker::GetOptionInfo(const std::string& optionName, const ftkOpti
 // this method sets a value to an option in the device. The option name follows Atracsys' nomenclature.
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetOption(const std::string& optionName, const std::string& attributeValue)
 {
-  LOG_INFO(std::string("Setting option \"") + optionName + std::string("\" at value ") + attributeValue);
+  if (this->Internal->isVirtual)
+  {
+    return SUCCESS;
+  }
+
+  std::string optionStr{ optionName };
+  // if Embedded processing is on and the option has an Embedded variant, add the prefix
+  if (isOnboardProcessing && this->Internal->DeviceOptionMap.find("Embedded " + optionName) != this->Internal->DeviceOptionMap.end())
+  {
+    optionStr = "Embedded " + optionStr;
+  }
 
   const ftkOptionsInfo* info;
 
-  if (!this->GetOptionInfo(optionName, info))
+  if (!this->GetOptionInfo(optionStr, info))
   {
-    LOG_WARNING(std::string("Info for option \"") + optionName + std::string("\" not found."));
+    LOG_WARNING(std::string("Info for option \"") + optionStr + std::string("\" not found."));
     return ERROR_OPTION_NOT_FOUND;
   }
 
@@ -602,7 +622,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetOption(const std::string& o
       }
       else
       {
-        LOG_WARNING(std::string("Unknown error setting option ") + optionName);
+        LOG_WARNING(std::string("Unknown error setting option ") + optionStr);
       }
     }
   }
@@ -623,7 +643,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetOption(const std::string& o
       }
       else
       {
-        LOG_WARNING(std::string("Unknown error setting option ") + optionName);
+        LOG_WARNING(std::string("Unknown error setting option ") + optionStr);
       }
     }
   }
@@ -631,6 +651,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetOption(const std::string& o
   {
     LOG_WARNING(std::string("Option of type \"data\" not supported yet"));
   }
+  LOG_INFO(std::string("Option \"") + optionStr + std::string("\" successfully set at value ") + attributeValue);
 
   return SUCCESS;
 }
@@ -646,6 +667,24 @@ AtracsysTracker::~AtracsysTracker()
 {
   delete Internal;
   Internal = nullptr;
+}
+
+//----------------------------------------------------------------------------
+void AtracsysTracker::Pause(bool tof)
+{
+  this->Internal->isPaused = tof;
+}
+
+//----------------------------------------------------------------------------
+bool AtracsysTracker::IsOnboardProcessing()
+{
+  return isOnboardProcessing;
+}
+
+//----------------------------------------------------------------------------
+bool AtracsysTracker::IsVirtual()
+{
+  return this->Internal->isVirtual;
 }
 
 //----------------------------------------------------------------------------
@@ -735,12 +774,45 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Connect()
     return ERROR_OPTION_NOT_FOUND;
   }
 
+  // Needs to be after the device option enumeration
+  const ftkOptionsInfo* info;
+  if (!this->GetOptionInfo("Calibration processing datetime", info))
+  {
+    LOG_ERROR("Option unknown: \"Calibration processing datetime\"");
+    return ERROR_OPTION_NOT_FOUND;
+  }
+  ftkBuffer buff;
+  ftkGetData(this->Internal->FtkLib, this->Internal->TrackerSN, info->id, &buff);
+  this->Internal->CalibrationDate = std::string(buff.data);
+
+  // Check whether onboard processing is off or on (spryTrack only)
+  if (this->DeviceType == SPRYTRACK_180 || this->DeviceType == SPRYTRACK_300)
+  {
+    if (!this->GetOptionInfo("Enable embedded processing", info))
+    {
+      LOG_WARNING(std::string("Embedded processing not part of the option list."));
+      return ERROR_OPTION_NOT_FOUND;
+    }
+    else
+    {
+      int32 val;
+      ftkGetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, info->id, &val, ftkOptionGetter::FTK_VALUE);
+      isOnboardProcessing = (val == 1) ? true : false;
+      LOG_INFO("Embedded processing is initially " << (isOnboardProcessing ? "enabled" : "disabled"));
+    }
+  }
+
   return SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Disconnect()
 {
+  if (this->Internal->isVirtual)
+  {
+    return SUCCESS;
+  }
+
   if (this->Internal->FtkLib == nullptr && this->Internal->TrackerSN == 0)
   {
     return ERROR_DISCONNECT_ATTEMPT_WHEN_NOT_CONNECTED;
@@ -766,6 +838,13 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetSDKversion(std::string& ver
 }
 
 //----------------------------------------------------------------------------
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetCalibrationDate(std::string& date)
+{
+  date = this->Internal->CalibrationDate;
+  return SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetDeviceType(DEVICE_TYPE& deviceType)
 {
   deviceType = this->DeviceType;
@@ -777,7 +856,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetCamerasCalibration(
   std::array<float, 10>& leftIntrinsic, std::array<float, 10>& rightIntrinsic,
   std::array<float, 3>& rightPosition, std::array<float, 3>& rightOrientation)
 {
-  if (this->SetOption("Calibration export", "1") != SUCCESS)
+  if (!this->Internal->isVirtual || this->SetOption("Calibration export", "1") != SUCCESS)
   {
     LOG_ERROR("Could not export calibration.");
     return ERROR_FAILED_TO_EXPORT_CALIB;
@@ -827,7 +906,8 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::LoadMarkerGeometryFromFile(std
 {
   ftkGeometry geom;
   this->Internal->LoadFtkGeometryFromFile(filePath, geom);
-  if (ftkSetGeometry(this->Internal->FtkLib, this->Internal->TrackerSN, &geom) != ftkError::FTK_OK)
+  if (!this->Internal->isVirtual &&
+    ftkSetGeometry(this->Internal->FtkLib, this->Internal->TrackerSN, &geom) != ftkError::FTK_OK)
   {
     return ERROR_UNABLE_TO_LOAD_MARKER;
   }
@@ -840,7 +920,8 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::LoadMarkerGeometryFromString(s
 {
   ftkGeometry geom;
   this->Internal->LoadFtkGeometryFromString(geomString, geom);
-  if (ftkSetGeometry(this->Internal->FtkLib, this->Internal->TrackerSN, &geom) != ftkError::FTK_OK)
+  if (!this->Internal->isVirtual &&
+    ftkSetGeometry(this->Internal->FtkLib, this->Internal->TrackerSN, &geom) != ftkError::FTK_OK)
   {
     return ERROR_UNABLE_TO_LOAD_MARKER;
   }
@@ -851,6 +932,11 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::LoadMarkerGeometryFromString(s
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetMarkerInfo(std::string& markerInfo)
 {
+  if (this->Internal->isVirtual)
+  {
+    return ERROR_CANNOT_GET_MARKER_INFO;
+  }
+
   // get correct device option number
   const ftkOptionsInfo* info;
   if (!this->GetOptionInfo("Active Wireless Markers info", info))
@@ -887,7 +973,8 @@ std::string AtracsysTracker::ResultToString(AtracsysTracker::ATRACSYS_RESULT res
 }
 
 //----------------------------------------------------------------------------
-AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetMarkersInFrame(std::vector<Marker>& markers, std::map<std::string, std::string>& events)
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetMarkersInFrame(std::vector<Marker>& markers,
+  std::map<std::string, std::string>& events, uint64_t& sdkTimestamp)
 {
   ftkError err = ftkGetLastFrame(this->Internal->FtkLib, this->Internal->TrackerSN, this->Internal->Frame, 20);
   if (err != ftkError::FTK_OK)
@@ -1000,12 +1087,20 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetMarkersInFrame(std::vector<
     }
   }
 
+  // Save sdk timestamp
+  sdkTimestamp = this->Internal->Frame->imageHeader->timestampUS;
+
   return SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetUserLEDState(int red, int green, int blue, int frequency, bool enabled /* = true */)
 {
+  if (this->Internal->isVirtual)
+  {
+    return SUCCESS;
+  }
+
   // get correct device option number
   const ftkOptionsInfo* info;
   if (!this->GetOptionInfo("User-LED frequency", info))
@@ -1047,6 +1142,11 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetUserLEDState(int red, int g
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableUserLED(bool enabled)
 {
+  if (this->Internal->isVirtual)
+  {
+    return SUCCESS;
+  }
+
   // get correct device option number
   const ftkOptionsInfo* info;
   if (!this->GetOptionInfo("Enables the user-LED", info))
@@ -1063,6 +1163,11 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableUserLED(bool enabled)
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetLaserEnabled(bool enabled)
 {
+  if (this->Internal->isVirtual)
+  {
+    return SUCCESS;
+  }
+
   // get correct device option number
   const ftkOptionsInfo* info;
   if (!this->GetOptionInfo("Enables lasers", info))
@@ -1082,6 +1187,11 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetLaserEnabled(bool enabled)
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerPairing(bool enabled)
 {
+  if (this->Internal->isVirtual)
+  {
+    return SUCCESS;
+  }
+
   // get correct device option number
   const ftkOptionsInfo* info;
   if (!this->GetOptionInfo("Active Wireless Pairing Enable", info))
@@ -1099,6 +1209,11 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerPairing(bo
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerStatusStreaming(bool enabled)
 {
+  if (this->Internal->isVirtual)
+  {
+    return SUCCESS;
+  }
+
   // get correct device option number
   const ftkOptionsInfo* info;
   if (!this->GetOptionInfo("Active Wireless button statuses streaming", info))
@@ -1116,6 +1231,11 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerStatusStre
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerBatteryStreaming(bool enabled)
 {
+  if (this->Internal->isVirtual)
+  {
+    return SUCCESS;
+  }
+
   // get correct device option number
   const ftkOptionsInfo* info;
   if (!this->GetOptionInfo("Active Wireless battery state streaming", info))
@@ -1133,7 +1253,8 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerBatteryStr
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMaxAdditionalEventsNumber(int n)
 {
-  if (n < 0) {
+  if (n < 0)
+  {
     return ERROR_SET_OPTION;
   }
   this->MaxAdditionalEventsNumber = n;
@@ -1143,7 +1264,8 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMaxAdditionalEventsNumber(i
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMax2dFiducialsNumber(int n)
 {
-  if (n < 0) {
+  if (n < 0)
+  {
     return ERROR_SET_OPTION;
   }
   this->Max2dFiducialsNumber = n;
@@ -1153,7 +1275,8 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMax2dFiducialsNumber(int n)
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMax3dFiducialsNumber(int n)
 {
-  if (n < 0) {
+  if (n < 0)
+  {
     return ERROR_SET_OPTION;
   }
   this->Max3dFiducialsNumber = n;
@@ -1163,7 +1286,8 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMax3dFiducialsNumber(int n)
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMaxMarkersNumber(int n)
 {
-  if (n < 0) {
+  if (n < 0)
+  {
     return ERROR_SET_OPTION;
   }
   this->MaxMarkersNumber = n;
@@ -1176,6 +1300,11 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMaxMarkersNumber(int n)
 
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableOnboardProcessing(bool enabled)
 {
+  if (this->Internal->isVirtual)
+  {
+    return SUCCESS;
+  }
+
   // get correct device option number
   const ftkOptionsInfo* info;
   if (!this->GetOptionInfo("Enable embedded processing", info))
@@ -1187,12 +1316,18 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableOnboardProcessing(bool e
   {
     return ERROR_ENABLE_ONBOARD_PROCESSING;
   }
+  LOG_INFO("Embedded processing successfully " << (enabled ? "enabled" : "disabled"));
   return SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableImageStreaming(bool enabled)
 {
+  if (this->Internal->isVirtual)
+  {
+    return SUCCESS;
+  }
+
   // get correct device option number
   const ftkOptionsInfo* info;
   if (!this->GetOptionInfo("Enable images sending", info))
@@ -1204,6 +1339,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableImageStreaming(bool enab
   {
     return ERROR_ENABLE_IMAGE_STREAMING;
   }
+  LOG_INFO("Image streaming successfully " << (enabled ? "enabled" : "disabled"));
   return SUCCESS;
 }
 
@@ -1212,6 +1348,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetSpryTrackProcessingType(Atr
 {
   if (this->DeviceType != SPRYTRACK_180 && this->DeviceType != SPRYTRACK_300)
   {
+    LOG_WARNING("Embedded processing is available only on spryTracks.");
     return ERROR_OPTION_AVAILABLE_ONLY_ON_STK;
   }
   bool succeeded = true;
@@ -1219,11 +1356,13 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetSpryTrackProcessingType(Atr
   {
     succeeded = succeeded && (this->EnableOnboardProcessing(true) == SUCCESS);
     succeeded = succeeded && (this->EnableImageStreaming(false) == SUCCESS);
+    isOnboardProcessing = true;
   }
   else if (processingType == PROCESSING_ON_PC)
   {
     succeeded = succeeded && (this->EnableOnboardProcessing(false) == SUCCESS);
     succeeded = succeeded && (this->EnableImageStreaming(true) == SUCCESS);
+    isOnboardProcessing = false;
   }
 
   if (!succeeded)
@@ -1239,6 +1378,12 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetSpryTrackProcessingType(Atr
 
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetDroppedFrameCount(int& droppedFrameCount)
 {
+  if (this->Internal->isVirtual)
+  {
+    droppedFrameCount = 0;
+    return SUCCESS;
+  }
+
   if (this->DeviceType == FUSIONTRACK_250 || this->DeviceType == FUSIONTRACK_500)
   {
     int32 lost = 0, corrupted = 0;
@@ -1264,6 +1409,11 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetDroppedFrameCount(int& drop
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::ResetLostFrameCount()
 {
+  if (this->Internal->isVirtual)
+  {
+    return SUCCESS;
+  }
+
   if (this->DeviceType == FUSIONTRACK_250 || this->DeviceType == FUSIONTRACK_500)
   {
     // get correct device option number
@@ -1342,5 +1492,7 @@ bool AtracsysTracker::Marker::AddFiducial(AtracsysTracker::Fiducial fid)
     return true;
   }
   else
+  {
     return false;
+  }
 }

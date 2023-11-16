@@ -131,6 +131,14 @@ std::string vtkPlusAtracsysTracker::GetSdkVersion()
 }
 
 //----------------------------------------------------------------------------
+std::string vtkPlusAtracsysTracker::GetCalibrationDate()
+{
+  std::string d;
+  this->Internal->Tracker.GetCalibrationDate(d);
+  return d;
+}
+
+//----------------------------------------------------------------------------
 std::string vtkPlusAtracsysTracker::GetDeviceType()
 {
   switch (this->Internal->DeviceType)
@@ -154,8 +162,8 @@ PlusStatus vtkPlusAtracsysTracker::GetCamerasCalibration(
   std::array<float, 3>& rightPosition, std::array<float, 3>& rightOrientation)
 {
   ATRACSYS_RESULT result = this->Internal->Tracker.GetCamerasCalibration(
-  leftIntrinsic, rightIntrinsic, rightPosition, rightOrientation);
-  if (result != ATRACSYS_RESULT::SUCCESS)
+    leftIntrinsic, rightIntrinsic, rightPosition, rightOrientation);
+  if (result != ATR_SUCCESS)
   {
     LOG_ERROR(this->Internal->Tracker.ResultToString(result));
     return PLUS_FAIL;
@@ -166,7 +174,7 @@ PlusStatus vtkPlusAtracsysTracker::GetCamerasCalibration(
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusAtracsysTracker::GetLoadedGeometries(std::map<int, std::vector<std::array<float, 3>>>& geometries)
 {
-  if (this->Internal->Tracker.GetLoadedGeometries(geometries) != ATRACSYS_RESULT::SUCCESS)
+  if (this->Internal->Tracker.GetLoadedGeometries(geometries) != ATR_SUCCESS)
   {
     LOG_ERROR("Could not get loaded geometries");
     return PLUS_FAIL;
@@ -177,6 +185,12 @@ PlusStatus vtkPlusAtracsysTracker::GetLoadedGeometries(std::map<int, std::vector
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusAtracsysTracker::IsVirtual() const
+{
+  return this->Internal->Tracker.IsVirtual();
 }
 
 //----------------------------------------------------------------------------
@@ -274,7 +288,13 @@ PlusStatus vtkPlusAtracsysTracker::Probe()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusAtracsysTracker::GetOptionValue(const std::string &optionName, std::string &optionValue)
+const std::map<std::string, std::string>& vtkPlusAtracsysTracker::GetDeviceOptions() const
+{
+  return this->Internal->DeviceOptions;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusAtracsysTracker::GetOptionValue(const std::string& optionName, std::string& optionValue)
 {
   std::map<std::string, std::string>::const_iterator itd = this->Internal->DeviceOptions.find(optionName);
   if (itd != this->Internal->DeviceOptions.cend())
@@ -306,7 +326,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
 {
   LOG_TRACE("vtkPlusAtracsysTracker::InternalConnect");
 
-  // Connect to tracker
+  // Connect to device
   AtracsysTracker::ATRACSYS_RESULT result = this->Internal->Tracker.Connect();
   if (result != ATR_SUCCESS && result != AtracsysTracker::ATRACSYS_RESULT::WARNING_CONNECTED_IN_USB2)
   {
@@ -389,7 +409,8 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
       LOG_WARNING("Invalid value for max events number per frame in output: " << itd->second
         << ". Default value used (" << this->Internal->Tracker.GetMaxAdditionalEventsNumber() << ")");
     }
-    else {
+    else
+    {
       this->Internal->Tracker.SetMaxAdditionalEventsNumber(value);
     }
   }
@@ -399,11 +420,13 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   {
     int value = -1;
     strToInt32(itd->second, value);
-    if (value < 0) {
+    if (value < 0)
+    {
       LOG_WARNING("Invalid value for max 2D fiducials number in output: " << itd->second
         << ". Default value used (" << this->Internal->Tracker.GetMax2dFiducialsNumber() << ")");
     }
-    else {
+    else
+    {
       this->Internal->Tracker.SetMax2dFiducialsNumber(value);
     }
   }
@@ -413,11 +436,13 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   {
     int value = -1;
     strToInt32(itd->second, value);
-    if (value < 0) {
+    if (value < 0)
+    {
       LOG_WARNING("Invalid value for max 3D fiducials number in output: " << itd->second
         << ". Default value used (" << this->Internal->Tracker.GetMax3dFiducialsNumber() << ")");
     }
-    else {
+    else
+    {
       this->Internal->Tracker.SetMax3dFiducialsNumber(value);
     }
   }
@@ -427,61 +452,101 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   {
     int value = -1;
     strToInt32(itd->second, value);
-    if (value < 0) {
+    if (value < 0)
+    {
       LOG_WARNING("Invalid value for max markers number in output: " << itd->second
         << ". Default value used (" << this->Internal->Tracker.GetMaxMarkersNumber() << ")");
     }
-    else {
+    else
+    {
       this->Internal->Tracker.SetMaxMarkersNumber(value);
     }
   }
 
-  // set actual device options
-  for (const auto& i : this->Internal->DeviceOptions)
+  // Set actual device options and remove those unsuccessfully set
+  // SpryTrack's Embedded processing option needs to be considered first.
+  // By default, the spryTrack is in Embedded processing mode.
+  // In Embedded processing mode, some other options will require the "Embedded " prefix.
+  std::map<std::string, std::string>::iterator itr = this->Internal->DeviceOptions.find("Enable_embedded_processing");
+  if (itr != this->Internal->DeviceOptions.end())
+  {
+    if (this->Internal->DeviceOptions.at("Enable_embedded_processing") == "0")
+    {
+      if (this->Internal->Tracker.SetSpryTrackProcessingType(AtracsysTracker::PROCESSING_ON_PC) != ATR_SUCCESS)
+      {
+        LOG_WARNING("Embedded processing could not be disabled.");
+        this->Internal->DeviceOptions.erase(itr);
+      }
+    }
+    else if (this->Internal->DeviceOptions.at("Enable_embedded_processing") == "1")
+    {
+      if (this->Internal->Tracker.SetSpryTrackProcessingType(AtracsysTracker::PROCESSING_ONBOARD) != ATR_SUCCESS)
+      {
+        this->Internal->DeviceOptions.erase(itr);
+        LOG_WARNING("Embedded processing could not be enabled.");
+      }
+    }
+    else
+    {
+      LOG_WARNING(this->Internal->DeviceOptions.at("Enable_embedded_processing") << " is not a correct value for Embedded processing.\nAccepted values are 0 (false) and 1 (true).");
+      this->Internal->DeviceOptions.erase(itr);
+    }
+  }
+
+  itr = this->Internal->DeviceOptions.begin();
+  while (itr != this->Internal->DeviceOptions.end())
   {
     std::string translatedOptionName;
 
     /* Dirty hack circumventing a nomenclature discrepancy between ftk and stk API's, this may be fixed in a future API release */
-    if (i.first == "EnableIRstrobe" && (this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::FUSIONTRACK_500
+    if (itr->first == "EnableIRstrobe" && (this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::FUSIONTRACK_500
       || this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::FUSIONTRACK_250))
     {
-      // for fusiontracks, strobe on is 0 and strobe off is 1 (the opposite of sprytracks)
-      if (i.second == "0") {
-        this->Internal->Tracker.SetOption("Strobe mode", "1");
-      }
-      else if (i.second == "1") {
-        this->Internal->Tracker.SetOption("Strobe mode", "0");
-      }
-      // fusiontracks also supports a mode where the strobe turns on every other frame (unsupported by sprytracks at the moment)
-      else if (i.second == "2") {
-        this->Internal->Tracker.SetOption("Strobe mode", "2");
-      }
-      else {
-        LOG_WARNING("Wrong strobe mode value " << i.second);
-      }
-    }
-    else/* end of hack*/ if (this->TranslateOptionName(i.first, translatedOptionName))
-    {
-      this->Internal->Tracker.SetOption(translatedOptionName, i.second);
-      // if spryTrack, also set the same options but for onboard processing
-      if (this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::SPRYTRACK_180 || this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::SPRYTRACK_300)
+      // For fusiontracks, strobe on is 0 and strobe off is 1 (the opposite of sprytracks).
+      // Fusiontracks also supports a mode 2 where the strobe turns on every other frame (unsupported by sprytracks at the moment)
+      std::map<std::string, std::string> strobCorresp{ {"0","1"},{"1","0"}, {"2","2"} };
+      if (strobCorresp.find(itr->second) != strobCorresp.end())
       {
-        this->Internal->Tracker.SetOption("Embedded " + translatedOptionName, i.second);
+        if (this->Internal->Tracker.SetOption("Strobe mode", strobCorresp.at(itr->second)) != ATR_SUCCESS)
+        {
+          itr = this->Internal->DeviceOptions.erase(itr);
+          continue;
+        }
+      }
+      else
+      {
+        LOG_WARNING("Unsupported strobe mode value " << itr->second);
+        itr = this->Internal->DeviceOptions.erase(itr);
+        continue;
       }
     }
-    else if (i.first.find('_') != std::string::npos) // just try to infer the option name by replacing _ by spaces
+    else/* end of hack*/ if (this->TranslateOptionName(itr->first, translatedOptionName)) // looking for the option in the translation dictionary
     {
-      std::string optionName = i.first;
-      std::replace(optionName.begin(), optionName.end(), '_', ' ');
-      if (this->Internal->Tracker.SetOption(optionName, i.second) == ATRACSYS_RESULT::SUCCESS)
-        LOG_WARNING("Inferred option \"" << optionName << "\" successfully set to " << i.second);
+      if (this->Internal->Tracker.SetOption(translatedOptionName, itr->second) != ATR_SUCCESS)
+      {
+        itr = this->Internal->DeviceOptions.erase(itr);
+        continue;
+      }
     }
-  }
-
-  // if spryTrack, setup for onboard processing
-  if (this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::SPRYTRACK_180 || this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::SPRYTRACK_300)
-  {
-    this->Internal->Tracker.SetSpryTrackProcessingType(AtracsysTracker::SPRYTRACK_IMAGE_PROCESSING_TYPE::PROCESSING_ONBOARD);
+    // option not found in dictionary, let's try to infer the option name by replacing _ by spaces
+    else if (itr->first.find('_') != std::string::npos && itr->first != "Enable_embedded_processing")
+    {
+      std::string inferredOptionName = itr->first;
+      std::replace(inferredOptionName.begin(), inferredOptionName.end(), '_', ' ');
+      if (this->Internal->Tracker.SetOption(inferredOptionName, itr->second) != ATR_SUCCESS)
+      {
+        itr = this->Internal->DeviceOptions.erase(itr);
+        continue;
+      }
+    }
+    else if (itr->first != "AcquisitionRate" && itr->first != "Id" && itr->first != "Type"
+      && itr->first != "ToolReferenceFrame" && itr->first != "Enable_embedded_processing")
+    {
+      LOG_WARNING("Unknown option \"" << itr->first << "\".");
+      itr = this->Internal->DeviceOptions.erase(itr);
+      continue;
+    }
+    ++itr;
   }
 
   // disable marker status streaming and battery charge streaming, they cause momentary pauses in tracking while sending
@@ -514,36 +579,43 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
     this->Internal->FtkGeometryIdMappedToToolId.insert(newTool);
   }
 
-  // make LED blue during pairing
-  this->Internal->Tracker.SetUserLEDState(0, 0, 255, 0);
-
-  // pair active markers
-  if ((result = this->Internal->Tracker.EnableWirelessMarkerPairing(true)) != ATR_SUCCESS)
+  // if active marker pairing is desired, then its time > 0 second
+  if (this->Internal->ActiveMarkerPairingTimeSec > 0)
   {
-    LOG_ERROR(this->Internal->Tracker.ResultToString(result));
-    return PLUS_FAIL;
+    // make LED blue during pairing
+    this->Internal->Tracker.SetUserLEDState(0, 0, 255, 0);
+
+    // pair active markers
+    if ((result = this->Internal->Tracker.EnableWirelessMarkerPairing(true)) != ATR_SUCCESS)
+    {
+      LOG_ERROR(this->Internal->Tracker.ResultToString(result));
+      return PLUS_FAIL;
+    }
+    LOG_INFO("Active marker pairing period started for " << this->Internal->ActiveMarkerPairingTimeSec << " seconds.");
+
+    // sleep while waiting for tracker to pair active markers
+    vtkIGSIOAccurateTimer::Delay(this->Internal->ActiveMarkerPairingTimeSec);
+
+    LOG_INFO("Active marker pairing period ended.");
+
+    if ((result = this->Internal->Tracker.EnableWirelessMarkerPairing(false)) != ATR_SUCCESS)
+    {
+      LOG_ERROR(this->Internal->Tracker.ResultToString(result));
+      return PLUS_FAIL;
+    }
+
+    // make LED green, pairing is complete
+    this->Internal->Tracker.SetUserLEDState(0, 255, 0, 0);
+
+    // TODO: check number of active markers paired
+
+    std::string markerInfo;
+    this->Internal->Tracker.GetMarkerInfo(markerInfo);
+    if (!markerInfo.empty())
+    {
+      LOG_INFO("Additional info about paired markers:" << markerInfo << std::endl);
+    }
   }
-  LOG_INFO("Active marker pairing period started for " << this->Internal->ActiveMarkerPairingTimeSec << " seconds.");
-
-  // sleep while waiting for tracker to pair active markers
-  vtkIGSIOAccurateTimer::Delay(this->Internal->ActiveMarkerPairingTimeSec);
-
-  LOG_INFO("Active marker pairing period ended.");
-
-  if ((result = this->Internal->Tracker.EnableWirelessMarkerPairing(false)) != ATR_SUCCESS)
-  {
-    LOG_ERROR(this->Internal->Tracker.ResultToString(result));
-    return PLUS_FAIL;
-  }
-
-  // make LED green, pairing is complete
-  this->Internal->Tracker.SetUserLEDState(0, 255, 0, 0);
-
-  // TODO: check number of active markers paired
-
-  std::string markerInfo;
-  this->Internal->Tracker.GetMarkerInfo(markerInfo);
-  LOG_INFO("Additional info about paired markers:" << markerInfo << std::endl);
 
   return PLUS_SUCCESS;
 }
@@ -578,15 +650,33 @@ PlusStatus vtkPlusAtracsysTracker::InternalStopRecording()
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusAtracsysTracker::PauseVirtualDevice()
+{
+  LOG_TRACE("vtkPlusAtracsysTracker::PauseVirtualDevice");
+  this->Internal->Tracker.Pause(true);
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusAtracsysTracker::UnpauseVirtualDevice()
+{
+  LOG_TRACE("vtkPlusAtracsysTracker::UnpauseVirtualDevice");
+  this->Internal->Tracker.Pause(false);
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
 {
   LOG_TRACE("vtkPlusAtracsysTracker::InternalUpdate");
-  const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
+  double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
   std::vector<AtracsysTracker::Marker> markers;
   std::map<std::string, std::string> events;
 
-  ATRACSYS_RESULT result = this->Internal->Tracker.GetMarkersInFrame(markers, events);
+  uint64_t sdkTimestamp = 0;
+  ATRACSYS_RESULT result = this->Internal->Tracker.GetMarkersInFrame(markers, events, sdkTimestamp);
+
   if (result == AtracsysTracker::ATRACSYS_RESULT::ERROR_NO_FRAME_AVAILABLE)
   {
     // waiting for frame
@@ -599,6 +689,10 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
   }
 
   igsioFieldMapType customFields;
+
+  // save sdk timestamp in customfield
+  customFields["SdkTimestamp"].first = FRAMEFIELD_NONE;
+  customFields["SdkTimestamp"].second = std::to_string(sdkTimestamp);
 
   // save event data in custom field
   for (const auto& it : events)
