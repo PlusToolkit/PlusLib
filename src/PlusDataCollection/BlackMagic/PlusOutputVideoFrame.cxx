@@ -20,7 +20,7 @@ PlusOutputVideoFrame::PlusOutputVideoFrame(long width, long height, BMDPixelForm
 //----------------------------------------------------------------------------
 PlusOutputVideoFrame::~PlusOutputVideoFrame()
 {
-  delete this->Pixels;
+  delete [] this->Pixels;
   this->Pixels = nullptr;
 }
 
