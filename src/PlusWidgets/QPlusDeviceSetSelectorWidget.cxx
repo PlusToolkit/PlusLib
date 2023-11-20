@@ -118,6 +118,8 @@ PlusStatus QPlusDeviceSetSelectorWidget::SetConfigurationDirectory(const QString
     vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationDirectory(m_ConfigurationDirectory.toStdString());
     vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
+    emit ConfigurationDirectoryChanged(m_ConfigurationDirectory.toStdString());
+
     return PLUS_SUCCESS;
   }
   else
