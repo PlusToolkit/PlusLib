@@ -737,7 +737,7 @@ PlusStatus vtkPlusPicoScopeDataSource::InternalConnect()
 	this->GetVideoSource(this->Internal->PlusSourceId.c_str(), this->Internal->PlusSource);
 	if (this->Internal->PlusSource->GetNumberOfItems() == 0)
 	{
-		this - Internal->PlusSource->SetInputImageOrientation(US_IMG_ORIENT_MF);
+		this->Internal->PlusSource->SetInputImageOrientation(US_IMG_ORIENT_MF);
 		this->Internal->PlusSource->SetImageType(US_IMG_BRIGHTNESS);
 		this->Internal->PlusSource->SetPixelType(VTK_FLOAT);
 		this->Internal->PlusSource->SetNumberOfScalarComponents(1);
