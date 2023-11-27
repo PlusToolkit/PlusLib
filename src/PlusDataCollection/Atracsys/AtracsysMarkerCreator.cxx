@@ -312,8 +312,8 @@ PlusStatus ZeroMeanFids(fidsFrame& dataFids)
   {
     zeroMeanFids.emplace_back();
     zeroMeanFids.back().xMm = it->xMm - aveXmm;
-    zeroMeanFids.back().yMm = it->yMm - aveXmm;
-    zeroMeanFids.back().zMm = it->zMm - aveXmm;
+    zeroMeanFids.back().yMm = it->yMm - aveYmm;
+    zeroMeanFids.back().zMm = it->zMm - aveZmm;
     zeroMeanFids.back().probability = it->probability;
   }
   dataFids = zeroMeanFids;
