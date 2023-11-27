@@ -591,7 +591,6 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::ReadNextMessage()
           rawMessage.resize(rawSize + uncompressedPixelBufferSize);
           receivedBytes = this->Internal->VtkSocket->Receive(&rawMessage[rawSize], uncompressedPixelBufferSize, true);
 
-          int totalReceivedBytes = totalReceivedBytes;
           if (receivedBytes != uncompressedPixelBufferSize)
           {
             LOG_ERROR("Failed to read full binary data block from BK OEM interface receivedBytes: " << receivedBytes);
