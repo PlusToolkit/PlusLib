@@ -788,8 +788,8 @@ void MicronTrackerInterface::mtFindUnidentifiedMarkers()
     this->UnidentifiedMarkersEndPoints.push_back(unidentifiedEndPointsTemp);
     delete v;
   }
-  return ;
   delete unidentifiedVectorsColl;
+  return;
 }
 
 //----------------------------------------------------------------------------
