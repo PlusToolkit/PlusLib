@@ -11,6 +11,8 @@ Developed by ULL & IACTEC-IAC group
 
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
+#include "Spinnaker.h"
+
 
 /*!
 \class vtkPlusFLIRSpinnakerCam
@@ -51,9 +53,10 @@ protected:
   virtual PlusStatus InternalDisconnect() VTK_OVERRIDE;
 
 protected:
+
+  /**
   int device;
   WORD *pImgBuf;
-  HANDLE cam;
   HANDLE BufEvent;
   short BufNum;
   WORD XResAct, YResAct, XResMax, YResMax;
@@ -62,6 +65,7 @@ protected:
   DWORD dwExposure;
   WORD wTimeBaseDelay;
   WORD wTimeBaseExposure;
+  */
 };
 
 #endif // __vtkPlusFLIRSpinnakerCam_h

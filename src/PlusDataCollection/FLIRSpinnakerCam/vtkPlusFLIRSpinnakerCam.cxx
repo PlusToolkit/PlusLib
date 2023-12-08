@@ -5,6 +5,9 @@ See License.txt for details.
 
 Developed by ULL & IACTEC-IAC group
 =========================================================Plus=header=end*/
+// FLIR Spinnaker
+#include "Spinnaker.h"
+#include "SpinGenApi/SpinnakerGenApi.h"
 
 // Local includes
 #include "PlusConfigure.h"
@@ -16,14 +19,14 @@ Developed by ULL & IACTEC-IAC group
 #include <vtkImageData.h>
 #include <vtkObjectFactory.h>
 
-// FLIR Spinnaker
-#include "Spinnaker.h"
-#include "SpinGenApi/SpinnakerGenApi.h"
-
 using namespace Spinnaker;
 using namespace Spinnaker::GenApi;
 using namespace Spinnaker::GenICam;
 using namespace std;
+
+SystemPtr psystem;
+CameraPtr pCam;
+ImageProcessor processor;
 
 //----------------------------------------------------------------------------
 
@@ -105,15 +108,38 @@ PlusStatus vtkPlusFLIRSpinnakerCam::FreezeDevice(bool freeze)
   return PLUS_SUCCESS;
 }
 
+
+PlusStatus SetPixelFormat(INodeMap& nodeMap) {
+  CEnumerationPtr ptrPixelFormat = nodeMap.GetNode("PixelFormat");
+  if (!IsReadable(ptrPixelFormat) ||
+    !IsWritable(ptrPixelFormat))
+  {
+    LOG_ERROR("Unable to get or set pixel format. Aborting.");
+    return PLUS_FAIL;
+  }
+  CEnumEntryPtr ptrPixelFormatMono8 = ptrPixelFormat->GetEntryByName("Mono8");
+  if (!IsReadable(ptrPixelFormatMono8))
+  {
+    LOG_ERROR("Unable to get pixel format to Mono8. Aborting.");
+    return PLUS_FAIL;
+  }
+
+  ptrPixelFormat->SetIntValue(ptrPixelFormatMono8->GetValue());
+  LOG_DEBUG("Pixel format set to " << ptrPixelFormatMono8->GetSymbolic() << ".");
+
+  return PLUS_SUCCESS;
+}
+
+
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusFLIRSpinnakerCam::InternalConnect()
 {
   // Retrieve singleton reference to system object
-  SystemPtr system = System::GetInstance();
-  const LibraryVersion spinnakerLibraryVersion = system->GetLibraryVersion();
+  psystem = System::GetInstance();
+  const LibraryVersion spinnakerLibraryVersion = psystem->GetLibraryVersion();
   LOG_DEBUG("Spinnaker library version: " << spinnakerLibraryVersion.major << "." << spinnakerLibraryVersion.minor
     << "." << spinnakerLibraryVersion.type << "." << spinnakerLibraryVersion.build);
-  CameraList camList = system->GetCameras();
+  CameraList camList = psystem->GetCameras();
   const unsigned int numCameras = camList.GetSize();
   
   if (numCameras == 0)
@@ -121,13 +147,68 @@ PlusStatus vtkPlusFLIRSpinnakerCam::InternalConnect()
     // Clear camera list before releasing system
     camList.Clear();
     // Release system
-    system->ReleaseInstance();
+    psystem->ReleaseInstance();
     LOG_ERROR("No FLIR cameras detected!");
     return PLUS_FAIL;
   }
-    
-LOG_DEBUG("Number of FLIR cameras detected: " << numCameras);
+ 
+  // For this version, takes the first cam in the list.
+  pCam = camList.GetByIndex(0);
+  INodeMap& nodeMapTLDevice = pCam->GetTLDeviceNodeMap();
+  pCam->Init();
+  INodeMap& nodeMap = pCam->GetNodeMap();
 
+  // Set pixel format
+  if (SetPixelFormat(nodeMap) == PLUS_FAIL) {
+    camList.Clear();
+    psystem->ReleaseInstance();
+    return PLUS_FAIL;
+  }
+
+  LOG_DEBUG("Number of FLIR cameras detected: " << numCameras);
+
+  try{
+    CEnumerationPtr ptrAcquisitionMode = nodeMap.GetNode("AcquisitionMode");
+    if (!IsReadable(ptrAcquisitionMode) ||
+      !IsWritable(ptrAcquisitionMode))
+    {
+      LOG_ERROR("Unable to set acquisition mode to continuous (enum retrieval). Aborting.");
+      camList.Clear();
+      psystem->ReleaseInstance();
+      return PLUS_FAIL;
+    }
+
+    // Retrieve entry node from enumeration node
+    CEnumEntryPtr ptrAcquisitionModeContinuous = ptrAcquisitionMode->GetEntryByName("Continuous");
+    if (!IsReadable(ptrAcquisitionModeContinuous))
+    {
+      LOG_ERROR("Unable to set acquisition mode to continuous (enum retrieval 2). Aborting.");
+      camList.Clear();
+      psystem->ReleaseInstance();
+      return PLUS_FAIL;
+    }
+    // Retrieve integer value from entry node
+    const int64_t acquisitionModeContinuous = ptrAcquisitionModeContinuous->GetValue();
+
+    // Set integer value from entry node as new value of enumeration node
+    ptrAcquisitionMode->SetIntValue(acquisitionModeContinuous);
+
+    LOG_DEBUG("Acquisition mode set to continuous...");
+
+    // Acquisition start
+    pCam->BeginAcquisition();
+    LOG_DEBUG("Acquisition starting...");
+
+    processor.SetColorProcessing(SPINNAKER_COLOR_PROCESSING_ALGORITHM_HQ_LINEAR);
+
+  }
+  catch (Spinnaker::Exception& e)
+  {
+    LOG_ERROR("Error starting acquisition: " << e.what());
+    camList.Clear();
+    psystem->ReleaseInstance();
+    return PLUS_FAIL;
+  }
 	/***
   PCO_Description strDescription;
   PCO_CameraType strCamType;
@@ -140,9 +221,9 @@ LOG_DEBUG("Number of FLIR cameras detected: " << numCameras);
   WORD auxTimeBaseDelay;
   WORD auxTimeBaseExposure;
 
-  this->cam = nullptr;
+  pCam = nullptr;
 
-  iRet = PCO_OpenCamera(&(this->cam), 0);
+  iRet = PCO_OpenCamera(&(pCam), 0);
   if (iRet != PCO_NOERROR)
   {
     LOG_ERROR("PCO Ultraviolet: camera not detected.");
@@ -152,15 +233,15 @@ LOG_DEBUG("Number of FLIR cameras detected: " << numCameras);
     LOG_DEBUG("PCO Ultraviolet: camera found.");
   }
   strDescription.wSize = sizeof(PCO_Description);
-  iRet = PCO_GetCameraDescription(this->cam, &strDescription);
+  iRet = PCO_GetCameraDescription(pCam, &strDescription);
 
-  iRet = PCO_GetRecordingState(this->cam, &RecordingState);
+  iRet = PCO_GetRecordingState(pCam, &RecordingState);
   if (RecordingState)
   {
-    iRet = PCO_SetRecordingState(this->cam, 0);
+    iRet = PCO_SetRecordingState(pCam, 0);
   }
 
-  iRet = PCO_GetDelayExposureTime(this->cam, &(auxDelay), &(auxExposure), &(auxTimeBaseDelay), &(auxTimeBaseExposure));
+  iRet = PCO_GetDelayExposureTime(pCam, &(auxDelay), &(auxExposure), &(auxTimeBaseDelay), &(auxTimeBaseExposure));
 
   this->dwDelay = auxDelay;
   if (this->dwExposure == -1) {
@@ -171,46 +252,46 @@ LOG_DEBUG("Number of FLIR cameras detected: " << numCameras);
     this->wTimeBaseExposure = auxTimeBaseExposure;
   }
 
-  if ((iRet = PCO_SetDelayExposureTime(this->cam, this->dwDelay, this->dwExposure, this->wTimeBaseDelay, this->wTimeBaseExposure)) != 0) {
+  if ((iRet = PCO_SetDelayExposureTime(pCam, this->dwDelay, this->dwExposure, this->wTimeBaseDelay, this->wTimeBaseExposure)) != 0) {
     LOG_ERROR("PCO Ultraviolet: SetExposureTime (PCO_SetDelayExposureTime) failed with errorcode " << iRet);
     return PLUS_FAIL;
   }
 
   // Arm Camera before next Set...  
-  iRet = PCO_ArmCamera(this->cam);
+  iRet = PCO_ArmCamera(pCam);
 
-  iRet = PCO_GetCameraHealthStatus(this->cam, &CameraWarning, &CameraError, &CameraStatus);
+  iRet = PCO_GetCameraHealthStatus(pCam, &CameraWarning, &CameraError, &CameraStatus);
   if (CameraError != 0)
   {
     LOG_ERROR("PCO Ultraviolet: Camera has error status " << CameraError);
-    iRet = PCO_CloseCamera(this->cam);
+    iRet = PCO_CloseCamera(pCam);
     return PLUS_FAIL;
   }
 
   strCamType.wSize = sizeof(PCO_CameraType);
-  iRet = PCO_GetCameraType(this->cam, &strCamType);
+  iRet = PCO_GetCameraType(pCam, &strCamType);
   if (iRet != PCO_NOERROR)
   {
     LOG_ERROR("PCO Ultraviolet: PCO_GetCameraType failed with errorcode " << iRet);
-    iRet = PCO_CloseCamera(this->cam);
+    iRet = PCO_CloseCamera(pCam);
     return PLUS_FAIL;
   }
 
   if (strCamType.wInterfaceType == INTERFACE_CAMERALINK)
   {
     PCO_SC2_CL_TRANSFER_PARAM cl_par;
-    iRet = PCO_GetTransferParameter(this->cam, (void*)&cl_par, sizeof(PCO_SC2_CL_TRANSFER_PARAM));
+    iRet = PCO_GetTransferParameter(pCam, (void*)&cl_par, sizeof(PCO_SC2_CL_TRANSFER_PARAM));
     LOG_DEBUG("PCO Ultraviolet Camlink Settings: Baudrate=" << cl_par.baudrate << ", Clockfreq=" << cl_par.ClockFrequency << ", Dataformat=" << cl_par.DataFormat << ", Transmit=" << cl_par.Transmit);
   }
 
-  iRet = PCO_GetSizes(this->cam, &(this->XResAct), &(this->YResAct), &(this->XResMax), &(this->YResMax));
+  iRet = PCO_GetSizes(pCam, &(this->XResAct), &(this->YResAct), &(this->XResMax), &(this->YResMax));
   bufsize = (this->XResAct) * (this->YResAct) * sizeof(WORD);
 
   this->pImgBuf = nullptr;
   this->BufNum = -1;
 
-  iRet = PCO_AllocateBuffer(this->cam, &this->BufNum, this->bufsize, &(this->pImgBuf), &(this->BufEvent));
-  iRet = PCO_SetImageParameters(this->cam, this->XResAct, this->YResAct, IMAGEPARAMETERS_READ_FROM_SEGMENTS, NULL, 0);
+  iRet = PCO_AllocateBuffer(pCam, &this->BufNum, this->bufsize, &(this->pImgBuf), &(this->BufEvent));
+  iRet = PCO_SetImageParameters(pCam, this->XResAct, this->YResAct, IMAGEPARAMETERS_READ_FROM_SEGMENTS, NULL, 0);
   **/
   return PLUS_SUCCESS;
 }
@@ -218,29 +299,71 @@ LOG_DEBUG("Number of FLIR cameras detected: " << numCameras);
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusFLIRSpinnakerCam::InternalDisconnect()
 {
-	/**
-  int iRet;
-  iRet = PCO_CloseCamera(this->cam);
-  this->pImgBuf = nullptr;
-  **/
+  // Deinitialize camera
+  try {
+    pCam->DeInit();
+    psystem->ReleaseInstance();
+  }
+  catch (Spinnaker::Exception& e)
+  {
+    LOG_ERROR("Error: " << e.what());
+  }
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusFLIRSpinnakerCam::InternalUpdate()
 {
+  ImagePtr pResultImage = pCam->GetNextImage(1000);
+
+  if (pResultImage->IsIncomplete())
+  {
+    // Retrieve and print the image status description
+    LOG_DEBUG("Image incomplete: " << Image::GetImageStatusDescription(pResultImage->GetImageStatus()));
+  }
+  else {
+    const size_t width = pResultImage->GetWidth();
+    const size_t height = pResultImage->GetHeight();
+    ImagePtr convertedImage = processor.Convert(pResultImage, PixelFormat_Mono8);
+
+    vtkPlusDataSource* aSource(nullptr);
+    if (this->GetFirstActiveOutputVideoSource(aSource) == PLUS_FAIL || aSource == nullptr)
+    {
+      LOG_ERROR("Unable to grab a video source. Skipping frame.");
+      return PLUS_FAIL;
+    }
+
+    if (aSource->GetNumberOfItems() == 0)
+    {
+      // Init the buffer with the metadata from the first frame
+      aSource->SetImageType(US_IMG_BRIGHTNESS);
+      aSource->SetPixelType(VTK_UNSIGNED_SHORT);
+      aSource->SetNumberOfScalarComponents(1);
+      aSource->SetInputFrameSize(width, height, 1);
+    }
+
+    // Add the frame to the stream buffer
+    FrameSizeType frameSize = { static_cast<unsigned int>(width), static_cast<unsigned int>(height), 1 };
+    if (aSource->AddItem(convertedImage->GetData(), aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_SHORT, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
+    {
+      return PLUS_FAIL;
+    }
+    this->FrameNumber++;
+  }
+  return PLUS_SUCCESS;
+
 /**
   int iRet;
 
-  if (this->cam == nullptr)
+  if (pCam == nullptr)
   {
     LOG_ERROR("vtkPlusFLIRSpinnakerCam::InternalUpdate Unable to read date");
     return PLUS_SUCCESS;
   }
 
-  iRet = PCO_SetRecordingState(this->cam, 1);
+  iRet = PCO_SetRecordingState(pCam, 1);
 
-  iRet = PCO_GetImageEx(this->cam, 1, 0, 0, this->BufNum, this->XResAct, this->YResAct, 16);
+  iRet = PCO_GetImageEx(pCam, 1, 0, 0, this->BufNum, this->XResAct, this->YResAct, 16);
   if (iRet != PCO_NOERROR)
   {
     LOG_ERROR("vtkPlusFLIRSpinnakerCam::InternalUpdate Unable to receive frame");
@@ -270,10 +393,6 @@ PlusStatus vtkPlusFLIRSpinnakerCam::InternalUpdate()
     return PLUS_FAIL;
   }
 **/
-
-  this->FrameNumber++;
-
-  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
