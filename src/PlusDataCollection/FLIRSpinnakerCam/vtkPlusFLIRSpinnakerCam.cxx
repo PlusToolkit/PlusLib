@@ -20,6 +20,11 @@ Developed by ULL & IACTEC-IAC group
 #include "Spinnaker.h"
 #include "SpinGenApi/SpinnakerGenApi.h"
 
+using namespace Spinnaker;
+using namespace Spinnaker::GenApi;
+using namespace Spinnaker::GenICam;
+using namespace std;
+
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusFLIRSpinnakerCam);
@@ -46,10 +51,10 @@ void vtkPlusFLIRSpinnakerCam::PrintSelf(ostream& os, vtkIndent indent)
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusFLIRSpinnakerCam::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-/***
+
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
   LOG_DEBUG("Configure FLIR Systems Spinnaker");
-
+  /***
   const char* ExposureTimeString = deviceConfig->GetAttribute("ExposureTime");
   const char* TimeBaseExposureString = deviceConfig->GetAttribute("TimeBaseExposure");
   if (ExposureTimeString)
@@ -103,6 +108,26 @@ PlusStatus vtkPlusFLIRSpinnakerCam::FreezeDevice(bool freeze)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusFLIRSpinnakerCam::InternalConnect()
 {
+  // Retrieve singleton reference to system object
+  SystemPtr system = System::GetInstance();
+  const LibraryVersion spinnakerLibraryVersion = system->GetLibraryVersion();
+  LOG_DEBUG("Spinnaker library version: " << spinnakerLibraryVersion.major << "." << spinnakerLibraryVersion.minor
+    << "." << spinnakerLibraryVersion.type << "." << spinnakerLibraryVersion.build);
+  CameraList camList = system->GetCameras();
+  const unsigned int numCameras = camList.GetSize();
+  
+  if (numCameras == 0)
+  {
+    // Clear camera list before releasing system
+    camList.Clear();
+    // Release system
+    system->ReleaseInstance();
+    LOG_ERROR("No FLIR cameras detected!");
+    return PLUS_FAIL;
+  }
+    
+LOG_DEBUG("Number of FLIR cameras detected: " << numCameras);
+
 	/***
   PCO_Description strDescription;
   PCO_CameraType strCamType;
@@ -244,9 +269,10 @@ PlusStatus vtkPlusFLIRSpinnakerCam::InternalUpdate()
   {
     return PLUS_FAIL;
   }
+**/
 
   this->FrameNumber++;
-**/
+
   return PLUS_SUCCESS;
 }
 
