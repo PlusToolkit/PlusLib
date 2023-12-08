@@ -337,14 +337,14 @@ PlusStatus vtkPlusFLIRSpinnakerCam::InternalUpdate()
     {
       // Init the buffer with the metadata from the first frame
       aSource->SetImageType(US_IMG_BRIGHTNESS);
-      aSource->SetPixelType(VTK_UNSIGNED_SHORT);
+      aSource->SetPixelType(VTK_UNSIGNED_CHAR);
       aSource->SetNumberOfScalarComponents(1);
       aSource->SetInputFrameSize(width, height, 1);
     }
 
     // Add the frame to the stream buffer
     FrameSizeType frameSize = { static_cast<unsigned int>(width), static_cast<unsigned int>(height), 1 };
-    if (aSource->AddItem(convertedImage->GetData(), aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_SHORT, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
+    if (aSource->AddItem(convertedImage->GetData(), aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
     {
       return PLUS_FAIL;
     }
