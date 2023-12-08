@@ -60,6 +60,7 @@ OPTION(PLUS_USE_INFRARED_TEEV2_CAM "Provide support for capturing an Infrared Th
 OPTION(PLUS_USE_ULTRAVIOLET_PCOUV_CAM "Provide support for capturing an PCO Ultraviolet Camera capture stream" OFF)
 OPTION(PLUS_USE_DAQVIDEOSOURCE "Provide support for capturing an CameraLink Camera using DAQ System USB3-FRM13-B Grabber"  OFF)
 OPTION(PLUS_USE_DAQMMFCOMBINED_VIDEO "Provide support for capturing an CameraLink Camera using DAQ System USB3-FRM13-B Grabber and MMF Video"  OFF)
+OPTION(PLUS_USE_FLIRSPINNAKER_CAM "Provide support for capturing an FLIR Spinnaker Camera capture stream" OFF)
 OPTION(PLUS_USE_WITMOTIONTRACKER "Provide support for the WitMotion class of inertial measurement units" OFF)
 
 OPTION(PLUS_USE_LEAPMOTION "Provide support for the LeapMotion hand tracker" OFF)
@@ -2478,6 +2479,50 @@ IF(PLUS_USE_DAQMMFCOMBINED_VIDEO)
     ${CMAKE_CURRENT_SOURCE_DIR}/DAQMMFCombinedVideo
   )
 ENDIF()
+
+#---------------------------------------------------------------------------
+# FLIRSpinnakerCam
+IF(PLUS_USE_FLIRSPINNAKER_CAM)
+  FIND_PACKAGE(FLIRSPINNAKER_SDK REQUIRED)
+
+  # Compile
+  SET(FLIRSPINNAKER_SRCS
+    FLIRSpinnakerCam/vtkPlusFLIRSpinnakerCam.cxx
+    )
+  SET(FLIRSPINNAKER_HDRS
+      FLIRSpinnakerCam/vtkPlusFLIRSpinnakerCam.h
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${FLIRSPINNAKER_HDRS}
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${FLIRSPINNAKER_SRCS}
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/FLIRSpinnakerCam
+    ${FLIRSPINNAKER_LIBRARY}
+    ${FLIRSPINNAKER_SDK_INCLUDE_DIR}
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    ${FLIRSPINNAKER_SDK_LIBRARY}
+  )
+  LIST(APPEND External_Libraries_Install
+    ${FLIRSPINNAKER_SDK_BINARY}/${SDK_FILENAME}
+  )
+  LIST(APPEND External_Libraries_Debug
+    ${FLIRSPINNAKER_SDK_BINARY}/${SDK_FILENAME}
+  )
+
+ENDIF()
+
+
+
+
+
 # --------------------------------------------------------------------------
 # V4L2
 IF(PLUS_USE_V4L2)

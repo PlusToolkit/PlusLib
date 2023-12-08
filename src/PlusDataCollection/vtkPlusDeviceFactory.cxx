@@ -232,6 +232,10 @@ See License.txt for details.
 #include "vtkPlusDAQMMFCombinedVideo.h"
 #endif
 
+#ifdef PLUS_USE_FLIRSPINNAKER_CAM
+#include "vtkPlusFLIRSpinnakerCam.h"
+#endif
+
 #ifdef PLUS_USE_GENERIC_SENSOR_TRACKER
 #if WIN32
 #include "vtkPlusGenericSensorTracker.h"
@@ -449,6 +453,9 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
     RegisterDevice("DAQMMFCombinedVideo", "vtkPlusDAQMMFCombinedVideo", (PointerToDevice)&vtkPlusDAQMMFCombinedVideo::New);
 #endif
 
+#ifdef PLUS_USE_FLIRSPINNAKER_CAM
+    RegisterDevice("FLIRSpinnakerCam", "vtkPlusFLIRSpinnakerCam", (PointerToDevice)&vtkPlusFLIRSpinnakerCam::New);
+#endif
 
 #ifdef PLUS_USE_CLARIUS
     RegisterDevice("Clarius", "vtkPlusClarius", (PointerToDevice)&vtkPlusClarius::New);

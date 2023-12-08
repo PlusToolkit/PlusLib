@@ -528,6 +528,14 @@ IF(PLUS_USE_DAQVIDEOSOURCE AND PLUS_RENDERING_ENABLED)
   TARGET_LINK_LIBRARIES(vtkDAQVideoSourceTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
  ENDIF()
 
+#*********************** FLIRSpinnakerCameraDeviceTest *****************************
+IF(PLUS_USE_FLIRSPINNAKER_CAM AND PLUS_RENDERING_ENABLED)
+  ADD_EXECUTABLE(vtkFLIRSpinnakerCamTest vtkFLIRSpinnakerCamTest.cxx)
+  SET_TARGET_PROPERTIES(vtkFLIRSpinnakerCamTest PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(vtkFLIRSpinnakerCamTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
+ ENDIF()
+
+
 #*************************** vtkOvrvisionProVideoSourceTest ***************************
 IF(PLUS_USE_OvrvisionPro AND PLUS_TEST_OvrvisionPro)
   ADD_EXECUTABLE(vtkOvrvisionProVideoSourceTest vtkOvrvisionProVideoSourceTest.cxx )
