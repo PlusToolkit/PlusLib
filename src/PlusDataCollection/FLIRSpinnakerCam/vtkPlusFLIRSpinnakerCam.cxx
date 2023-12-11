@@ -51,51 +51,154 @@ void vtkPlusFLIRSpinnakerCam::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "FLIRSpinnakerCam: FLIR Systems Spinnaker Camera" << std::endl;
 }
 
+PlusStatus ConfigureExposure(INodeMap& nodeMap,DWORD exposureTimeToSet)
+{
+  LOG_DEBUG("*** CONFIGURING EXPOSURE ***");
+
+  try
+  {
+    //
+    // Turn off automatic exposure mode
+    //
+    // *** NOTES ***
+    // Automatic exposure prevents the manual configuration of exposure
+    // time and needs to be turned off.
+    //
+    // *** LATER ***
+    // Exposure time can be set automatically or manually as needed. This
+    // example turns automatic exposure off to set it manually and back
+    // on in order to return the camera to its default state.
+    //
+    CEnumerationPtr ptrExposureAuto = nodeMap.GetNode("ExposureAuto");
+    if (!IsReadable(ptrExposureAuto) ||
+      !IsWritable(ptrExposureAuto))
+    {
+      LOG_ERROR("Unable to disable automatic exposure (node retrieval). Aborting...");
+      return PLUS_FAIL;
+    }
+
+    CEnumEntryPtr ptrExposureAutoOff = ptrExposureAuto->GetEntryByName("Off");
+    if (!IsReadable(ptrExposureAutoOff))
+    {
+      LOG_ERROR("Unable to disable automatic exposure (enum entry retrieval). Aborting...");
+      return PLUS_FAIL;
+    }
+
+    ptrExposureAuto->SetIntValue(ptrExposureAutoOff->GetValue());
+
+    LOG_DEBUG("Automatic exposure disabled...");
+
+    //
+    // Set exposure time manually; exposure time recorded in microseconds
+    //
+    // *** NOTES ***
+    // The node is checked for availability and writability prior to the
+    // setting of the node. Further, it is ensured that the desired exposure
+    // time does not exceed the maximum. Exposure time is counted in
+    // microseconds. This information can be found out either by
+    // retrieving the unit with the GetUnit() method or by checking SpinView.
+    //
+    CFloatPtr ptrExposureTime = nodeMap.GetNode("ExposureTime");
+    if (!IsReadable(ptrExposureTime) ||
+      !IsWritable(ptrExposureTime))
+    {
+      LOG_ERROR("Unable to get or set exposure time. Aborting...");
+      return PLUS_FAIL;
+    }
+
+    // Ensure desired exposure time does not exceed the maximum
+    const double exposureTimeMax = ptrExposureTime->GetMax();
+
+    if (exposureTimeToSet > exposureTimeMax)
+    {
+      exposureTimeToSet = exposureTimeMax;
+    }
+
+    ptrExposureTime->SetValue(exposureTimeToSet);
+
+    LOG_DEBUG("Exposure time set to " << exposureTimeToSet << " us...");
+  }
+  catch (Spinnaker::Exception& e)
+  {
+    LOG_ERROR("Error: " << e.what());
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+// This function returns the camera to its default state by re-enabling automatic
+// exposure.
+PlusStatus ResetExposure(INodeMap& nodeMap)
+{
+  try
+  {
+    //
+    // Turn automatic exposure back on
+    //
+    // *** NOTES ***
+    // Automatic exposure is turned on in order to return the camera to its
+    // default state.
+    //
+    CEnumerationPtr ptrExposureAuto = nodeMap.GetNode("ExposureAuto");
+    if (!IsReadable(ptrExposureAuto) ||
+      !IsWritable(ptrExposureAuto))
+    {
+      LOG_DEBUG("Unable to enable automatic exposure (node retrieval). Non-fatal error...");
+    }
+
+    CEnumEntryPtr ptrExposureAutoContinuous = ptrExposureAuto->GetEntryByName("Continuous");
+    if (!IsReadable(ptrExposureAutoContinuous))
+    {
+      LOG_DEBUG("Unable to enable automatic exposure (enum entry retrieval). Non-fatal error...");
+    }
+
+    ptrExposureAuto->SetIntValue(ptrExposureAutoContinuous->GetValue());
+
+    LOG_DEBUG("Automatic exposure enabled...");
+  }
+  catch (Spinnaker::Exception& e)
+  {
+    LOG_ERROR("Error: " << e.what());
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+
+
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusFLIRSpinnakerCam::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
 
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
   LOG_DEBUG("Configure FLIR Systems Spinnaker");
-  /***
   const char* ExposureTimeString = deviceConfig->GetAttribute("ExposureTime");
-  const char* TimeBaseExposureString = deviceConfig->GetAttribute("TimeBaseExposure");
   if (ExposureTimeString)
   {
     this->dwExposure = std::atoi(ExposureTimeString);
   }
   else
   {
-    this->dwExposure = -1;
+    this->dwExposure = 0;
   }
 
-  if (TimeBaseExposureString)
-  {
-    this->wTimeBaseExposure = std::atoi(TimeBaseExposureString);
-  }
-  else
-  {
-    this->wTimeBaseExposure = -1;
-  }
+  LOG_DEBUG("FLIR Systems Spinnaker: ExposureTime = " << this->dwExposure);
 
-  LOG_DEBUG("FLIR Systems Spinnaker: ExposureTime = " << this->dwExposure << "    TimeBaseExposure = " << this->wTimeBaseExposure);
-**/
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusFLIRSpinnakerCam::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-	/**
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
-	**/
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusFLIRSpinnakerCam::FreezeDevice(bool freeze)
 {
-/**
   if (freeze)
   {
     this->Disconnect();
@@ -104,7 +207,6 @@ PlusStatus vtkPlusFLIRSpinnakerCam::FreezeDevice(bool freeze)
   {
     this->Connect();
   }
-**/
   return PLUS_SUCCESS;
 }
 
@@ -168,6 +270,14 @@ PlusStatus vtkPlusFLIRSpinnakerCam::InternalConnect()
   LOG_DEBUG("Number of FLIR cameras detected: " << numCameras);
 
   try{
+
+    if (this->dwExposure > 0) {
+      ConfigureExposure(nodeMap, this->dwExposure);
+    }
+    else {
+      ResetExposure(nodeMap);
+    }
+
     CEnumerationPtr ptrAcquisitionMode = nodeMap.GetNode("AcquisitionMode");
     if (!IsReadable(ptrAcquisitionMode) ||
       !IsWritable(ptrAcquisitionMode))
@@ -209,90 +319,7 @@ PlusStatus vtkPlusFLIRSpinnakerCam::InternalConnect()
     psystem->ReleaseInstance();
     return PLUS_FAIL;
   }
-	/***
-  PCO_Description strDescription;
-  PCO_CameraType strCamType;
-  int iRet;
-  DWORD CameraWarning, CameraError, CameraStatus;
-  WORD XResAct, YResAct, XResMax, YResMax;
-  WORD RecordingState;
-  DWORD auxDelay;
-  DWORD auxExposure;
-  WORD auxTimeBaseDelay;
-  WORD auxTimeBaseExposure;
-
-  pCam = nullptr;
-
-  iRet = PCO_OpenCamera(&(pCam), 0);
-  if (iRet != PCO_NOERROR)
-  {
-    LOG_ERROR("PCO Ultraviolet: camera not detected.");
-    return PLUS_FAIL;
-  }
-  else {
-    LOG_DEBUG("PCO Ultraviolet: camera found.");
-  }
-  strDescription.wSize = sizeof(PCO_Description);
-  iRet = PCO_GetCameraDescription(pCam, &strDescription);
-
-  iRet = PCO_GetRecordingState(pCam, &RecordingState);
-  if (RecordingState)
-  {
-    iRet = PCO_SetRecordingState(pCam, 0);
-  }
-
-  iRet = PCO_GetDelayExposureTime(pCam, &(auxDelay), &(auxExposure), &(auxTimeBaseDelay), &(auxTimeBaseExposure));
-
-  this->dwDelay = auxDelay;
-  if (this->dwExposure == -1) {
-    this->dwExposure = auxExposure;
-  }
-  this->wTimeBaseDelay = auxTimeBaseDelay;
-  if (this->wTimeBaseExposure == -1) {
-    this->wTimeBaseExposure = auxTimeBaseExposure;
-  }
-
-  if ((iRet = PCO_SetDelayExposureTime(pCam, this->dwDelay, this->dwExposure, this->wTimeBaseDelay, this->wTimeBaseExposure)) != 0) {
-    LOG_ERROR("PCO Ultraviolet: SetExposureTime (PCO_SetDelayExposureTime) failed with errorcode " << iRet);
-    return PLUS_FAIL;
-  }
-
-  // Arm Camera before next Set...  
-  iRet = PCO_ArmCamera(pCam);
-
-  iRet = PCO_GetCameraHealthStatus(pCam, &CameraWarning, &CameraError, &CameraStatus);
-  if (CameraError != 0)
-  {
-    LOG_ERROR("PCO Ultraviolet: Camera has error status " << CameraError);
-    iRet = PCO_CloseCamera(pCam);
-    return PLUS_FAIL;
-  }
-
-  strCamType.wSize = sizeof(PCO_CameraType);
-  iRet = PCO_GetCameraType(pCam, &strCamType);
-  if (iRet != PCO_NOERROR)
-  {
-    LOG_ERROR("PCO Ultraviolet: PCO_GetCameraType failed with errorcode " << iRet);
-    iRet = PCO_CloseCamera(pCam);
-    return PLUS_FAIL;
-  }
-
-  if (strCamType.wInterfaceType == INTERFACE_CAMERALINK)
-  {
-    PCO_SC2_CL_TRANSFER_PARAM cl_par;
-    iRet = PCO_GetTransferParameter(pCam, (void*)&cl_par, sizeof(PCO_SC2_CL_TRANSFER_PARAM));
-    LOG_DEBUG("PCO Ultraviolet Camlink Settings: Baudrate=" << cl_par.baudrate << ", Clockfreq=" << cl_par.ClockFrequency << ", Dataformat=" << cl_par.DataFormat << ", Transmit=" << cl_par.Transmit);
-  }
-
-  iRet = PCO_GetSizes(pCam, &(this->XResAct), &(this->YResAct), &(this->XResMax), &(this->YResMax));
-  bufsize = (this->XResAct) * (this->YResAct) * sizeof(WORD);
-
-  this->pImgBuf = nullptr;
-  this->BufNum = -1;
-
-  iRet = PCO_AllocateBuffer(pCam, &this->BufNum, this->bufsize, &(this->pImgBuf), &(this->BufEvent));
-  iRet = PCO_SetImageParameters(pCam, this->XResAct, this->YResAct, IMAGEPARAMETERS_READ_FROM_SEGMENTS, NULL, 0);
-  **/
+	
   return PLUS_SUCCESS;
 }
 

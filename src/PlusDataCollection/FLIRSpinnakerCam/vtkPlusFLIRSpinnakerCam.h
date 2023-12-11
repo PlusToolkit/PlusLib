@@ -53,19 +53,7 @@ protected:
   virtual PlusStatus InternalDisconnect() VTK_OVERRIDE;
 
 protected:
-
-  /**
-  int device;
-  WORD *pImgBuf;
-  HANDLE BufEvent;
-  short BufNum;
-  WORD XResAct, YResAct, XResMax, YResMax;
-  DWORD bufsize;
-  DWORD dwDelay;
   DWORD dwExposure;
-  WORD wTimeBaseDelay;
-  WORD wTimeBaseExposure;
-  */
 };
 
 #endif // __vtkPlusFLIRSpinnakerCam_h
