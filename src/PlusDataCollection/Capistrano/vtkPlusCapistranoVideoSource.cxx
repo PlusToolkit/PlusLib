@@ -921,6 +921,18 @@ vtkPlusCapistranoVideoSource::~vtkPlusCapistranoVideoSource()
   this->Internal = NULL;
 }
 
+// ----------------------------------------------------------------------------
+bool vtkPlusCapistranoVideoSource::IsBoardAttached()
+{
+#if defined(CAPISTRANO_SDK2023) || defined(CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2) || defined(CAPISTRANO_SDK2019) || defined(CAPISTRANO_SDK2018)
+  int numberOfAttachedBoards = usbNumberAttachedBoards();
+#else //cSDK2013 or cSDK2016
+  int numberOfAttachedBoards = usbNumberAttachedProbes();
+#endif
+  LOG_DEBUG("Number of attached boards: " << numberOfAttachedBoards);
+  return numberOfAttachedBoards > 0;
+}
+
 // Initialize Capistrano US Probe ---------------------------------------------
 
 // ----------------------------------------------------------------------------
@@ -958,6 +970,16 @@ PlusStatus vtkPlusCapistranoVideoSource::InitializeCapistranoProbe()
   }
 
   // Setup Capistrano US Probe ---------------------------------------------
+  double startTime = vtkIGSIOAccurateTimer::GetSystemTime();
+  while (!this->IsBoardAttached() && (vtkIGSIOAccurateTimer::GetSystemTime() - startTime < 5))
+  {
+    // With the cSDK2023 drivers, if the device is connected by USB and power cycled it will be observed in Windows Device Manager as
+    // "Capistrano Labs USBIAB Firmware Loader". Upon establishing a connection to the device, "Device found: Uploading Firmware"
+    // message will be observed followed by a "Downloaded firmware" message as output by the device API. The device then needs time to
+    // re-enumerate and be discovered as a "Capistrano Labs USBIAB Ultrasound Probe" device in Windows Device Manager.
+    // The enumeration should be successful within the specified timeout period of 5 seconds.
+    continue;
+  }
   if (this->SetupProbe(0) == PLUS_FAIL)
   {
     LOG_ERROR("Failed to setup Capistrano US Probe");
@@ -983,7 +1005,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetupProbe(int probeID)
     return PLUS_FAIL;
   }
 
-  // Check How many US probe are connected. --------------------------------
+  // Check How many US boards are connected. --------------------------------
 #if defined(CAPISTRANO_SDK2023) || defined(CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2) || defined(CAPISTRANO_SDK2019) || defined(CAPISTRANO_SDK2018)
   int numberOfAttachedBoards = usbNumberAttachedBoards();
 #else //cSDK2013 or cSDK2016
