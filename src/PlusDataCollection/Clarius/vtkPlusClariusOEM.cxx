@@ -209,6 +209,8 @@ protected:
 
   static void SpectralImageFn(const void* newImage, const CusSpectralImageInfo* nfo);
 
+  static void ImuDataFn(const CusPosInfo* pos);
+
   static void ImagingFn(CusImagingState ready, int imaging);
 
   static void ButtonFn(CusButton btn, int clicks);
@@ -449,6 +451,12 @@ void vtkPlusClariusOEM::vtkInternal::RawImageFn(const void* newImage, const CusR
 void vtkPlusClariusOEM::vtkInternal::SpectralImageFn(const void* newImage, const CusSpectralImageInfo* nfo)
 {
   LOG_ERROR("Support for Clarius OEM spectral images has not been implemented. If you desire this feature please submit an issue to request it on the PlusToolkit/PlusLib GitHub repository");
+}
+
+//-------------------------------------------------------------------------------------------------
+void vtkPlusClariusOEM::vtkInternal::ImuDataFn(const CusPosInfo* pos)
+{
+  LOG_ERROR("Support for Clarius OEM IMU data has not been implemented. If you desire this feature please submit an issue to request it on the PlusToolkit/PlusLib GitHub repository");
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -1250,6 +1258,7 @@ PlusStatus vtkPlusClariusOEM::InitializeOEM()
   CusNewRawImageFn newRawImageFnPtr = static_cast<CusNewRawImageFn>(&vtkPlusClariusOEM::vtkInternal::RawImageFn);
   CusNewProcessedImageFn newProcessedImageFnPtr = static_cast<CusNewProcessedImageFn>(&vtkPlusClariusOEM::vtkInternal::ProcessedImageFn);
   CusNewSpectralImageFn newSpectralImageFnPtr = static_cast<CusNewSpectralImageFn>(&vtkPlusClariusOEM::vtkInternal::SpectralImageFn);
+  CusNewImuDataFn newImuDataFnPtr = static_cast<CusNewImuDataFn>(&vtkPlusClariusOEM::vtkInternal::ImuDataFn);
   CusImagingFn imagingFnPtr = static_cast<CusImagingFn>(&vtkPlusClariusOEM::vtkInternal::ImagingFn);
   CusButtonFn buttonFnPtr = static_cast<CusButtonFn>(&vtkPlusClariusOEM::vtkInternal::ButtonFn);
   CusProgressFn progressFnPtr = static_cast<CusProgressFn>(&vtkPlusClariusOEM::vtkInternal::ProgressFn);
@@ -1284,6 +1293,7 @@ PlusStatus vtkPlusClariusOEM::InitializeOEM()
       newProcessedImageFnPtr,
       newRawImageFnPtr,
       newSpectralImageFnPtr,
+      newImuDataFnPtr,
       imagingFnPtr,
       buttonFnPtr,
       errorFnPtr,
