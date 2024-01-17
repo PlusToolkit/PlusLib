@@ -17,10 +17,6 @@ MfVideoCaptureLogger* MfVideoCaptureLogger::Instance()
 {
   if (m_pInstance == NULL)
   {
-    if (m_pInstance != NULL)
-    {
-      return m_pInstance;
-    }
     m_pInstance = new MfVideoCaptureLogger;
   }
   return m_pInstance;
