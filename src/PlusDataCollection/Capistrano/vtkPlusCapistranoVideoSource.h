@@ -230,6 +230,9 @@ public:
   /*! Get the pulse period used for the MIS mode. Only implemented with Capistrano SDK 2019.2 and newer. */
   PlusStatus GetMISPulsePeriod(unsigned int& PulsePeriod);
 
+  /*! Check if a board is attached. */
+  bool IsBoardAttached();
+
 protected:
   /*! Constructor */
   vtkPlusCapistranoVideoSource();

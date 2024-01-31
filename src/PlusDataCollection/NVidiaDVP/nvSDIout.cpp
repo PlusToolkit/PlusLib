@@ -975,7 +975,7 @@ HRESULT CNvSDIout::GetCSC( NVVIOCOLORCONVERSION* csc, bool* enable )
   // Offset
   csc->colorOffset[0] = l_vioConfig.vioConfig.outConfig.colorConversion.colorOffset[0];
   csc->colorOffset[1] = l_vioConfig.vioConfig.outConfig.colorConversion.colorOffset[1];
-  csc->colorOffset[1] = l_vioConfig.vioConfig.outConfig.colorConversion.colorOffset[2];
+  csc->colorOffset[2] = l_vioConfig.vioConfig.outConfig.colorConversion.colorOffset[2];
 
   // Scale
   csc->colorScale[0] = l_vioConfig.vioConfig.outConfig.colorConversion.colorScale[0];

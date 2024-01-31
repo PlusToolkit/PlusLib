@@ -7,7 +7,6 @@ See License.txt for details.
 // Local includes
 #include "PlusConfigure.h"
 #include "PlusCommon.h"
-#include "PlusConfigure.h"
 #include "igsioTrackedFrame.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusCommand.h"

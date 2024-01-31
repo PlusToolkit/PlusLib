@@ -434,7 +434,6 @@ PlusStatus vtkPlusCapistranoCommand::Execute()
     }
     else
     {
-      status = PLUS_FAIL;
       error += "Failed to set " + parameterName + ". ";
       resultString += " Success=\"false\"";
       metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");

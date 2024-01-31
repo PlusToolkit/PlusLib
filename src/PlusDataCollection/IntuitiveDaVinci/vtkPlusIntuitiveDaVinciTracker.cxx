@@ -178,7 +178,7 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::WriteConfiguration(vtkXMLDataElement*
 
   XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(IpAddr, trackerConfig);
   trackerConfig->SetIntAttribute("Port", this->Port);
-  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(Password, trackerConfig)''
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(Password, trackerConfig);
 
   return PLUS_SUCCESS;
 }

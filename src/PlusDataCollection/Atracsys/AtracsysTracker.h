@@ -84,6 +84,7 @@ public:
     // override equality operator to make fids less than EQUALITY_DISTANCE_MM considered equal
     bool operator==(const Fiducial& f);
     bool operator<(const Fiducial& f) const;
+    uint32_t id = 0;
     // 3D
     uint32_t Fid3dStatus = 0;
     float xMm = 0;
@@ -138,13 +139,26 @@ public:
     Fiducials fiducials; // fiducial coordinates
   };
 
+  /* Is onboard/embedded processing on ?*/
+  bool IsOnboardProcessing();
+
+  /*! Is virtual ? */
+  bool IsVirtual();
+
+  /*! If virtual device, pause/unpause */
+  void Pause(bool tof);
+
   /*! Connect to Atracsys tracker, must be called before any other function in this wrapper API. */
   ATRACSYS_RESULT Connect();
+
   /*! Closes connections to Atracsys tracker, must be called at end of application. */
   ATRACSYS_RESULT Disconnect();
 
   /*! */
   ATRACSYS_RESULT GetSDKversion(std::string& version);
+
+  /*! */
+  ATRACSYS_RESULT GetCalibrationDate(std::string& date);
 
   /*! */
   ATRACSYS_RESULT GetDeviceType(DEVICE_TYPE& deviceType);
@@ -177,7 +191,8 @@ public:
   std::string ResultToString(ATRACSYS_RESULT result);
 
   /*! */
-  ATRACSYS_RESULT GetMarkersInFrame(std::vector<Marker>& markers, std::map<std::string, std::string>& events);
+  ATRACSYS_RESULT GetMarkersInFrame(std::vector<Marker>& markers,
+    std::map<std::string, std::string>& events, uint64_t& sdkTimestamp);
 
   /*! */
   ATRACSYS_RESULT SetUserLEDState(int red, int green, int blue, int frequency, bool enabled = true);
@@ -252,6 +267,8 @@ private:
   int Max2dFiducialsNumber = 256;
   int Max3dFiducialsNumber = 256;
   int MaxMarkersNumber = 16;
+
+  bool isOnboardProcessing = false;
 
   class AtracsysInternal;
   AtracsysInternal* Internal;

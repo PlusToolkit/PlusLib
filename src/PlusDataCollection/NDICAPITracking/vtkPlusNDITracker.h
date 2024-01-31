@@ -49,7 +49,7 @@ POSSIBILITY OF SUCH DAMAGES.
 class vtkSocketCommunicator;
 struct ndicapi;
 
-// the number of tools the polaris can handle
+// the maximum size of an NDI reply (excluding new extended binary format)
 #define VTK_NDI_REPLY_LEN 2048
 
 /*!
@@ -201,12 +201,16 @@ public:
   vtkSetMacro(CheckDSR, bool);
   vtkGetMacro(CheckDSR, bool);
 
+  vtkSetMacro(HardwareDataAveragingDepth, int);
+  vtkGetMacro(HardwareDataAveragingDepth, int);
+
 protected:
   vtkPlusNDITracker();
   ~vtkPlusNDITracker();
 
   /*! Connect to the tracker hardware */
   PlusStatus InternalConnect();
+
   PlusStatus InternalConnectNetwork();
   PlusStatus InternalConnectSerial();
 
@@ -291,35 +295,57 @@ protected:
   PlusStatus SelectTrackingFrequency();
 
   /*!
+    Determine the firmware version of the device
+  */
+  PlusStatus GetFirmwareRevision();
+
+  /*!
     Select the tracking frequency using deprecated commands
     Only used if newer commands are not supported by a device
   */
   PlusStatus SelectTrackingFrequencyDeprecated();
 
+  /*!
+    Enable/disable data averaging and calculate the new necessary timeout
+  */
+  PlusStatus SelectDataAveraging();
+
   /*! Lookup table function to convert from baudrate to enum */
   static int ConvertBaudToNDIEnum(int baudRate);
+
+  /*! Perform a frame parse from a BX request */
+  PlusStatus DoBXUpdate();
+
+  /*! Perform a frame parse from a BX2 request */
+  PlusStatus DoBX2Update();
 
 #if defined(HAVE_FUTURE)
   PlusStatus ProbeSerialInternal();
 #endif
 
-protected:
-  unsigned long                     LastFrameNumber; // Index of the last frame number, used for providing a frame number when the tracker doesn't return any transform
-  ndicapi*                          Device;
-  std::string                       SerialDevice;
-  int                               SerialPort;
-  int                               BaudRate;
-  int                               IsDeviceTracking;
-  int                               MeasurementVolumeNumber;
-  bool                              LeaveDeviceOpenAfterProbe;
-  bool                              CheckDSR;
-  NdiToolDescriptorsType            NdiToolDescriptors; // Maps Plus tool source IDs to NDI tool descriptors
-  vtkIGSIORecursiveCriticalSection*  CommandMutex;
-  char                              CommandReply[VTK_NDI_REPLY_LEN];
+  vtkGetMacro(FirmwareMajorRevision, uint32_t);
+  vtkGetMacro(FirmwareMinorRevision, uint32_t);
 
-  std::string                       NetworkHostname;
-  int                               NetworkPort;
-  int                               TrackingFrequencyNumber;
+protected:
+  unsigned long                      LastFrameNumber; // Index of the last frame number, used for providing a frame number when the tracker doesn't return any transform
+  ndicapi*                           Device;
+  std::string                        SerialDevice;
+  int                                SerialPort;
+  int                                BaudRate;
+  int                                IsDeviceTracking;
+  int                                MeasurementVolumeNumber;
+  bool                               LeaveDeviceOpenAfterProbe;
+  bool                               CheckDSR;
+  NdiToolDescriptorsType             NdiToolDescriptors; // Maps Plus tool source IDs to NDI tool descriptors
+  vtkIGSIORecursiveCriticalSection*  CommandMutex;
+  char                               CommandReply[VTK_NDI_REPLY_LEN];
+  uint32_t                           FirmwareMajorRevision;
+  uint32_t                           FirmwareMinorRevision;
+  int                                HardwareDataAveragingDepth;
+
+  std::string                        NetworkHostname;
+  int                                NetworkPort;
+  int                                TrackingFrequencyNumber;
 
 private:
   vtkPlusNDITracker(const vtkPlusNDITracker&);

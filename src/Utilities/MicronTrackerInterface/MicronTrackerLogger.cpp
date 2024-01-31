@@ -29,10 +29,6 @@ MicronTrackerLogger* MicronTrackerLogger::Instance()
 {
   if (m_pInstance == NULL)
   {
-    if (m_pInstance != NULL)
-    {
-      return m_pInstance;
-    }
     m_pInstance = new MicronTrackerLogger;
   }
   return m_pInstance;

@@ -29,6 +29,11 @@ public:
   /* Get SDK version */
   std::string GetSdkVersion();
 
+  /*! Retrieves the device calibration date in ISO format: YYYY-MM-DDTHH:MM:SSZ+XX
+  Example: "2020-04-08T21:24:15Z+00" is April 8th, 2020 at 9:24:15pm UTC (+00)
+  */
+  std::string GetCalibrationDate();
+
   /* Get device type */
   std::string GetDeviceType();
 
@@ -50,7 +55,7 @@ public:
 
   /* Device is a hardware tracker. */
   virtual bool IsTracker() const { return true; }
-  virtual bool IsVirtual() const { return false; }
+  virtual bool IsVirtual() const;
 
   /*! Read configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
@@ -70,6 +75,10 @@ public:
   /*!  */
   PlusStatus InternalUpdate();
 
+  /*! Pause/unpause virtual device. */
+  PlusStatus PauseVirtualDevice();
+  PlusStatus UnpauseVirtualDevice();
+
 public:
   // Commands
   static const char* ATRACSYS_COMMAND_SET_FLAG;
@@ -80,6 +89,7 @@ public:
   static const char* ATRACSYS_COMMAND_ENABLE_TOOL;
   static const char* ATRACSYS_COMMAND_ADD_TOOL;
 
+  const std::map<std::string, std::string>& GetDeviceOptions() const;
   PlusStatus GetOptionValue(const std::string& optionName, std::string& optionValue);
 
   // Command methods
@@ -108,7 +118,6 @@ private: // Functions
 
   /*! Stop the tracking system and bring it back to its initial state. */
   PlusStatus InternalStopRecording();
-
   std::vector<std::string> DisabledToolIds;
 
   class vtkInternal;

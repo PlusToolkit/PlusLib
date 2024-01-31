@@ -209,6 +209,8 @@ protected:
 
   static void SpectralImageFn(const void* newImage, const CusSpectralImageInfo* nfo);
 
+  static void ImuDataFn(const CusPosInfo* pos);
+
   static void ImagingFn(CusImagingState ready, int imaging);
 
   static void ButtonFn(CusButton btn, int clicks);
@@ -449,6 +451,12 @@ void vtkPlusClariusOEM::vtkInternal::RawImageFn(const void* newImage, const CusR
 void vtkPlusClariusOEM::vtkInternal::SpectralImageFn(const void* newImage, const CusSpectralImageInfo* nfo)
 {
   LOG_ERROR("Support for Clarius OEM spectral images has not been implemented. If you desire this feature please submit an issue to request it on the PlusToolkit/PlusLib GitHub repository");
+}
+
+//-------------------------------------------------------------------------------------------------
+void vtkPlusClariusOEM::vtkInternal::ImuDataFn(const CusPosInfo* pos)
+{
+  LOG_ERROR("Support for Clarius OEM IMU data has not been implemented. If you desire this feature please submit an issue to request it on the PlusToolkit/PlusLib GitHub repository");
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -1250,6 +1258,7 @@ PlusStatus vtkPlusClariusOEM::InitializeOEM()
   CusNewRawImageFn newRawImageFnPtr = static_cast<CusNewRawImageFn>(&vtkPlusClariusOEM::vtkInternal::RawImageFn);
   CusNewProcessedImageFn newProcessedImageFnPtr = static_cast<CusNewProcessedImageFn>(&vtkPlusClariusOEM::vtkInternal::ProcessedImageFn);
   CusNewSpectralImageFn newSpectralImageFnPtr = static_cast<CusNewSpectralImageFn>(&vtkPlusClariusOEM::vtkInternal::SpectralImageFn);
+  CusNewImuDataFn newImuDataFnPtr = static_cast<CusNewImuDataFn>(&vtkPlusClariusOEM::vtkInternal::ImuDataFn);
   CusImagingFn imagingFnPtr = static_cast<CusImagingFn>(&vtkPlusClariusOEM::vtkInternal::ImagingFn);
   CusButtonFn buttonFnPtr = static_cast<CusButtonFn>(&vtkPlusClariusOEM::vtkInternal::ButtonFn);
   CusProgressFn progressFnPtr = static_cast<CusProgressFn>(&vtkPlusClariusOEM::vtkInternal::ProgressFn);
@@ -1284,6 +1293,7 @@ PlusStatus vtkPlusClariusOEM::InitializeOEM()
       newProcessedImageFnPtr,
       newRawImageFnPtr,
       newSpectralImageFnPtr,
+      newImuDataFnPtr,
       imagingFnPtr,
       buttonFnPtr,
       errorFnPtr,
@@ -1504,6 +1514,11 @@ PlusStatus vtkPlusClariusOEM::SetInitialUsParams()
   if (this->SetEnableAutoFocus(this->Internal->EnableAutoFocus) != PLUS_SUCCESS)
   {
     LOG_WARNING("Failed to set auto focus");
+  }
+
+  if (this->SetEnableAutoGain(this->Internal->EnableAutoGain) != PLUS_SUCCESS)
+  {
+    LOG_WARNING("Failed to set auto gain");
   }
 
   if (this->SetEnablePenetrationMode(this->Internal->EnablePenetrationMode) != PLUS_SUCCESS)
@@ -2139,7 +2154,7 @@ PlusStatus vtkPlusClariusOEM::SetEnableAutoFocus(bool aEnableAutoFocus)
   }
 
   // attempt to set parameter value
-  if (solumSetParam(AutoFocus, aEnableAutoFocus ? 1.0 : 0.0))
+  if (solumSetParam(AutoFocus, aEnableAutoFocus ? CLARIUS_TRUE : CLARIUS_FALSE))
   {
     LOG_ERROR("Failed to set AutoFocus parameter");
     return PLUS_FAIL;
@@ -2170,7 +2185,7 @@ PlusStatus vtkPlusClariusOEM::SetEnablePenetrationMode(bool aEnablePenetrationMo
   LOG_TRACE("vtkPlusClariusOEM::SetEnablePenetrationMode");
 
   // attempt to set parameter value
-  if (solumSetParam(PenetrationMode, aEnablePenetrationMode ? 1.0 : 0.0))
+  if (solumSetParam(PenetrationMode, aEnablePenetrationMode ? CLARIUS_TRUE : CLARIUS_FALSE))
   {
     LOG_ERROR("Failed to set PenetrationMode parameter");
     return PLUS_FAIL;
@@ -2261,4 +2276,43 @@ double vtkPlusClariusOEM::ConvertDepthPercentToCm(double aFocusDepthPercent)
     return 0.0;
   }
   return (depthMm * MM_TO_CM) * (aFocusDepthPercent / 100.0);
+}
+
+//-------------------------------------------------------------------------------------------------
+PlusStatus vtkPlusClariusOEM::GetEnableAutoGain(bool& aEnableAutoGain)
+{
+  int oemState = solumIsConnected();
+  if (oemState != CLARIUS_STATE_CONNECTED)
+  {
+    // Connection has not been established yet, return cached parameter value
+    aEnableAutoGain = this->Internal->EnableAutoGain;
+    return PLUS_SUCCESS;
+  }
+
+  aEnableAutoGain = solumGetParam(CusParam::AutoGain) > 0;
+  return PLUS_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------
+PlusStatus vtkPlusClariusOEM::SetEnableAutoGain(bool aEnableAutoGain)
+{
+  this->Internal->EnableAutoGain = aEnableAutoGain;
+
+  int oemState = solumIsConnected();
+  if (oemState != CLARIUS_STATE_CONNECTED)
+  {
+    // Connection has not been established yet, parameter value will be set upon connection
+    LOG_INFO("Cached US parameter AutoGain = " << aEnableAutoGain);
+    return PLUS_SUCCESS;
+  }
+
+  // attempt to set parameter value
+  if (solumSetParam(AutoGain, aEnableAutoGain ? CLARIUS_TRUE : CLARIUS_FALSE))
+  {
+    LOG_ERROR("Failed to set AutoGain parameter");
+    return PLUS_FAIL;
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_SHORT_DELAY_MS));
+
+  return PLUS_SUCCESS;
 }

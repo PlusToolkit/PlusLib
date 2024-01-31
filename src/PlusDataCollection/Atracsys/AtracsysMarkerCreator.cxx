@@ -212,7 +212,8 @@ PlusStatus CollectFiducials(fidsFrameList& fidFrameList, int numFrames)
   {
     // ensure vector is empty
     markerFrame.clear();
-    ATRACSYS_RESULT result = Tracker.GetMarkersInFrame(markerFrame, events);
+    uint64_t ts = 0;
+    ATRACSYS_RESULT result = Tracker.GetMarkersInFrame(markerFrame, events, ts);
     if (result == ATR_SUCCESS)
     {
       m++;
@@ -311,8 +312,8 @@ PlusStatus ZeroMeanFids(fidsFrame& dataFids)
   {
     zeroMeanFids.emplace_back();
     zeroMeanFids.back().xMm = it->xMm - aveXmm;
-    zeroMeanFids.back().yMm = it->yMm - aveXmm;
-    zeroMeanFids.back().zMm = it->zMm - aveXmm;
+    zeroMeanFids.back().yMm = it->yMm - aveYmm;
+    zeroMeanFids.back().zMm = it->zMm - aveZmm;
     zeroMeanFids.back().probability = it->probability;
   }
   dataFids = zeroMeanFids;

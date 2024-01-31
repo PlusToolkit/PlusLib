@@ -72,6 +72,12 @@ public:
   static const char* GET_B_FRAME_RATE_LIMIT;
   static const char* SET_B_HARMONIC_ENABLED;
   static const char* GET_B_HARMONIC_ENABLED;
+  static const char* SET_B_TRANSMIT_CURRENT;
+  static const char* GET_B_TRANSMIT_CURRENT;
+  static const char* SET_B_TRANSMIT_CYCLE_COUNT;
+  static const char* GET_B_TRANSMIT_CYCLE_COUNT;
+  static const char* SET_B_TRANSMIT_FNUMBER;
+  static const char* GET_B_TRANSMIT_FNUMBER;
   static const char* GET_TRANSDUCER_INTERNAL_ID;
   static const char* SET_ARFI_ENABLED;
   static const char* GET_ARFI_ENABLED;
@@ -293,6 +299,15 @@ public:
 
   void SetBHarmonicEnabled(bool value);
   bool GetBHarmonicEnabled();
+
+  void SetBTransmitCurrent(int value);
+  int GetBTransmitCurrent();
+
+  void SetBTransmitCycleCount(uint16_t value);
+  uint16_t GetBTransmitCycleCount();
+
+  void SetBTransmitFNumber(double value);
+  double GetBTransmitFNumber();
 
   void SetBRFEnabled(bool value);
   bool GetBRFEnabled();
@@ -523,6 +538,9 @@ protected:
   double m_FirstGainValue = 15;
   int32_t m_BFrameRateLimit = 0;
   bool m_BHarmonicEnabled = false;
+  int m_BTransmitCurrent = 0;
+  uint16_t m_BTransmitCycleCount = 2;
+  double m_BTransmitFNumber = 3;
   std::vector<vtkPlusDataSource*> m_PrimarySources;
   std::vector<vtkPlusDataSource*> m_ExtraSources;
 

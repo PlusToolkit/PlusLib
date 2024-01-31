@@ -1177,6 +1177,7 @@ PlusStatus vtkPlusClarius::InternalConnect()
         processedImageCallbackPtr,
         rawDataCallBackPtr,
         nullptr, // ClariusSpectralImageInfo
+        nullptr, // CusNewImuDataFn
         freezeCallBackFnPtr,
         buttonCallBackFnPtr,
         progressCallBackFnPtr,

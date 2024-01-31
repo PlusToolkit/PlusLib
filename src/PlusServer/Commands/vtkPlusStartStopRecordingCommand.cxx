@@ -308,7 +308,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
     return PLUS_FAIL;
   }
 
-  vtkPlusVirtualCapture* captureDevice;
+  vtkPlusVirtualCapture* captureDevice(NULL);
   if (!this->CaptureDeviceId.empty())
   {
     captureDevice = GetCaptureDevice(this->CaptureDeviceId);

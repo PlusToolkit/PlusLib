@@ -422,7 +422,7 @@ PlusStatus vtkPlusICCapturingSource::WriteConfiguration(vtkXMLDataElement* rootC
 //----------------------------------------------------------------------------
 void vtkPlusICCapturingSource::SetFrameSize(const FrameSizeType& frameSize)
 {
-  this->FrameSize = FrameSize;
+  this->FrameSize = frameSize;
 }
 
 //----------------------------------------------------------------------------
