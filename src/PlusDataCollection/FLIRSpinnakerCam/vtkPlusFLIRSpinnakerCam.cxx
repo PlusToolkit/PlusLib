@@ -131,6 +131,7 @@ PlusStatus ConfigureExposure(INodeMap& nodeMap,DWORD exposureTimeToSet)
 // exposure.
 PlusStatus ResetExposure(INodeMap& nodeMap)
 {
+  CEnumerationPtr ptrExposureAuto = nullptr;
   try
   {
     //
@@ -140,17 +141,20 @@ PlusStatus ResetExposure(INodeMap& nodeMap)
     // Automatic exposure is turned on in order to return the camera to its
     // default state.
     //
-    CEnumerationPtr ptrExposureAuto = nodeMap.GetNode("ExposureAuto");
+    ptrExposureAuto = nodeMap.GetNode("ExposureAuto");
+
     if (!IsReadable(ptrExposureAuto) ||
       !IsWritable(ptrExposureAuto))
     {
       LOG_DEBUG("Unable to enable automatic exposure (node retrieval). Non-fatal error...");
+      return PLUS_SUCCESS;
     }
 
     CEnumEntryPtr ptrExposureAutoContinuous = ptrExposureAuto->GetEntryByName("Continuous");
     if (!IsReadable(ptrExposureAutoContinuous))
     {
       LOG_DEBUG("Unable to enable automatic exposure (enum entry retrieval). Non-fatal error...");
+      return PLUS_SUCCESS;
     }
 
     ptrExposureAuto->SetIntValue(ptrExposureAutoContinuous->GetValue());
