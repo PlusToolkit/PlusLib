@@ -54,6 +54,7 @@ protected:
 
 protected:
   DWORD dwExposure;
+  double m_currentTime = UNDEFINED_TIMESTAMP;
 };
 
 #endif // __vtkPlusFLIRSpinnakerCam_h

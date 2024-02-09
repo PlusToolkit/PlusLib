@@ -343,6 +343,8 @@ PlusStatus vtkPlusFLIRSpinnakerCam::InternalUpdate()
 {
   ImagePtr pResultImage = pCam->GetNextImage(1000);
 
+  this->m_currentTime = vtkIGSIOAccurateTimer::GetSystemTime();
+
   if (pResultImage->IsIncomplete())
   {
     // Retrieve and print the image status description
@@ -371,7 +373,7 @@ PlusStatus vtkPlusFLIRSpinnakerCam::InternalUpdate()
 
     // Add the frame to the stream buffer
     FrameSizeType frameSize = { static_cast<unsigned int>(width), static_cast<unsigned int>(height), 1 };
-    if (aSource->AddItem(convertedImage->GetData(), aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
+    if (aSource->AddItem(convertedImage->GetData(), aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber, this->m_currentTime, this->m_currentTime) == PLUS_FAIL)
     {
       return PLUS_FAIL;
     }
@@ -379,47 +381,6 @@ PlusStatus vtkPlusFLIRSpinnakerCam::InternalUpdate()
   }
   return PLUS_SUCCESS;
 
-/**
-  int iRet;
-
-  if (pCam == nullptr)
-  {
-    LOG_ERROR("vtkPlusFLIRSpinnakerCam::InternalUpdate Unable to read date");
-    return PLUS_SUCCESS;
-  }
-
-  iRet = PCO_SetRecordingState(pCam, 1);
-
-  iRet = PCO_GetImageEx(pCam, 1, 0, 0, this->BufNum, this->XResAct, this->YResAct, 16);
-  if (iRet != PCO_NOERROR)
-  {
-    LOG_ERROR("vtkPlusFLIRSpinnakerCam::InternalUpdate Unable to receive frame");
-    return PLUS_SUCCESS; 
-  }
-
-  vtkPlusDataSource* aSource(nullptr);
-  if (this->GetFirstActiveOutputVideoSource(aSource) == PLUS_FAIL || aSource == nullptr)
-  {
-    LOG_ERROR("Unable to grab a video source. Skipping frame.");
-    return PLUS_FAIL;
-  }
-
-  if (aSource->GetNumberOfItems() == 0)
-  {
-    // Init the buffer with the metadata from the first frame
-    aSource->SetImageType(US_IMG_BRIGHTNESS);
-    aSource->SetPixelType(VTK_UNSIGNED_SHORT); 
-    aSource->SetNumberOfScalarComponents(1);
-    aSource->SetInputFrameSize(this->XResAct, this->YResAct, 1);
-  }
-
-  // Add the frame to the stream buffer
-  FrameSizeType frameSize = { static_cast<unsigned int>(this->XResAct), static_cast<unsigned int>(this->YResAct), 1 };
-  if (aSource->AddItem(this->pImgBuf, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_SHORT, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
-  {
-    return PLUS_FAIL;
-  }
-**/
 }
 
 //----------------------------------------------------------------------------
