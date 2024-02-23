@@ -1015,6 +1015,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalDisconnect()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
 {
+  this->FrameNumber = 0;
   WPExecute();
   return PLUS_SUCCESS;
 }
@@ -1132,7 +1133,6 @@ PlusStatus vtkPlusWinProbeVideoSource::FreezeDevice(bool freeze)
   if(IsRecording())
   {
     this->StopRecording();
-    this->FrameNumber = 0;
   }
   else
   {
