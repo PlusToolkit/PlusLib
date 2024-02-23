@@ -1233,7 +1233,7 @@ PlusStatus vtkPlusWinProbeVideoSource::SetScanDepthMm(float depth)
   {
     if(Recording)
     {
-      WPStopScanning();
+      this->StopRecording();
     }
     ::SetSSDepth(depth);
     SetPendingRecreateTables(true);
@@ -1243,7 +1243,7 @@ PlusStatus vtkPlusWinProbeVideoSource::SetScanDepthMm(float depth)
     m_SSDecimation = ::GetSSDecimation();
     if(Recording)
     {
-      WPExecute();
+      this->StartRecording();
     }
   }
   return PLUS_SUCCESS;
