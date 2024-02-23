@@ -496,6 +496,7 @@ protected:
   std::string m_FPGAVersion;
   double m_ADCfrequency = 60.0e6; //MHz
   double m_TimestampOffset = 0; //difference between program start time and latest internal timer restart
+  double m_RenderedTimestampOffset = 0; //difference between program start time and latest internal timer restart
   double first_timestamp = 0;
   FrameSizeType m_PrimaryFrameSize = { 128, 256, 1 };
   FrameSizeType m_ExtraFrameSize = { 256, 128, 1 };
