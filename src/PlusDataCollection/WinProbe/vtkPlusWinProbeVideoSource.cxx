@@ -64,12 +64,22 @@ const char* vtkPlusWinProbeVideoSource::SET_B_FRAME_RATE_LIMIT       = "SetBFram
 const char* vtkPlusWinProbeVideoSource::GET_B_FRAME_RATE_LIMIT       = "GetBFrameRateLimit";
 const char* vtkPlusWinProbeVideoSource::SET_B_HARMONIC_ENABLED       = "SetBHarmonicEnabled";
 const char* vtkPlusWinProbeVideoSource::GET_B_HARMONIC_ENABLED       = "GetBHarmonicEnabled";
+const char* vtkPlusWinProbeVideoSource::SET_B_BUBBLE_CONTRAST_ENABLED = "SetBBubbleContrastEnabled";
+const char* vtkPlusWinProbeVideoSource::GET_B_BUBBLE_CONTRAST_ENABLED = "GetBBubbleContrastEnabled";
+const char* vtkPlusWinProbeVideoSource::SET_B_AMPLITUDE_MODULATION_ENABLED = "SetBAmplitudeModulationEnabled";
+const char* vtkPlusWinProbeVideoSource::GET_B_AMPLITUDE_MODULATION_ENABLED = "GetBAmplitudeModulationEnabled";
+const char* vtkPlusWinProbeVideoSource::SET_B_TRANSMIT_LOCKED        = "SetBTransmitLocked";
+const char* vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_LOCKED        = "GetBTransmitLocked";
 const char* vtkPlusWinProbeVideoSource::SET_B_TRANSMIT_CURRENT       = "SetBTransmitCurrent";
 const char* vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_CURRENT       = "GetBTransmitCurrent";
 const char* vtkPlusWinProbeVideoSource::SET_B_TRANSMIT_CYCLE_COUNT   = "SetBTransmitCycleCount";
 const char* vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_CYCLE_COUNT   = "GetBTransmitCycleCount";
 const char* vtkPlusWinProbeVideoSource::SET_B_TRANSMIT_FNUMBER       = "SetBTransmitFNumber";
 const char* vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_FNUMBER       = "GetBTransmitFNumber";
+const char* vtkPlusWinProbeVideoSource::SET_B_APODIZATION_FNUMBER        = "SetBApodizationFNumber";
+const char* vtkPlusWinProbeVideoSource::GET_B_APODIZATION_FNUMBER        = "GetBApodizationFNumber";
+const char* vtkPlusWinProbeVideoSource::SET_B_FILTER_COEFFICIENT_SET = "SetBFilterCoefficientSet";
+const char* vtkPlusWinProbeVideoSource::GET_B_FILTER_COEFFICIENT_SET = "GetBFilterCoefficientSet";
 const char* vtkPlusWinProbeVideoSource::GET_TRANSDUCER_INTERNAL_ID   = "GetTransducerInternalID";
 const char* vtkPlusWinProbeVideoSource::SET_ARFI_ENABLED             = "SetARFIEnabled";
 const char* vtkPlusWinProbeVideoSource::GET_ARFI_ENABLED             = "GetARFIEnabled";
@@ -959,9 +969,13 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   m_SSDecimation = ::GetSSDecimation();
   this->SetSpatialCompoundEnabled(m_SpatialCompoundEnabled); // also takes care of angle  and count
   this->SetBHarmonicEnabled(m_BHarmonicEnabled);
+  this->SetBBubbleContrastEnabled(m_BBubbleContrastEnabled);
+  this->SetBAmplitudeModulationEnabled(m_BAmplitudeModulationEnabled);
+  this->SetBTransmitLocked(m_BTransmitLocked);
   this->SetBTransmitCurrent(m_BTransmitCurrent);
   this->SetBTransmitCycleCount(m_BTransmitCycleCount);
   this->SetBTransmitFNumber(m_BTransmitFNumber);
+  this->SetBApodizationFNumber(m_BApodizationFNumber);
 
   //setup size for DirectX image
   LOG_DEBUG("Setting output size to " << m_PrimaryFrameSize[0] << "x" << m_PrimaryFrameSize[1]);
@@ -1731,6 +1745,64 @@ bool vtkPlusWinProbeVideoSource::GetBHarmonicEnabled()
   return m_BHarmonicEnabled;
 }
 
+void vtkPlusWinProbeVideoSource::SetBBubbleContrastEnabled(bool value)
+{
+  if(Connected)
+  {
+    SetBIsBubbleContrast(value);
+    SetPendingRecreateTables(true);
+  }
+  m_BBubbleContrastEnabled = GetBIsBubbleContrast();
+}
+
+bool vtkPlusWinProbeVideoSource::GetBBubbleContrastEnabled()
+{
+  if(Connected)
+  {
+    m_BBubbleContrastEnabled = GetBIsBubbleContrast();
+  }
+  return m_BBubbleContrastEnabled;
+}
+
+void vtkPlusWinProbeVideoSource::SetBAmplitudeModulationEnabled(bool value)
+{
+  if(Connected)
+  {
+    SetBIsAmplitudeModulation(value);
+    SetPendingRecreateTables(true);
+  }
+  m_BAmplitudeModulationEnabled = GetBIsAmplitudeModulation();
+}
+
+bool vtkPlusWinProbeVideoSource::GetBAmplitudeModulationEnabled()
+{
+  if(Connected)
+  {
+    m_BAmplitudeModulationEnabled = GetBIsAmplitudeModulation();
+  }
+  return m_BAmplitudeModulationEnabled;
+}
+
+void vtkPlusWinProbeVideoSource::SetBTransmitLocked(bool value)
+{
+  if(Connected)
+  {
+    SetBIsTransmitLocked(value);
+    SetPendingRecreateTables(true);
+  }
+  m_BTransmitLocked = GetBIsTransmitLocked();
+}
+
+bool vtkPlusWinProbeVideoSource::GetBTransmitLocked()
+{
+  if(Connected)
+  {
+    m_BTransmitLocked = GetBIsTransmitLocked();
+  }
+  return m_BTransmitLocked;
+}
+
+
 void vtkPlusWinProbeVideoSource::SetBTransmitCurrent(int value)
 {
   if(Connected)
@@ -1786,6 +1858,44 @@ double vtkPlusWinProbeVideoSource::GetBTransmitFNumber()
     m_BTransmitFNumber = GetTxTxFNumber();
   }
   return m_BTransmitFNumber;
+}
+
+void vtkPlusWinProbeVideoSource::SetBApodizationFNumber(double value)
+{
+  if(Connected)
+  {
+    SetApodizationFNumber(value);
+    SetPendingRecreateTables(true);
+  }
+  m_BApodizationFNumber = GetApodizationFNumber();
+}
+
+double vtkPlusWinProbeVideoSource::GetBApodizationFNumber()
+{
+  if(Connected)
+  {
+    m_BApodizationFNumber = GetApodizationFNumber();
+  }
+  return m_BApodizationFNumber;
+}
+
+void vtkPlusWinProbeVideoSource::SetBFilterCoefficientSet(uint8_t value)
+{
+  if(Connected)
+  {
+    SetFilterFilterCoefficientSet(value);
+    SetPendingRecreateTables(true);
+  }
+  m_BFilterCoefficientSet = GetBFilterCoefficientSet();
+}
+
+uint8_t vtkPlusWinProbeVideoSource::GetBFilterCoefficientSet()
+{
+  if(Connected)
+  {
+    m_BFilterCoefficientSet = GetFilterFilterCoefficientSet();
+  }
+  return m_BFilterCoefficientSet;
 }
 
 bool vtkPlusWinProbeVideoSource::GetMModeEnabled()
