@@ -555,8 +555,9 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   }
   //timestamp counters are in milliseconds since last sequencer restart
   double timestamp = (header->TimeStamp / 1000.0) - first_timestamp;
-  if(timestamp == 0.0) // some change is being applied, so this frame is not valid
+  if(timestamp <= 0.0) // some change is being applied, so this frame is not valid
   {
+    LOG_DEBUG("Timestamp is <= 0 so ignoring this frame.");
     return; // ignore this frame
   }
   timestamp += m_TimestampOffset;
@@ -590,6 +591,10 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
     }
     else // B-mode
     {
+      if (m_UseDeviceFrameReconstruction)
+      {
+        return;
+      }
       this->ReconstructFrame(data, m_PrimaryBuffer, frameSize);
 
       for(unsigned i = 0; i < m_PrimarySources.size(); i++)
@@ -1015,6 +1020,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalDisconnect()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
 {
+  this->FrameNumber = 0;
   WPExecute();
   return PLUS_SUCCESS;
 }
@@ -1095,12 +1101,19 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalUpdate()
     temp = (texture[3] & 0xff);
     timestamp += (temp << 24);
 
+    //timestamp counters are in milliseconds since last sequencer restart
     timestamp = (timestamp / 1000) - first_timestamp;
+    if(timestamp <= 0.0) // some change is being applied, so this frame is not valid
+    {
+      m_RenderedTimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime();
+      LOG_DEBUG("Timestamp is <= 0 so ignoring this frame.");
+      this->FrameNumber += 1;
+      WPFreePointer(texture);
+      return PLUS_SUCCESS; // ignore this frame
+    }
 
+    double currentTime = m_RenderedTimestampOffset + timestamp;
     this->FlipTexture(texture, frameSize, rowPitch);
-    WPFreePointer(texture);
-
-    double currentTime = m_TimestampOffset + timestamp;
     for(unsigned i = 0; i < m_PrimarySources.size(); i++)
     {
       if(m_PrimarySources[i]->AddItem(&m_PrimaryBuffer[0],
@@ -1114,8 +1127,9 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalUpdate()
       {
         LOG_WARNING("Error adding item to primary video source " << m_PrimarySources[i]->GetSourceId());
       }
+      this->FrameNumber += 1;
     }
-    this->FrameNumber += 1;
+    WPFreePointer(texture);
     this->Modified();
   }
   return PLUS_SUCCESS;
@@ -1132,7 +1146,6 @@ PlusStatus vtkPlusWinProbeVideoSource::FreezeDevice(bool freeze)
   if(IsRecording())
   {
     this->StopRecording();
-    this->FrameNumber = 0;
   }
   else
   {
@@ -1233,7 +1246,7 @@ PlusStatus vtkPlusWinProbeVideoSource::SetScanDepthMm(float depth)
   {
     if(Recording)
     {
-      WPStopScanning();
+      this->StopRecording();
     }
     ::SetSSDepth(depth);
     SetPendingRecreateTables(true);
@@ -1243,7 +1256,7 @@ PlusStatus vtkPlusWinProbeVideoSource::SetScanDepthMm(float depth)
     m_SSDecimation = ::GetSSDecimation();
     if(Recording)
     {
-      WPExecute();
+      this->StartRecording();
     }
   }
   return PLUS_SUCCESS;
