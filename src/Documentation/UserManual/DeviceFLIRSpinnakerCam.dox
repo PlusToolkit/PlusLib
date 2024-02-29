@@ -1,0 +1,26 @@
+/*!
+\page DeviceFLIRSpinnakerCam FLIR Systems Spinnaker camera
+
+\section DeviceFLIRSpinnakerCamera 
+This device allow you to use a FLIR Systems Spinnaker Camera to capture and send infrared images.
+
+This device only works in Windows (2023-01-19). 
+
+\section FLIRSpinnakerCamConfigInstallation
+
+You can found the license in:
+ "PlusLib/src/Utilities/FLIRSpinnakerCamera/README.md"
+
+\section FLIRSpinnakerCamConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "FLIRSpinnakerCam" \RequiredAtt
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+
+\section FLIRSpinnakerCamExampleConfigFile Example configuration file PlusDeviceSet_Server_FLIRSpinnakerCamera.xml
+
+\include "ConfigFiles/PlusDeviceSet_Server_FLIRSpinnakerCamera.xml"
+
+*/
