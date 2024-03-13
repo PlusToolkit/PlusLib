@@ -86,8 +86,8 @@ public:
   static const char* GET_B_TRANSMIT_FNUMBER;
   static const char* SET_B_APODIZATION_FNUMBER;
   static const char* GET_B_APODIZATION_FNUMBER;
-  static const char* SET_B_FILTER_COEFFICIENT_SET;
-  static const char* GET_B_FILTER_COEFFICIENT_SET;
+  static const char* SET_B_TX_FILTER_COEFFICIENT_SET;
+  static const char* GET_B_TX_FILTER_COEFFICIENT_SET;
   static const char* GET_TRANSDUCER_INTERNAL_ID;
   static const char* SET_ARFI_ENABLED;
   static const char* GET_ARFI_ENABLED;
@@ -331,8 +331,8 @@ public:
   void SetBApodizationFNumber(double value);
   double GetBApodizationFNumber();
 
-  void SetBFilterCoefficientSet(uint8_t value);
-  uint8_t GetBFilterCoefficientSet();
+  void SetBTXFilterCoefficientSet(int32_t value);   // set actual filter number
+  int32_t GetBTXFilterCoefficientSet();
 
   void SetBRFEnabled(bool value);
   bool GetBRFEnabled();
@@ -571,7 +571,7 @@ protected:
   uint16_t m_BTransmitCycleCount = 2;
   double m_BTransmitFNumber = 3;
   double m_BApodizationFNumber = 0.5;
-  uint8_t m_BFilterCoefficientSet = 3;
+  int32_t m_BTXFilterCoefficientSet = 3;      // default filter
   std::vector<vtkPlusDataSource*> m_PrimarySources;
   std::vector<vtkPlusDataSource*> m_ExtraSources;
 
