@@ -78,8 +78,8 @@ const char* vtkPlusWinProbeVideoSource::SET_B_TRANSMIT_FNUMBER       = "SetBTran
 const char* vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_FNUMBER       = "GetBTransmitFNumber";
 const char* vtkPlusWinProbeVideoSource::SET_B_APODIZATION_FNUMBER        = "SetBApodizationFNumber";
 const char* vtkPlusWinProbeVideoSource::GET_B_APODIZATION_FNUMBER        = "GetBApodizationFNumber";
-const char* vtkPlusWinProbeVideoSource::SET_B_FILTER_COEFFICIENT_SET = "SetBFilterCoefficientSet";
-const char* vtkPlusWinProbeVideoSource::GET_B_FILTER_COEFFICIENT_SET = "GetBFilterCoefficientSet";
+const char* vtkPlusWinProbeVideoSource::SET_B_TX_FILTER_COEFFICIENT_SET = "SetBTXFilterCoefficientSet";
+const char* vtkPlusWinProbeVideoSource::GET_B_TX_FILTER_COEFFICIENT_SET = "GetBTXFilterCoefficientSet";
 const char* vtkPlusWinProbeVideoSource::GET_TRANSDUCER_INTERNAL_ID   = "GetTransducerInternalID";
 const char* vtkPlusWinProbeVideoSource::SET_ARFI_ENABLED             = "SetARFIEnabled";
 const char* vtkPlusWinProbeVideoSource::GET_ARFI_ENABLED             = "GetARFIEnabled";
@@ -1871,23 +1871,22 @@ double vtkPlusWinProbeVideoSource::GetBApodizationFNumber()
   return m_BApodizationFNumber;
 }
 
-void vtkPlusWinProbeVideoSource::SetBFilterCoefficientSet(uint8_t value)
+void vtkPlusWinProbeVideoSource::SetBTXFilterCoefficientSet(int32_t value)
 {
   if(Connected)
   {
-    SetFilterFilterCoefficientSet(value);
-    SetPendingRecreateTables(true);
+    SetTxFilterCoefficientSet(value);
   }
-  m_BFilterCoefficientSet = GetBFilterCoefficientSet();
+  m_BTXFilterCoefficientSet = GetTxFilterCoefficientSet();
 }
 
-uint8_t vtkPlusWinProbeVideoSource::GetBFilterCoefficientSet()
+int32_t vtkPlusWinProbeVideoSource::GetBTXFilterCoefficientSet()
 {
   if(Connected)
   {
-    m_BFilterCoefficientSet = GetFilterFilterCoefficientSet();
+    m_BTXFilterCoefficientSet = GetTxFilterCoefficientSet();
   }
-  return m_BFilterCoefficientSet;
+  return m_BTXFilterCoefficientSet;
 }
 
 bool vtkPlusWinProbeVideoSource::GetMModeEnabled()
