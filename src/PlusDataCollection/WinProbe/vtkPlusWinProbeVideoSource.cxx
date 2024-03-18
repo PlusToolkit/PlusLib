@@ -1258,20 +1258,12 @@ PlusStatus vtkPlusWinProbeVideoSource::SetScanDepthMm(float depth)
   m_ScanDepth = depth;
   if(Connected)
   {
-    if(Recording)
-    {
-      this->StopRecording();
-    }
     ::SetSSDepth(depth);
     SetPendingRecreateTables(true);
     //what we requested might be only approximately satisfied
     m_ScanDepth = ::GetSSDepth();
     // Update decimation with scan depth
     m_SSDecimation = ::GetSSDecimation();
-    if(Recording)
-    {
-      this->StartRecording();
-    }
   }
   return PLUS_SUCCESS;
 }
