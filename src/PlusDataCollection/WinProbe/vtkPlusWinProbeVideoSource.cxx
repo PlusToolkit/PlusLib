@@ -60,6 +60,7 @@ const char* vtkPlusWinProbeVideoSource::SET_M_DEPTH                  = "SetMDept
 const char* vtkPlusWinProbeVideoSource::GET_M_DEPTH                  = "GetMDepth";
 const char* vtkPlusWinProbeVideoSource::SET_DECIMATION               = "SetDecimation";
 const char* vtkPlusWinProbeVideoSource::GET_DECIMATION               = "GetDecimation";
+const char* vtkPlusWinProbeVideoSource::GET_B_PRF                    = "GetBPRF";
 const char* vtkPlusWinProbeVideoSource::SET_B_FRAME_RATE_LIMIT       = "SetBFrameRateLimit";
 const char* vtkPlusWinProbeVideoSource::GET_B_FRAME_RATE_LIMIT       = "GetBFrameRateLimit";
 const char* vtkPlusWinProbeVideoSource::SET_B_HARMONIC_ENABLED       = "SetBHarmonicEnabled";
@@ -78,6 +79,10 @@ const char* vtkPlusWinProbeVideoSource::SET_B_TRANSMIT_FNUMBER       = "SetBTran
 const char* vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_FNUMBER       = "GetBTransmitFNumber";
 const char* vtkPlusWinProbeVideoSource::SET_B_APODIZATION_FNUMBER        = "SetBApodizationFNumber";
 const char* vtkPlusWinProbeVideoSource::GET_B_APODIZATION_FNUMBER        = "GetBApodizationFNumber";
+const char* vtkPlusWinProbeVideoSource::SET_B_BUBBLE_DESTRUCTION_ENABLED = "SetBBubbleDestructionEnabled";
+const char* vtkPlusWinProbeVideoSource::GET_B_BUBBLE_DESTRUCTION_ENABLED = "GetBBubbleDestructionEnabled";
+const char* vtkPlusWinProbeVideoSource::SET_B_BUBBLE_DESTRUCTION_CYCLE_COUNT = "SetBBubbleDestructionCycleCount";
+const char* vtkPlusWinProbeVideoSource::GET_B_BUBBLE_DESTRUCTION_CYCLE_COUNT = "GetBBubbleDestructionCycleCount";
 const char* vtkPlusWinProbeVideoSource::SET_B_TX_FILTER_COEFFICIENT_SET = "SetBTXFilterCoefficientSet";
 const char* vtkPlusWinProbeVideoSource::GET_B_TX_FILTER_COEFFICIENT_SET = "GetBTXFilterCoefficientSet";
 const char* vtkPlusWinProbeVideoSource::GET_TRANSDUCER_INTERNAL_ID   = "GetTransducerInternalID";
@@ -976,6 +981,8 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   this->SetBTransmitCycleCount(m_BTransmitCycleCount);
   this->SetBTransmitFNumber(m_BTransmitFNumber);
   this->SetBApodizationFNumber(m_BApodizationFNumber);
+  this->SetBBubbleDestructionEnabled(m_BBubbleDestructionEnabled);
+  this->SetBBubbleDestructionCycleCount(m_BBubbleDestructionCycleCount);
 
   //setup size for DirectX image
   LOG_DEBUG("Setting output size to " << m_PrimaryFrameSize[0] << "x" << m_PrimaryFrameSize[1]);
@@ -1871,6 +1878,43 @@ double vtkPlusWinProbeVideoSource::GetBApodizationFNumber()
   return m_BApodizationFNumber;
 }
 
+void vtkPlusWinProbeVideoSource::SetBBubbleDestructionEnabled(bool value)
+{
+  if(Connected)
+  {
+    SetBisBubblePop(value);
+  }
+  m_BBubbleDestructionEnabled = GetBisBubblePop();
+}
+
+bool vtkPlusWinProbeVideoSource::GetBBubbleDestructionEnabled()
+{
+  if(Connected)
+  {
+    m_BBubbleDestructionEnabled = GetBisBubblePop();
+  }
+  return m_BBubbleDestructionEnabled;
+}
+
+void vtkPlusWinProbeVideoSource::SetBBubbleDestructionCycleCount(int16_t value)
+{
+  if(Connected)
+  {
+    SetTxBubblePopCycleCount(value);
+    SetPendingRecreateTables(true);
+  }
+  m_BBubbleDestructionCycleCount = GetTxBubblePopCycleCount();
+}
+
+int16_t vtkPlusWinProbeVideoSource::GetBBubbleDestructionCycleCount()
+{
+  if(Connected)
+  {
+    m_BBubbleDestructionCycleCount = GetTxBubblePopCycleCount();
+  }
+  return m_BBubbleDestructionCycleCount;
+}
+
 void vtkPlusWinProbeVideoSource::SetBTXFilterCoefficientSet(int32_t value)
 {
   if(Connected)
@@ -2339,6 +2383,15 @@ PlusStatus vtkPlusWinProbeVideoSource::ARFIPush(uint8_t maximumVoltage /* = 50 *
 std::string vtkPlusWinProbeVideoSource::GetTransducerID()
 {
   return this->m_TransducerID;
+}
+
+int vtkPlusWinProbeVideoSource::GetBPRF()
+{
+  if (Connected)
+  {
+    m_BPRF = ::GetBPRF();
+  }
+  return m_BPRF;
 }
 
 void vtkPlusWinProbeVideoSource::SetBFrameRateLimit(int32_t value)

@@ -68,6 +68,7 @@ public:
   static const char* GET_M_DEPTH;
   static const char* SET_DECIMATION;
   static const char* GET_DECIMATION;
+  static const char* GET_B_PRF;
   static const char* SET_B_FRAME_RATE_LIMIT;
   static const char* GET_B_FRAME_RATE_LIMIT;
   static const char* SET_B_HARMONIC_ENABLED;
@@ -86,6 +87,10 @@ public:
   static const char* GET_B_TRANSMIT_FNUMBER;
   static const char* SET_B_APODIZATION_FNUMBER;
   static const char* GET_B_APODIZATION_FNUMBER;
+  static const char* SET_B_BUBBLE_DESTRUCTION_ENABLED;
+  static const char* GET_B_BUBBLE_DESTRUCTION_ENABLED;
+  static const char* SET_B_BUBBLE_DESTRUCTION_CYCLE_COUNT;
+  static const char* GET_B_BUBBLE_DESTRUCTION_CYCLE_COUNT;
   static const char* SET_B_TX_FILTER_COEFFICIENT_SET;
   static const char* GET_B_TX_FILTER_COEFFICIENT_SET;
   static const char* GET_TRANSDUCER_INTERNAL_ID;
@@ -331,6 +336,12 @@ public:
   void SetBApodizationFNumber(double value);
   double GetBApodizationFNumber();
 
+  void SetBBubbleDestructionEnabled(bool value);
+  bool GetBBubbleDestructionEnabled();
+
+  void SetBBubbleDestructionCycleCount(int16_t value);
+  int16_t GetBBubbleDestructionCycleCount();
+
   void SetBTXFilterCoefficientSet(int32_t value);   // set actual filter number
   int32_t GetBTXFilterCoefficientSet();
 
@@ -360,6 +371,8 @@ public:
 
   void SetMDepth(int32_t value);
   int32_t GetMDepth();
+
+  int GetBPRF();
 
   void SetBFrameRateLimit(int32_t value);
   int32_t GetBFrameRateLimit();
@@ -562,6 +575,7 @@ protected:
   int32_t m_MDepth = 0;
   uint8_t m_SSDecimation = 2;
   double m_FirstGainValue = 15;
+  int m_BPRF = 0;
   int32_t m_BFrameRateLimit = 0;
   bool m_BHarmonicEnabled = false;
   bool m_BBubbleContrastEnabled = false;
@@ -571,6 +585,8 @@ protected:
   uint16_t m_BTransmitCycleCount = 2;
   double m_BTransmitFNumber = 3;
   double m_BApodizationFNumber = 0.5;
+  bool m_BBubbleDestructionEnabled = false;
+  int16_t m_BBubbleDestructionCycleCount = 12;
   int32_t m_BTXFilterCoefficientSet = 3;      // default filter
   std::vector<vtkPlusDataSource*> m_PrimarySources;
   std::vector<vtkPlusDataSource*> m_ExtraSources;
