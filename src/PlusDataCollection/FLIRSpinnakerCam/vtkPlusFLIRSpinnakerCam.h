@@ -12,7 +12,10 @@ Developed by ULL & IACTEC-IAC group
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 #include "Spinnaker.h"
-
+using namespace Spinnaker;
+using namespace Spinnaker::GenApi;
+using namespace Spinnaker::GenICam;
+using namespace std;
 
 /*!
 \class vtkPlusFLIRSpinnakerCam
@@ -32,6 +35,8 @@ public:
   PlusStatus ReadConfiguration(vtkXMLDataElement* config);
   /*! Write configuration to xml data */
   PlusStatus WriteConfiguration(vtkXMLDataElement* config);
+  /*! Sets video mode */
+  PlusStatus SetPixelFormat(INodeMap& nodeMap);
 
   /*! Manage device frozen state */
   PlusStatus FreezeDevice(bool freeze);
@@ -45,6 +50,7 @@ public:
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
 
+
 protected:
   vtkPlusFLIRSpinnakerCam();
   ~vtkPlusFLIRSpinnakerCam();
@@ -53,8 +59,18 @@ protected:
   virtual PlusStatus InternalDisconnect() VTK_OVERRIDE;
 
 protected:
+  enum VideoFormatMode : int
+  {
+    Mono8 = 0,
+    Mono16 = 1
+  };
+
   DWORD dwExposure;
+  int iVideoFormat;
   double m_currentTime = UNDEFINED_TIMESTAMP;
+
+  CameraList camList;
+
 };
 
 #endif // __vtkPlusFLIRSpinnakerCam_h

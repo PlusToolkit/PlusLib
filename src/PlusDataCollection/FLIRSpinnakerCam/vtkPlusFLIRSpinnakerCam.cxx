@@ -51,6 +51,78 @@ void vtkPlusFLIRSpinnakerCam::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "FLIRSpinnakerCam: FLIR Systems Spinnaker Camera" << std::endl;
 }
 
+int ConfigureGVCPHeartbeat(CameraPtr pCam, bool enable)
+{
+  //
+  // Write to boolean node controlling the camera's heartbeat
+  //
+  // *** NOTES ***
+  // This applies only to GEV cameras.
+  //
+  // GEV cameras have a heartbeat built in, but when debugging applications the
+  // camera may time out due to its heartbeat. Disabling the heartbeat prevents
+  // this timeout from occurring, enabling us to continue with any necessary 
+  // debugging.
+  //
+  // *** LATER ***
+  // Make sure that the heartbeat is reset upon completion of the debugging.  
+  // If the application is terminated unexpectedly, the camera may not locked
+  // to Spinnaker indefinitely due to the the timeout being disabled.  When that 
+  // happens, a camera power cycle will reset the heartbeat to its default setting.
+
+  // Retrieve TL device nodemap
+  INodeMap& nodeMapTLDevice = pCam->GetTLDeviceNodeMap();
+
+  // Retrieve GenICam nodemap
+  INodeMap& nodeMap = pCam->GetNodeMap();
+
+  CEnumerationPtr ptrDeviceType = nodeMapTLDevice.GetNode("DeviceType");
+  if (!IsReadable(ptrDeviceType))
+  {
+    LOG_ERROR("Unable to read DeviceType (node retrieval, !IsReadable).");
+    return PLUS_FAIL;
+  }
+
+  if (ptrDeviceType->GetIntValue() != DeviceType_GigEVision)
+  {
+    LOG_DEBUG("Device is not a GigEVision. Skipping.");
+    return PLUS_SUCCESS;
+  }
+
+  if (enable)
+  {
+    LOG_DEBUG("Resetting heartbeat.");
+  }
+  else
+  {
+    LOG_DEBUG("Disabling heartbeat.");
+  }
+
+CBooleanPtr ptrDeviceHeartbeat = nodeMap.GetNode("GevGVCPHeartbeatDisable");
+if (!IsWritable(ptrDeviceHeartbeat))
+{
+  LOG_DEBUG("Unable to configure heartbeat. Continuing with execution as this may be non-fatal.");
+  return PLUS_FAIL;
+}
+
+  ptrDeviceHeartbeat->SetValue(enable);
+
+  if (!enable)
+  {
+    LOG_DEBUG("WARNING: Heartbeat has been disabled for the rest of this example run." << endl
+    << "         Heartbeat will be reset upon the completion of this run.  If the " << endl
+    << "         example is aborted unexpectedly before the heartbeat is reset, the" << endl
+    << "         camera may need to be power cycled to reset the heartbeat.");
+  }
+  else
+  {
+    LOG_DEBUG("Heartbeat has been reset.");
+  }
+
+  return PLUS_SUCCESS;
+}
+
+
 PlusStatus ConfigureExposure(INodeMap& nodeMap,DWORD exposureTimeToSet)
 {
   LOG_DEBUG("*** CONFIGURING EXPOSURE ***");
@@ -69,11 +141,17 @@ PlusStatus ConfigureExposure(INodeMap& nodeMap,DWORD exposureTimeToSet)
     // example turns automatic exposure off to set it manually and back
     // on in order to return the camera to its default state.
     //
+
     CEnumerationPtr ptrExposureAuto = nodeMap.GetNode("ExposureAuto");
-    if (!IsReadable(ptrExposureAuto) ||
-      !IsWritable(ptrExposureAuto))
+    if (!IsReadable(ptrExposureAuto))
     {
-      LOG_ERROR("Unable to disable automatic exposure (node retrieval). Aborting...");
+      LOG_ERROR("Unable to disable automatic exposure (node retrieval, !IsReadable). Aborting...");
+      return PLUS_FAIL;
+    }
+
+    if (!IsWritable(ptrExposureAuto))
+    {
+      LOG_ERROR("Unable to disable automatic exposure (node retrieval, !IsWritable). Aborting...");
       return PLUS_FAIL;
     }
 
@@ -117,12 +195,14 @@ PlusStatus ConfigureExposure(INodeMap& nodeMap,DWORD exposureTimeToSet)
     ptrExposureTime->SetValue(exposureTimeToSet);
 
     LOG_DEBUG("Exposure time set to " << exposureTimeToSet << " us...");
+
   }
   catch (Spinnaker::Exception& e)
   {
-    LOG_ERROR("Error: " << e.what());
+    LOG_ERROR("Error Configuring Exposure (Spinnaker SDK): " << e.what());
     return PLUS_FAIL;
   }
+
 
   return PLUS_SUCCESS;
 }
@@ -170,25 +250,75 @@ PlusStatus ResetExposure(INodeMap& nodeMap)
   return PLUS_SUCCESS;
 }
 
+int PrintDeviceInfo(INodeMap& nodeMap)
+{
+  int result = PLUS_SUCCESS;
 
+  LOG_DEBUG("*** DEVICE INFORMATION ***");
+
+  try
+  {
+    FeatureList_t features;
+    CCategoryPtr category = nodeMap.GetNode("DeviceInformation");
+    if (IsReadable(category))
+    {
+      category->GetFeatures(features);
+
+      FeatureList_t::const_iterator it;
+      for (it = features.begin(); it != features.end(); ++it)
+      {
+        CNodePtr pfeatureNode = *it;
+        CValuePtr pValue = (CValuePtr)pfeatureNode;
+        LOG_DEBUG(pfeatureNode->GetName() << " : " << (IsReadable(pValue) ? pValue->ToString() : "Node not readable"));
+       }
+    }
+    else
+    {
+      LOG_DEBUG("Device control information not readable.");
+    }
+  }
+  catch (Spinnaker::Exception& e)
+  {
+    LOG_ERROR("Error: " << e.what());
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusFLIRSpinnakerCam::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
   LOG_DEBUG("Configure FLIR Systems Spinnaker");
   const char* ExposureTimeString = deviceConfig->GetAttribute("ExposureTime");
+  std::string VideoFormatString = deviceConfig->GetAttribute("VideoFormat");
   if (ExposureTimeString)
   {
     this->dwExposure = std::atoi(ExposureTimeString);
+
+    LOG_DEBUG("FLIR Systems Spinnaker: ExposureTime = " << this->dwExposure);
+
   }
   else
   {
     this->dwExposure = 0;
   }
 
-  LOG_DEBUG("FLIR Systems Spinnaker: ExposureTime = " << this->dwExposure);
+  /* To uppercase */
+  std::transform(VideoFormatString.begin(), VideoFormatString.end(), VideoFormatString.begin(),
+                        [](unsigned char c) { return std::toupper(c); } 
+                      );
+
+  if (0 == VideoFormatString.compare("MONO8")){
+    this->iVideoFormat = Mono8;
+  } else if (0 == VideoFormatString.compare("MONO16")){
+    this->iVideoFormat = Mono16;
+  } else
+  {
+    this->iVideoFormat = Mono16; 
+  }
+
+  LOG_DEBUG("FLIR Systems Spinnaker: Video mode = " << VideoFormatString);
 
   return PLUS_SUCCESS;
 }
@@ -215,23 +345,38 @@ PlusStatus vtkPlusFLIRSpinnakerCam::FreezeDevice(bool freeze)
 }
 
 
-PlusStatus SetPixelFormat(INodeMap& nodeMap) {
+PlusStatus vtkPlusFLIRSpinnakerCam::SetPixelFormat(INodeMap& nodeMap) {
   CEnumerationPtr ptrPixelFormat = nodeMap.GetNode("PixelFormat");
+  CEnumerationPtr ptrImageCompressionMode = nodeMap.GetNode("ImageCompressionMode");
+  CEnumEntryPtr ptrPixelVideoFormat;
+ 
   if (!IsReadable(ptrPixelFormat) ||
     !IsWritable(ptrPixelFormat))
   {
     LOG_ERROR("Unable to get or set pixel format. Aborting.");
     return PLUS_FAIL;
   }
-  CEnumEntryPtr ptrPixelFormatMono8 = ptrPixelFormat->GetEntryByName("Mono8");
-  if (!IsReadable(ptrPixelFormatMono8))
+
+  std::string videoFormatString;
+
+  switch (this->iVideoFormat) {
+    case Mono8:
+                videoFormatString = "Mono8";
+                break;
+    case Mono16:
+    default:
+                videoFormatString = "Mono16";
+                break;
+  }
+  ptrPixelVideoFormat = ptrPixelFormat->GetEntryByName(videoFormatString.c_str());
+  if (!IsReadable(ptrPixelVideoFormat))
   {
-    LOG_ERROR("Unable to get pixel format to Mono8. Aborting.");
+    LOG_ERROR("Unable to get pixel format to " << videoFormatString << ". Aborting.");
     return PLUS_FAIL;
   }
 
-  ptrPixelFormat->SetIntValue(ptrPixelFormatMono8->GetValue());
-  LOG_DEBUG("Pixel format set to " << ptrPixelFormatMono8->GetSymbolic() << ".");
+  ptrPixelFormat->SetIntValue(ptrPixelVideoFormat->GetValue());
+  LOG_DEBUG("Pixel format set to " << ptrPixelVideoFormat->GetSymbolic() << ".");
 
   return PLUS_SUCCESS;
 }
@@ -245,7 +390,9 @@ PlusStatus vtkPlusFLIRSpinnakerCam::InternalConnect()
   const LibraryVersion spinnakerLibraryVersion = psystem->GetLibraryVersion();
   LOG_DEBUG("Spinnaker library version: " << spinnakerLibraryVersion.major << "." << spinnakerLibraryVersion.minor
     << "." << spinnakerLibraryVersion.type << "." << spinnakerLibraryVersion.build);
-  CameraList camList = psystem->GetCameras();
+  // CameraList camList = psystem->GetCameras();
+  camList = psystem->GetCameras();
+
   const unsigned int numCameras = camList.GetSize();
   
   if (numCameras == 0)
@@ -261,8 +408,14 @@ PlusStatus vtkPlusFLIRSpinnakerCam::InternalConnect()
   // For this version, takes the first cam in the list.
   pCam = camList.GetByIndex(0);
   INodeMap& nodeMapTLDevice = pCam->GetTLDeviceNodeMap();
+  // Mostrar capacidades de la cámara
+  PrintDeviceInfo(nodeMapTLDevice);
+
   pCam->Init();
+
   INodeMap& nodeMap = pCam->GetNodeMap();
+
+  ConfigureGVCPHeartbeat(pCam, false);
 
   // Set pixel format
   if (SetPixelFormat(nodeMap) == PLUS_FAIL) {
@@ -273,15 +426,24 @@ PlusStatus vtkPlusFLIRSpinnakerCam::InternalConnect()
 
   LOG_DEBUG("Number of FLIR cameras detected: " << numCameras);
 
+/********************************/
+  try {
+    CCommandPtr ptrAutoFocus = nodeMap.GetNode("AutoFocus");
+    if (!IsAvailable(ptrAutoFocus)) {
+      LOG_DEBUG("AutoFocus not available.");
+    } else if (!IsWritable(ptrAutoFocus)) {
+      LOG_DEBUG("AutoFocus not writable.");
+    } else {
+        ptrAutoFocus->Execute();
+        LOG_DEBUG("Autofocus On.");
+    }
+  }
+  catch (Spinnaker::Exception& e) {
+    LOG_DEBUG("Error: " << e.what());
+  }
+
+/********************************/
   try{
-
-    if (this->dwExposure > 0) {
-      ConfigureExposure(nodeMap, this->dwExposure);
-    }
-    else {
-      ResetExposure(nodeMap);
-    }
-
     CEnumerationPtr ptrAcquisitionMode = nodeMap.GetNode("AcquisitionMode");
     if (!IsReadable(ptrAcquisitionMode) ||
       !IsWritable(ptrAcquisitionMode))
@@ -323,7 +485,7 @@ PlusStatus vtkPlusFLIRSpinnakerCam::InternalConnect()
     psystem->ReleaseInstance();
     return PLUS_FAIL;
   }
-	
+
   return PLUS_SUCCESS;
 }
 
@@ -332,7 +494,9 @@ PlusStatus vtkPlusFLIRSpinnakerCam::InternalDisconnect()
 {
   // Deinitialize camera
   try {
+    pCam->EndAcquisition();
     pCam->DeInit();
+    camList.Clear();
     psystem->ReleaseInstance();
   }
   catch (Spinnaker::Exception& e)
@@ -346,6 +510,10 @@ PlusStatus vtkPlusFLIRSpinnakerCam::InternalDisconnect()
 PlusStatus vtkPlusFLIRSpinnakerCam::InternalUpdate()
 {
   ImagePtr pResultImage = pCam->GetNextImage(1000);
+  int pixelType = VTK_UNSIGNED_CHAR;
+  int numberOfScalarComponents = 1;
+  US_IMAGE_TYPE imageType = US_IMG_BRIGHTNESS;
+  ImagePtr convertedImage;
 
   this->m_currentTime = vtkIGSIOAccurateTimer::GetSystemTime();
 
@@ -357,7 +525,25 @@ PlusStatus vtkPlusFLIRSpinnakerCam::InternalUpdate()
   else {
     const size_t width = pResultImage->GetWidth();
     const size_t height = pResultImage->GetHeight();
-    ImagePtr convertedImage = processor.Convert(pResultImage, PixelFormat_Mono8);
+
+
+    switch (this->iVideoFormat) {
+    case Mono8:
+      convertedImage = processor.Convert(pResultImage, PixelFormat_Mono8);
+      pixelType = VTK_UNSIGNED_CHAR;
+      numberOfScalarComponents = 1;
+      imageType = US_IMG_BRIGHTNESS;
+      break;
+    case Mono16:
+    default:
+      convertedImage = processor.Convert(pResultImage, PixelFormat_Mono16);
+      pixelType = VTK_UNSIGNED_SHORT;
+      numberOfScalarComponents = 1;
+      imageType = US_IMG_BRIGHTNESS;
+      break;
+      //aSource->SetImageType(US_IMG_RGB_COLOR);
+      //aSource->SetNumberOfScalarComponents(3);
+    }
 
     vtkPlusDataSource* aSource(nullptr);
     if (this->GetFirstActiveOutputVideoSource(aSource) == PLUS_FAIL || aSource == nullptr)
@@ -369,15 +555,15 @@ PlusStatus vtkPlusFLIRSpinnakerCam::InternalUpdate()
     if (aSource->GetNumberOfItems() == 0)
     {
       // Init the buffer with the metadata from the first frame
-      aSource->SetImageType(US_IMG_BRIGHTNESS);
-      aSource->SetPixelType(VTK_UNSIGNED_CHAR);
-      aSource->SetNumberOfScalarComponents(1);
+      aSource->SetImageType(imageType);
+      aSource->SetPixelType(pixelType);
+      aSource->SetNumberOfScalarComponents(numberOfScalarComponents);
       aSource->SetInputFrameSize(width, height, 1);
     }
 
     // Add the frame to the stream buffer
     FrameSizeType frameSize = { static_cast<unsigned int>(width), static_cast<unsigned int>(height), 1 };
-    if (aSource->AddItem(convertedImage->GetData(), aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber, this->m_currentTime, this->m_currentTime) == PLUS_FAIL)
+    if (aSource->AddItem(convertedImage->GetData(), aSource->GetInputImageOrientation(), frameSize, pixelType, numberOfScalarComponents, imageType, 0, this->FrameNumber, this->m_currentTime, this->m_currentTime) == PLUS_FAIL)
     {
       return PLUS_FAIL;
     }
