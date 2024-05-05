@@ -54,6 +54,11 @@ SET(${PROJECT_NAME}_HDRS
   ${${PROJECT_NAME}_CMD_HDRS}
   )
 
+IF (PLUS_USE_FLIRSPINNAKER_CAM)
+  LIST(APPEND ${PROJECT_NAME}_SRCS Commands/vtkPlusFLIRCommand.cxx)
+  LIST(APPEND ${PROJECT_NAME}_HDRS Commands/vtkPlusFLIRCommand.h)
+ENDIF()
+
 IF (PLUS_USE_ATRACSYS)
   LIST(APPEND ${PROJECT_NAME}_SRCS Commands/vtkPlusAtracsysCommand.cxx)
   LIST(APPEND ${PROJECT_NAME}_HDRS Commands/vtkPlusAtracsysCommand.h)
