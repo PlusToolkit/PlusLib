@@ -28,6 +28,7 @@ vtkStandardNewMacro(vtkPlusFLIRCommand);
 namespace
 {
   static const std::string FLIR_COMMAND = "FLIRCommand";
+  static const std::string FLIR_AUTO_FOCUS = "AutoFocus";
 }
 
 //----------------------------------------------------------------------------
@@ -107,35 +108,22 @@ void vtkPlusFLIRCommand::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusFLIRCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
+  LOG_DEBUG("vtkPlusFLIRCommand::ReadConfiguration");
+
   this->RequestedParameterChanges.clear();
   if (vtkPlusCommand::ReadConfiguration(aConfig) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
-
-  /***** this->SetDeviceId(aConfig->GetAttribute("UsDeviceId"));
-
-  // Parse nested elements and store requested parameter changes
-  for (int elemIndex = 0; elemIndex < aConfig->GetNumberOfNestedElements(); ++elemIndex)
+  if (vtkPlusCommand::ReadConfiguration(aConfig) != PLUS_SUCCESS)
   {
-    vtkXMLDataElement* currentElem = aConfig->GetNestedElement(elemIndex);
-    if (igsioCommon::IsEqualInsensitive(currentElem->GetName(), "Parameter"))
-    {
-      const char* parameterName = currentElem->GetAttribute("Name");
-      const char* parameterValue = currentElem->GetAttribute("Value");
-      if (!parameterValue)
-      {
-        parameterValue = "None";
-      }
-      if (!parameterName)
-      {
-        LOG_ERROR("Unable to find required Name" << (currentElem->GetName() ? currentElem->GetName() : "(undefined)") << " element in FLIRCommand command");
-        continue;
-      }
-      this->RequestedParameterChanges.push_back(std::make_pair(parameterName, parameterValue));
-    }
+    return PLUS_FAIL;
   }
-****/
+
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(DeviceId, aConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(CommandName, aConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(CommandValue, aConfig);
+  
   return PLUS_SUCCESS;
 }
 
@@ -147,11 +135,9 @@ PlusStatus vtkPlusFLIRCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
   {
     return PLUS_FAIL;
   }
-/******
   XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(DeviceId, aConfig);
   XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(CommandName, aConfig);
   XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(CommandValue, aConfig);
-*****/
 
   return PLUS_SUCCESS;
 }
@@ -161,314 +147,57 @@ PlusStatus vtkPlusFLIRCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
 PlusStatus vtkPlusFLIRCommand::Execute()
 {
   PlusStatus status = PLUS_SUCCESS;
-  /****
-  LOG_DEBUG("vtkPlusSetUsParameterCommand::Execute: " << (!this->Name.empty() ? this->Name : "(undefined)")
-            << ", device: " << (this->DeviceId.empty() ? "(undefined)" : this->DeviceId));
 
-  if (this->Name.empty())
-  {
-    this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", "No command name specified.");
-    return PLUS_FAIL;
-  }
-  else if (!igsioCommon::IsEqualInsensitive(this->Name, FLIR_COMMAND))
-  {
-    this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", "Unknown command name: " + this->Name + ".");
-    return PLUS_FAIL;
-  }
+  LOG_DEBUG("vtkPlusFLIRCommand::Execute: " << (!this->CommandName.empty() ? this->CommandName : "(undefined)")
+    << ", device: " << (this->DeviceId.empty() ? "(undefined)" : this->DeviceId)
+    << ", value: " << (this->CommandValue.empty() ? "(undefined)" : this->CommandValue));
+
   vtkPlusDataCollector* dataCollector = GetDataCollector();
+  if (dataCollector == NULL)
+  {
+    this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", "Invalid data collector.");
+    return PLUS_FAIL;
+  }
+
+  // Get device pointer
+  if (this->DeviceId.empty())
+  {
+    this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", "No DeviceId specified.");
+    return PLUS_FAIL;
+  }
   vtkPlusDevice* aDevice = NULL;
   if (dataCollector->GetDevice(aDevice, this->DeviceId) != PLUS_SUCCESS)
   {
     this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", std::string("Device ")
-                               + (this->DeviceId.empty() ? "(undefined)" : this->DeviceId) + std::string(" is not found."));
+      + (this->DeviceId.empty() ? "(undefined)" : this->DeviceId) + std::string(" is not found."));
     return PLUS_FAIL;
   }
   vtkPlusFLIRSpinnakerCam* device = dynamic_cast<vtkPlusFLIRSpinnakerCam*>(aDevice);
 
-  std::string DeviceId = (aDevice->GetDeviceId().empty() ? "(unknown)" : aDevice->GetDeviceId());
-  std::string resultString = "<CommandReply>";
-  std::string error = "";
-  std::map < std::string, std::pair<IANA_ENCODING_TYPE, std::string> > metaData;
-  PlusStatus status = PLUS_SUCCESS;
-  bool hasFailure = false;
-
-  std::list<std::pair<std::string, std::string>>::iterator paramIt;
-  for (paramIt = this->RequestedParameterChanges.begin(); paramIt != this->RequestedParameterChanges.end(); ++paramIt)
+  // Send text (and receive response)
+  std::string textToSend;
+  std::string response;
+  if (!this->GetCommandValue().empty())
   {
-    std::string parameterName = paramIt->first;
-    std::string value = paramIt->second;
-    resultString += "<Parameter Name=\"" + parameterName + "\"";
-    if (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_SET_WOBBLE_RATE
-        || parameterName == vtkPlusFLIRSpinnakerCam::FLIR_SET_MIS_MODE
-        || parameterName == vtkPlusFLIRSpinnakerCam::FLIR_SET_MIS_PULSE_PERIOD
-        || parameterName == vtkPlusFLIRSpinnakerCam::FLIR_SET_JITTER_COMPENSATION
-        || parameterName == vtkPlusFLIRSpinnakerCam::FLIR_FREEZE_PROBE
-        || parameterName == vtkPlusFLIRSpinnakerCam::FLIR_SET_BIDIRECTIONAL_MODE
-        || parameterName == vtkPlusFLIRSpinnakerCam::FLIR_SET_SWEEP_ANGLE
-        || parameterName == vtkPlusFLIRSpinnakerCam::FLIR_SET_DERIVATIVE_COMPENSATION
-        || parameterName == vtkPlusFLIRSpinnakerCam::FLIR_SET_SAMPLE_FREQUENCY
-        || parameterName == vtkPlusFLIRSpinnakerCam::FLIR_SET_SERVO_GAIN
-        || parameterName == vtkPlusFLIRSpinnakerCam::FLIR_SET_POSITION_SCALE)
-        {
-          bool valid = false;
-          double parameterValue = vtkVariant(value).ToDouble(&valid);
-          if (!valid)
-          {
-            error += "Failed to parse " + parameterName + ". ";
-            resultString += " Success=\"false\"";
-            metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
-            status = PLUS_FAIL;
-            continue;
-          }
-        }
-    else if (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_GET_WOBBLE_RATE
-             || parameterName == vtkPlusFLIRSpinnakerCam::FLIR_GET_JITTER_COMPENSATION
-             || parameterName == vtkPlusFLIRSpinnakerCam::FLIR_IS_PROBE_FROZEN
-             || parameterName == vtkPlusFLIRSpinnakerCam::FLIR_GET_MIS_PULSE_PERIOD
-             || parameterName == vtkPlusFLIRSpinnakerCam::FLIR_GET_MIS_MODE
-             || parameterName == vtkPlusFLIRSpinnakerCam::FLIR_GET_BIDIRECTIONAL_MODE
-             || parameterName == vtkPlusFLIRSpinnakerCam::FLIR_GET_SWEEP_ANGLE
-             || parameterName == vtkPlusFLIRSpinnakerCam::FLIR_GET_DERIVATIVE_COMPENSATION
-             || parameterName == vtkPlusFLIRSpinnakerCam::FLIR_GET_SAMPLE_FREQUENCY
-             || parameterName == vtkPlusFLIRSpinnakerCam::FLIR_GET_SERVO_GAIN
-             || parameterName == vtkPlusFLIRSpinnakerCam::FLIR_GET_POSITION_SCALE)
-        {
-          if (value != "None")
-          {
-            LOG_WARNING("This command does not require a value");
-          }
-        }
-    else
-    {
-      error += "Invalid parameter " + parameterName + ". ";
-      resultString += " Success=\"false\"";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
-      status = PLUS_FAIL;
-      continue;
-    }
-    if (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_SET_WOBBLE_RATE)
-    {
-      int wobbleRate_int = std::stoi(value);
-      status = device->SetWobbleRate((unsigned char)wobbleRate_int);
-      resultString += " Success=\"true\"";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
-    }
-    else if (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_GET_WOBBLE_RATE)
-    {
-      value = std::to_string(device->GetWobbleRate());
-      resultString += " Success=\"true\"";
-      resultString += " Value=\"" + value + "\"";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
-      status = PLUS_SUCCESS;
-    }
-    else if (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_SET_BIDIRECTIONAL_MODE)
-    {
-      bool bidi = std::stoi(value);
-      device->SetBidirectionalMode(bidi);
-      resultString += " Success=\"true\"";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
-    }
-    else if (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_GET_BIDIRECTIONAL_MODE)
-    {
-      value = std::to_string(device->GetBidirectionalMode());
-      resultString += " Success=\"true\"";
-      resultString += " Value=\"" + value + "\"";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
-    }
-    else if (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_FREEZE_PROBE)
-    {
-      bool freezeProbe_bool = std::stoi(value);
-      if (device->FreezeDevice(freezeProbe_bool) == PLUS_SUCCESS)
-      {
-        resultString += " Success=\"true\"";
-        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
-      }
-      else
-      {
-        LOG_ERROR("Failed to freeze probe");
-        resultString += " Success=\"false\"";
-        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
-      }
-    }
-    else if (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_IS_PROBE_FROZEN)
-    {
-      value = device->IsFrozen() ? "1" : "0";
-      resultString += " Success=\"true\"";
-      resultString += " Value=\"" + value + "\"";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
-      status = PLUS_SUCCESS;
-    }
-    else if (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_SET_JITTER_COMPENSATION)
-    {
-      int jitterCompensation_int = std::stoi(value);
-      status = device->SetJitterCompensation((unsigned char)jitterCompensation_int);
-      resultString += " Success=\"true\"";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
-    }
-    else if (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_GET_JITTER_COMPENSATION)
-    {
-      value = std::to_string(device->GetJitterCompensation());
-      resultString += " Success=\"true\"";
-      resultString += " Value=\"" + value + "\"";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
-      status = PLUS_SUCCESS;
-    }
-    else if (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_SET_MIS_MODE)
-    {
-      bool MISMode_bool = std::stoi(value);
-      if (device->SetMISMode(MISMode_bool) == PLUS_SUCCESS)
-      {
-        resultString += " Success=\"true\"";
-        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
-      }
-      else
-      {
-        LOG_ERROR("Failed to set MIS mode");
-        resultString += " Success=\"false\"";
-        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
-      }
-    }
-    else if (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_GET_MIS_MODE)
-    {
-      bool MISMode;
-      if (device->GetMISMode(MISMode) == PLUS_SUCCESS)
-      {
-        value = std::to_string(MISMode);
-        resultString += " Success=\"true\"";
-        resultString += " Value=\"" + value + "\"";
-        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
-      }
-      else
-      {
-        LOG_ERROR("Failed to get MIS mode");
-        resultString += " Success=\"false\"";
-        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
-      }
-    }
-    else if (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_SET_MIS_PULSE_PERIOD)
-    {
-      int misPulse_int = std::stoi(value);
-      if (device->SetMISPulsePeriod((unsigned char)misPulse_int) == PLUS_SUCCESS)
-      {
-        resultString += " Success=\"true\"";
-        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
-      }
-      else
-      {
-        LOG_ERROR("Failed to set MIS pulse period");
-        resultString += " Success=\"false\"";
-        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
-      }
-    }
-    else if (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_GET_MIS_PULSE_PERIOD)
-    {
-      unsigned int PulsePeriod;
-      if (device->GetMISPulsePeriod(PulsePeriod) == PLUS_SUCCESS)
-      {
-        value = std::to_string(PulsePeriod);
-        resultString += " Success=\"true\"";
-        resultString += " Value=\"" + value + "\"";
-        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
-      }
-      else
-      {
-        LOG_ERROR("Failed to get MIS pulse period");
-        resultString += " Success=\"false\"";
-        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
-      }
-    }
-    else if (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_SET_SWEEP_ANGLE)
-    {
-      float sweepAngle = std::stof(value);
-      status = device->SetSweepAngle(sweepAngle);
-      resultString += " Success=\"true\"";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
-    }
-    else if (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_GET_SWEEP_ANGLE)
-    {
-      value = std::to_string(device->GetSweepAngle());
-      resultString += " Success=\"true\"";
-      resultString += " Value=\"" + value + "\"";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
-      status = PLUS_SUCCESS;
-    }
-    else if  (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_SET_DERIVATIVE_COMPENSATION)
-    {
-      int derComp = std::stoi(value);
-      status = device->SetDerivativeCompensation((unsigned char)derComp);
-      resultString += " Success=\"true\"";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
-    }
-    else if (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_GET_DERIVATIVE_COMPENSATION)
-    {
-      value = std::to_string(device->GetDerivativeCompensation());
-      resultString += " Success=\"true\"";
-      resultString += " Value=\"" + value + "\"";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
-      status = PLUS_SUCCESS;
-    }
-    else if  (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_SET_SERVO_GAIN)
-    {
-      int servoGain = std::stoi(value);
-      status = device->SetServoGain((unsigned char)servoGain);
-      resultString += " Success=\"true\"";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
-    }
-    else if (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_GET_SERVO_GAIN)
-    {
-      value = std::to_string(device->GetServoGain());
-      resultString += " Success=\"true\"";
-      resultString += " Value=\"" + value + "\"";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
-      status = PLUS_SUCCESS;
-    }
-    else if  (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_SET_POSITION_SCALE)
-    {
-      int positionScale = std::stoi(value);
-      status = device->SetPositionScale((unsigned char)positionScale);
-      resultString += " Success=\"true\"";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
-    }
-    else if (parameterName == vtkPlusFLIRSpinnakerCam::FLIR_GET_POSITION_SCALE)
-    {
-      value = std::to_string(device->GetPositionScale());
-      resultString += " Success=\"true\"";
-      resultString += " Value=\"" + value + "\"";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
-      status = PLUS_SUCCESS;
-    }
-    else
-    {
-      error += "Failed to set " + parameterName + ". ";
-      resultString += " Success=\"false\"";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
-      status = PLUS_FAIL;
-    }
-    if (status != PLUS_SUCCESS)
-    {
-      hasFailure = true;
-    }
-    resultString += "/>";
-  } // For each parameter
-  resultString += "</CommandReply>";
-  if (hasFailure)
-  {
-    status = PLUS_FAIL;
-    LOG_WARNING("Failed to set some requested parameter(s), result string was: " << resultString);
+    textToSend = GetCommandValue();
   }
 
-  vtkSmartPointer<vtkPlusCommandRTSCommandResponse> commandResponse = vtkSmartPointer<vtkPlusCommandRTSCommandResponse>::New();
-  commandResponse->UseDefaultFormatOff();
-  commandResponse->SetClientId(this->ClientId);
-  commandResponse->SetOriginalId(this->Id);
-  commandResponse->SetDeviceName(this->DeviceName);
-  commandResponse->SetCommandName(this->GetName());
-  commandResponse->SetStatus(status);
-  commandResponse->SetRespondWithCommandMessage(this->RespondWithCommandMessage);
-  commandResponse->SetErrorString(error);
-  commandResponse->SetResultString(resultString);
-  commandResponse->SetParameters(metaData);
-  this->CommandResponseQueue.push_back(commandResponse);
-****/
+  if (igsioCommon::IsEqualInsensitive(this->GetCommandName(), FLIR_AUTO_FOCUS))
+  {
+    // response = device->GetRTS() ? "True" : "False";
+    LOG_DEBUG("vtkPlusFLIRCommand::vtkPlusFLIRDevice::FLIR_AUTO_FOCUS");
+    status = PLUS_SUCCESS;
+  }
+  else
+  {
+    status = PLUS_FAIL;
+  }
+  if (status != PLUS_SUCCESS)
+  {
+    this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", std::string("Failed to execute command '") + GetCommandName() + "'"
+      + " on device " + (this->DeviceId.empty() ? "(undefined)" : this->DeviceId));
+    return PLUS_FAIL;
+  }
+  this->QueueCommandResponse(PLUS_SUCCESS, response);
   return status;
 }
