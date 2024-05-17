@@ -88,7 +88,7 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
   RegisterPlusCommand(vtkSmartPointer<vtkPlusAddRecordingDeviceCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusGenericSerialCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusGetFrameRateCommand>::New());
-#ifdef PLUS_USE_FLISPINNAKER_CAM
+#ifdef PLUS_USE_FLIRSPINNAKER_CAM
   RegisterPlusCommand(vtkSmartPointer<vtkPlusFLIRCommand>::New());
 #endif
 #ifdef PLUS_USE_CAPISTRANO_VIDEO
