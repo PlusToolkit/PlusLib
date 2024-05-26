@@ -182,9 +182,11 @@ PlusStatus vtkPlusFLIRCommand::Execute()
     textToSend = GetCommandValue();
   }
 
+
   if (igsioCommon::IsEqualInsensitive(this->GetCommandName(), FLIR_COMMAND))
   {
     // response = device->GetRTS() ? "True" : "False";
+    device->AutoFocus();
     LOG_DEBUG("vtkPlusFLIRCommand::vtkPlusFLIRDevice::FLIR_COMMAND");
     status = PLUS_SUCCESS;
   }

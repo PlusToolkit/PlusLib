@@ -51,6 +51,33 @@ void vtkPlusFLIRSpinnakerCam::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "FLIRSpinnakerCam: FLIR Systems Spinnaker Camera" << std::endl;
 }
 
+PlusStatus vtkPlusFLIRSpinnakerCam::AutoFocus()
+{
+  INodeMap& nodeMap = pCam->GetNodeMap();
+
+  try {
+    CCommandPtr ptrAutoFocus = nodeMap.GetNode("AutoFocus");
+    if (!IsAvailable(ptrAutoFocus)) {
+      LOG_DEBUG("AutoFocus not available.");
+    }
+    else if (!IsWritable(ptrAutoFocus)) {
+      LOG_DEBUG("AutoFocus not writable.");
+    }
+    else {
+      ptrAutoFocus->Execute();
+      LOG_DEBUG("Autofocus On.");
+    }
+  }
+  catch (Spinnaker::Exception& e) {
+    LOG_DEBUG("Error: " << e.what());
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+
+}
+
+
 int ConfigureGVCPHeartbeat(CameraPtr pCam, bool enable)
 {
   //

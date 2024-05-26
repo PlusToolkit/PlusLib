@@ -38,6 +38,9 @@ public:
   /*! Sets video mode */
   PlusStatus SetPixelFormat(INodeMap& nodeMap);
 
+  /* Autofoco de cámara */
+  PlusStatus AutoFocus();
+
   /*! Manage device frozen state */
   PlusStatus FreezeDevice(bool freeze);
 
