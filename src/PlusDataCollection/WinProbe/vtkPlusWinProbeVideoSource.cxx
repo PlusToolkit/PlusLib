@@ -519,8 +519,18 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   }
   else if(usMode & BFRFALineImage_RFData)
   {
+    int harmonic_multiplier = 1;  // RF data contains more lines when the harmonic flags are turned on because it includes data for each transmit
+    if (m_BHarmonicEnabled & (m_BBubbleContrastEnabled || m_BAmplitudeModulationEnabled))
+    {
+      harmonic_multiplier = 3;
+    }
+    else if (m_BHarmonicEnabled & !m_BBubbleContrastEnabled & !m_BAmplitudeModulationEnabled)
+    {
+      harmonic_multiplier = 2;
+    }
+
     frameSize[0] = brfGeometry->SamplesPerLine * brfGeometry->Decimation;
-    frameSize[1] = brfGeometry->LineCount;
+    frameSize[1] = brfGeometry->LineCount * harmonic_multiplier;
     if(frameSize != m_ExtraSources[0]->GetInputFrameSize())
     {
       LOG_INFO("Rf frame size updated. Adjusting buffer size and spacing.");
