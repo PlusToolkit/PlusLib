@@ -13,6 +13,9 @@ See License.txt for details.
 #include "vtkPlusCommand.h"
 #include "vtkPlusGetImageCommand.h"
 #include "vtkPlusReconstructVolumeCommand.h"
+#ifdef PLUS_USE_FLIRSPINNAKER_CAM
+#include "vtkPlusFLIRCommand.h"
+#endif
 #ifdef PLUS_USE_STEALTHLINK
   #include "vtkPlusStealthLinkCommand.h"
 #endif
@@ -85,6 +88,9 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
   RegisterPlusCommand(vtkSmartPointer<vtkPlusAddRecordingDeviceCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusGenericSerialCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusGetFrameRateCommand>::New());
+#ifdef PLUS_USE_FLIRSPINNAKER_CAM
+  RegisterPlusCommand(vtkSmartPointer<vtkPlusFLIRCommand>::New());
+#endif
 #ifdef PLUS_USE_CAPISTRANO_VIDEO
   RegisterPlusCommand(vtkSmartPointer<vtkPlusCapistranoCommand>::New());
 #endif
