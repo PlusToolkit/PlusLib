@@ -273,11 +273,19 @@ PlusStatus vtkPlusWinProbeCommand::Execute()
         || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_M_WIDTH)
         || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_M_DEPTH)
         || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_DECIMATION)
+        || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_PRF)
         || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_FRAME_RATE_LIMIT)
         || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_HARMONIC_ENABLED)
+        || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_BUBBLE_CONTRAST_ENABLED)
+        || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_AMPLITUDE_MODULATION_ENABLED)
+        || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_LOCKED)
         || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_CURRENT)
         || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_CYCLE_COUNT)
         || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_FNUMBER)
+        || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_APODIZATION_FNUMBER)
+        || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_BUBBLE_DESTRUCTION_ENABLED)
+        || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_BUBBLE_DESTRUCTION_CYCLE_COUNT)
+        || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_TX_FILTER_COEFFICIENT_SET)
         || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_TRANSDUCER_INTERNAL_ID)
         || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_ARFI_ENABLED)
         || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_ARFI_START_SAMPLE)
@@ -335,14 +343,30 @@ PlusStatus vtkPlusWinProbeCommand::Execute()
           res = std::to_string(device->GetSSDecimation());
       else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_FRAME_RATE_LIMIT))
           res = std::to_string(device->GetBFrameRateLimit());
+      else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_PRF))
+          res = std::to_string(device->GetBPRF());
       else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_HARMONIC_ENABLED))
           res = device->GetBHarmonicEnabled() ? "True" : "False";
+      else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_BUBBLE_CONTRAST_ENABLED))
+          res = device->GetBBubbleContrastEnabled() ? "True" : "False";
+      else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_AMPLITUDE_MODULATION_ENABLED))
+          res = device->GetBAmplitudeModulationEnabled() ? "True" : "False";
+      else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_LOCKED))
+          res = device->GetBTransmitLocked() ? "True" : "False";
       else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_CURRENT))
           res = std::to_string(device->GetBTransmitCurrent());
       else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_CYCLE_COUNT))
           res = std::to_string(device->GetBTransmitCycleCount());
       else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_FNUMBER))
           res = std::to_string(device->GetBTransmitFNumber());
+      else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_APODIZATION_FNUMBER))
+          res = std::to_string(device->GetBApodizationFNumber());
+      else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_BUBBLE_DESTRUCTION_ENABLED))
+          res = device->GetBBubbleDestructionEnabled() ? "True" : "False";
+      else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_BUBBLE_DESTRUCTION_CYCLE_COUNT))
+          res = std::to_string(device->GetBBubbleDestructionCycleCount());
+      else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_B_TX_FILTER_COEFFICIENT_SET))
+          res = std::to_string(device->GetBTXFilterCoefficientSet());
       else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_TRANSDUCER_INTERNAL_ID))
           res = std::to_string(device->GetTransducerInternalID());
       else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::GET_ARFI_ENABLED))
@@ -412,9 +436,16 @@ PlusStatus vtkPlusWinProbeCommand::Execute()
              || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_DECIMATION)
              || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_B_FRAME_RATE_LIMIT)
              || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_B_HARMONIC_ENABLED)
+             || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_B_BUBBLE_CONTRAST_ENABLED)
+             || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_B_AMPLITUDE_MODULATION_ENABLED)
+             || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_B_TRANSMIT_LOCKED)
              || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_B_TRANSMIT_CURRENT)
              || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_B_TRANSMIT_CYCLE_COUNT)
              || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_B_TRANSMIT_FNUMBER)
+             || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_B_APODIZATION_FNUMBER)
+             || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_B_BUBBLE_DESTRUCTION_ENABLED)
+             || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_B_BUBBLE_DESTRUCTION_CYCLE_COUNT)
+             || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_B_TX_FILTER_COEFFICIENT_SET)
              || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_ARFI_ENABLED)
              || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_ARFI_START_SAMPLE)
              || igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_ARFI_STOP_SAMPLE)
@@ -547,6 +578,24 @@ PlusStatus vtkPlusWinProbeCommand::Execute()
         device->SetBHarmonicEnabled(set);
         status = PLUS_SUCCESS;
       }
+      else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_B_BUBBLE_CONTRAST_ENABLED))
+      {
+        bool set = igsioCommon::IsEqualInsensitive(value, "true") ? true : false;
+        device->SetBBubbleContrastEnabled(set);
+        status = PLUS_SUCCESS;
+      }
+      else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_B_AMPLITUDE_MODULATION_ENABLED))
+      {
+        bool set = igsioCommon::IsEqualInsensitive(value, "true") ? true : false;
+        device->SetBAmplitudeModulationEnabled(set);
+        status = PLUS_SUCCESS;
+      }
+      else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_B_TRANSMIT_LOCKED))
+      {
+        bool set = igsioCommon::IsEqualInsensitive(value, "true") ? true : false;
+        device->SetBTransmitLocked(set);
+        status = PLUS_SUCCESS;
+      }
       else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_B_TRANSMIT_CURRENT))
       {
         int val = stoi(value);
@@ -563,6 +612,30 @@ PlusStatus vtkPlusWinProbeCommand::Execute()
       {
         double val = stod(value);
         device->SetBTransmitFNumber(val);
+        status = PLUS_SUCCESS;
+      }
+      else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_B_APODIZATION_FNUMBER))
+      {
+        double val = stod(value);
+        device->SetBApodizationFNumber(val);
+        status = PLUS_SUCCESS;
+      }
+      else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_B_BUBBLE_DESTRUCTION_ENABLED))
+      {
+        bool set = igsioCommon::IsEqualInsensitive(value, "true") ? true : false;
+        device->SetBBubbleDestructionEnabled(set);
+        status = PLUS_SUCCESS;
+      }
+      else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_B_BUBBLE_DESTRUCTION_CYCLE_COUNT))
+      {
+        uint8_t val = stod(value);
+        device->SetBBubbleDestructionCycleCount(val);
+        status = PLUS_SUCCESS;
+      }
+      else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_B_TX_FILTER_COEFFICIENT_SET))
+      {
+        int32_t val = stod(value);
+        device->SetBTXFilterCoefficientSet(val);
         status = PLUS_SUCCESS;
       }
       else if (igsioCommon::IsEqualInsensitive(parameterName, vtkPlusWinProbeVideoSource::SET_ARFI_ENABLED))

@@ -60,16 +60,31 @@ const char* vtkPlusWinProbeVideoSource::SET_M_DEPTH                  = "SetMDept
 const char* vtkPlusWinProbeVideoSource::GET_M_DEPTH                  = "GetMDepth";
 const char* vtkPlusWinProbeVideoSource::SET_DECIMATION               = "SetDecimation";
 const char* vtkPlusWinProbeVideoSource::GET_DECIMATION               = "GetDecimation";
+const char* vtkPlusWinProbeVideoSource::GET_B_PRF                    = "GetBPRF";
 const char* vtkPlusWinProbeVideoSource::SET_B_FRAME_RATE_LIMIT       = "SetBFrameRateLimit";
 const char* vtkPlusWinProbeVideoSource::GET_B_FRAME_RATE_LIMIT       = "GetBFrameRateLimit";
 const char* vtkPlusWinProbeVideoSource::SET_B_HARMONIC_ENABLED       = "SetBHarmonicEnabled";
 const char* vtkPlusWinProbeVideoSource::GET_B_HARMONIC_ENABLED       = "GetBHarmonicEnabled";
+const char* vtkPlusWinProbeVideoSource::SET_B_BUBBLE_CONTRAST_ENABLED = "SetBBubbleContrastEnabled";
+const char* vtkPlusWinProbeVideoSource::GET_B_BUBBLE_CONTRAST_ENABLED = "GetBBubbleContrastEnabled";
+const char* vtkPlusWinProbeVideoSource::SET_B_AMPLITUDE_MODULATION_ENABLED = "SetBAmplitudeModulationEnabled";
+const char* vtkPlusWinProbeVideoSource::GET_B_AMPLITUDE_MODULATION_ENABLED = "GetBAmplitudeModulationEnabled";
+const char* vtkPlusWinProbeVideoSource::SET_B_TRANSMIT_LOCKED        = "SetBTransmitLocked";
+const char* vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_LOCKED        = "GetBTransmitLocked";
 const char* vtkPlusWinProbeVideoSource::SET_B_TRANSMIT_CURRENT       = "SetBTransmitCurrent";
 const char* vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_CURRENT       = "GetBTransmitCurrent";
 const char* vtkPlusWinProbeVideoSource::SET_B_TRANSMIT_CYCLE_COUNT   = "SetBTransmitCycleCount";
 const char* vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_CYCLE_COUNT   = "GetBTransmitCycleCount";
 const char* vtkPlusWinProbeVideoSource::SET_B_TRANSMIT_FNUMBER       = "SetBTransmitFNumber";
 const char* vtkPlusWinProbeVideoSource::GET_B_TRANSMIT_FNUMBER       = "GetBTransmitFNumber";
+const char* vtkPlusWinProbeVideoSource::SET_B_APODIZATION_FNUMBER        = "SetBApodizationFNumber";
+const char* vtkPlusWinProbeVideoSource::GET_B_APODIZATION_FNUMBER        = "GetBApodizationFNumber";
+const char* vtkPlusWinProbeVideoSource::SET_B_BUBBLE_DESTRUCTION_ENABLED = "SetBBubbleDestructionEnabled";
+const char* vtkPlusWinProbeVideoSource::GET_B_BUBBLE_DESTRUCTION_ENABLED = "GetBBubbleDestructionEnabled";
+const char* vtkPlusWinProbeVideoSource::SET_B_BUBBLE_DESTRUCTION_CYCLE_COUNT = "SetBBubbleDestructionCycleCount";
+const char* vtkPlusWinProbeVideoSource::GET_B_BUBBLE_DESTRUCTION_CYCLE_COUNT = "GetBBubbleDestructionCycleCount";
+const char* vtkPlusWinProbeVideoSource::SET_B_TX_FILTER_COEFFICIENT_SET = "SetBTXFilterCoefficientSet";
+const char* vtkPlusWinProbeVideoSource::GET_B_TX_FILTER_COEFFICIENT_SET = "GetBTXFilterCoefficientSet";
 const char* vtkPlusWinProbeVideoSource::GET_TRANSDUCER_INTERNAL_ID   = "GetTransducerInternalID";
 const char* vtkPlusWinProbeVideoSource::SET_ARFI_ENABLED             = "SetARFIEnabled";
 const char* vtkPlusWinProbeVideoSource::GET_ARFI_ENABLED             = "GetARFIEnabled";
@@ -504,8 +519,18 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   }
   else if(usMode & BFRFALineImage_RFData)
   {
+    int harmonic_multiplier = 1;  // RF data contains more lines when the harmonic flags are turned on because it includes data for each transmit
+    if (m_BHarmonicEnabled & (m_BBubbleContrastEnabled || m_BAmplitudeModulationEnabled))
+    {
+      harmonic_multiplier = 3;
+    }
+    else if (m_BHarmonicEnabled & !m_BBubbleContrastEnabled & !m_BAmplitudeModulationEnabled)
+    {
+      harmonic_multiplier = 2;
+    }
+
     frameSize[0] = brfGeometry->SamplesPerLine * brfGeometry->Decimation;
-    frameSize[1] = brfGeometry->LineCount;
+    frameSize[1] = brfGeometry->LineCount * harmonic_multiplier;
     if(frameSize != m_ExtraSources[0]->GetInputFrameSize())
     {
       LOG_INFO("Rf frame size updated. Adjusting buffer size and spacing.");
@@ -555,8 +580,9 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   }
   //timestamp counters are in milliseconds since last sequencer restart
   double timestamp = (header->TimeStamp / 1000.0) - first_timestamp;
-  if(timestamp == 0.0) // some change is being applied, so this frame is not valid
+  if(timestamp <= 0.0) // some change is being applied, so this frame is not valid
   {
+    LOG_DEBUG("Timestamp is <= 0 so ignoring this frame.");
     return; // ignore this frame
   }
   timestamp += m_TimestampOffset;
@@ -590,6 +616,10 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
     }
     else // B-mode
     {
+      if (m_UseDeviceFrameReconstruction)
+      {
+        return;
+      }
       this->ReconstructFrame(data, m_PrimaryBuffer, frameSize);
 
       for(unsigned i = 0; i < m_PrimarySources.size(); i++)
@@ -954,9 +984,15 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   m_SSDecimation = ::GetSSDecimation();
   this->SetSpatialCompoundEnabled(m_SpatialCompoundEnabled); // also takes care of angle  and count
   this->SetBHarmonicEnabled(m_BHarmonicEnabled);
+  this->SetBBubbleContrastEnabled(m_BBubbleContrastEnabled);
+  this->SetBAmplitudeModulationEnabled(m_BAmplitudeModulationEnabled);
+  this->SetBTransmitLocked(m_BTransmitLocked);
   this->SetBTransmitCurrent(m_BTransmitCurrent);
   this->SetBTransmitCycleCount(m_BTransmitCycleCount);
   this->SetBTransmitFNumber(m_BTransmitFNumber);
+  this->SetBApodizationFNumber(m_BApodizationFNumber);
+  this->SetBBubbleDestructionEnabled(m_BBubbleDestructionEnabled);
+  this->SetBBubbleDestructionCycleCount(m_BBubbleDestructionCycleCount);
 
   //setup size for DirectX image
   LOG_DEBUG("Setting output size to " << m_PrimaryFrameSize[0] << "x" << m_PrimaryFrameSize[1]);
@@ -1015,6 +1051,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalDisconnect()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
 {
+  this->FrameNumber = 0;
   WPExecute();
   return PLUS_SUCCESS;
 }
@@ -1095,12 +1132,19 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalUpdate()
     temp = (texture[3] & 0xff);
     timestamp += (temp << 24);
 
+    //timestamp counters are in milliseconds since last sequencer restart
     timestamp = (timestamp / 1000) - first_timestamp;
+    if(timestamp <= 0.0) // some change is being applied, so this frame is not valid
+    {
+      m_RenderedTimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime();
+      LOG_DEBUG("Timestamp is <= 0 so ignoring this frame.");
+      this->FrameNumber += 1;
+      WPFreePointer(texture);
+      return PLUS_SUCCESS; // ignore this frame
+    }
 
+    double currentTime = m_RenderedTimestampOffset + timestamp;
     this->FlipTexture(texture, frameSize, rowPitch);
-    WPFreePointer(texture);
-
-    double currentTime = m_TimestampOffset + timestamp;
     for(unsigned i = 0; i < m_PrimarySources.size(); i++)
     {
       if(m_PrimarySources[i]->AddItem(&m_PrimaryBuffer[0],
@@ -1114,8 +1158,9 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalUpdate()
       {
         LOG_WARNING("Error adding item to primary video source " << m_PrimarySources[i]->GetSourceId());
       }
+      this->FrameNumber += 1;
     }
-    this->FrameNumber += 1;
+    WPFreePointer(texture);
     this->Modified();
   }
   return PLUS_SUCCESS;
@@ -1132,7 +1177,6 @@ PlusStatus vtkPlusWinProbeVideoSource::FreezeDevice(bool freeze)
   if(IsRecording())
   {
     this->StopRecording();
-    this->FrameNumber = 0;
   }
   else
   {
@@ -1231,20 +1275,12 @@ PlusStatus vtkPlusWinProbeVideoSource::SetScanDepthMm(float depth)
   m_ScanDepth = depth;
   if(Connected)
   {
-    if(Recording)
-    {
-      WPStopScanning();
-    }
     ::SetSSDepth(depth);
     SetPendingRecreateTables(true);
     //what we requested might be only approximately satisfied
     m_ScanDepth = ::GetSSDepth();
     // Update decimation with scan depth
     m_SSDecimation = ::GetSSDecimation();
-    if(Recording)
-    {
-      WPExecute();
-    }
   }
   return PLUS_SUCCESS;
 }
@@ -1718,6 +1754,64 @@ bool vtkPlusWinProbeVideoSource::GetBHarmonicEnabled()
   return m_BHarmonicEnabled;
 }
 
+void vtkPlusWinProbeVideoSource::SetBBubbleContrastEnabled(bool value)
+{
+  if(Connected)
+  {
+    SetBIsBubbleContrast(value);
+    SetPendingRecreateTables(true);
+  }
+  m_BBubbleContrastEnabled = GetBIsBubbleContrast();
+}
+
+bool vtkPlusWinProbeVideoSource::GetBBubbleContrastEnabled()
+{
+  if(Connected)
+  {
+    m_BBubbleContrastEnabled = GetBIsBubbleContrast();
+  }
+  return m_BBubbleContrastEnabled;
+}
+
+void vtkPlusWinProbeVideoSource::SetBAmplitudeModulationEnabled(bool value)
+{
+  if(Connected)
+  {
+    SetBIsAmplitudeModulation(value);
+    SetPendingRecreateTables(true);
+  }
+  m_BAmplitudeModulationEnabled = GetBIsAmplitudeModulation();
+}
+
+bool vtkPlusWinProbeVideoSource::GetBAmplitudeModulationEnabled()
+{
+  if(Connected)
+  {
+    m_BAmplitudeModulationEnabled = GetBIsAmplitudeModulation();
+  }
+  return m_BAmplitudeModulationEnabled;
+}
+
+void vtkPlusWinProbeVideoSource::SetBTransmitLocked(bool value)
+{
+  if(Connected)
+  {
+    SetBIsTransmitLocked(value);
+    SetPendingRecreateTables(true);
+  }
+  m_BTransmitLocked = GetBIsTransmitLocked();
+}
+
+bool vtkPlusWinProbeVideoSource::GetBTransmitLocked()
+{
+  if(Connected)
+  {
+    m_BTransmitLocked = GetBIsTransmitLocked();
+  }
+  return m_BTransmitLocked;
+}
+
+
 void vtkPlusWinProbeVideoSource::SetBTransmitCurrent(int value)
 {
   if(Connected)
@@ -1773,6 +1867,80 @@ double vtkPlusWinProbeVideoSource::GetBTransmitFNumber()
     m_BTransmitFNumber = GetTxTxFNumber();
   }
   return m_BTransmitFNumber;
+}
+
+void vtkPlusWinProbeVideoSource::SetBApodizationFNumber(double value)
+{
+  if(Connected)
+  {
+    SetApodizationFNumber(value);
+    SetPendingRecreateTables(true);
+  }
+  m_BApodizationFNumber = GetApodizationFNumber();
+}
+
+double vtkPlusWinProbeVideoSource::GetBApodizationFNumber()
+{
+  if(Connected)
+  {
+    m_BApodizationFNumber = GetApodizationFNumber();
+  }
+  return m_BApodizationFNumber;
+}
+
+void vtkPlusWinProbeVideoSource::SetBBubbleDestructionEnabled(bool value)
+{
+  if(Connected)
+  {
+    SetBisBubblePop(value);
+  }
+  m_BBubbleDestructionEnabled = GetBisBubblePop();
+}
+
+bool vtkPlusWinProbeVideoSource::GetBBubbleDestructionEnabled()
+{
+  if(Connected)
+  {
+    m_BBubbleDestructionEnabled = GetBisBubblePop();
+  }
+  return m_BBubbleDestructionEnabled;
+}
+
+void vtkPlusWinProbeVideoSource::SetBBubbleDestructionCycleCount(int16_t value)
+{
+  if(Connected)
+  {
+    SetTxBubblePopCycleCount(value);
+    SetPendingRecreateTables(true);
+  }
+  m_BBubbleDestructionCycleCount = GetTxBubblePopCycleCount();
+}
+
+int16_t vtkPlusWinProbeVideoSource::GetBBubbleDestructionCycleCount()
+{
+  if(Connected)
+  {
+    m_BBubbleDestructionCycleCount = GetTxBubblePopCycleCount();
+  }
+  return m_BBubbleDestructionCycleCount;
+}
+
+void vtkPlusWinProbeVideoSource::SetBTXFilterCoefficientSet(int32_t value)
+{
+  if(Connected)
+  {
+    SetTxFilterCoefficientSet(value);
+  }
+  m_BTXFilterCoefficientSet = GetTxFilterCoefficientSet();
+}
+
+int32_t vtkPlusWinProbeVideoSource::GetBTXFilterCoefficientSet()
+{
+  if(Connected)
+  {
+    m_BTXFilterCoefficientSet = GetTxFilterCoefficientSet();
+  }
+  return m_BTXFilterCoefficientSet;
 }
 
 bool vtkPlusWinProbeVideoSource::GetMModeEnabled()
@@ -2225,6 +2393,15 @@ PlusStatus vtkPlusWinProbeVideoSource::ARFIPush(uint8_t maximumVoltage /* = 50 *
 std::string vtkPlusWinProbeVideoSource::GetTransducerID()
 {
   return this->m_TransducerID;
+}
+
+int vtkPlusWinProbeVideoSource::GetBPRF()
+{
+  if (Connected)
+  {
+    m_BPRF = ::GetBPRF();
+  }
+  return m_BPRF;
 }
 
 void vtkPlusWinProbeVideoSource::SetBFrameRateLimit(int32_t value)

@@ -96,7 +96,7 @@ protected:
   /*!
   Callback function for raw data request
   */
-  static void RawDataRequestFn(int rawDataSize);
+  static void RawDataRequestFn(int rawDataSize, const char* extension);
 
   /*!
   Callback function for raw data read
@@ -702,7 +702,7 @@ PlusStatus vtkPlusClarius::vtkInternal::WritePosesToCsv(const CusProcessedImageI
 
 
 //----------------------------------------------------------------------------
-void vtkPlusClarius::vtkInternal::RawDataRequestFn(int rawDataSize)
+void vtkPlusClarius::vtkInternal::RawDataRequestFn(int rawDataSize, const char* extension)
 {
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
   if (!device)
@@ -1342,7 +1342,7 @@ PlusStatus vtkPlusClarius::RequestRawData(long long int startTimestamp, long lon
 
   this->Internal->IsReceivingRawData = true;
 
-  CusReturnFn returnFunction = (CusReturnFn)(&vtkInternal::RawDataRequestFn);
+  CusRawRequestFn returnFunction = (CusRawRequestFn)(&vtkInternal::RawDataRequestFn);
   cusCastRequestRawData(startTimestamp, endTimestamp, 0, returnFunction);
   return PLUS_SUCCESS;
 }

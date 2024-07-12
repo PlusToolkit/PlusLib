@@ -427,12 +427,6 @@ PlusStatus vtkPlusMmfVideoSource::InternalStopRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusMmfVideoSource::NotifyConfigured()
 {
-  if (this->OutputChannels.size() > 1)
-  {
-    LOG_WARNING("vtkPlusMmfVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
-    return PLUS_FAIL;
-  }
-
   if (this->OutputChannels.size() == 0)
   {
     LOG_ERROR("No output channels defined for microsoft media foundation video source. Cannot proceed.");
@@ -448,21 +442,26 @@ PlusStatus vtkPlusMmfVideoSource::UpdateFrameSize()
 {
   if (this->MmfSourceReader->CaptureSourceReader != NULL)
   {
-    vtkPlusDataSource* videoSource(NULL);
-    this->GetFirstVideoSource(videoSource);
-    FrameSizeType currentFrameSize = videoSource->GetInputFrameSize();
-    if (currentFrameSize[0] != this->ActiveVideoFormat.FrameSize[0] || currentFrameSize[1] != this->ActiveVideoFormat.FrameSize[1] || currentFrameSize[2] != 1)
+    int numberOfVideoSources = this->GetNumberOfVideoSources();
+    for (int i = 0; i < numberOfVideoSources; ++i)
     {
-      currentFrameSize[0] = this->ActiveVideoFormat.FrameSize[0];
-      currentFrameSize[1] = this->ActiveVideoFormat.FrameSize[1];
-      currentFrameSize[2] = this->ActiveVideoFormat.FrameSize[2];
-      videoSource->SetInputFrameSize(currentFrameSize);
-      videoSource->SetPixelType(VTK_UNSIGNED_CHAR);
-      unsigned int numberOfScalarComponents = (videoSource->GetImageType() == US_IMG_RGB_COLOR ? 3 : 1);
-      videoSource->SetNumberOfScalarComponents(numberOfScalarComponents);
-      this->UncompressedVideoFrame.SetImageType(videoSource->GetImageType());
-      this->UncompressedVideoFrame.SetImageOrientation(videoSource->GetInputImageOrientation());
-      this->UncompressedVideoFrame.AllocateFrame(currentFrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents);
+      vtkPlusDataSource* videoSource(NULL);
+      this->GetVideoSourceByIndex(i, videoSource);
+
+      FrameSizeType currentFrameSize = videoSource->GetInputFrameSize();
+      if (currentFrameSize[0] != this->ActiveVideoFormat.FrameSize[0] || currentFrameSize[1] != this->ActiveVideoFormat.FrameSize[1] || currentFrameSize[2] != 1)
+      {
+        currentFrameSize[0] = this->ActiveVideoFormat.FrameSize[0];
+        currentFrameSize[1] = this->ActiveVideoFormat.FrameSize[1];
+        currentFrameSize[2] = this->ActiveVideoFormat.FrameSize[2];
+        videoSource->SetInputFrameSize(currentFrameSize);
+        videoSource->SetPixelType(VTK_UNSIGNED_CHAR);
+        unsigned int numberOfScalarComponents = (videoSource->GetImageType() == US_IMG_RGB_COLOR ? 3 : 1);
+        videoSource->SetNumberOfScalarComponents(numberOfScalarComponents);
+        this->UncompressedVideoFrame.SetImageType(videoSource->GetImageType());
+        this->UncompressedVideoFrame.SetImageOrientation(videoSource->GetInputImageOrientation());
+        this->UncompressedVideoFrame.AllocateFrame(currentFrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents);
+      }
     }
   }
 
@@ -609,88 +608,89 @@ PlusStatus vtkPlusMmfVideoSource::AddFrame(unsigned char* bufferData, DWORD buff
     return PLUS_SUCCESS;
   }
 
-  vtkPlusDataSource* videoSource(NULL);
-  if (this->GetFirstVideoSource(videoSource) != PLUS_SUCCESS)
+  int numberOfVideoSources = this->GetNumberOfVideoSources();
+  PlusStatus status = PLUS_SUCCESS;
+  for (int i = 0; i < numberOfVideoSources; ++i)
   {
-    return PLUS_FAIL;
-  }
-  FrameSizeType frameSize = videoSource->GetInputFrameSize();
-
-  PlusStatus decodingStatus(PLUS_SUCCESS);
-  PixelCodec::PixelEncoding encoding(PixelCodec::PixelEncoding_ERROR);
-  if (igsioCommon::IsEqualInsensitive(this->ActiveVideoFormat.PixelFormatName, L"YUY2"))
-  {
-    if (bufferSize < frameSize[0] * frameSize[1] * 2)
+    vtkPlusDataSource* videoSource(NULL);
+    if (this->GetVideoSourceByIndex(i, videoSource) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Failed to decode pixel data from YUY2 due to buffer size mismatch");
       return PLUS_FAIL;
     }
-    encoding = PixelCodec::PixelEncoding_YUY2;
-  }
-  else if (igsioCommon::IsEqualInsensitive(this->ActiveVideoFormat.PixelFormatName, L"MJPG"))
-  {
-    encoding = PixelCodec::PixelEncoding_MJPG;
-  }
-  else if (igsioCommon::IsEqualInsensitive(this->ActiveVideoFormat.PixelFormatName, L"RGB24"))
-  {
-    if (bufferSize < frameSize[0] * frameSize[1] * 3)
+    this->FrameIndex++;
+
+    FrameSizeType frameSize = videoSource->GetInputFrameSize();
+
+    PlusStatus decodingStatus(PLUS_SUCCESS);
+    PixelCodec::PixelEncoding encoding(PixelCodec::PixelEncoding_ERROR);
+    if (igsioCommon::IsEqualInsensitive(this->ActiveVideoFormat.PixelFormatName, L"YUY2"))
     {
-      LOG_ERROR("Failed to decode pixel data from RGB24 due to buffer size mismatch");
+      if (bufferSize < frameSize[0] * frameSize[1] * 2)
+      {
+        LOG_ERROR("Failed to decode pixel data from YUY2 due to buffer size mismatch");
+        return PLUS_FAIL;
+      }
+      encoding = PixelCodec::PixelEncoding_YUY2;
+    }
+    else if (igsioCommon::IsEqualInsensitive(this->ActiveVideoFormat.PixelFormatName, L"MJPG"))
+    {
+      encoding = PixelCodec::PixelEncoding_MJPG;
+    }
+    else if (igsioCommon::IsEqualInsensitive(this->ActiveVideoFormat.PixelFormatName, L"RGB24"))
+    {
+      if (bufferSize < frameSize[0] * frameSize[1] * 3)
+      {
+        LOG_ERROR("Failed to decode pixel data from RGB24 due to buffer size mismatch");
+        return PLUS_FAIL;
+      }
+      encoding = PixelCodec::PixelEncoding_BGR24;
+    }
+    else
+    {
+      LOG_ERROR_W("Unknown pixel type: " << this->ActiveVideoFormat.PixelFormatName << " (only YUY2, MJPG and RGB24 are supported)");
       return PLUS_FAIL;
     }
-    encoding = PixelCodec::PixelEncoding_BGR24;
-  }
-  else
-  {
-    LOG_ERROR_W("Unknown pixel type: " << this->ActiveVideoFormat.PixelFormatName << " (only YUY2, MJPG and RGB24 are supported)");
-    return PLUS_FAIL;
-  }
 
-  if (videoSource->GetImageType() == US_IMG_RGB_COLOR)
-  {
-    decodingStatus = PixelCodec::ConvertToBGR24(PixelCodec::ComponentOrder_RGB, encoding, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
-  }
-  else
-  {
-    decodingStatus = PixelCodec::ConvertToGray(encoding, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
-  }
-
-  if (decodingStatus != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Error while decoding the grabbed image");
-    return PLUS_FAIL;
-  }
-
-  this->FrameIndex++;
-  vtkPlusDataSource* aSource(NULL);
-  if (this->GetFirstVideoSource(aSource) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Unable to retrieve the video source in the media foundation capture device.");
-    return PLUS_FAIL;
-  }
-
-  const double maximumFrameTimeVariance = 0.2;  // to make sure we don't drop frames because of slight variance in acquisition rate, we allow up to 20% higher frame rate before we start dropping frames
-  double acquisitionRate = this->GetAcquisitionRate();
-  double minimumTimeBetweenBetweenRecordedFramesSec = (1.0 - maximumFrameTimeVariance) / this->GetAcquisitionRate();
-  double lastFrameTimeSec = -1.0;
-  double currentTime = vtkIGSIOAccurateTimer::GetSystemTime();
-
-  StreamBufferItem latestFrame;
-  if (aSource->GetNumberOfItems() > 2 && aSource->GetLatestStreamBufferItem(&latestFrame) == ITEM_OK)
-  {
-    lastFrameTimeSec = latestFrame.GetUnfilteredTimestamp(0.0);
-    double secondsSinceLastFrame = currentTime - lastFrameTimeSec;
-    if (lastFrameTimeSec > 0 && secondsSinceLastFrame < minimumTimeBetweenBetweenRecordedFramesSec)
+    if (videoSource->GetImageType() == US_IMG_RGB_COLOR)
     {
-      // For some webcams, the requested acquistion rate may not be availiable (not supported, or error in configuration).
-      // In this case we can artificially limit frames to the requested acquisition rate by ignoring frames.
-
-      // The required time has not elapsed between frames.
-      // Do not need to record this frame.
-      return PLUS_SUCCESS;
+      decodingStatus = PixelCodec::ConvertToBGR24(PixelCodec::ComponentOrder_RGB, encoding, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
     }
+    else
+    {
+      decodingStatus = PixelCodec::ConvertToGray(encoding, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
+    }
+
+    if (decodingStatus != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Error while decoding the grabbed image");
+      return PLUS_FAIL;
+    }
+
+    const double maximumFrameTimeVariance = 0.2;  // to make sure we don't drop frames because of slight variance in acquisition rate, we allow up to 20% higher frame rate before we start dropping frames
+    double acquisitionRate = this->GetAcquisitionRate();
+    double minimumTimeBetweenBetweenRecordedFramesSec = (1.0 - maximumFrameTimeVariance) / this->GetAcquisitionRate();
+    double lastFrameTimeSec = -1.0;
+    double currentTime = vtkIGSIOAccurateTimer::GetSystemTime();
+
+    StreamBufferItem latestFrame;
+    if (videoSource->GetNumberOfItems() > 2 && videoSource->GetLatestStreamBufferItem(&latestFrame) == ITEM_OK)
+    {
+      lastFrameTimeSec = latestFrame.GetUnfilteredTimestamp(0.0);
+      double secondsSinceLastFrame = currentTime - lastFrameTimeSec;
+      if (lastFrameTimeSec > 0 && secondsSinceLastFrame < minimumTimeBetweenBetweenRecordedFramesSec)
+      {
+        // For some webcams, the requested acquistion rate may not be availiable (not supported, or error in configuration).
+        // In this case we can artificially limit frames to the requested acquisition rate by ignoring frames.
+
+        // The required time has not elapsed between frames.
+        // Do not need to record this frame.
+        return PLUS_SUCCESS;
+      }
+    }
+
+    PlusStatus sourceStatus = videoSource->AddItem(&this->UncompressedVideoFrame, this->FrameIndex, currentTime);
+    status = sourceStatus != PLUS_SUCCESS ? sourceStatus : status;
   }
-  PlusStatus status = aSource->AddItem(&this->UncompressedVideoFrame, this->FrameIndex, currentTime);
 
   this->Modified();
   return status;
