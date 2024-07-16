@@ -68,6 +68,7 @@ static const winrt::guid WIFI_REQUEST_CHAR_UUID
 
 // max duration to wait for probe boot sequence to complete
 static const uint64_t POWER_ON_TIMEOUT_SEC = 30;
+static const uint64_t POWER_ON_POLL_INTERVAL_SEC = 1;
 
 // max duration to block while waiting for a BLE operation to complete
 static const uint64_t BLE_OP_TIMEOUT_SEC = 5;
@@ -964,25 +965,31 @@ bool ClariusBLE::AwaitWifiInfoReady()
   // wait for wifi info to be set
   std::future<void> wifiInfoFuture = _impl->WifiInfoPromise.get_future();
 
-  if (wifiInfoFuture.wait_for(std::chrono::seconds(POWER_ON_TIMEOUT_SEC)) == std::future_status::ready)
+  std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
+  std::chrono::duration<double> duration;
+  do
   {
-    return true;
-  }
+    // TODO: WifiStateChanged callback is not currently being called.
+    // After waiting for the timeout, try once to see if WifiPublishedChar has been updated.
+    this->ReadWifiInfo();
+    if (_impl->WifiInfoSet)
+    {
+      return true;
+    }
 
-  // TODO: WifiStateChanged callback is not currently being called.
-  // After waiting for the timeout, try once to see if WifiPublishedChar has been updated.
-  this->ReadWifiInfo();
+    if (wifiInfoFuture.wait_for(std::chrono::seconds(POWER_ON_POLL_INTERVAL_SEC)) == std::future_status::ready)
+    {
+      return true;
+    }
 
-  if (!_impl->WifiInfoSet)
-  {
-    std::stringstream msg;
-    msg << "Clarius probe took longer than the maximum allowed " << POWER_ON_TIMEOUT_SEC
-      << " to boot up and provide Wifi info, please try again" << std::endl;
-    _impl->LastError = msg.str();
-    return false;
-  }
+    duration = std::chrono::steady_clock::now() - start_time;
+  } while (duration.count() < POWER_ON_TIMEOUT_SEC);
 
-  return true;
+  std::stringstream msg;
+  msg << "Clarius probe took longer than the maximum allowed " << POWER_ON_TIMEOUT_SEC
+    << " to boot up and provide Wifi info, please try again" << std::endl;
+  _impl->LastError = msg.str();
+  return false;
 }
 
 //-----------------------------------------------------------------------------

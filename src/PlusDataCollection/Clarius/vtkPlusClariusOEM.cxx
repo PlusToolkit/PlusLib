@@ -1578,9 +1578,6 @@ PlusStatus vtkPlusClariusOEM::InternalConnect()
     return PLUS_FAIL;
   }
 
-  // Wait for the wifi to be fully established
-  std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_LONG_DELAY_MS * 5));
-
   // OEM library
   if (this->InitializeOEM() != PLUS_SUCCESS)
   {
