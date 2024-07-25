@@ -13,6 +13,10 @@
 // available during call to CONNECT
 static const float MAX_NETWORK_READY_WAIT_TIME_SEC = 25.0;
 
+// max time ClariusWifi will wait for the Clarius network to become
+// connected during call to CONNECT
+static const float MAX_NETWORK_CONNECTED_WAIT_TIME_SEC = 10.0;
+
 //-------------------------------------------------------------------------------------------------
 ClariusWifi::ClariusWifi()
   : Connected(false)
@@ -141,6 +145,78 @@ PlusStatus ClariusWifi::IsClariusNetworkReady(std::string ssid)
 }
 
 //-------------------------------------------------------------------------------------------------
+PlusStatus ClariusWifi::IsClariusNetworkConnected()
+{
+  // check ClariusWifi was initialized
+  if (this->HClient == NULL)
+  {
+    LOG_ERROR("ClariusWifi must be initialized before calling IsClariusNetworkReady");
+    return PLUS_FAIL;
+  }
+
+  PWLAN_INTERFACE_INFO_LIST interfaces = NULL;
+  PWLAN_INTERFACE_INFO if_info = NULL;
+  DWORD res = WlanEnumInterfaces(this->HClient, NULL, &interfaces);
+  if (res != ERROR_SUCCESS)
+  {
+    LOG_ERROR("Failed to enumerate WLAN interfaces");
+    return PLUS_FAIL;
+  }
+
+  WLAN_INTERFACE_STATE state = wlan_interface_state_not_ready;
+  for (int i = 0; i < interfaces->dwNumberOfItems; i++)
+  {
+    if_info = (WLAN_INTERFACE_INFO*)&interfaces->InterfaceInfo[i];
+    if (if_info->InterfaceGuid == this->InterfaceGuid)
+    {
+      // not the interface we are looking for
+      state = if_info->isState;
+      break;
+    }
+  }
+
+  // free interfaces memory
+  if (interfaces != NULL)
+  {
+    WlanFreeMemory(interfaces);
+    interfaces = NULL;
+  }
+
+  switch (state)
+  {
+  case wlan_interface_state_not_ready:
+    LOG_DEBUG("WiFi state: Not ready");
+    break;
+  case wlan_interface_state_connected:
+    LOG_DEBUG("WiFi state: Connected");
+    break;
+  case wlan_interface_state_ad_hoc_network_formed:
+    LOG_DEBUG("WiFi state: Ad hoc network formed");
+    break;
+  case wlan_interface_state_disconnecting:
+    LOG_DEBUG("WiFi state: Disconnecting");
+    break;
+  case wlan_interface_state_disconnected:
+    LOG_DEBUG("WiFi state: Disconnected");
+    break;
+  case wlan_interface_state_associating:
+    LOG_DEBUG("WiFi state: Associating");
+    break;
+  case wlan_interface_state_discovering:
+    LOG_DEBUG("WiFi state: Discovering");
+    break;
+  case wlan_interface_state_authenticating:
+    LOG_DEBUG("WiFi state: Authenticating");
+    break;
+  default:
+    LOG_DEBUG("WiFi state: Unknown state");
+    break;
+  }
+
+  return state == wlan_interface_state_connected ? PLUS_SUCCESS : PLUS_FAIL;
+}
+
+//-------------------------------------------------------------------------------------------------
 PlusStatus ClariusWifi::ConnectToClariusWifi(std::string ssid, std::string password)
 {
   // already connected, return failure
@@ -208,6 +284,28 @@ PlusStatus ClariusWifi::ConnectToClariusWifi(std::string ssid, std::string passw
   {
     LOG_ERROR("Failed to connect to Clarius wifi network: Error code " << res);
     return PLUS_FAIL;
+  }
+
+  start_time = std::chrono::steady_clock::now();
+  PlusStatus network_connected = PLUS_FAIL;
+  while (network_connected != PLUS_SUCCESS)
+  {
+    // check we haven't exceeded the maximum wait time for Clarius network
+    // to be connected
+    std::chrono::steady_clock::time_point t = std::chrono::steady_clock::now();
+    std::chrono::duration<double> dur = t - start_time;
+    if (dur.count() > MAX_NETWORK_CONNECTED_WAIT_TIME_SEC)
+    {
+      LOG_ERROR("Waiting for Clarius wifi network to be ready timed out.");
+      return PLUS_FAIL;
+    }
+
+    // pause for 1000ms, to avoid overhead of checking wifi availability at high
+    // refresh rate
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+    // refresh network_connected state
+    network_connected = this->IsClariusNetworkConnected();
   }
 
   this->Connected = true;

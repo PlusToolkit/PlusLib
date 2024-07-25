@@ -972,17 +972,16 @@ bool ClariusBLE::AwaitWifiInfoReady()
     // TODO: WifiStateChanged callback is not currently being called.
     // After waiting for the timeout, try once to see if WifiPublishedChar has been updated.
     this->ReadWifiInfo();
-    if (_impl->WifiInfoSet)
+    if (_impl->WifiInfoSet || wifiInfoFuture.wait_for(std::chrono::seconds(POWER_ON_POLL_INTERVAL_SEC)) == std::future_status::ready)
     {
-      return true;
-    }
-
-    if (wifiInfoFuture.wait_for(std::chrono::seconds(POWER_ON_POLL_INTERVAL_SEC)) == std::future_status::ready)
-    {
+      duration = std::chrono::steady_clock::now() - start_time;
+      LOG_DEBUG("WiFi info set: " << duration.count() << "s");
       return true;
     }
 
     duration = std::chrono::steady_clock::now() - start_time;
+
+    LOG_DEBUG("Waiting for WiFi info: " << duration.count() << "s");
   } while (duration.count() < POWER_ON_TIMEOUT_SEC);
 
   std::stringstream msg;
@@ -1001,12 +1000,18 @@ PlusStatus ClariusBLE::ReadWifiInfo()
   {
     GattReadResult wifiResult = wifiOp.GetResults();
     DataReader wifiReader = DataReader::FromBuffer(wifiResult.Value());
+    if (wifiReader.UnconsumedBufferLength() == 0)
+    {
+      return PLUS_FAIL;
+    }
+
     winrt::hstring wifiHString = wifiReader.ReadString(wifiReader.UnconsumedBufferLength());
     std::string wifiStr = to_narrow_string(wifiHString);
     _impl->ProcessWifiInfo(wifiStr);
+    return PLUS_SUCCESS;
   }
 
-  return PLUS_SUCCESS;
+  return PLUS_FAIL;
 }
 
 //-----------------------------------------------------------------------------
@@ -1034,7 +1039,6 @@ PlusStatus ClariusBLE::ConfigureWifiAP()
   }
 
   GattWriteResult writeResult = writeOp.GetResults();
-
   if (writeResult.Status() != GattCommunicationStatus::Success)
   {
     std::stringstream msg;
@@ -1084,7 +1088,6 @@ PlusStatus ClariusBLE::ConfigureWifiLAN(std::string ssid, std::string password)
   }
 
   GattWriteResult writeResult = writeOp.GetResults();
-
   if (writeResult.Status() != GattCommunicationStatus::Success)
   {
     std::stringstream msg;
