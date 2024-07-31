@@ -96,27 +96,39 @@ PlusStatus await_async(TAsyncOp op)
 
   busy_wait(op);
 
-  if (wait_future.wait_for(std::chrono::seconds(BLE_OP_TIMEOUT_SEC)) != std::future_status::ready)
+  std::future_status status = wait_future.wait_for(std::chrono::seconds(BLE_OP_TIMEOUT_SEC));
+  switch (status)
   {
-    // process error
-    if (op.Status() == AsyncStatus::Canceled)
-    {
-      LOG_ERROR("Awaiting asynchronous operation which terminated with status AsyncStatus::Canceled");
-    }
-    else if (op.Status() == AsyncStatus::Started)
-    {
-      LOG_ERROR("Awaiting asynchronous operation which timed out with status AsyncStatus::Started");
-    }
-    else if (op.Status() == AsyncStatus::Error)
-    {
-      LOG_ERROR("Error occurred while awaiting asynchronous operation. Error code was: " << op.ErrorCode());
-    }
-    else
-    {
-      LOG_ERROR("Unexpected error occurred causing timeout while awaiting completion of C++/WinRT asynchronous operation");
-    }
+  case std::future_status::ready:
+    break;
+  case std::future_status::timeout:
+    LOG_ERROR("Awaiting asynchronous operation timed out");
+    break;
+  case std::future_status::deferred:
+    LOG_ERROR("Awaiting asynchronous operation deferred");
+    break;
+  default:
+    LOG_ERROR("Unexpected error occurred while awaiting completion of C++/WinRT asynchronous operation");
+    break;
+  }
 
-    return PLUS_FAIL;
+  // process error
+  switch (op.Status())
+  {
+  case AsyncStatus::Completed:
+    break;
+  case AsyncStatus::Canceled:
+    LOG_ERROR("Awaiting asynchronous operation which terminated with status AsyncStatus::Canceled");
+    break;
+  case AsyncStatus::Started:
+    LOG_ERROR("Awaiting asynchronous operation which timed out with status AsyncStatus::Started");
+    break;
+  case AsyncStatus::Error:
+    LOG_ERROR("Error occurred while awaiting asynchronous operation. Error code was: " << op.ErrorCode());
+    break;
+  default:
+    LOG_ERROR("Unexpected error occurred causing timeout while awaiting completion of C++/WinRT asynchronous operation");
+    break;
   }
 
   // async operation was successful
