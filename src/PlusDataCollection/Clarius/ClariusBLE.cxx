@@ -1016,12 +1016,16 @@ PlusStatus ClariusBLE::ReadWifiInfo()
   if (await_async(wifiOp) == PLUS_SUCCESS)
   {
     GattReadResult wifiResult = wifiOp.GetResults();
-    DataReader wifiReader = DataReader::FromBuffer(wifiResult.Value());
-    if (wifiReader.UnconsumedBufferLength() == 0)
+    if (wifiResult.Status() != GattCommunicationStatus::Success)
     {
+      std::stringstream msg;
+      msg << "ClariusBLE::ReadWifiInfo failed with non-successful GATT communication. Status was: "
+        << _impl->GattCommunicationStatusToString(wifiResult.Status());
+      _impl->LastError = msg.str();
       return PLUS_FAIL;
     }
 
+    DataReader wifiReader = DataReader::FromBuffer(wifiResult.Value());
     winrt::hstring wifiHString = wifiReader.ReadString(wifiReader.UnconsumedBufferLength());
     std::string wifiStr = to_narrow_string(wifiHString);
     _impl->ProcessWifiInfo(wifiStr);
