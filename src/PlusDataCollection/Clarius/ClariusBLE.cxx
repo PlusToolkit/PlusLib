@@ -68,9 +68,12 @@ static const winrt::guid WIFI_REQUEST_CHAR_UUID
 
 // max duration to wait for probe boot sequence to complete
 static const uint64_t POWER_ON_TIMEOUT_SEC = 30;
+static const uint64_t POWER_ON_POLL_INTERVAL_SEC = 1;
 
 // max duration to block while waiting for a BLE operation to complete
 static const uint64_t BLE_OP_TIMEOUT_SEC = 5;
+
+static const int MAX_BLE_CONNECTION_ATTEMPTS = 20;
 
 //-----------------------------------------------------------------------------
 // free helper functions
@@ -93,27 +96,39 @@ PlusStatus await_async(TAsyncOp op)
 
   busy_wait(op);
 
-  if (wait_future.wait_for(std::chrono::seconds(BLE_OP_TIMEOUT_SEC)) != std::future_status::ready)
+  std::future_status status = wait_future.wait_for(std::chrono::seconds(BLE_OP_TIMEOUT_SEC));
+  switch (status)
   {
-    // process error
-    if (op.Status() == AsyncStatus::Canceled)
-    {
-      LOG_ERROR("Awaiting asynchronous operation which terminated with status AsyncStatus::Canceled");
-    }
-    else if (op.Status() == AsyncStatus::Started)
-    {
-      LOG_ERROR("Awaiting asynchronous operation which timed out with status AsyncStatus::Started");
-    }
-    else if (op.Status() == AsyncStatus::Error)
-    {
-      LOG_ERROR("Error occurred while awaiting asynchronous operation. Error code was: " << op.ErrorCode());
-    }
-    else
-    {
-      LOG_ERROR("Unexpected error occurred causing timeout while awaiting completion of C++/WinRT asynchronous operation");
-    }
+  case std::future_status::ready:
+    break;
+  case std::future_status::timeout:
+    LOG_ERROR("Awaiting asynchronous operation timed out");
+    break;
+  case std::future_status::deferred:
+    LOG_ERROR("Awaiting asynchronous operation deferred");
+    break;
+  default:
+    LOG_ERROR("Unexpected error occurred while awaiting completion of C++/WinRT asynchronous operation");
+    break;
+  }
 
-    return PLUS_FAIL;
+  // process error
+  switch (op.Status())
+  {
+  case AsyncStatus::Completed:
+    break;
+  case AsyncStatus::Canceled:
+    LOG_ERROR("Awaiting asynchronous operation which terminated with status AsyncStatus::Canceled");
+    break;
+  case AsyncStatus::Started:
+    LOG_ERROR("Awaiting asynchronous operation which timed out with status AsyncStatus::Started");
+    break;
+  case AsyncStatus::Error:
+    LOG_ERROR("Error occurred while awaiting asynchronous operation. Error code was: " << op.ErrorCode());
+    break;
+  default:
+    LOG_ERROR("Unexpected error occurred causing timeout while awaiting completion of C++/WinRT asynchronous operation");
+    break;
   }
 
   // async operation was successful
@@ -250,7 +265,7 @@ private:
   PlusStatus RetrieveService(const guid& serviceUuid, GattDeviceService& service);
 
   // helper to retrieve a GattCharacteristic from a service by UUID
-  bool RetrieveCharacteristic(
+  PlusStatus RetrieveCharacteristic(
     const GattDeviceService& service,
     const guid charUuid,
     GattCharacteristic& characteristic
@@ -413,10 +428,11 @@ PlusStatus ClariusBLEPrivate::InitializeState()
     this->PowerPublishedChar.ReadValueAsync(BluetoothCacheMode::Uncached);
   if (await_async(powerOp) != PLUS_SUCCESS)
   {
+    this->LastError = "Failed to async read power state from BLE device";
     return PLUS_FAIL;
   }
-  GattReadResult powerResult = powerOp.GetResults();
 
+  GattReadResult powerResult = powerOp.GetResults();
   if (powerResult.Status() != GattCommunicationStatus::Success)
   {
     std::stringstream msg;
@@ -442,11 +458,11 @@ PlusStatus ClariusBLEPrivate::InitializeState()
     this->WifiPublishedChar.ReadValueAsync(BluetoothCacheMode::Uncached);
   if (await_async(wifiOp) != PLUS_SUCCESS)
   {
+    this->LastError = "Failed to async read wifi state from BLE device";
     return PLUS_FAIL;
   }
 
   GattReadResult wifiResult = wifiOp.GetResults();
-
   if (wifiResult.Status() != GattCommunicationStatus::Success)
   {
     std::stringstream msg;
@@ -496,6 +512,7 @@ PlusStatus ClariusBLEPrivate::RetrieveService(const guid& serviceUuid, GattDevic
     this->Device.GetGattServicesForUuidAsync(serviceUuid, BluetoothCacheMode::Uncached);
   if (await_async(getServicesOp) != PLUS_SUCCESS)
   {
+    this->LastError = "ClariusBLEPrivate::RetrieveService async operation failed";
     return PLUS_FAIL;
   }
 
@@ -534,7 +551,7 @@ PlusStatus ClariusBLEPrivate::RetrieveService(const guid& serviceUuid, GattDevic
 }
 
 //-----------------------------------------------------------------------------
-bool ClariusBLEPrivate::RetrieveCharacteristic(
+PlusStatus ClariusBLEPrivate::RetrieveCharacteristic(
   const GattDeviceService& service,
   const guid charUuid,
   GattCharacteristic& characteristic)
@@ -543,12 +560,15 @@ bool ClariusBLEPrivate::RetrieveCharacteristic(
     service.GetCharacteristicsForUuidAsync(charUuid, BluetoothCacheMode::Uncached);
   if (await_async(getCharsOp) != PLUS_SUCCESS)
   {
+    std::stringstream msg;
+    msg << "ClariusBLEPrivate::RetrieveCharacteristic async operation failed for UUID";
+    msg << uuid_to_string(charUuid);
+    this->LastError = msg.str();
     return PLUS_FAIL;
   }
 
-  GattCharacteristicsResult charsResult = getCharsOp.GetResults();
-
   // check that GetCharacteristicsForUuidAsync returned a successful status
+  GattCharacteristicsResult charsResult = getCharsOp.GetResults();
   if (charsResult.Status() != GattCommunicationStatus::Success)
   {
     std::stringstream msg;
@@ -556,7 +576,7 @@ bool ClariusBLEPrivate::RetrieveCharacteristic(
       << " with non-successful GATT communication. Status was: "
       << this->GattCommunicationStatusToString(charsResult.Status());
     this->LastError = msg.str();
-    return false;
+    return PLUS_FAIL;
   }
 
   // check that at least one characteristic was found for this uuid
@@ -566,11 +586,11 @@ bool ClariusBLEPrivate::RetrieveCharacteristic(
     msg << "ClariusBLEPrivate::RetrieveCharacteristic failed for UUID " << uuid_to_string(charUuid)
       << ". No characteristics with this UUID were found.";
     this->LastError = msg.str();
-    return false;
+    return PLUS_FAIL;
   }
 
   characteristic = *charsResult.Characteristics().First();
-  return true;
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -578,7 +598,6 @@ void ClariusBLEPrivate::ProcessWifiInfo(std::string info)
 {
   std::unique_lock<std::mutex> wifiInfoLock(this->WifiInfoMutex);
   std::vector<std::string> infoList = this->TokenizeString(info, '\n');
-
   if (infoList.size() == 1)
   {
     // wifi disabled, so only state returned
@@ -763,13 +782,11 @@ PlusStatus ClariusBLE::Connect()
   }
 
   // get BLE device
-  int maxConnectionAttempts = 15;
-
   PlusStatus success = PLUS_FAIL;
 
   int connectionAttemptCount = 0;
   int retryDelayMs = 1000;
-  while (connectionAttemptCount < maxConnectionAttempts && !success)
+  while (connectionAttemptCount < MAX_BLE_CONNECTION_ATTEMPTS && !success)
   {
     if (connectionAttemptCount > 0)
     {
@@ -784,13 +801,13 @@ PlusStatus ClariusBLE::Connect()
     IAsyncOperation<BluetoothLEDevice> deviceOp = BluetoothLEDevice::FromIdAsync(_impl->DeviceInfo.Id());
     if (await_async(deviceOp) != PLUS_SUCCESS)
     {
-      _impl->LastError = "Failed to connect to device.";
+      _impl->LastError = "Failed to connect to device, async operation to get device failed";
       continue;
     }
     _impl->Device = deviceOp.GetResults();
     if (_impl->Device == nullptr)
     {
-      _impl->LastError = "Failed to connect to device.";
+      _impl->LastError = "Failed to connect to device, unable to find device";
       continue;
     }
 
@@ -885,11 +902,11 @@ PlusStatus ClariusBLE::RequestProbeOn()
     _impl->PowerRequestChar.WriteValueWithResultAsync(buf, GattWriteOption::WriteWithResponse);
   if (await_async(writeOp) != PLUS_SUCCESS)
   {
+    _impl->LastError = "RequestProbeOn Failed to async write to PowerRequestChar";
     return PLUS_FAIL;
   }
 
   GattWriteResult writeResult = writeOp.GetResults();
-
   if (writeResult.Status() != GattCommunicationStatus::Success)
   {
     std::stringstream msg;
@@ -921,6 +938,7 @@ PlusStatus ClariusBLE::RequestProbeOff()
       _impl->PowerRequestChar.WriteValueWithResultAsync(buf, GattWriteOption::WriteWithResponse);
     if (await_async(writeOp) != PLUS_SUCCESS)
     {
+      _impl->LastError = "RequestProbeOff Failed to async write to PowerRequestChar";
       return PLUS_FAIL;
     }
 
@@ -964,25 +982,30 @@ bool ClariusBLE::AwaitWifiInfoReady()
   // wait for wifi info to be set
   std::future<void> wifiInfoFuture = _impl->WifiInfoPromise.get_future();
 
-  if (wifiInfoFuture.wait_for(std::chrono::seconds(POWER_ON_TIMEOUT_SEC)) == std::future_status::ready)
+  std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
+  std::chrono::duration<double> duration;
+  do
   {
-    return true;
-  }
+    // TODO: WifiStateChanged callback is not currently being called.
+    // After waiting for the timeout, try once to see if WifiPublishedChar has been updated.
+    this->ReadWifiInfo();
+    if (_impl->WifiInfoSet || wifiInfoFuture.wait_for(std::chrono::seconds(POWER_ON_POLL_INTERVAL_SEC)) == std::future_status::ready)
+    {
+      duration = std::chrono::steady_clock::now() - start_time;
+      LOG_DEBUG("WiFi info set: " << duration.count() << "s");
+      return true;
+    }
 
-  // TODO: WifiStateChanged callback is not currently being called.
-  // After waiting for the timeout, try once to see if WifiPublishedChar has been updated.
-  this->ReadWifiInfo();
+    duration = std::chrono::steady_clock::now() - start_time;
 
-  if (!_impl->WifiInfoSet)
-  {
-    std::stringstream msg;
-    msg << "Clarius probe took longer than the maximum allowed " << POWER_ON_TIMEOUT_SEC
-      << " to boot up and provide Wifi info, please try again" << std::endl;
-    _impl->LastError = msg.str();
-    return false;
-  }
+    LOG_DEBUG("Waiting for WiFi info: " << duration.count() << "s");
+  } while (duration.count() < POWER_ON_TIMEOUT_SEC);
 
-  return true;
+  std::stringstream msg;
+  msg << "Clarius probe took longer than the maximum allowed " << POWER_ON_TIMEOUT_SEC
+    << " to boot up and provide Wifi info, please try again" << std::endl;
+  _impl->LastError = msg.str();
+  return false;
 }
 
 //-----------------------------------------------------------------------------
@@ -993,13 +1016,23 @@ PlusStatus ClariusBLE::ReadWifiInfo()
   if (await_async(wifiOp) == PLUS_SUCCESS)
   {
     GattReadResult wifiResult = wifiOp.GetResults();
+    if (wifiResult.Status() != GattCommunicationStatus::Success)
+    {
+      std::stringstream msg;
+      msg << "ClariusBLE::ReadWifiInfo failed with non-successful GATT communication. Status was: "
+        << _impl->GattCommunicationStatusToString(wifiResult.Status());
+      _impl->LastError = msg.str();
+      return PLUS_FAIL;
+    }
+
     DataReader wifiReader = DataReader::FromBuffer(wifiResult.Value());
     winrt::hstring wifiHString = wifiReader.ReadString(wifiReader.UnconsumedBufferLength());
     std::string wifiStr = to_narrow_string(wifiHString);
     _impl->ProcessWifiInfo(wifiStr);
+    return PLUS_SUCCESS;
   }
 
-  return PLUS_SUCCESS;
+  return PLUS_FAIL;
 }
 
 //-----------------------------------------------------------------------------
@@ -1023,11 +1056,11 @@ PlusStatus ClariusBLE::ConfigureWifiAP()
     _impl->WifiRequestChar.WriteValueWithResultAsync(buf, GattWriteOption::WriteWithResponse);
   if (await_async(writeOp) != PLUS_SUCCESS)
   {
+    _impl->LastError = "ConfigureWifiAP Failed to write to WifiRequestChar";
     return PLUS_FAIL;
   }
 
   GattWriteResult writeResult = writeOp.GetResults();
-
   if (writeResult.Status() != GattCommunicationStatus::Success)
   {
     std::stringstream msg;
@@ -1073,11 +1106,11 @@ PlusStatus ClariusBLE::ConfigureWifiLAN(std::string ssid, std::string password)
     _impl->PowerRequestChar.WriteValueWithResultAsync(buf, GattWriteOption::WriteWithResponse);
   if (await_async(writeOp) != PLUS_SUCCESS)
   {
+    _impl->LastError = "ConfigureWifiLAN failed to write to WifiRequestChar";
     return PLUS_FAIL;
   }
 
   GattWriteResult writeResult = writeOp.GetResults();
-
   if (writeResult.Status() != GattCommunicationStatus::Success)
   {
     std::stringstream msg;

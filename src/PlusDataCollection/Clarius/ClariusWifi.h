@@ -30,6 +30,8 @@ public:
       Sets the InterfaceGuid member if Clarius network found */
   PlusStatus IsClariusNetworkReady(std::string ssid);
 
+  PlusStatus IsClariusNetworkConnected();
+
   /*! Connect to the Clarius probe wifi network */
   PlusStatus ConnectToClariusWifi(std::string ssid, std::string password);
 

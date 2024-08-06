@@ -355,29 +355,34 @@ void vtkPlusClariusOEM::vtkInternal::ListFn(const char* list, int sz)
 //-------------------------------------------------------------------------------------------------
 void vtkPlusClariusOEM::vtkInternal::ConnectFn(CusConnection ret, int port, const char* status)
 {
+  vtkPlusClariusOEM* device = vtkPlusClariusOEM::GetInstance();
+
   switch (ret)
   {
   case ConnectionError:
-    LOG_INFO("Connection status: error");
+    LOG_ERROR("Connection status: error - " << status);
+    device->Disconnect();
     break;
   case ProbeConnected:
-    LOG_INFO("Connection status: probe connected");
+    LOG_INFO("Connection status: probe connected - " << status);
     break;
   case ProbeDisconnected:
-    LOG_INFO("Connection status: probe disconnected");
+    LOG_INFO("Connection status: probe disconnected - " << status);
+    device->Disconnect();
     break;
   case ConnectionFailed:
-    LOG_INFO("Connection status: connection failed");
+    LOG_ERROR("Connection status: connection failed - " << status);
+    device->Disconnect();
     break;
   case SwUpdateRequired:
-    LOG_INFO("Connection status: software update required");
+    LOG_INFO("Connection status: software update required - " << status);
+    device->Disconnect();
     break;
   }
 
   if (ret == CusConnection::ProbeConnected)
   {
     // connection succeeded, set Internal->Connected variable to end busy wait in InternalConnect
-    vtkPlusClariusOEM* device = vtkPlusClariusOEM::GetInstance();
     device->Internal->ConnectionBarrier.set_value();
   }
 }
@@ -462,13 +467,21 @@ void vtkPlusClariusOEM::vtkInternal::ImuDataFn(const CusPosInfo* pos)
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::InternalUpdate()
 {
-  this->UpdateProbeStatus();
+  if (this->UpdateProbeStatus() != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to update probe status");
+  }
   return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::UpdateProbeStatus()
 {
+  if (solumIsConnected() != CLARIUS_STATE_CONNECTED)
+  {
+    return PLUS_SUCCESS;
+  }
+
   if (solumStatusInfo(&this->Internal->CurrentStatus) != 0)
   {
     LOG_ERROR("Failed to retrieve solumStatusInfo");
@@ -490,8 +503,6 @@ void vtkPlusClariusOEM::vtkInternal::ProcessedImageFn(const void* oemImage, cons
   // check if still connected
   if (!device->Connected)
   {
-    LOG_ERROR("ClariusOEM device unexpectedly disconnected from Clarius Device. IpAddress = " << device->Internal->IpAddress
-      << " Port = " << device->Internal->TcpPort);
     return;
   }
 
@@ -1660,6 +1671,10 @@ void vtkPlusClariusOEM::DeInitializeOEM()
   LOG_TRACE("vtkPlusClariusOEM::DeInitializeOEM");
 
   int oemState = solumIsConnected();
+  if (oemState == CLARIUS_STATE_NOT_INITIALIZED)
+  {
+    return;
+  }
 
   if (oemState == CLARIUS_STATE_CONNECTED)
   {
@@ -1667,32 +1682,23 @@ void vtkPlusClariusOEM::DeInitializeOEM()
     {
       LOG_WARNING("Failed to disable Clarius 5v");
     }
+
     std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_LONG_DELAY_MS));
     if (solumRun(CLARIUS_STOP) < 0)
     {
       LOG_WARNING("Failed to stop Clarius imaging");
     }
+
     std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_LONG_DELAY_MS));
     if (solumDisconnect() < 0)
     {
       LOG_WARNING("Failed to disconnect from Clarius OEM library");
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_LONG_DELAY_MS));
-    if (solumDestroy() < 0)
-    {
-      LOG_WARNING("Failed to destroy Clarius OEM library");
-    }
   }
-  else if (oemState == CLARIUS_STATE_NOT_CONNECTED)
+
+  if (solumDestroy() < 0)
   {
-    if (solumDestroy() < 0)
-    {
-      LOG_WARNING("Failed to destroy Clarius OEM library");
-    }
-  }
-  else if (oemState == CLARIUS_STATE_NOT_INITIALIZED)
-  {
-    // nothing to do here
+    LOG_WARNING("Failed to destroy Clarius OEM library");
   }
 }
 
@@ -1794,9 +1800,6 @@ PlusStatus vtkPlusClariusOEM::UpdateFrameSize()
   videoSource->SetPixelType(VTK_UNSIGNED_CHAR);
   unsigned int numberOfScalarComponents = (videoSource->GetImageType() == US_IMG_RGB_COLOR ? 3 : 1);
   videoSource->SetNumberOfScalarComponents(numberOfScalarComponents);
-  //this->UncompressedVideoFrame.SetImageType(videoSource->GetImageType());
-  //this->UncompressedVideoFrame.SetImageOrientation(videoSource->GetInputImageOrientation());
-  //this->UncompressedVideoFrame.AllocateFrame(currentFrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents);
   return PLUS_SUCCESS;
 }
 
@@ -1804,6 +1807,12 @@ PlusStatus vtkPlusClariusOEM::UpdateFrameSize()
 PlusStatus vtkPlusClariusOEM::InternalStopRecording()
 {
   LOG_TRACE("vtkPlusClariusOEM::InternalStopRecording");
+
+  if (solumIsConnected() != CLARIUS_STATE_CONNECTED)
+  {
+    // Not connected, so recording is already stopped.
+    return PLUS_SUCCESS;
+  }
 
   if (solumRun(CLARIUS_STOP) < 0)
   {
@@ -1890,8 +1899,7 @@ PlusStatus vtkPlusClariusOEM::InternalApplyImagingParameterChange()
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::GetDepthMm(double& aDepthMm)
 {
-  int oemState = solumIsConnected();
-  if (oemState != CLARIUS_STATE_CONNECTED)
+  if (solumIsConnected() != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, return cached parameter value
     return this->ImagingParameters->GetDepthMm(aDepthMm);
@@ -1917,8 +1925,7 @@ PlusStatus vtkPlusClariusOEM::GetDepthMm(double& aDepthMm)
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::SetDepthMm(double aDepthMm)
 {
-  int oemState = solumIsConnected();
-  if (oemState != CLARIUS_STATE_CONNECTED)
+  if (solumIsConnected() != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, parameter value will be set upon connection
     this->ImagingParameters->SetDepthMm(aDepthMm);
@@ -1944,8 +1951,7 @@ PlusStatus vtkPlusClariusOEM::SetDepthMm(double aDepthMm)
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::GetGainPercent(double& aGainPercent)
 {
-  int oemState = solumIsConnected();
-  if (oemState != CLARIUS_STATE_CONNECTED)
+  if (solumIsConnected() != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, return cached parameter value
     return this->ImagingParameters->GetGainPercent(aGainPercent);
@@ -1971,8 +1977,7 @@ PlusStatus vtkPlusClariusOEM::GetGainPercent(double& aGainPercent)
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::SetGainPercent(double aGainPercent)
 {
-  int oemState = solumIsConnected();
-  if (oemState != CLARIUS_STATE_CONNECTED)
+  if (solumIsConnected() != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, parameter value will be set upon connection
     this->ImagingParameters->SetGainPercent(aGainPercent);
@@ -1997,8 +2002,7 @@ PlusStatus vtkPlusClariusOEM::SetGainPercent(double aGainPercent)
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::GetDynRangePercent(double& aDynRangePercent)
 {
-  int oemState = solumIsConnected();
-  if (oemState != CLARIUS_STATE_CONNECTED)
+  if (solumIsConnected() != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, return cached parameter value
     return this->ImagingParameters->GetDynRangeDb(aDynRangePercent);
@@ -2024,8 +2028,7 @@ PlusStatus vtkPlusClariusOEM::GetDynRangePercent(double& aDynRangePercent)
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::SetDynRangePercent(double aDynRangePercent)
 {
-  int oemState = solumIsConnected();
-  if (oemState != CLARIUS_STATE_CONNECTED)
+  if (solumIsConnected() != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, parameter value will be set upon connection
     this->ImagingParameters->SetDynRangeDb(aDynRangePercent);
@@ -2050,8 +2053,7 @@ PlusStatus vtkPlusClariusOEM::SetDynRangePercent(double aDynRangePercent)
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::GetTimeGainCompensationDb(std::vector<double>& aTGC)
 {
-  int oemState = solumIsConnected();
-  if (oemState != CLARIUS_STATE_CONNECTED)
+  if (solumIsConnected() != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, return cached parameter value
     return this->ImagingParameters->GetTimeGainCompensation(aTGC);
@@ -2086,8 +2088,7 @@ PlusStatus vtkPlusClariusOEM::SetTimeGainCompensationDb(const std::vector<double
     return PLUS_FAIL;
   }
 
-  int oemState = solumIsConnected();
-  if (oemState != CLARIUS_STATE_CONNECTED)
+  if (solumIsConnected() != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, parameter value will be set upon connection
     this->ImagingParameters->SetTimeGainCompensation(aTGC);
@@ -2145,8 +2146,7 @@ PlusStatus vtkPlusClariusOEM::SetEnableAutoFocus(bool aEnableAutoFocus)
 {
   this->Internal->EnableAutoFocus = aEnableAutoFocus;
 
-  int oemState = solumIsConnected();
-  if (oemState != CLARIUS_STATE_CONNECTED)
+  if (solumIsConnected() != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, parameter value will be set upon connection
     LOG_INFO("Cached US parameter AutoFocus = " << aEnableAutoFocus);
@@ -2167,8 +2167,7 @@ PlusStatus vtkPlusClariusOEM::SetEnableAutoFocus(bool aEnableAutoFocus)
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::GetEnablePenetrationMode(bool& aEnablePenetrationMode)
 {
-  int oemState = solumIsConnected();
-  if (oemState != CLARIUS_STATE_CONNECTED)
+  if (solumIsConnected() != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, return cached parameter value
     aEnablePenetrationMode = this->Internal->EnablePenetrationMode;
@@ -2198,8 +2197,7 @@ PlusStatus vtkPlusClariusOEM::SetEnablePenetrationMode(bool aEnablePenetrationMo
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::GetFocusDepthPercent(double& aFocusDepthPercent)
 {
-  int oemState = solumIsConnected();
-  if (oemState != CLARIUS_STATE_CONNECTED)
+  if (solumIsConnected() != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, return cached parameter value
     return this->ImagingParameters->GetFocusDepthPercent(aFocusDepthPercent);
@@ -2224,8 +2222,7 @@ PlusStatus vtkPlusClariusOEM::GetFocusDepthPercent(double& aFocusDepthPercent)
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::SetFocusDepthPercent(double aFocusDepthPercent)
 {
-  int oemState = solumIsConnected();
-  if (oemState != CLARIUS_STATE_CONNECTED)
+  if (solumIsConnected() != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, parameter value will be set upon connection
     this->ImagingParameters->SetFocusDepthPercent(aFocusDepthPercent);
@@ -2281,8 +2278,7 @@ double vtkPlusClariusOEM::ConvertDepthPercentToCm(double aFocusDepthPercent)
 //-------------------------------------------------------------------------------------------------
 PlusStatus vtkPlusClariusOEM::GetEnableAutoGain(bool& aEnableAutoGain)
 {
-  int oemState = solumIsConnected();
-  if (oemState != CLARIUS_STATE_CONNECTED)
+  if (solumIsConnected() != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, return cached parameter value
     aEnableAutoGain = this->Internal->EnableAutoGain;
@@ -2298,8 +2294,7 @@ PlusStatus vtkPlusClariusOEM::SetEnableAutoGain(bool aEnableAutoGain)
 {
   this->Internal->EnableAutoGain = aEnableAutoGain;
 
-  int oemState = solumIsConnected();
-  if (oemState != CLARIUS_STATE_CONNECTED)
+  if (solumIsConnected() != CLARIUS_STATE_CONNECTED)
   {
     // Connection has not been established yet, parameter value will be set upon connection
     LOG_INFO("Cached US parameter AutoGain = " << aEnableAutoGain);
