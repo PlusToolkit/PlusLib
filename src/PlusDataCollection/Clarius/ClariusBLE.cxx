@@ -340,6 +340,8 @@ void ClariusBLEPrivate::WifiStateChanged(GattCharacteristic sender, GattValueCha
 //-----------------------------------------------------------------------------
 PlusStatus ClariusBLEPrivate::SetupPowerService()
 {
+  LOG_DEBUG("Setting up Clarius power service");
+
   if (this->RetrieveService(POWER_SERVICE_UUID, this->PowerService) != PLUS_SUCCESS)
   {
     // last error already set
@@ -381,6 +383,8 @@ PlusStatus ClariusBLEPrivate::SetupPowerService()
 //-----------------------------------------------------------------------------
 PlusStatus ClariusBLEPrivate::SetupWifiService()
 {
+  LOG_DEBUG("Setting up Clarius wifi service");
+
   if (this->RetrieveService(WIFI_SERVICE_UUID, this->WifiService) != PLUS_SUCCESS)
   {
     // last error already set
@@ -423,6 +427,8 @@ PlusStatus ClariusBLEPrivate::SetupWifiService()
 //-----------------------------------------------------------------------------
 PlusStatus ClariusBLEPrivate::InitializeState()
 {
+  LOG_DEBUG("Initializing Clarius BLE state");
+
   // initialize power state
   IAsyncOperation<GattReadResult> powerOp =
     this->PowerPublishedChar.ReadValueAsync(BluetoothCacheMode::Uncached);
