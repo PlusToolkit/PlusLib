@@ -713,7 +713,15 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       commandMsg->SetMessageHeader(headerMsg);
       commandMsg->AllocateBuffer();
       bool timeout(false);
-      clientSocket->Receive(commandMsg->GetBufferBodyPointer(), commandMsg->GetBufferBodySize(), timeout);
+      void* bodyPointer(commandMsg->GetBufferBodyPointer());
+      igtlUint64 bodySize(commandMsg->GetBufferBodySize());
+
+      igtlUint64 bytesReceived = clientSocket->Receive(bodyPointer, bodySize, timeout);
+      if (bytesReceived == IGTL_EMPTY_DATA_SIZE || bytesReceived != bodySize)
+      {
+        LOG_ERROR("Failed to receive command message from client " << clientId);
+        continue;
+      }
 
       int c = commandMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
       if (c & igtl::MessageHeader::UNPACK_BODY || commandMsg->GetBufferBodySize() == 0)
