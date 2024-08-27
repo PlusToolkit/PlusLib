@@ -141,9 +141,17 @@ namespace
 
   static const bool DEFAULT_FREEZE_ON_POOR_WIFI_SIGNAL = true;
 
-  static const int DEFAULT_STATIONARY_SEC = 0;
+  static const bool DEFAULT_KEEP_AWAKE_CHARGING = true;
+
+  static const bool DEFAULT_POWER_BUTTONS_ENABLED = true;
+
+  static const bool DEFAULT_SOUND_ENABLED = true;
+
+  static const int DEFAULT_STATIONARY_TIMEOUT_SEC = 0;
 
   static const bool DEFAULT_WAKE_ON_SHAKE = false;
+
+  static const bool DEFAULT_FORCE_LOG_SEND = false;
 
   static const bool DEFAULT_PENETRATION_MODE_ENABLED = false;
 
@@ -251,8 +259,12 @@ protected:
   bool EnableAutoGain;
   bool Enable5v;
   bool FreezeOnPoorWifiSignal;
-  int StationarySec;
+  bool KeepAwakeCharging;
+  bool PowerButtonsEnabled;
+  bool SoundEnabled;
+  int StationaryTimeoutSec;
   bool WakeOnShake;
+  bool ForceLogSend;
   bool EnablePenetrationMode;
   int ContactDetectionTimeoutSec;
   int AutoFreezeTimeoutSec;
@@ -316,8 +328,12 @@ vtkPlusClariusOEM::vtkInternal::vtkInternal(vtkPlusClariusOEM* ext)
   , EnableAutoGain(DEFAULT_ENABLE_AUTO_GAIN)
   , Enable5v(DEFAULT_ENABLE_5V_RAIL)
   , FreezeOnPoorWifiSignal(DEFAULT_FREEZE_ON_POOR_WIFI_SIGNAL)
-  , StationarySec(DEFAULT_STATIONARY_SEC)
+  , KeepAwakeCharging(DEFAULT_KEEP_AWAKE_CHARGING)
+  , PowerButtonsEnabled(DEFAULT_POWER_BUTTONS_ENABLED)
+  , SoundEnabled(DEFAULT_SOUND_ENABLED)
+  , StationaryTimeoutSec(DEFAULT_STATIONARY_TIMEOUT_SEC)
   , WakeOnShake(DEFAULT_WAKE_ON_SHAKE)
+  , ForceLogSend(DEFAULT_FORCE_LOG_SEND)
   , EnablePenetrationMode(DEFAULT_PENETRATION_MODE_ENABLED)
   , ContactDetectionTimeoutSec(DEFAULT_CONTACT_DETECTION_TIMEOUT_SEC)
   , AutoFreezeTimeoutSec(DEFAULT_AUTO_FREEZE_TIMEOUT_SEC)
@@ -764,8 +780,12 @@ void vtkPlusClariusOEM::vtkInternal::LogUserSettings()
   ss << "Enable5v: " << (this->Enable5v ? "TRUE" : "FALSE") << std::endl;
   ss << "EnablePenetrationMode: " << (this->EnablePenetrationMode ? "TRUE" : "FALSE") << std::endl;
   ss << "FreezeOnPoorWifiSignal: " << (this->FreezeOnPoorWifiSignal ? "TRUE" : "FALSE") << std::endl;
-  ss << "StationarySec: " << this->StationarySec << std::endl;
+  ss << "KeepAwakeCharging: " << (this->KeepAwakeCharging ? "TRUE" : "FALSE") << std::endl;
+  ss << "PowerButtonsEnabled: " << (this->PowerButtonsEnabled ? "TRUE" : "FALSE") << std::endl;
+  ss << "SoundEnabled: " << (this->SoundEnabled ? "TRUE" : "FALSE") << std::endl;
+  ss << "StationaryTimeoutSec: " << this->StationaryTimeoutSec << std::endl;
   ss << "WakeOnShake: " << (this->WakeOnShake ? "TRUE" : "FALSE") << std::endl;
+  ss << "ForceLogSend: " << (this->ForceLogSend ? "TRUE" : "FALSE") << std::endl;
   ss << "EnablePenetrationMode: " << (this->EnablePenetrationMode ? "TRUE" : "FALSE") << std::endl;
   ss << "ContactDetectionTimeoutSec: " << this->ContactDetectionTimeoutSec << std::endl;
   ss << "AutoFreezeTimeoutSec: " << this->AutoFreezeTimeoutSec << std::endl;
@@ -853,8 +873,12 @@ void vtkPlusClariusOEM::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "EnableAutoGain: " << (this->Internal->EnableAutoGain ? "TRUE" : "FALSE") << std::endl;
   os << indent << "Enable5v: " << (this->Internal->Enable5v ? "TRUE" : "FALSE") << std::endl;
   os << indent << "FreezeOnPoorWifiSignal: " << (this->Internal->FreezeOnPoorWifiSignal ? "TRUE" : "FALSE") << std::endl;
-  os << indent << "StationarySec: " << this->Internal->StationarySec << std::endl;
+  os << indent << "KeepAwakeCharging: " << (this->Internal->KeepAwakeCharging ? "TRUE" : "FALSE") << std::endl;
+  os << indent << "PowerButtonsEnabled: " << (this->Internal->PowerButtonsEnabled ? "TRUE" : "FALSE") << std::endl;
+  os << indent << "SoundEnabled: " << (this->Internal->SoundEnabled ? "TRUE" : "FALSE") << std::endl;
+  os << indent << "StationaryTimeoutSec: " << this->Internal->StationaryTimeoutSec << std::endl;
   os << indent << "WakeOnShake: " << (this->Internal->WakeOnShake ? "TRUE" : "FALSE") << std::endl;
+  os << indent << "ForceLogSend: " << (this->Internal->ForceLogSend ? "TRUE" : "FALSE") << std::endl;
   os << indent << "EnablePenetrationMode: " << (this->Internal->EnablePenetrationMode ? "TRUE" : "FALSE") << std::endl;
   os << indent << "ContactDetectionTimeoutSec: " << this->Internal->ContactDetectionTimeoutSec << std::endl;
   os << indent << "AutoFreezeTimeoutSec: " << this->Internal->AutoFreezeTimeoutSec << std::endl;
@@ -926,13 +950,29 @@ PlusStatus vtkPlusClariusOEM::ReadConfiguration(vtkXMLDataElement* rootConfigEle
   XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(FreezeOnPoorWifiSignal,
     this->Internal->FreezeOnPoorWifiSignal, deviceConfig);
 
+  // keep awake when charging
+  XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(KeepAwakeCharging,
+    this->Internal->KeepAwakeCharging, deviceConfig);
+
+  // power buttons enabled
+  XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(PowerButtonsEnabled,
+    this->Internal->PowerButtonsEnabled, deviceConfig);
+
+  // sound enabled
+  XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(SoundEnabled,
+    this->Internal->SoundEnabled, deviceConfig);
+
   // freeze when probe is stationary for a specified duration
-  XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, StationarySec,
-    this->Internal->StationarySec, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, StationaryTimeoutSec,
+    this->Internal->StationaryTimeoutSec, deviceConfig);
 
   // wake on shake
   XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(WakeOnShake,
     this->Internal->WakeOnShake, deviceConfig);
+
+  // force log send
+  XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(ForceLogSend,
+    this->Internal->ForceLogSend, deviceConfig);
 
   // penetration mode enabled
   XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(EnablePenetrationMode,
@@ -1619,11 +1659,21 @@ PlusStatus vtkPlusClariusOEM::InternalConnect()
   settings.contactDetection = this->Internal->ContactDetectionTimeoutSec;
   settings.autoFreeze = this->Internal->AutoFreezeTimeoutSec;
   settings.keepAwake = this->Internal->KeepAwakeTimeoutMin;
+  // settings.deepSleep
+  settings.stationary = this->Internal->StationaryTimeoutSec;
   settings.wifiOptimization = this->Internal->FreezeOnPoorWifiSignal;
-  settings.stationary = this->Internal->StationarySec;
+  // settings.wifiSearch
+  // settings.htWifi
+  settings.keepAwakeCharging = this->Internal->KeepAwakeCharging;
+  settings.powerOn = this->Internal->PowerButtonsEnabled;
+  settings.sounds = this->Internal->SoundEnabled;
   settings.wakeOnShake = this->Internal->WakeOnShake;
+  // settings.bandwidthOptimization
+  settings.forceLogSend = this->Internal->ForceLogSend;
   settings.up = static_cast<CusButtonSetting>(this->Internal->UpButtonMode);
   settings.down = static_cast<CusButtonSetting>(this->Internal->DownButtonMode);
+  settings.handle = CusButtonSetting::ButtonDisabled;
+  settings.upHold = CusButtonHoldSetting::ButtonHoldDisabled;
   settings.downHold = CusButtonHoldSetting::ButtonHoldShutdown;
   if (solumSetProbeSettings(&settings) != 0)
   {
