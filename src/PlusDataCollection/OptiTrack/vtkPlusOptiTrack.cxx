@@ -263,11 +263,13 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
   LOG_TRACE("vtkPlusOptiTrack::InternalConnect");
   if (!this->Internal->AttachToRunningMotive)
   {
+#if MOTIVE_VERSION_MAJOR >= 2
     if (MotiveTestConnection() != ResultSuccess)
     {
       LOG_ERROR("Failed to start Motive. Another instance is already running.");
       return PLUS_FAIL;
     }
+#endif
 
     // RUN MOTIVE IN BACKGROUND
     // initialize the API
