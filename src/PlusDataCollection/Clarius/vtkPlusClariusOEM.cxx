@@ -685,15 +685,15 @@ void vtkPlusClariusOEM::vtkInternal::ImagingFn(CusImagingState ready, int imagin
   }
   else if (ready == CusImagingState::PoorWifi)
   {
-    LOG_WARNING("Clarius stopped imaging as a result of a poor Wi-Fi connection");
+    LOG_WARNING("Clarius imaging stopped as a result of a poor Wi-Fi connection");
   }
   else if (ready == CusImagingState::NoContact)
   {
-    LOG_INFO("Clarius stopped imaging as a result of no patient contact for specified timeout duration");
+    LOG_INFO("Clarius imaging stopped as a result of no patient contact for specified timeout duration");
   }
   else if (ready == CusImagingState::ChargingChanged)
   {
-    LOG_WARNING("Clarius started / stopped imaging due to a change in charging status");
+    LOG_WARNING("Clarius imaging " << (imaging ? "started" : "stopped") << " due to a change in charging status");
   }
   else if (ready == CusImagingState::LowBandwidth)
   {
@@ -701,7 +701,7 @@ void vtkPlusClariusOEM::vtkInternal::ImagingFn(CusImagingState ready, int imagin
   }
   else if (ready == CusImagingState::MotionSensor)
   {
-    LOG_INFO("Clarius started running or stopped due to change in motion sensor");
+    LOG_INFO("Clarius imaging " << (imaging ? "started" : "stopped") << " due to change in motion sensor");
   }
   else
   {
