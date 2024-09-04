@@ -161,6 +161,8 @@ namespace
 
   static const int DEFAULT_KEEP_AWAKE_TIMEOUT_SEC = 60;
 
+  static const int DEFAULT_DEEP_SLEEP_TIMEOUT_HR = 0;
+
   static const BUTTON_MODE DEFAULT_UP_BUTTON_MODE = BUTTON_MODE::DISABLED;
 
   static const BUTTON_MODE DEFAULT_DOWN_BUTTON_MODE = BUTTON_MODE::FREEZE;
@@ -269,6 +271,7 @@ protected:
   int ContactDetectionTimeoutSec;
   int AutoFreezeTimeoutSec;
   int KeepAwakeTimeoutMin;
+  int DeepSleepTimeoutHr;
   BUTTON_MODE UpButtonMode;
   BUTTON_MODE DownButtonMode;
   int ImagingMode;
@@ -338,6 +341,7 @@ vtkPlusClariusOEM::vtkInternal::vtkInternal(vtkPlusClariusOEM* ext)
   , ContactDetectionTimeoutSec(DEFAULT_CONTACT_DETECTION_TIMEOUT_SEC)
   , AutoFreezeTimeoutSec(DEFAULT_AUTO_FREEZE_TIMEOUT_SEC)
   , KeepAwakeTimeoutMin(DEFAULT_KEEP_AWAKE_TIMEOUT_SEC)
+  , DeepSleepTimeoutHr(DEFAULT_DEEP_SLEEP_TIMEOUT_HR)
   , UpButtonMode(DEFAULT_UP_BUTTON_MODE)
   , DownButtonMode(DEFAULT_DOWN_BUTTON_MODE)
   , ImagingMode(CusMode::BMode)
@@ -989,6 +993,10 @@ PlusStatus vtkPlusClariusOEM::ReadConfiguration(vtkXMLDataElement* rootConfigEle
   // keep awake timeout (seconds)
   XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, KeepAwakeTimeoutMin,
     this->Internal->KeepAwakeTimeoutMin, deviceConfig);
+
+  // deep sleep timeout (hours)
+  XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, DeepSleepTimeoutHr,
+    this->Internal->DeepSleepTimeoutHr, deviceConfig);
 
   // up button mode
   XML_READ_ENUM3_ATTRIBUTE_NONMEMBER_OPTIONAL(UpButtonMode,
@@ -1659,7 +1667,7 @@ PlusStatus vtkPlusClariusOEM::InternalConnect()
   settings.contactDetection = this->Internal->ContactDetectionTimeoutSec;
   settings.autoFreeze = this->Internal->AutoFreezeTimeoutSec;
   settings.keepAwake = this->Internal->KeepAwakeTimeoutMin;
-  // settings.deepSleep
+  settings.deepSleep = this->Internal->DeepSleepTimeoutHr;
   settings.stationary = this->Internal->StationaryTimeoutSec;
   settings.wifiOptimization = this->Internal->FreezeOnPoorWifiSignal;
   // settings.wifiSearch
