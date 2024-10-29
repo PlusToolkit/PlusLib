@@ -27,7 +27,7 @@ See License.txt for details.
 #if MOTIVE_VERSION_MAJOR < 3
 #define ResultType NPRESULT
 #define ResultSuccess NPRESULT_SUCCESS
-#elif MOTIVE_VERSION_MAJOR >= 3 and MOTIVE_VERSION_MINOR >= 1
+#elif MOTIVE_VERSION_MAJOR >= 3 && MOTIVE_VERSION_MINOR >= 1
 #define ResultType MotiveAPI::eResult
 #define ResultSuccess ResultType::kApiResult_Success
 #elif MOTIVE_VERSION_MAJOR >= 3
@@ -35,7 +35,7 @@ See License.txt for details.
 #define ResultSuccess kApiResult_Success
 #endif
 
-#if MOTIVE_VERSION_MAJOR >= 3 and MOTIVE_VERSION_MINOR >= 1
+#if MOTIVE_VERSION_MAJOR >= 3 && MOTIVE_VERSION_MINOR >= 1
 #define MotiveTestConnection MotiveAPI::CanConnectToDevices
 #define MotiveInitialize MotiveAPI::Initialize
 #define MotiveUpdate MotiveAPI::Update
