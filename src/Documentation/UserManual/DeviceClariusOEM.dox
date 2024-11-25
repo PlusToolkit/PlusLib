@@ -33,18 +33,10 @@ This section outlines the general steps required to setup a new PC to use PLUS w
 
 \section SetupDownloadCert Download Clarius certificate
 
-To connect to the Clarius probe we need to provide a certificate to authenticate our application. We can generate
-this certificate by following these steps:
--# Connect to your Clarius probe using an Android or Apple device
--# Open the Clarius app status page
-  - Exit the current scan using the exit icon on the top left of the screen
-  - Tap on the three horizontal lines on the top left of the screen
-  - Tap on “Status”
--# Tap on the “Retrieve Certificate” button
--# This should show your Clarius certificate text, copy this to your device’s clipboard
--# Email yourself the complete certificate text
--# On your PC, copy & paste the certificate text into an empty text file (it is recommended to name this file <probe_serialnum>.cert). The file MUST include the begin/end certificate lines.
--# Save this to the ClariusCert folder in your PLUS config directory (you may need to create this folder)
+To connect to the Clarius probe we need to provide a certificate to authenticate our application.
+Certificates can be obtained by following the steps listed here: https://github.com/clariusdev/solum?tab=readme-ov-file#probe-certificate.
+This will retrieve the certificates for all probes on the account. The certificate must be saved into a file, beginning with "-----BEGIN CERTIFICATE-----" and ending with "-----END CERTIFICATE-----".
+Save the certificate file to the ClariusCert folder in your PLUS config directory (you may need to create this folder).
 
 \section SetupWiFi Connect to Clarius Wi-Fi
 
