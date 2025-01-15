@@ -265,7 +265,7 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
   {
 #if MOTIVE_VERSION_MAJOR >= 2
 #if MOTIVE_VERSION_MAJOR >= 3 && MOTIVE_VERSION_MINOR >= 1
-    if (MotiveTestConnection())
+    if (!MotiveTestConnection())
 #else
     if (MotiveTestConnection() != ResultSuccess)
 #endif
