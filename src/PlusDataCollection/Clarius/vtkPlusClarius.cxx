@@ -1173,17 +1173,17 @@ PlusStatus vtkPlusClarius::InternalConnect()
 
     try
     {
-      if (cusCastInit(0, NULL, this->Internal->PathToSecKey.c_str(),
-        processedImageCallbackPtr,
-        rawDataCallBackPtr,
-        nullptr, // ClariusSpectralImageInfo
-        nullptr, // CusNewImuDataFn
-        freezeCallBackFnPtr,
-        buttonCallBackFnPtr,
-        progressCallBackFnPtr,
-        errorCallBackFnPtr,
-        this->FrameWidth,
-        this->FrameHeight) < 0)
+      CusInitParams initParams;
+      initParams.storeDir = this->Internal->PathToSecKey.c_str();
+      initParams.newProcessedImageFn = processedImageCallbackPtr;
+      initParams.newRawImageFn = rawDataCallBackPtr;
+      initParams.freezeFn = freezeCallBackFnPtr;
+      initParams.buttonFn = buttonCallBackFnPtr;
+      initParams.progressFn = progressCallBackFnPtr;
+      initParams.errorFn = errorCallBackFnPtr;
+      initParams.width = this->FrameWidth;
+      initParams.height = this->FrameHeight;
+      if (cusCastInit(&initParams) < 0)
       {
         return PLUS_FAIL;
       }
