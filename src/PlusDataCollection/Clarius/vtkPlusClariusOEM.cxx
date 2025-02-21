@@ -231,7 +231,7 @@ protected:
 
   static void ProgressFn(int progress);
 
-  static void ErrorFn(const char* msg);
+  static void ErrorFn(CusErrorCode errorCode, const char* msg);
 
   std::string ImagingModeToString(int mode)
   {
@@ -765,9 +765,9 @@ void vtkPlusClariusOEM::vtkInternal::ProgressFn(int progress)
 /*! callback for error messages
  * @param[in] err the error message sent from the listener module
  * */
-void vtkPlusClariusOEM::vtkInternal::ErrorFn(const char* err)
+void vtkPlusClariusOEM::vtkInternal::ErrorFn(CusErrorCode errorCode, const char* err)
 {
-  LOG_ERROR("A Clarius OEM error occurred. Error text was: " << err);
+  LOG_ERROR("A Clarius OEM error occurred " << errorCode << ".Error text was : " << err);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -1362,23 +1362,28 @@ PlusStatus vtkPlusClariusOEM::InitializeOEM()
   try
   {
     FrameSizeType fs = this->Internal->FrameSize;
-    int result = solumInit(
-      argc,
-      argv,
-      certPath,
-      connectFnPtr,
-      certFnPtr,
-      powerDownFnPtr,
-      newProcessedImageFnPtr,
-      newRawImageFnPtr,
-      newSpectralImageFnPtr,
-      newImuDataFnPtr,
-      imagingFnPtr,
-      buttonFnPtr,
-      errorFnPtr,
-      fs[0],
-      fs[1]
-    );
+    CusInitParams initParams;
+    initParams.storeDir = certPath;
+    initParams.connectFn = connectFnPtr;
+    initParams.certFn = certFnPtr;
+    initParams.powerDownFn = powerDownFnPtr;
+    initParams.newRawImageFn = newRawImageFnPtr;
+    initParams.newProcessedImageFn = newProcessedImageFnPtr;
+    initParams.newSpectralImageFn = newSpectralImageFnPtr;
+    initParams.newImuDataFn = newImuDataFnPtr;
+    initParams.imagingFn = imagingFnPtr;
+    initParams.buttonFn = buttonFnPtr;
+    initParams.errorFn = errorFnPtr;
+    initParams.width = fs[0];
+    initParams.height = fs[1];
+
+    CusInitParams::Args initArgs;
+    initArgs.argc = argc;
+    initArgs.argv = argv;
+    initParams.args = initArgs;
+
+    int result = solumInit(&initParams);
+
     std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_LONG_DELAY_MS));
 
     if (result < 0)
@@ -1446,7 +1451,10 @@ PlusStatus vtkPlusClariusOEM::ConfigureProbeApplication()
   std::future<void> connectionBarrierFuture = this->Internal->ConnectionBarrier.get_future();
   try
   {
-    int result = solumConnect(ip, port);
+    CusConnectionParams connParams;
+    connParams.ipAddress = ip;
+    connParams.port = port;
+    int result = solumConnect(&connParams);
     if (result != CusConnection::ProbeConnected)
     {
       LOG_ERROR("Failed to initiate connection to Clarius probe on " << ip << ":" << port <<
