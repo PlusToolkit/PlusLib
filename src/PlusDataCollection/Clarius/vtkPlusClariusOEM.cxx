@@ -1374,6 +1374,8 @@ PlusStatus vtkPlusClariusOEM::InitializeOEM()
     initParams.imagingFn = imagingFnPtr;
     initParams.buttonFn = buttonFnPtr;
     initParams.errorFn = errorFnPtr;
+    initParams.newImuPortFn = nullptr;
+    initParams.newImuDataFn = nullptr;
     initParams.width = fs[0];
     initParams.height = fs[1];
 
