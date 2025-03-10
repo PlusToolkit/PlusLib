@@ -1174,9 +1174,13 @@ PlusStatus vtkPlusClarius::InternalConnect()
     try
     {
       CusInitParams initParams;
+      initParams.args.argc = 0;
+      initParams.args.argv = nullptr;
       initParams.storeDir = this->Internal->PathToSecKey.c_str();
       initParams.newProcessedImageFn = processedImageCallbackPtr;
       initParams.newRawImageFn = rawDataCallBackPtr;
+      initParams.newSpectralImageFn = nullptr;
+      initParams.newImuDataFn = nullptr;
       initParams.freezeFn = freezeCallBackFnPtr;
       initParams.buttonFn = buttonCallBackFnPtr;
       initParams.progressFn = progressCallBackFnPtr;
