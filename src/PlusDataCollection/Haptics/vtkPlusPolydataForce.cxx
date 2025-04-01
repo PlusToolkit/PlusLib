@@ -70,7 +70,11 @@ double vtkPlusPolydataForce::CalculateDistance( double x, double y, double z )
 {
   int pointID;
   double distance;
-  pointID = this->poly->FindPoint( x, y, z );
+  double position[3];
+  position[0] = x;
+  position[1] = y;
+  position[2] = z;
+  pointID = this->poly->FindPoint(position);
   this->poly->GetPoint( pointID, this->lastPos );
 
   double tmp = pow( ( x - lastPos[0] ), 2 ) + pow( ( y - lastPos[1] ), 2 ) + pow( ( z - lastPos[2] ), 2 );
