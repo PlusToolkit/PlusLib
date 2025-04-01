@@ -1,6 +1,6 @@
 PROJECT(PlusLib)
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.3.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10.0)
 
 # Cache C++ standard to allow setting externally
 SET(_minimum_cxx_standard "11")
