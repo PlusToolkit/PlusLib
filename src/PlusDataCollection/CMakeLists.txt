@@ -35,7 +35,6 @@ OPTION(PLUS_USE_ULTRASONIX_VIDEO "Provide support for Ultrasonix ultrasound scan
 OPTION(PLUS_USE_BKPROFOCUS_VIDEO "Provide support for BK ProFocus ultrasound scanners through the OEM (TCP/IP) interface" OFF)
 OPTION(PLUS_USE_BKPROFOCUS_CAMERALINK "Provide support for BK ProFocus ultrasound scanners through CameraLink interface" OFF)
 OPTION(PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
-OPTION(PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
 OPTION(PLUS_USE_EPIPHAN "Provide support for the Epiphan" OFF)
 OPTION(PLUS_USE_CAPISTRANO_VIDEO "Provide support Capistrano Labs USB ultrasound probes" OFF)
 OPTION(PLUS_USE_WINPROBE_VIDEO "Provide support WinProbe ultrasound systems" OFF)
@@ -1497,35 +1496,6 @@ IF(PLUS_USE_IntuitiveDaVinci)
 ENDIF()
 
 # --------------------------------------------------------------------------
-# Video-for-Windows video digitizer support
-IF(PLUS_USE_VFW_VIDEO)
-  SET(Vfw_SRCS
-    VideoForWindows/vtkPlusWin32VideoSource2.cxx
-    )
-  SET(Vfw_HDRS
-    VideoForWindows/vtkPlusWin32VideoSource2.h
-    )
-
-  LIST(APPEND ${PROJECT_NAME}_HDRS
-    ${Vfw_HDRS}
-    )
-
-  LIST(APPEND ${PROJECT_NAME}_SRCS
-    ${Vfw_SRCS}
-    )
-
-  LIST(APPEND ${PROJECT_NAME}_LIBS
-    ws2_32
-    )
-  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/VideoForWindows
-    )
-  LIST(APPEND ${PROJECT_NAME}_LIBS
-    Vfw32.lib
-    )
-ENDIF()
-
-# --------------------------------------------------------------------------
 # Microsoft Media Foundation video digitizer support
 IF(PLUS_USE_MMF_VIDEO)
   SET(Mmf_SRCS
@@ -2786,7 +2756,6 @@ source_group("Capistrano" FILES ${Capistrano_HDRS} ${Capistrano_SRCS})
 source_group("WinProbe" FILES ${WinProbe_HDRS} ${WinProbe_SRCS})
 source_group("Epiphan" FILES ${Epiphan_HDRS} ${Epiphan_SRCS})
 source_group("MicrosoftMediaFoundation" FILES ${Mmf_HDRS} ${Mmf_SRCS})
-source_group("VideoForWindows" FILES ${Vfw_HDRS} ${Vfw_SRCS})
 source_group("daVinci" FILES ${daVinci_HDRS} ${daVinci_SRCS})
 source_group("StealthLink" FILES ${StealthLink_HDRS} ${StealthLink_SRCS})
 source_group("ICCapturing" FILES ${ICCapturing_HDRS} ${ICCapturing_SRCS})
