@@ -310,6 +310,8 @@ protected:
     UNKNOWN
   } ExpectedList;
 
+  std::string SoftwareUpdateFilename;
+
 private:
   vtkPlusClariusOEM* External;
 
@@ -471,7 +473,33 @@ void vtkPlusClariusOEM::vtkInternal::PowerDownFn(CusPowerDown ret, int tm)
 //-------------------------------------------------------------------------------------------------
 void vtkPlusClariusOEM::vtkInternal::SwUpdateFn(CusSwUpdate ret)
 {
-  LOG_ERROR("Clarius SwUpdateFn callback was called, but this feature is not supported by PLUS. Please update using the Clarius iOS/Android App");
+  vtkPlusClariusOEM* device = vtkPlusClariusOEM::GetInstance();
+
+  switch (ret)
+  {
+  case SwUpdateError:
+    LOG_ERROR("Clarius software update failed");
+    break;
+  case SwUpdateSuccess:
+    LOG_INFO("Clarius software update was successful");
+    break;
+  case SwUpdateCurrent:
+    LOG_INFO("Clarius software is current, no update required");
+    break;
+  case SwUpdateBattery:
+    LOG_WARNING("Clarius software update failed due to low battery, please charge the probe and try again");
+    break;
+  case SwUpdateUnsupported:
+    LOG_ERROR("Clarius software update failed because the firmware being sent is not longer supported by the probe");
+    break;
+  case SwUpdateCorrupt:
+    LOG_ERROR("Clarius software update failed because the probe file system may be corrupt, please contact Clarius support for assistance");
+    break;
+  default:
+    LOG_ERROR("Clarius software update callback received an unknown status: " << ret);
+  }
+
+  device->InternalDisconnect();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -758,7 +786,7 @@ void vtkPlusClariusOEM::vtkInternal::ButtonFn(CusButton btn, int clicks)
  * @pram[in] progress the readback process*/
 void vtkPlusClariusOEM::vtkInternal::ProgressFn(int progress)
 {
-  LOG_INFO("Downloading: " << progress << "%");
+  LOG_INFO("Updating: " << progress << "%");
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -767,7 +795,37 @@ void vtkPlusClariusOEM::vtkInternal::ProgressFn(int progress)
  * */
 void vtkPlusClariusOEM::vtkInternal::ErrorFn(CusErrorCode errorCode, const char* err)
 {
-  LOG_ERROR("A Clarius OEM error occurred " << errorCode << ".Error text was : " << err);
+  std::stringstream errorSS;
+  errorSS << "Clarius OEM ";
+  switch (errorCode)
+  {
+  case ErrorGeneric:
+    errorSS << "generic error";
+    break;
+  case ErrorSetup:
+    errorSS << "setup error";
+    break;
+  case ErrorProbe:
+    errorSS << "probe error";
+    break;
+  case ErrorApplication:
+    errorSS << "application load error";
+    break;
+  case ErrorSwUpdate:
+    errorSS << "software update error";
+    break;
+  case ErrorGl:
+    errorSS << "GL error";
+    break;
+  case ErrorRawData:
+    errorSS << "raw data error";
+    break;
+  default:
+    errorSS << "unknown error code" << errorCode;
+    break;
+  }
+  errorSS << ": " << err;
+  LOG_ERROR(errorSS.str());
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -1077,6 +1135,9 @@ PlusStatus vtkPlusClariusOEM::ReadConfiguration(vtkXMLDataElement* rootConfigEle
     }
   }
 
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(
+    SoftwareUpdateFilename, this->Internal->SoftwareUpdateFilename, deviceConfig);
+
   // set vtkInternal pointer to b-mode data source
   this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, this->Internal->BModeSources);
   this->GetVideoSourcesByPortName(vtkPlusClariusOEM::OVERLAY_PORT_NAME, this->Internal->OverlaySources);
@@ -1177,10 +1238,10 @@ PlusStatus vtkPlusClariusOEM::InitializeBLE()
 
     // print list of nearby active probes
     std::stringstream ss;
-    ss << "Clarius probes configured with Windows Bluetooth are:\n";
+    ss << "Clarius probes configured with Windows Bluetooth are:" << std::endl;
     for (const std::string& probe : probes)
     {
-      ss << "\t" << probe << "\n";
+      ss << "\t" << probe << std::endl;
     }
     LOG_ERROR(ss.str());
     return PLUS_FAIL;
@@ -1254,15 +1315,15 @@ PlusStatus vtkPlusClariusOEM::InitializeProbe()
   else
   {
     std::stringstream infoStream;
-    infoStream << "\tAvailable: " << to_string(info.Available) << "\n";
-    infoStream << "\tWifi Mode: " << to_string(info.WifiMode) << "\n";
-    infoStream << "\tSSID: " << info.SSID << "\n";
-    infoStream << "\tPassword: " << info.Password << "\n";
-    infoStream << "\tIPv4: " << info.IPv4 << "\n";
-    infoStream << "\tMac Address: " << info.MacAddress << "\n";
-    infoStream << "\tControl Port: " << info.ControlPort << "\n";
-    infoStream << "\tCast Port: " << info.CastPort << "\n";
-    infoStream << "\tChannel: " << info.Channel << "\n";
+    infoStream << "\tAvailable: " << to_string(info.Available) << std::endl;
+    infoStream << "\tWifi Mode: " << to_string(info.WifiMode) << std::endl;
+    infoStream << "\tSSID: " << info.SSID << std::endl;
+    infoStream << "\tPassword: " << info.Password << std::endl;
+    infoStream << "\tIPv4: " << info.IPv4 << std::endl;
+    infoStream << "\tMac Address: " << info.MacAddress << std::endl;
+    infoStream << "\tControl Port: " << info.ControlPort << std::endl;
+    infoStream << "\tCast Port: " << info.CastPort << std::endl;
+    infoStream << "\tChannel: " << info.Channel << std::endl;
 
     LOG_INFO("Clarius Wifi Info: " << std::endl << infoStream.str());
 
@@ -1333,14 +1394,12 @@ PlusStatus vtkPlusClariusOEM::InitializeOEM()
   CusConnectFn connectFnPtr = static_cast<CusConnectFn>(&vtkPlusClariusOEM::vtkInternal::ConnectFn);
   CusCertFn certFnPtr = static_cast<CusCertFn>(&vtkPlusClariusOEM::vtkInternal::CertFn);
   CusPowerDownFn powerDownFnPtr = static_cast<CusPowerDownFn>(&vtkPlusClariusOEM::vtkInternal::PowerDownFn);
-  CusSwUpdateFn swUpdateFnPtr = static_cast<CusSwUpdateFn>(&vtkPlusClariusOEM::vtkInternal::SwUpdateFn);
   CusNewRawImageFn newRawImageFnPtr = static_cast<CusNewRawImageFn>(&vtkPlusClariusOEM::vtkInternal::RawImageFn);
   CusNewProcessedImageFn newProcessedImageFnPtr = static_cast<CusNewProcessedImageFn>(&vtkPlusClariusOEM::vtkInternal::ProcessedImageFn);
   CusNewSpectralImageFn newSpectralImageFnPtr = static_cast<CusNewSpectralImageFn>(&vtkPlusClariusOEM::vtkInternal::SpectralImageFn);
   CusNewImuDataFn newImuDataFnPtr = static_cast<CusNewImuDataFn>(&vtkPlusClariusOEM::vtkInternal::ImuDataFn);
   CusImagingFn imagingFnPtr = static_cast<CusImagingFn>(&vtkPlusClariusOEM::vtkInternal::ImagingFn);
   CusButtonFn buttonFnPtr = static_cast<CusButtonFn>(&vtkPlusClariusOEM::vtkInternal::ButtonFn);
-  CusProgressFn progressFnPtr = static_cast<CusProgressFn>(&vtkPlusClariusOEM::vtkInternal::ProgressFn);
   CusErrorFn errorFnPtr = static_cast<CusErrorFn>(&vtkPlusClariusOEM::vtkInternal::ErrorFn);
 
   // no b-mode data sources, disable b mode callback
@@ -1725,6 +1784,34 @@ PlusStatus vtkPlusClariusOEM::InternalConnect()
   ss << "Pitch: " << probeInfo.pitch << std::endl;
   ss << "Radius: " << probeInfo.radius << "mm" << std::endl;
   LOG_INFO(std::endl << "Probe info: " << std::endl << ss.str());
+
+  char versionStringV1[128] = {};
+  solumFwVersion(CusPlatform::V1, versionStringV1, 128);
+  LOG_DEBUG("Current Clarius V1 firmware version:\t" << versionStringV1);
+  char versionStringHD[128] = {};
+  solumFwVersion(CusPlatform::HD, versionStringHD, 128);
+  LOG_DEBUG("Current Clarius HD firmware version:\t" << versionStringHD);
+  char versionStringHD3[128] = {};
+  solumFwVersion(CusPlatform::HD3, versionStringHD3, 128);
+  LOG_DEBUG("Current Clarius HD3 firmware version:\t" << versionStringHD3);
+
+  if (this->Internal->SoftwareUpdateFilename != "")
+  {
+    CusSwUpdateFn swUpdateFnPtr = static_cast<CusSwUpdateFn>(&vtkPlusClariusOEM::vtkInternal::SwUpdateFn);
+    CusProgressFn progressFnPtr = static_cast<CusProgressFn>(&vtkPlusClariusOEM::vtkInternal::ProgressFn);
+
+    // Hardware version set to 0, unless there is a reason to force the version (1, 2, or 3)
+    int hwVer = 0;
+    if (solumSoftwareUpdate(this->Internal->SoftwareUpdateFilename.c_str(),
+      swUpdateFnPtr, progressFnPtr, hwVer) != 0)
+    {
+      LOG_ERROR("Failed to update Clarius firmware");
+      std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_LONG_DELAY_MS));
+      this->InternalDisconnect();
+      return PLUS_FAIL;
+    }
+    return PLUS_SUCCESS;
+  }
 
   // enable the 5v rail on the top of the Clarius probe
   int enable5v = this->Internal->Enable5v ? 1 : 0;
