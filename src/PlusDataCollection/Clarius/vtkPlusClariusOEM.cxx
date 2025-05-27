@@ -311,6 +311,7 @@ protected:
   } ExpectedList;
 
   std::string SoftwareUpdateFilename;
+  int SoftwareUpdateHardwareVersion{ 0 };
 
 private:
   vtkPlusClariusOEM* External;
@@ -1137,6 +1138,8 @@ PlusStatus vtkPlusClariusOEM::ReadConfiguration(vtkXMLDataElement* rootConfigEle
 
   XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(
     SoftwareUpdateFilename, this->Internal->SoftwareUpdateFilename, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(
+    int, SoftwareUpdateHardwareVersion, this->Internal->SoftwareUpdateHardwareVersion, deviceConfig);
 
   // set vtkInternal pointer to b-mode data source
   this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, this->Internal->BModeSources);
@@ -1801,9 +1804,8 @@ PlusStatus vtkPlusClariusOEM::InternalConnect()
     CusProgressFn progressFnPtr = static_cast<CusProgressFn>(&vtkPlusClariusOEM::vtkInternal::ProgressFn);
 
     // Hardware version set to 0, unless there is a reason to force the version (1, 2, or 3)
-    int hwVer = 0;
     if (solumSoftwareUpdate(this->Internal->SoftwareUpdateFilename.c_str(),
-      swUpdateFnPtr, progressFnPtr, hwVer) != 0)
+      swUpdateFnPtr, progressFnPtr, this->Internal->SoftwareUpdateHardwareVersion) != 0)
     {
       LOG_ERROR("Failed to update Clarius firmware");
       std::this_thread::sleep_for(std::chrono::milliseconds(CLARIUS_LONG_DELAY_MS));
