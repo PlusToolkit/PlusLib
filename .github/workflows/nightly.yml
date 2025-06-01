@@ -1,0 +1,363 @@
+name: Nightly
+
+on:
+  schedule:
+    - cron: "43 5 * * *" # Run nightly at 5:43 UTC. Picked a time when the load may be lower. https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#schedule
+
+jobs:
+  ########
+  # BUILD AND CACHE VTK
+  update_vtk_x64:
+    uses: ./.github/workflows/build-vtk.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [x64]
+    with:
+      vtk-hash: 6b6b89ee577e6c6a5ee6f5220b9c6a12513c30b4 # v9.4.1
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
+      build-type: ${{ matrix.build_type }}
+
+  update_vtk_Win32:
+    uses: ./.github/workflows/build-vtk.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [Win32]
+    with:
+      vtk-hash: 6b6b89ee577e6c6a5ee6f5220b9c6a12513c30b4 # v9.4.1
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
+      build-type: ${{ matrix.build_type }}
+
+  ########
+  # BUILD AND CACHE ITK
+  update_itk_x64:
+    uses: ./.github/workflows/build-itk.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [x64]
+    with:
+      itk-hash: 898def645183e6a2d3293058ade451ec416c4514 # v5.4.2
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
+      build-type: ${{ matrix.build_type }}
+
+  update_itk_Win32:
+    uses: ./.github/workflows/build-itk.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [Win32]
+    with:
+      itk-hash: 898def645183e6a2d3293058ade451ec416c4514 # v5.4.2
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
+      build-type: ${{ matrix.build_type }}
+
+  build_plus_x64:
+    needs: [update_vtk_x64, update_itk_x64]
+    uses: ./.github/workflows/build-plus.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [x64]
+    secrets:
+      pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
+    with:
+      arch: ${{ matrix.arch }}
+      pluslib-repository: https://github.com/${{ github.repository }}.git
+      pluslib-tag: ${{ github.sha }}
+      vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
+      itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
+      plus-cache-key: plus-latest-x64
+      archive-name: PlusApp-Win64
+      plus-config: >-
+        -DVTK_DIR=${{ needs.update_vtk_x64.outputs.install-path }}
+        -DITK_DIR=${{ needs.update_itk_x64.outputs.install-path }}
+        -DPLUSBUILD_BUILDNAME_POSTFIX=gh-package-x64
+        -DPLUS_USE_3dConnexion_TRACKER:BOOL=ON
+        -DPLUS_USE_Ascension3DGm:BOOL=OFF
+        -DPLUS_USE_BKPROFOCUS_VIDEO:BOOL=OFF
+        -DPLUS_USE_EPIPHAN:BOOL=ON
+        -DPLUS_USE_ICCAPTURING_VIDEO:BOOL=OFF
+        -DPLUS_USE_PHIDGET_SPATIAL_TRACKER:BOOL=ON
+        -DPLUS_USE_NDI:BOOL=ON
+        -DPLUS_USE_VFW_VIDEO:BOOL=ON
+        -DPLUS_USE_OPTITRACK:BOOL=ON
+        -DPLUS_USE_INTELREALSENSE:BOOL=ON
+        -DPLUSBUILD_PREFER_MicronTracker_36:BOOL=OFF
+        -DPLUS_USE_TextRecognizer:BOOL=ON
+        -DPLUS_USE_WITMOTIONTRACKER:BOOL=ON
+        -DPLUS_USE_MKV_IO:BOOL=ON
+        -DPLUS_ENABLE_VIDEOSTREAMING:BOOL=ON
+        -DPLUS_USE_VP9:BOOL=ON
+        -DPLUS_USE_Ascension3DG:BOOL=OFF
+        -DPLUS_USE_BRACHY_TRACKER:BOOL=OFF
+        -DPLUS_USE_NDI_CERTUS:BOOL=OFF
+        -DPLUS_USE_ULTRASONIX_VIDEO:BOOL=OFF
+        -DPLUS_USE_INTERSON_VIDEO:BOOL=OFF
+        -DPLUS_USE_MICRONTRACKER:BOOL=OFF
+        -DPLUS_USE_MMF_VIDEO:BOOL=ON
+        -DPLUS_USE_STEALTHLINK:BOOL=OFF
+        -DPLUS_USE_OPTICAL_MARKER_TRACKER:BOOL=ON
+        -DPLUSBUILD_USE_OpenCV:BOOL=ON
+        -DPLUS_USE_OpenCV_VIDEO:BOOL=ON
+        -DPLUSBUILD_USE_aruco:BOOL=ON
+
+  build_plus_x64_clarius_cast:
+    needs: [update_vtk_x64, update_itk_x64, build_plus_x64] # Build off of the base x64 package
+    uses: ./.github/workflows/build-plus.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [x64]
+    secrets:
+      pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
+    with:
+      arch: ${{ matrix.arch }}
+      pluslib-repository: https://github.com/${{ github.repository }}.git
+      pluslib-tag: ${{ github.sha }}
+      vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
+      itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
+      plus-cache-key: plus-latest-x64
+      archive-name: PlusApp-Clarius-Win64
+      plus-config: >-
+        -DPLUSAPP_PACKAGE_EDITION:STRING="ClariusCast"
+        -DPLUSBUILD_BUILDNAME_POSTFIX=ClariusCast-gh-package-x64
+        -DPLUS_USE_CLARIUS:BOOL=ON
+
+  build_plus_x64_clarius_oem:
+    needs: [update_vtk_x64, update_itk_x64, build_plus_x64] # Build off of the base x64 package
+    uses: ./.github/workflows/build-plus.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [x64]
+    secrets:
+      pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
+    with:
+      arch: ${{ matrix.arch }}
+      pluslib-repository: https://github.com/${{ github.repository }}.git
+      pluslib-tag: ${{ github.sha }}
+      vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
+      itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
+      plus-cache-key: plus-latest-x64
+      archive-name: PlusApp-ClariusOEM-Win64
+      plus-config: >-
+        -DPLUSAPP_PACKAGE_EDITION:STRING="ClariusOEM"
+        -DPLUSBUILD_BUILDNAME_POSTFIX=ClariusOEM-gh-package-x64
+        -DPLUS_USE_CLARIUS_OEM:BOOL=ON
+
+  build_plus_x64_telemed:
+    needs: [update_vtk_x64, update_itk_x64, build_plus_x64] # Build off of the base x64 package
+    uses: ./.github/workflows/build-plus.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [x64]
+    secrets:
+      pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
+    with:
+      arch: ${{ matrix.arch }}
+      pluslib-repository: https://github.com/${{ github.repository }}.git
+      pluslib-tag: ${{ github.sha }}
+      vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
+      itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
+      plus-cache-key: plus-latest-x64
+      archive-name: PlusApp-Telemed-Win64
+      plus-config: >-
+        -DPLUSAPP_PACKAGE_EDITION:STRING="Telemed"
+        -DPLUSBUILD_BUILDNAME_POSTFIX=Telemed-gh-package-x64
+        -DPLUS_USE_TELEMED_VIDEO:BOOL=ON
+
+  build_plus_x64_sprytrack_telemed:
+    needs: [update_vtk_x64, update_itk_x64, build_plus_x64] # Build off of the base x64 package
+    uses: ./.github/workflows/build-plus.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [x64]
+    secrets:
+      pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
+    with:
+      arch: ${{ matrix.arch }}
+      pluslib-repository: https://github.com/${{ github.repository }}.git
+      pluslib-tag: ${{ github.sha }}
+      vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
+      itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
+      plus-cache-key: plus-latest-x64
+      archive-name: PlusApp-spryTrack-Telemed-Win64
+      plus-config: >-
+        -DPLUSAPP_PACKAGE_EDITION:STRING="spryTrack-Telemed"
+        -DPLUSBUILD_BUILDNAME_POSTFIX=spryTrack-Telemed-gh-package-x64
+        -DPLUS_USE_TELEMED_VIDEO:BOOL=ON
+        -DPLUS_USE_ATRACSYS:BOOL=ON
+        -DPLUS_USE_ATRACSYS_DEVICE_TYPE:STRING="stk"
+
+  build_plus_x64_fusiontrack:
+    needs: [update_vtk_x64, update_itk_x64, build_plus_x64] # Build off of the base x64 package
+    uses: ./.github/workflows/build-plus.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [x64]
+    secrets:
+      pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
+    with:
+      arch: ${{ matrix.arch }}
+      pluslib-repository: https://github.com/${{ github.repository }}.git
+      pluslib-tag: ${{ github.sha }}
+      vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
+      itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
+      plus-cache-key: plus-latest-x64
+      archive-name: PlusApp-fusionTrack-Win64
+      plus-config: >-
+        -DPLUSAPP_PACKAGE_EDITION:STRING="fusionTrack"
+        -DPLUSBUILD_BUILDNAME_POSTFIX=fusionTrack-gh-package-x64
+        -DPLUS_USE_ATRACSYS:BOOL=ON
+        -DPLUS_USE_ATRACSYS_DEVICE_TYPE:STRING="ftk"
+
+  build_plus_Win32:
+    needs: [update_vtk_Win32, update_itk_Win32]
+    uses: ./.github/workflows/build-plus.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [Win32]
+    secrets:
+      pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
+    with:
+      arch: ${{ matrix.arch }}
+      pluslib-repository: https://github.com/${{ github.repository }}.git
+      pluslib-tag: ${{ github.sha }}
+      vtk-cache-key: ${{ needs.update_vtk_Win32.outputs.cache-key }}
+      itk-cache-key: ${{ needs.update_itk_Win32.outputs.cache-key }}
+      plus-cache-key: plus-latest-Win32
+      archive-name: PlusApp-Win32
+      plus-config: >-
+        -DVTK_DIR=${{ needs.update_vtk_Win32.outputs.install-path }}
+        -DITK_DIR=${{ needs.update_itk_Win32.outputs.install-path }}
+        -DPLUSAPP_PACKAGE_EDITION:STRING=""
+        -DPLUSBUILD_BUILDNAME_POSTFIX=gh-package-Win32
+        -DPLUSBUILD_DOCUMENTATION:BOOL=OFF
+        -DPLUS_USE_3dConnexion_TRACKER:BOOL=ON
+        -DPLUS_USE_BKPROFOCUS_VIDEO:BOOL=OFF
+        -DPLUS_USE_EPIPHAN:BOOL=ON
+        -DPLUS_USE_ICCAPTURING_VIDEO:BOOL=ON
+        -DPLUS_USE_PHIDGET_SPATIAL_TRACKER:BOOL=ON
+        -DPLUS_USE_NDI:BOOL=ON
+        -DPLUS_USE_VFW_VIDEO:BOOL=ON
+        -DPLUS_USE_OPTITRACK:BOOL=ON
+        -DPLUS_USE_INTELREALSENSE:BOOL=ON
+        -DPLUS_USE_TextRecognizer:BOOL=ON
+        -DPLUS_USE_WITMOTIONTRACKER:BOOL=ON
+        -DPLUS_USE_MKV_IO:BOOL=ON
+        -DPLUS_ENABLE_VIDEOSTREAMING:BOOL=ON
+        -DPLUS_USE_VP9:BOOL=ON
+        -DPLUS_USE_Ascension3DG:BOOL=ON
+        -DPLUS_USE_BRACHY_TRACKER:BOOL=ON
+        -DPLUS_USE_NDI_CERTUS:BOOL=ON
+        -DPLUS_USE_MICRONTRACKER:BOOL=ON
+        -DPLUSBUILD_PREFER_MicronTracker_36:BOOL=OFF
+        -DPLUS_USE_MMF_VIDEO:BOOL=ON
+        -DPLUS_USE_OPTICAL_MARKER_TRACKER:BOOL=ON
+        -DPLUSBUILD_USE_OpenCV:BOOL=ON
+        -DPLUSBUILD_USE_aruco:BOOL=ON
+        -DPLUS_USE_OpenCV_VIDEO:BOOL=ON
+
+  build_plus_Win32_thorlabs:
+    needs: [update_vtk_Win32, update_itk_Win32, build_plus_Win32]
+    uses: ./.github/workflows/build-plus.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [Win32]
+    secrets:
+      pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
+    with:
+      arch: ${{ matrix.arch }}
+      pluslib-repository: https://github.com/${{ github.repository }}.git
+      pluslib-tag: ${{ github.sha }}
+      vtk-cache-key: ${{ needs.update_vtk_Win32.outputs.cache-key }}
+      itk-cache-key: ${{ needs.update_itk_Win32.outputs.cache-key }}
+      plus-cache-key: plus-latest-Win32
+      archive-name: PlusApp-Thorlabs-Win32
+      plus-config: >-
+        -DPLUSAPP_PACKAGE_EDITION:STRING="ThorLabs"
+        -DPLUSBUILD_BUILDNAME_POSTFIX=Thorlabs-gh-package-Win32
+        -DPLUS_USE_THORLABS_VIDEO:BOOL=ON
+
+  build_plus_Win32_interson:
+    needs: [update_vtk_Win32, update_itk_Win32, build_plus_Win32]
+    uses: ./.github/workflows/build-plus.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [Win32]
+    secrets:
+      pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
+    with:
+      arch: ${{ matrix.arch }}
+      pluslib-repository: https://github.com/${{ github.repository }}.git
+      pluslib-tag: ${{ github.sha }}
+      vtk-cache-key: ${{ needs.update_vtk_Win32.outputs.cache-key }}
+      itk-cache-key: ${{ needs.update_itk_Win32.outputs.cache-key }}
+      plus-cache-key: plus-latest-Win32
+      archive-name: PlusApp-Interson-Win32
+      plus-config: >-
+        -DPLUSAPP_PACKAGE_EDITION:STRING="Interson"
+        -DPLUSBUILD_BUILDNAME_POSTFIX=Interson-gh-package-Win32
+        -DPLUS_USE_INTERSON_VIDEO:BOOL=ON
+
+  build_plus_Win32_telemed:
+    needs: [update_vtk_Win32, update_itk_Win32, build_plus_Win32]
+    uses: ./.github/workflows/build-plus.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [Win32]
+    secrets:
+      pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
+    with:
+      arch: ${{ matrix.arch }}
+      pluslib-repository: https://github.com/${{ github.repository }}.git
+      pluslib-tag: ${{ github.sha }}
+      vtk-cache-key: ${{ needs.update_vtk_Win32.outputs.cache-key }}
+      itk-cache-key: ${{ needs.update_itk_Win32.outputs.cache-key }}
+      plus-cache-key: plus-latest-Win32
+      archive-name: PlusApp-Telemed-Win32
+      plus-config: >-
+        -DPLUSAPP_PACKAGE_EDITION:STRING="Telemed"
+        -DPLUSBUILD_BUILDNAME_POSTFIX=Telmed-gh-package-Win32
+        -DPLUS_USE_TELEMED_VIDEO:BOOL=ON

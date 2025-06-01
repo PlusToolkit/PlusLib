@@ -1,0 +1,258 @@
+name: Continuous integration
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  ########
+  # BUILD AND CACHE VTK
+  update_vtk_x64:
+    uses: ./.github/workflows/build-vtk.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [x64]
+    with:
+      vtk-hash: 6b6b89ee577e6c6a5ee6f5220b9c6a12513c30b4 # v9.4.1
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
+      build-type: ${{ matrix.build_type }}
+
+  update_vtk_static_x64:
+    uses: ./.github/workflows/build-vtk.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [x64]
+    with:
+      vtk-hash: 6b6b89ee577e6c6a5ee6f5220b9c6a12513c30b4 # v9.4.1
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
+      build-type: ${{ matrix.build_type }}
+      cache-prefix: vtk-static
+      build-options: >-
+        -DBUILD_SHARED_LIBS:BOOL=OFF
+
+  update_vtk_Win32:
+    uses: ./.github/workflows/build-vtk.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [Win32]
+    with:
+      vtk-hash: 6b6b89ee577e6c6a5ee6f5220b9c6a12513c30b4 # v9.4.1
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
+      build-type: ${{ matrix.build_type }}
+
+  ########
+  # BUILD AND CACHE ITK
+  update_itk_x64:
+    uses: ./.github/workflows/build-itk.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [x64]
+    with:
+      itk-hash: 898def645183e6a2d3293058ade451ec416c4514 # v5.4.2
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
+      build-type: ${{ matrix.build_type }}
+
+  update_itk_static_x64:
+    uses: ./.github/workflows/build-itk.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [x64]
+    with:
+      itk-hash: 898def645183e6a2d3293058ade451ec416c4514 # v5.4.2
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
+      build-type: ${{ matrix.build_type }}
+      cache-prefix: itk-static
+      build-options: >-
+        -DBUILD_SHARED_LIBS:BOOL=OFF
+
+  update_itk_Win32:
+    uses: ./.github/workflows/build-itk.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [Win32]
+    with:
+      itk-hash: 898def645183e6a2d3293058ade451ec416c4514 # v5.4.2
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
+      build-type: ${{ matrix.build_type }}
+
+  build_plus_x64:
+    needs: [update_vtk_x64, update_itk_x64]
+    uses: ./.github/workflows/build-plus.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [x64]
+    secrets:
+      pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
+    with:
+      arch: ${{ matrix.arch }}
+      pluslib-repository: https://github.com/${{ github.repository }}.git
+      pluslib-tag: ${{ github.sha }}
+      vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
+      itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
+      plus-cache-key: plus-latest-x64
+      archive-name: PlusApp-Win64
+      plus-config: >-
+        -DVTK_DIR=${{ needs.update_vtk_x64.outputs.install-path }}
+        -DITK_DIR=${{ needs.update_itk_x64.outputs.install-path }}
+        -DPLUSBUILD_BUILDNAME_POSTFIX=gh-ci-x64
+        -DPLUS_USE_3dConnexion_TRACKER:BOOL=ON
+        -DPLUS_USE_Ascension3DGm:BOOL=OFF
+        -DPLUS_USE_BKPROFOCUS_VIDEO:BOOL=OFF
+        -DPLUS_USE_EPIPHAN:BOOL=ON
+        -DPLUS_USE_ICCAPTURING_VIDEO:BOOL=OFF
+        -DPLUS_USE_PHIDGET_SPATIAL_TRACKER:BOOL=ON
+        -DPLUS_USE_NDI:BOOL=ON
+        -DPLUS_USE_VFW_VIDEO:BOOL=ON
+        -DPLUS_USE_OPTITRACK:BOOL=ON
+        -DPLUS_USE_INTELREALSENSE:BOOL=ON
+        -DPLUSBUILD_PREFER_MicronTracker_36:BOOL=OFF
+        -DPLUS_USE_TextRecognizer:BOOL=ON
+        -DPLUS_USE_WITMOTIONTRACKER:BOOL=ON
+        -DPLUS_USE_MKV_IO:BOOL=ON
+        -DPLUS_ENABLE_VIDEOSTREAMING:BOOL=ON
+        -DPLUS_USE_VP9:BOOL=ON
+        -DPLUS_USE_Ascension3DG:BOOL=OFF
+        -DPLUS_USE_BRACHY_TRACKER:BOOL=OFF
+        -DPLUS_USE_NDI_CERTUS:BOOL=OFF
+        -DPLUS_USE_ULTRASONIX_VIDEO:BOOL=OFF
+        -DPLUS_USE_INTERSON_VIDEO:BOOL=OFF
+        -DPLUS_USE_MICRONTRACKER:BOOL=OFF
+        -DPLUS_USE_MMF_VIDEO:BOOL=ON
+        -DPLUS_USE_STEALTHLINK:BOOL=OFF
+        -DPLUS_USE_OPTICAL_MARKER_TRACKER:BOOL=ON
+        -DPLUSBUILD_USE_OpenCV:BOOL=ON
+        -DPLUS_USE_OpenCV_VIDEO:BOOL=ON
+        -DPLUSBUILD_USE_aruco:BOOL=ON
+
+  build_plus_Win32:
+    needs: [update_vtk_Win32, update_itk_Win32]
+    uses: ./.github/workflows/build-plus.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [Win32]
+    secrets:
+      pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
+    with:
+      arch: Win32
+      pluslib-repository: https://github.com/${{ github.repository }}.git
+      pluslib-tag: ${{ github.sha }}
+      vtk-cache-key: ${{ needs.update_vtk_Win32.outputs.cache-key }}
+      itk-cache-key: ${{ needs.update_itk_Win32.outputs.cache-key }}
+      plus-cache-key: plus-latest-Win32
+      archive-name: PlusApp-Win32
+      plus-config: >-
+        -DVTK_DIR=${{ needs.update_vtk_Win32.outputs.install-path }}
+        -DITK_DIR=${{ needs.update_itk_Win32.outputs.install-path }}
+        -DPLUSAPP_PACKAGE_EDITION:STRING=""
+        -DPLUSBUILD_BUILDNAME_POSTFIX=gh-ci-Win32
+        -DPLUSBUILD_DOCUMENTATION:BOOL=OFF
+        -DPLUS_USE_3dConnexion_TRACKER:BOOL=ON
+        -DPLUS_USE_BKPROFOCUS_VIDEO:BOOL=OFF
+        -DPLUS_USE_EPIPHAN:BOOL=ON
+        -DPLUS_USE_ICCAPTURING_VIDEO:BOOL=ON
+        -DPLUS_USE_PHIDGET_SPATIAL_TRACKER:BOOL=ON
+        -DPLUS_USE_NDI:BOOL=ON
+        -DPLUS_USE_VFW_VIDEO:BOOL=ON
+        -DPLUS_USE_OPTITRACK:BOOL=ON
+        -DPLUS_USE_INTELREALSENSE:BOOL=ON
+        -DPLUS_USE_TextRecognizer:BOOL=ON
+        -DPLUS_USE_WITMOTIONTRACKER:BOOL=ON
+        -DPLUS_USE_MKV_IO:BOOL=ON
+        -DPLUS_ENABLE_VIDEOSTREAMING:BOOL=ON
+        -DPLUS_USE_VP9:BOOL=ON
+        -DPLUS_USE_Ascension3DG:BOOL=ON
+        -DPLUS_USE_BRACHY_TRACKER:BOOL=ON
+        -DPLUS_USE_NDI_CERTUS:BOOL=ON
+        -DPLUS_USE_MICRONTRACKER:BOOL=ON
+        -DPLUSBUILD_PREFER_MicronTracker_36:BOOL=OFF
+        -DPLUS_USE_MMF_VIDEO:BOOL=ON
+        -DPLUS_USE_OPTICAL_MARKER_TRACKER:BOOL=ON
+        -DPLUSBUILD_USE_OpenCV:BOOL=ON
+        -DPLUSBUILD_USE_aruco:BOOL=ON
+        -DPLUS_USE_OpenCV_VIDEO:BOOL=ON
+
+  build_plus_static_x64:
+    needs: [update_vtk_static_x64, update_itk_static_x64]
+    uses: ./.github/workflows/build-plus.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [x64]
+    secrets:
+      pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
+    with:
+      arch: ${{ matrix.arch }}
+      pluslib-repository: https://github.com/${{ github.repository }}.git
+      pluslib-tag: ${{ github.sha }}
+      vtk-cache-key: ${{ needs.update_vtk_static_x64.outputs.cache-key }}
+      itk-cache-key: ${{ needs.update_itk_static_x64.outputs.cache-key }}
+      plus-cache-key: plus-static-x64
+      archive-name: PlusApp-Static-Win64
+      plus-config: >-
+        -DVTK_DIR=${{ needs.update_vtk_static_x64.outputs.install-path }}
+        -DITK_DIR=${{ needs.update_itk_static_x64.outputs.install-path }}
+        -DPLUSBUILD_BUILDNAME_POSTFIX=gh-static-x64
+        -DPLUSBUILD_BUILD_SHARED_LIBS:BOOL=OFF
+        -DPLUS_USE_3dConnexion_TRACKER:BOOL=ON
+        -DPLUS_USE_Ascension3DGm:BOOL=OFF
+        -DPLUS_USE_BKPROFOCUS_VIDEO:BOOL=OFF
+        -DPLUS_USE_EPIPHAN:BOOL=ON
+        -DPLUS_USE_ICCAPTURING_VIDEO:BOOL=OFF
+        -DPLUS_USE_PHIDGET_SPATIAL_TRACKER:BOOL=ON
+        -DPLUS_USE_NDI:BOOL=ON
+        -DPLUS_USE_VFW_VIDEO:BOOL=ON
+        -DPLUS_USE_OPTITRACK:BOOL=OFF
+        -DPLUS_USE_INTELREALSENSE:BOOL=OFF
+        -DPLUSBUILD_PREFER_MicronTracker_36:BOOL=OFF
+        -DPLUS_USE_TextRecognizer:BOOL=OFF
+        -DPLUS_USE_WITMOTIONTRACKER:BOOL=ON
+        -DPLUS_USE_MKV_IO:BOOL=OFF
+        -DPLUS_ENABLE_VIDEOSTREAMING:BOOL=ON
+        -DPLUS_USE_VP9:BOOL=ON
+        -DPLUS_USE_Ascension3DG:BOOL=OFF
+        -DPLUS_USE_BRACHY_TRACKER:BOOL=OFF
+        -DPLUS_USE_NDI_CERTUS:BOOL=OFF
+        -DPLUS_USE_ULTRASONIX_VIDEO:BOOL=OFF
+        -DPLUS_USE_INTERSON_VIDEO:BOOL=OFF
+        -DPLUS_USE_MICRONTRACKER:BOOL=OFF
+        -DPLUS_USE_MMF_VIDEO:BOOL=ON
+        -DPLUS_USE_STEALTHLINK:BOOL=OFF
+        -DPLUS_USE_OPTICAL_MARKER_TRACKER:BOOL=OFF
+        -DPLUSBUILD_USE_OpenCV:BOOL=OFF
+        -DPLUS_USE_OpenCV_VIDEO:BOOL=OFF
+        -DPLUSBUILD_USE_aruco:BOOL=OFF
