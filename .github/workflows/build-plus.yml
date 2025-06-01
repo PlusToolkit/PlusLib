@@ -1,0 +1,144 @@
+name: Build Plus
+
+on:
+  workflow_call:
+    inputs:
+      arch:
+        required: true
+        type: string
+        default: x64
+      # Dependency versions
+      qt-version:
+        required: false
+        type: string
+        default: '5.15.0'
+      vtk-cache-key:
+        required: true
+        type: string
+      itk-cache-key:
+        required: true
+        type: string
+
+      # Plus cache
+      plus-cache-key:
+        required: false
+        type: string
+
+      # Plus build options
+      plus-config:
+        required: true
+        type: string
+
+      # Uploaded archive name
+      archive-name:
+        required: false
+        type: string
+        default: PlusInstaller
+
+      # Repos/tags for PlusLib and PlusApp
+      pluslib-repository:
+        required: false
+        type: string
+        default: https://github.com/PlusToolkit/PlusLib.git
+      pluslib-tag:
+        required: false
+        type: string
+        default: master
+      plusapp-repository:
+        required: false
+        type: string
+        default: https://github.com/Sunderlandkyl/PlusApp.git
+      plusapp-tag:
+        required: false
+        type: string
+        default: install_branch_temp
+
+    secrets:
+      pltools-access-token:
+        required: false
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Restore VTK Cache
+      uses: actions/cache/restore@v4
+      with:
+        path: vtk-install
+        key: ${{ inputs.vtk-cache-key }}
+
+    - name: Restore ITK Cache
+      uses: actions/cache/restore@v4
+      with:
+        path: itk-install
+        key: ${{ inputs.itk-cache-key }}
+
+    - name: Plus Cache
+      if: ${{ inputs.plus-cache-key != '' }}
+      id: cache-plus
+      uses: actions/cache@v4
+      with:
+        path: build
+        key: ${{ inputs.plus-cache-key }}
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        dir: ${{ github.workspace }}/Qt
+        version: ${{ inputs.qt-version }}
+        arch: ${{ inputs.arch == 'x64' && 'win64_msvc2019_64' || 'win32_msvc2019' }}
+
+    - name: Clone PlusBuild
+      uses: actions/checkout@v4
+      with:
+        repository: PlusToolkit/PlusBuild
+        ref: master
+        path: PlusBuild
+
+    - name: Clone PLTools
+      uses: actions/checkout@v4
+      with:
+        repository: PerkLab/PLTools
+        ref: master
+        path: PLTools
+        token: ${{ secrets.pltools-access-token }}
+
+    - name: Configure PlusBuild
+      shell: bash
+      run: |
+        cmake -S PlusBuild -B build \
+          -G "Visual Studio 17 2022" -A ${{ inputs.arch }} \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DPLUSLIB_GIT_REPOSITORY=${{ inputs.pluslib-repository }} \
+          -DPLUSLIB_GIT_REVISION=${{ inputs.pluslib-tag }} \
+          -DPLUSAPP_GIT_REPOSITORY=${{ inputs.plusapp-repository }} \
+          -DPLUSAPP_GIT_REVISION=${{ inputs.plusapp-tag }} \
+          -DQt5_Dir="${QT_DIR}" \
+          ${{ inputs.plus-config }}
+
+    - name: Build
+      working-directory: ${{github.workspace}}/build
+      run: |
+        ctest -C Release -D Experimental -V
+
+    - uses: ilammy/msvc-dev-cmd@v1
+    - name: Package
+      if: contains(runner.os, 'windows')
+      working-directory: ${{github.workspace}}/build/PlusApp-bin
+      run: |
+        ./CreatePackage.bat
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.archive-name }}
+        path: ${{github.workspace}}/build/PlusApp-bin/*.exe
+
+    # Delete the installer so that it isn't included in the cache.
+    - name: Delete installer
+      shell: bash
+      run: |
+        rm -rfv build/PlusApp-bin/*.exe
+        rm -rfv build/PlusApp-bin/*.zip
+        rm -rfv build/PlusApp-bin/_CPack_Packages

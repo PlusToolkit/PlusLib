@@ -1,0 +1,97 @@
+name: Build ITK
+
+on:
+  workflow_call:
+    inputs:
+      arch:
+        required: true
+        type: string
+      os:
+        required: true
+        type: string
+      build-type:
+        required: false
+        type: string
+        default: Release
+      itk-hash:
+        required: true
+        type: string
+      build-options:
+        required: false
+        type: string
+      cache-prefix:
+        required: false
+        type: string
+        default: itk
+
+    outputs:
+      cache-key:
+        value: ${{ jobs.itk.outputs.cache-key }}
+      install-path:
+        value: ${{ jobs.itk.outputs.install-path }}
+
+jobs:
+  itk:
+    runs-on: ${{ inputs.os }}
+    outputs:
+      cache-key: ${{ steps.set-outputs.outputs.cache-key }}
+      install-path: ${{ steps.set-outputs.outputs.install-path }}
+    env:
+      CACHE_KEY: ${{ inputs.cache-prefix }}-${{ inputs.os }}-${{ inputs.arch }}-${{ inputs.itk-hash }}
+
+    steps:
+
+      - name: Cache ITK Build
+        id: cache-itk
+        uses: actions/cache@v4
+        with:
+          path: itk-install
+          key: ${{ env.CACHE_KEY }}
+
+      - name: Install Dependencies
+        if: contains(inputs.os, 'ubuntu') && steps.cache-itk.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          sudo apt update && sudo apt install -y cmake g++ libgl1-mesa-dev libxt-dev libxrender-dev libxext-dev libglu1-mesa-dev make
+
+      - name: Clone ITK
+        if: steps.cache-itk.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          mkdir itk
+          cd itk
+          git init
+          git remote add origin https://github.com/InsightSoftwareConsortium/ITK.git
+          git fetch --depth 1 origin ${{ inputs.itk-hash }}
+          git checkout FETCH_HEAD
+
+      - name: Configure ITK
+        if: steps.cache-itk.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          cmake -S itk -B itk-build -G "Visual Studio 17 2022" -A ${{ inputs.arch }} \
+            -DCMAKE_INSTALL_PREFIX=itk-install \
+            -DCMAKE_BUILD_TYPE=${{ inputs.build-type }} \
+            -DBUILD_SHARED_LIBS=ON \
+            -DBUILD_TESTING=OFF \
+            ${{ inputs.build-options }}
+
+      - name: Build ITK
+        if: steps.cache-itk.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          cmake --build itk-build --parallel 4 --config ${{ inputs.build-type }}
+
+      - name: Install ITK
+        if: steps.cache-itk.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          cmake --install itk-build
+
+      - name: Set Outputs
+        id: set-outputs
+        shell: bash
+        run: |
+          echo "cache-key=$CACHE_KEY" >> $GITHUB_OUTPUT
+          ITK_DIR=$(find "${GITHUB_WORKSPACE}/itk-install/lib/cmake" -maxdepth 1 -type d -name "ITK-*")
+          echo "install-path=${ITK_DIR}" >> $GITHUB_OUTPUT
