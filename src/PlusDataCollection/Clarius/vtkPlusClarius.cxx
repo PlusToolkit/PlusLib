@@ -91,7 +91,7 @@ protected:
   Callback function used when connecting
   Input value is the udpPort.
   */
-  static void ConnectReturnFn(int udpPort, int swRevMatch);
+  static void ConnectReturnFn(int udpPort, int imuPort, int swRevMatch);
 
   /*!
   Callback function for raw data request
@@ -219,7 +219,7 @@ long long int vtkPlusClarius::vtkInternal::SecondsToNanoSeconds(double s)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusClarius::vtkInternal::ConnectReturnFn(int udpPort, int swRevMatch)
+void vtkPlusClarius::vtkInternal::ConnectReturnFn(int udpPort, int imuPort, int swRevMatch)
 {
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
   if (device == NULL)
