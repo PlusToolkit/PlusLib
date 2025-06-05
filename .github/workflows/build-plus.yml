@@ -105,16 +105,15 @@ jobs:
         token: ${{ secrets.pltools-access-token }}
 
     - name: Configure PlusBuild
-      shell: bash
       run: |
-        cmake -S PlusBuild -B build \
-          -G "Visual Studio 17 2022" -A ${{ inputs.arch }} \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DPLUSLIB_GIT_REPOSITORY=${{ inputs.pluslib-repository }} \
-          -DPLUSLIB_GIT_REVISION=${{ inputs.pluslib-tag }} \
-          -DPLUSAPP_GIT_REPOSITORY=${{ inputs.plusapp-repository }} \
-          -DPLUSAPP_GIT_REVISION=${{ inputs.plusapp-tag }} \
-          -DQt5_Dir="${QT_DIR}" \
+        cmake -S PlusBuild -B build `
+          -G "Visual Studio 17 2022" -A ${{ inputs.arch }} `
+          -DCMAKE_BUILD_TYPE=Release `
+          -DPLUSLIB_GIT_REPOSITORY=${{ inputs.pluslib-repository }} `
+          -DPLUSLIB_GIT_REVISION=${{ inputs.pluslib-tag }} `
+          -DPLUSAPP_GIT_REPOSITORY=${{ inputs.plusapp-repository }} `
+          -DPLUSAPP_GIT_REVISION=${{ inputs.plusapp-tag }} `
+          -DQt5_Dir="${QT_DIR}" `
           ${{ inputs.plus-config }}
 
     - name: Build
