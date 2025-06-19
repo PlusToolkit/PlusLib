@@ -107,14 +107,14 @@ PlusStatus vtkPlusMicronTracker::Probe()
     LOG_WARNING("Unable to find MicronTracker TemplateDirectory at: " << templateFullPath);
   }
 
-  if (this->MicronTracker->mtInit(iniFilePath) != 1)
+  if (MicronTrackerInterface::mtIsErrorStatus(this->MicronTracker->mtInit(iniFilePath)))
   {
     LOG_ERROR("Error in initializing Micron Tracker");
     return PLUS_FAIL;
   }
 
   // Try to attach the cameras till find the cameras
-  if (this->MicronTracker->mtSetupCameras() != 1)
+  if (MicronTrackerInterface::mtIsErrorStatus(this->MicronTracker->mtSetupCameras()))
   {
     LOG_ERROR("Error in initializing Micron Tracker: setup cameras failed. Check the camera connections.");
     return PLUS_FAIL;
@@ -158,7 +158,7 @@ PlusStatus vtkPlusMicronTracker::InternalUpdate()
   // Setting the timestamp
   const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
-  if (this->MicronTracker->mtGrabFrame() != 0) // mtOK
+  if (MicronTrackerInterface::mtIsErrorStatus(this->MicronTracker->mtGrabFrame()))
   {
     // If grabbing a frame was not successful then just skip this attempt and retry on the next callback
     LOG_WARNING("Failed to grab a new frame (" << this->MicronTracker->GetLastErrorString() << "). Maybe the requested frame rate is too high.");
@@ -177,7 +177,7 @@ PlusStatus vtkPlusMicronTracker::InternalUpdate()
   const double timeSystemSec = timeTrackerSec + this->TrackerTimeToSystemTimeSec;
 #endif
 
-  if (this->MicronTracker->mtProcessFrame() != 0) // mtOK
+  if (MicronTrackerInterface::mtIsErrorStatus(this->MicronTracker->mtProcessFrame()))
   {
     LOG_ERROR("Error in processing a frame! (" << this->MicronTracker->GetLastErrorString() << ")");
     return PLUS_FAIL;
@@ -275,7 +275,7 @@ PlusStatus vtkPlusMicronTracker::RefreshMarkerTemplates()
   {
     LOG_DEBUG("Loaded " << vTemplatesName[i]);
   }
-  if (callResult != 0)
+  if (MicronTrackerInterface::mtIsErrorStatus(callResult))
   {
     LOG_ERROR("Failed to load marker templates from " << templateFullPath);
     for (unsigned int i = 0; i < vTemplatesError.size(); i++)
@@ -317,7 +317,7 @@ PlusStatus vtkPlusMicronTracker::GetImage(vtkImageData* leftImage, vtkImageData*
 
   unsigned char** leftImageArray = 0;
   unsigned char** rightImageArray = 0;
-  if (this->MicronTracker->mtGetLeftRightImageArray(leftImageArray, rightImageArray) != 0) // mtOK
+  if (MicronTrackerInterface::mtIsErrorStatus(this->MicronTracker->mtGetLeftRightImageArray(leftImageArray, rightImageArray)))
   {
     LOG_ERROR("Error getting images from MicronTracker");
     return PLUS_FAIL;
@@ -394,14 +394,14 @@ PlusStatus vtkPlusMicronTracker::InternalConnect()
     LOG_ERROR("Unable to find MicronTracker TemplateDirectory at: " << templateFullPath);
   }
 
-  if (this->MicronTracker->mtInit(iniFilePath) != 1)
+  if (MicronTrackerInterface::mtIsErrorStatus(this->MicronTracker->mtInit(iniFilePath)))
   {
     LOG_ERROR("Error in initializing Micron Tracker");
     return PLUS_FAIL;
   }
 
   // Try to attach the cameras till find the cameras
-  if (this->MicronTracker->mtSetupCameras() != 1)
+  if (MicronTrackerInterface::mtIsErrorStatus(this->MicronTracker->mtSetupCameras()))
   {
     LOG_ERROR("Error in initializing Micron Tracker: setup cameras failed. Check the camera connections and INI and Markers file locations.");
     this->MicronTracker->mtEnd();

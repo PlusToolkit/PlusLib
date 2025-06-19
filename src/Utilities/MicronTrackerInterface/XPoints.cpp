@@ -51,16 +51,6 @@ mtHandle XPoints::detectedXPoints(MCamera* cam)
   return identifiedHandle;
 }
 
-//----------------------------------------------------------------------------
-int XPoints::countXPoints(MCamera* cam)
-{
-  mtHandle camHandle = NULL;
-  if (cam != NULL)
-  {
-    camHandle = cam->getHandle();
-  }
-  return XPoints_Counter(camHandle);
-}
 
 //----------------------------------------------------------------------------
 int XPoints::processFrame(MCamera* cam)

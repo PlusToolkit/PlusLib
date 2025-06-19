@@ -65,6 +65,9 @@ public:
   before calling any other functions. */
   int mtInit(const std::string& iniFilePath);
 
+  /** Checks whether a status int idicates that an error occured, or rather status is not mtOK*/
+  static bool mtIsErrorStatus(int status);
+
   /** No other function should be called after calling this function unless the mtInit() is called again. */
   void mtEnd();
 

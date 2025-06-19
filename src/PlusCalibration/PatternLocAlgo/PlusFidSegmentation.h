@@ -261,6 +261,8 @@ protected:
   std::vector<PlusFidDot> m_DotsVector;
 
   bool m_DebugOutput;
+
+  unsigned int clampMinBarSize(unsigned int ir, unsigned int barSize);
 };
 
 #endif // _FIDUCIAL_SEGMENTATION_H
