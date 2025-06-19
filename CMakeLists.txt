@@ -90,6 +90,7 @@ ELSE()
   # Need git for the automatic update of the repository
   FIND_PACKAGE(Git)
   IF(Git_FOUND)
+    MESSAGE(STATUS "Git found in  ${GIT_EXECUTABLE}")
     EXECUTE_PROCESS(COMMAND "${GIT_EXECUTABLE}" rev-parse HEAD 
       OUTPUT_VARIABLE PLUSLIB_REVISION 
       WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -110,8 +111,8 @@ ELSE()
       OUTPUT_VARIABLE _git_show_output
       WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
       )
-    STRING(REGEX MATCH "([0-9])+-([0-9]+)-([0-9]+)" PLUSLIB_COMMIT_DATE ${_git_show_output})
-    STRING(REPLACE "-" "" PLUSLIB_COMMIT_DATE_NO_DASHES ${PLUSLIB_COMMIT_DATE})
+    STRING(REGEX MATCH "([0-9])+-([0-9]+)-([0-9]+)" PLUSLIB_COMMIT_DATE "${_git_show_output}")
+    STRING(REPLACE "-" "" PLUSLIB_COMMIT_DATE_NO_DASHES "${PLUSLIB_COMMIT_DATE}")
 
   ELSE()
     MESSAGE(WARNING "Git tool not found. Cannot retrieve revision information from repository")

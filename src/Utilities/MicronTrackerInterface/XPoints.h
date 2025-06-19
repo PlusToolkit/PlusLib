@@ -26,7 +26,6 @@ public:
   mtHandle getHandle();
 
   mtHandle detectedXPoints(MCamera* cam);
-  int countXPoints(MCamera* cam);
   int processFrame(MCamera* cam);
 
 protected:

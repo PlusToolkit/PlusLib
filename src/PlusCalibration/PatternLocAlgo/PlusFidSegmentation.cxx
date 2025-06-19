@@ -305,7 +305,7 @@ inline PlusFidSegmentation::PixelType PlusFidSegmentation::ErodePoint0(PlusFidSe
 
   const unsigned int barSize = GetMorphologicalOpeningBarSizePx();
   PlusFidSegmentation::PixelType dval = UCHAR_MAX;
-  unsigned int p = ir * m_FrameSize[0] + ic - barSize; // current pixel - bar size (position of the start of the bar)
+  unsigned int p = ir * m_FrameSize[0] + clampMinBarSize(ic, barSize); // current pixel - bar size (position of the start of the bar)
   unsigned int p_max = ir * m_FrameSize[0] + ic + barSize; // current pixel +  bar size (position of the end  of the bar)
 
   //find lowest intensity in bar shaped area in image
@@ -345,7 +345,7 @@ void PlusFidSegmentation::Erode0(PlusFidSegmentation::PixelType* dest, PlusFidSe
     for (ic++; ic < m_RegionOfInterest[2]; ic++)
     {
       PlusFidSegmentation::PixelType new_val = image[p_base + ic + barSize];
-      PlusFidSegmentation::PixelType del_val = image[p_base + ic - 1 - barSize];
+      PlusFidSegmentation::PixelType del_val = image[p_base + clampMinBarSize(ic - 1, barSize)];
 
       dval = new_val <= dval ? new_val  : // dval = new val if new val is less than or equal to dval
              del_val > dval ? std::min(dval, new_val) :   // if del val is greater than dval, dval= min of dval and new val
@@ -365,8 +365,9 @@ inline PlusFidSegmentation::PixelType PlusFidSegmentation::ErodePoint45(PlusFidS
   const unsigned int barSize = GetMorphologicalOpeningBarSizePx();
 
   PlusFidSegmentation::PixelType dval = UCHAR_MAX;
-  unsigned int p = (ir + barSize) * m_FrameSize[0] + ic - barSize;
-  unsigned int p_max = (ir - barSize) * m_FrameSize[0] + ic + barSize;
+
+  unsigned int p = (ir + barSize) * m_FrameSize[0] + clampMinBarSize(ic, barSize);
+  unsigned int p_max = clampMinBarSize(ir, barSize) * m_FrameSize[0] + ic + barSize;
 
   for (; p >= p_max; p = p - m_FrameSize[0] + 1)
   {
@@ -402,8 +403,8 @@ void PlusFidSegmentation::Erode45(PlusFidSegmentation::PixelType* dest, PlusFidS
 
     for (ir--, ic++; ir >= m_RegionOfInterest[1] && ic < m_RegionOfInterest[2]; ir--, ic++)
     {
-      PlusFidSegmentation::PixelType new_val = image[(ir - barSize) * m_FrameSize[0] + (ic + barSize)];
-      PlusFidSegmentation::PixelType del_val = image[(ir + 1 + barSize) * m_FrameSize[0] + (ic - 1 - barSize)];
+      PlusFidSegmentation::PixelType new_val = image[ clampMinBarSize(ir, barSize) * m_FrameSize[0] + (ic + barSize)];
+      PlusFidSegmentation::PixelType del_val = image[(ir + 1 + barSize) * m_FrameSize[0] + clampMinBarSize(ic -1, barSize)];
 
       dval = new_val <= dval ? new_val :
              del_val > dval ? std::min(dval, new_val) :
@@ -424,8 +425,8 @@ void PlusFidSegmentation::Erode45(PlusFidSegmentation::PixelType* dest, PlusFidS
 
     for (ir--, ic++; ir >= m_RegionOfInterest[1] && ic < m_RegionOfInterest[2]; ir--, ic++)
     {
-      PlusFidSegmentation::PixelType new_val = image[(ir - barSize) * m_FrameSize[0] + (ic + barSize)];
-      PlusFidSegmentation::PixelType del_val = image[(ir + 1 + barSize) * m_FrameSize[0] + (ic - 1 - barSize)];
+      PlusFidSegmentation::PixelType new_val = image[clampMinBarSize(ir, barSize) * m_FrameSize[0] + (ic + barSize)];
+      PlusFidSegmentation::PixelType del_val = image[(ir + 1 + barSize) * m_FrameSize[0] + clampMinBarSize(ic -1, barSize)];
 
       dval = new_val <= dval ? new_val :
              del_val > dval ? std::min(dval, new_val) :
@@ -444,7 +445,7 @@ inline PlusFidSegmentation::PixelType PlusFidSegmentation::ErodePoint90(PlusFidS
 
   const unsigned int barSize = GetMorphologicalOpeningBarSizePx();
   PlusFidSegmentation::PixelType dval = UCHAR_MAX;
-  unsigned int p = (ir - barSize) * m_FrameSize[0] + ic;
+  unsigned int p = clampMinBarSize(ir, barSize) * m_FrameSize[0] + ic;
   unsigned int p_max = (ir + barSize) * m_FrameSize[0] + ic;
 
   for (; p <= p_max; p += m_FrameSize[0])
@@ -481,7 +482,7 @@ void PlusFidSegmentation::Erode90(PlusFidSegmentation::PixelType* dest, PlusFidS
     for (ir++; ir < m_RegionOfInterest[3]; ir++)
     {
       PlusFidSegmentation::PixelType new_val = image[(ir + barSize) * m_FrameSize[0] + ic];
-      PlusFidSegmentation::PixelType del_val = image[(ir - 1 - barSize) * m_FrameSize[0] + ic];
+      PlusFidSegmentation::PixelType del_val = image[clampMinBarSize(ir -1, barSize) * m_FrameSize[0] + ic];
 
       dval = new_val <= dval ? new_val :
              del_val > dval ? std::min(dval, new_val) :
@@ -500,7 +501,7 @@ inline PlusFidSegmentation::PixelType PlusFidSegmentation::ErodePoint135(PlusFid
 
   const unsigned int barSize = GetMorphologicalOpeningBarSizePx();
   PlusFidSegmentation::PixelType dval = UCHAR_MAX;
-  unsigned int p = (ir - barSize) * m_FrameSize[0] + ic - barSize;
+  unsigned int p = clampMinBarSize(ir, barSize) * m_FrameSize[0] + clampMinBarSize(ic, barSize);
   unsigned int p_max = (ir + barSize) * m_FrameSize[0] + ic + barSize;
 
   for (; p <= p_max; p = p + m_FrameSize[0] + 1)
@@ -539,7 +540,7 @@ void PlusFidSegmentation::Erode135(PlusFidSegmentation::PixelType* dest, PlusFid
     for (ir++, ic++; ir < m_RegionOfInterest[3] && ic < m_RegionOfInterest[2]; ir++, ic++)
     {
       PlusFidSegmentation::PixelType new_val = image[(ir + barSize) * m_FrameSize[0] + (ic + barSize)];
-      PlusFidSegmentation::PixelType del_val = image[(ir - 1 - barSize) * m_FrameSize[0] + (ic - 1 - barSize)];
+      PlusFidSegmentation::PixelType del_val = image[clampMinBarSize(ir -1, barSize) * m_FrameSize[0] + clampMinBarSize(ic -1, barSize)];
 
       dval = new_val <= dval ? new_val :
              del_val > dval ? std::min(dval, new_val) :
@@ -561,7 +562,7 @@ void PlusFidSegmentation::Erode135(PlusFidSegmentation::PixelType* dest, PlusFid
     for (ir++, ic++; ir < m_RegionOfInterest[3] && ic < m_RegionOfInterest[2]; ir++, ic++)
     {
       PlusFidSegmentation::PixelType new_val = image[(ir + barSize) * m_FrameSize[0] + (ic + barSize)];
-      PlusFidSegmentation::PixelType del_val = image[(ir - 1 - barSize) * m_FrameSize[0] + (ic - 1 - barSize)];
+      PlusFidSegmentation::PixelType del_val = image[clampMinBarSize(ir -1, barSize) * m_FrameSize[0] + clampMinBarSize(ic -1, barSize)];
 
       dval = new_val <= dval ? new_val :
              del_val > dval ? std::min(dval, new_val) :
@@ -617,7 +618,7 @@ inline PlusFidSegmentation::PixelType PlusFidSegmentation::DilatePoint0(PlusFidS
 
   const unsigned int barSize = GetMorphologicalOpeningBarSizePx();
   PlusFidSegmentation::PixelType dval = 0;
-  unsigned int p = ir * m_FrameSize[0] + ic - barSize;
+  unsigned int p = ir * m_FrameSize[0] + clampMinBarSize(ic, barSize);
   unsigned int p_max = ir * m_FrameSize[0] + ic + barSize;
 
   for (; p <= p_max; p++)
@@ -652,7 +653,7 @@ void PlusFidSegmentation::Dilate0(PlusFidSegmentation::PixelType* dest, PlusFidS
     for (ic++; ic < m_RegionOfInterest[2]; ic++)
     {
       PlusFidSegmentation::PixelType new_val = image[p_base + ic + barSize];
-      PlusFidSegmentation::PixelType del_val = image[p_base + ic - 1 - barSize];
+      PlusFidSegmentation::PixelType del_val = image[p_base + clampMinBarSize(ic - 1, barSize)];
 
       dval = new_val >= dval ? new_val :
              (del_val < dval ? std::max(dval, new_val) :
@@ -670,8 +671,8 @@ inline PlusFidSegmentation::PixelType PlusFidSegmentation::DilatePoint45(PlusFid
 
   const unsigned int barSize = GetMorphologicalOpeningBarSizePx();
   PlusFidSegmentation::PixelType dval = 0;
-  unsigned int p = (ir + barSize) * m_FrameSize[0] + ic - barSize;
-  unsigned int p_max = (ir - barSize) * m_FrameSize[0] + ic + barSize;
+  unsigned int p = (ir + barSize) * m_FrameSize[0] + clampMinBarSize(ic, barSize);
+  unsigned int p_max = clampMinBarSize(ir, barSize) * m_FrameSize[0] + ic + barSize;
 
   while (p >= p_max)
   {
@@ -693,6 +694,11 @@ inline PlusFidSegmentation::PixelType PlusFidSegmentation::DilatePoint45(PlusFid
   return dval;
 }
 
+inline unsigned int PlusFidSegmentation::clampMinBarSize(unsigned int ir, unsigned int barSize) {
+  int irMinusBar = (int)ir - (int)barSize;
+  return (unsigned int)irMinusBar < 0 ? 0 : irMinusBar;
+}
+
 //-----------------------------------------------------------------------------
 
 void PlusFidSegmentation::Dilate45(PlusFidSegmentation::PixelType* dest, PlusFidSegmentation::PixelType* image)
@@ -708,12 +714,13 @@ void PlusFidSegmentation::Dilate45(PlusFidSegmentation::PixelType* dest, PlusFid
     unsigned int ir = sr;
     unsigned int ic = m_RegionOfInterest[0];
 
+
     PlusFidSegmentation::PixelType dval = DilatePoint45(image, ir, ic);
     dest[ir * m_FrameSize[0] + ic] = dval ;
     for (ir--, ic++; ir >= m_RegionOfInterest[1] && ic < m_RegionOfInterest[2]; ir--, ic++)
     {
-      PlusFidSegmentation::PixelType new_val = image[(ir - barSize) * m_FrameSize[0] + (ic + barSize)];
-      PlusFidSegmentation::PixelType del_val = image[(ir + 1 + barSize) * m_FrameSize[0] + (ic - 1 - barSize)];
+      PlusFidSegmentation::PixelType new_val = image[clampMinBarSize(ir, barSize) * m_FrameSize[0] + (ic + barSize)];
+      PlusFidSegmentation::PixelType del_val = image[(ir + 1 + barSize) * m_FrameSize[0] + clampMinBarSize(ic -1, barSize)];
 
       dval = new_val >= dval ? new_val :
              (del_val < dval ? std::max(dval, new_val) :
@@ -732,8 +739,8 @@ void PlusFidSegmentation::Dilate45(PlusFidSegmentation::PixelType* dest, PlusFid
     dest[ir * m_FrameSize[0] + ic] = dval ;
     for (ir--, ic++; ir >= m_RegionOfInterest[1] && ic < m_RegionOfInterest[2]; ir--, ic++)
     {
-      PlusFidSegmentation::PixelType new_val = image[(ir - barSize) * m_FrameSize[0] + (ic + barSize)];
-      PlusFidSegmentation::PixelType del_val = image[(ir + 1 + barSize) * m_FrameSize[0] + (ic - 1 - barSize)];
+      PlusFidSegmentation::PixelType new_val = image[clampMinBarSize(ir, barSize) * m_FrameSize[0] + (ic + barSize)];
+      PlusFidSegmentation::PixelType del_val = image[(ir + 1 + barSize) * m_FrameSize[0] + clampMinBarSize(ic -1, barSize)];
 
       dval = new_val >= dval ? new_val :
              (del_val < dval ? std::max(dval, new_val) :
@@ -751,7 +758,7 @@ inline PlusFidSegmentation::PixelType PlusFidSegmentation::DilatePoint90(PlusFid
 
   const unsigned int barSize = GetMorphologicalOpeningBarSizePx();
   PlusFidSegmentation::PixelType dval = 0;
-  unsigned int p = (ir - barSize) * m_FrameSize[0] + ic;
+  unsigned int p = clampMinBarSize(ir, barSize) * m_FrameSize[0] + ic;
   unsigned int p_max = (ir + barSize) * m_FrameSize[0] + ic;
 
   for (; p <= p_max; p += m_FrameSize[0])
@@ -782,7 +789,7 @@ void PlusFidSegmentation::Dilate90(PlusFidSegmentation::PixelType* dest, PlusFid
     for (ir++; ir < m_RegionOfInterest[3]; ir++)
     {
       PlusFidSegmentation::PixelType new_val = image[(ir + barSize) * m_FrameSize[0] + ic];
-      PlusFidSegmentation::PixelType del_val = image[(ir - 1 - barSize) * m_FrameSize[0] + ic];
+      PlusFidSegmentation::PixelType del_val = image[clampMinBarSize(ir -1, barSize) * m_FrameSize[0] + ic];
 
       dval = new_val >= dval ? new_val :
              (del_val < dval ? std::max(dval, new_val) :
@@ -801,7 +808,7 @@ inline PlusFidSegmentation::PixelType PlusFidSegmentation::DilatePoint135(PlusFi
 
   const unsigned int barSize = GetMorphologicalOpeningBarSizePx();
   PlusFidSegmentation::PixelType dval = 0;
-  unsigned int p = (ir - barSize) * m_FrameSize[0] + ic - barSize;
+  unsigned int p = clampMinBarSize(ir, barSize) * m_FrameSize[0] + clampMinBarSize(ic, barSize);
   unsigned int p_max = (ir + barSize) * m_FrameSize[0] + ic + barSize;
 
   for (; p <= p_max; p = p + m_FrameSize[0] + 1)
@@ -834,7 +841,7 @@ void PlusFidSegmentation::Dilate135(PlusFidSegmentation::PixelType* dest, PlusFi
     for (ir++, ic++; ir < m_RegionOfInterest[3] && ic < m_RegionOfInterest[2]; ir++, ic++)
     {
       PlusFidSegmentation::PixelType new_val = image[(ir + barSize) * m_FrameSize[0] + (ic + barSize)];
-      PlusFidSegmentation::PixelType del_val = image[(ir - 1 - barSize) * m_FrameSize[0] + (ic - 1 - barSize)];
+      PlusFidSegmentation::PixelType del_val = image[clampMinBarSize(ir -1, barSize) * m_FrameSize[0] + clampMinBarSize(ic -1, barSize)];
 
       dval = new_val >= dval ? new_val :
              (del_val < dval ? std::max(dval, new_val) :
@@ -854,7 +861,7 @@ void PlusFidSegmentation::Dilate135(PlusFidSegmentation::PixelType* dest, PlusFi
     for (ir++, ic++; ir < m_RegionOfInterest[3] && ic < m_RegionOfInterest[2]; ir++, ic++)
     {
       PlusFidSegmentation::PixelType new_val = image[(ir + barSize) * m_FrameSize[0] + (ic + barSize)];
-      PlusFidSegmentation::PixelType del_val = image[(ir - 1 - barSize) * m_FrameSize[0] + (ic - 1 - barSize)];
+      PlusFidSegmentation::PixelType del_val = image[clampMinBarSize(ir -1, barSize) * m_FrameSize[0] + clampMinBarSize(ic -1, barSize)];
 
       dval = new_val >= dval ? new_val :
              (del_val < dval ? std::max(dval, new_val) :

@@ -59,6 +59,11 @@ int MicronTrackerInterface::mtInit(const std::string& iniFilePath)
   return mtOK;
 }
 
+bool MicronTrackerInterface::mtIsErrorStatus(int status)
+{
+    return status != mtOK;
+}
+
 //----------------------------------------------------------------------------
 void MicronTrackerInterface::mtEnd()
 {
@@ -226,10 +231,6 @@ std::string MicronTrackerInterface::ConvertReturnToString(int returnValue)
       return "TooManyVectors";
     case mtMethodIsObsolete:
       return "MethodIsObsolete";
-    case utInvalidVectors:
-      return "InvalidVectors";
-    case utMismatchedVectors:
-      return "MismatchedVectors";
     case mtInsufficientNumberOfXPoints:
       return "InsufficientNumberOfXPoints";
     case mtXPointsProcessingIsDisabled:

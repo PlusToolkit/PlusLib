@@ -7,6 +7,7 @@
 #ifndef TelemedUltrasound_h
 #define TelemedUltrasound_h
 
+#include "strmif.h"
 #include "igsioCommon.h"
 #include "Usgfw2.h"
 
