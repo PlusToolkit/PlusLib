@@ -11,6 +11,8 @@
 *
 ***************************************************************/
 
+#include <windows.h>
+
 #include <MTC.h>
 
 #include "Cameras.h"
