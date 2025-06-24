@@ -1,6 +1,7 @@
 name: Nightly
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "43 5 * * *" # Run nightly at 5:43 UTC. Picked a time when the load may be lower. https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#schedule
 
