@@ -240,6 +240,30 @@ jobs:
         -DPLUS_USE_ATRACSYS:BOOL=ON
         -DPLUS_USE_ATRACSYS_DEVICE_TYPE:STRING="ftk"
 
+  build_plus_x64_microntracker:
+    needs: [update_vtk_x64, update_itk_x64, build_plus_x64] # Build off of the base x64 package
+    uses: ./.github/workflows/build-plus.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Release]
+        arch: [x64]
+    secrets:
+      pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
+    with:
+      arch: ${{ matrix.arch }}
+      pluslib-repository: https://github.com/${{ github.repository }}.git
+      pluslib-tag: ${{ github.sha }}
+      vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
+      itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
+      plus-cache-key: plus-latest-x64
+      archive-name: PlusApp-MicronTracker-4.1-Win64
+      plus-config: >-
+        -DPLUSAPP_PACKAGE_EDITION:STRING="MTC-4.1"
+        -DPLUSBUILD_BUILDNAME_POSTFIX=MicronTracker-gh-package-x64
+        -DPLUS_USE_MICRONTRACKER:BOOL=ON
+
   build_plus_Win32:
     needs: [update_vtk_Win32, update_itk_Win32]
     uses: ./.github/workflows/build-plus.yml
