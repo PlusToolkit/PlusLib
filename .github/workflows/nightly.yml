@@ -47,7 +47,7 @@ jobs:
         build_type: [Release]
         arch: [x64]
     with:
-      itk-hash: 898def645183e6a2d3293058ade451ec416c4514 # v5.4.2
+      itk-hash: f98d5fac5e1d5ef694f3010f12bbbc2c792994c6 # v5.4.4
       os: ${{ matrix.os }}
       arch: ${{ matrix.arch }}
       build-type: ${{ matrix.build_type }}
@@ -61,7 +61,7 @@ jobs:
         build_type: [Release]
         arch: [Win32]
     with:
-      itk-hash: 898def645183e6a2d3293058ade451ec416c4514 # v5.4.2
+      itk-hash: f98d5fac5e1d5ef694f3010f12bbbc2c792994c6 # v5.4.4
       os: ${{ matrix.os }}
       arch: ${{ matrix.arch }}
       build-type: ${{ matrix.build_type }}
