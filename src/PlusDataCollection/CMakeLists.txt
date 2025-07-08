@@ -130,6 +130,8 @@ SET(Common_SRCS
   vtkFcsvReader.cxx
   vtkFcsvWriter.cxx
   vtkPlusBuffer.cxx
+  vtkPlusParameters.cxx
+  vtkPlusCameraControlParameters.cxx
   vtkPlusUsImagingParameters.cxx
   )
 SET(Virtual_SRCS
@@ -172,6 +174,8 @@ SET(Common_HDRS
   vtkFcsvReader.h
   vtkFcsvWriter.h
   vtkPlusBuffer.h
+  vtkPlusParameters.h
+  vtkPlusCameraControlParameters.h
   vtkPlusUsImagingParameters.h
   )
 SET(Miscellaneous_HDRS
