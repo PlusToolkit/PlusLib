@@ -117,7 +117,7 @@ jobs:
     with:
       arch: ${{ matrix.arch }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
-      pluslib-tag: ${{ github.sha }}
+      pluslib-tag: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
       archive-name: PlusApp-Win64
@@ -155,7 +155,7 @@ jobs:
     with:
       arch: Win32
       pluslib-repository: https://github.com/${{ github.repository }}.git
-      pluslib-tag: ${{ github.sha }}
+      pluslib-tag: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       vtk-cache-key: ${{ needs.update_vtk_Win32.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_Win32.outputs.cache-key }}
       archive-name: PlusApp-Win32
@@ -197,7 +197,7 @@ jobs:
     with:
       arch: ${{ matrix.arch }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
-      pluslib-tag: ${{ github.sha }}
+      pluslib-tag: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       vtk-cache-key: ${{ needs.update_vtk_static_x64.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_static_x64.outputs.cache-key }}
       archive-name: PlusApp-Static-Win64
