@@ -120,36 +120,22 @@ jobs:
       pluslib-tag: ${{ github.sha }}
       vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
-      plus-cache-key: plus-latest-x64
       archive-name: PlusApp-Win64
       plus-config: >-
         -DVTK_DIR=${{ needs.update_vtk_x64.outputs.install-path }}
         -DITK_DIR=${{ needs.update_itk_x64.outputs.install-path }}
         -DPLUSBUILD_BUILDNAME_POSTFIX=gh-ci-x64
         -DPLUS_USE_3dConnexion_TRACKER:BOOL=ON
-        -DPLUS_USE_Ascension3DGm:BOOL=OFF
-        -DPLUS_USE_BKPROFOCUS_VIDEO:BOOL=OFF
         -DPLUS_USE_EPIPHAN:BOOL=ON
-        -DPLUS_USE_ICCAPTURING_VIDEO:BOOL=OFF
         -DPLUS_USE_PHIDGET_SPATIAL_TRACKER:BOOL=ON
         -DPLUS_USE_NDI:BOOL=ON
         -DPLUS_USE_VFW_VIDEO:BOOL=ON
-        -DPLUS_USE_OPTITRACK:BOOL=ON
-        -DPLUS_USE_INTELREALSENSE:BOOL=ON
-        -DPLUSBUILD_PREFER_MicronTracker_36:BOOL=OFF
         -DPLUS_USE_TextRecognizer:BOOL=ON
         -DPLUS_USE_WITMOTIONTRACKER:BOOL=ON
         -DPLUS_USE_MKV_IO:BOOL=ON
         -DPLUS_ENABLE_VIDEOSTREAMING:BOOL=ON
         -DPLUS_USE_VP9:BOOL=ON
-        -DPLUS_USE_Ascension3DG:BOOL=OFF
-        -DPLUS_USE_BRACHY_TRACKER:BOOL=OFF
-        -DPLUS_USE_NDI_CERTUS:BOOL=OFF
-        -DPLUS_USE_ULTRASONIX_VIDEO:BOOL=OFF
-        -DPLUS_USE_INTERSON_VIDEO:BOOL=OFF
-        -DPLUS_USE_MICRONTRACKER:BOOL=OFF
         -DPLUS_USE_MMF_VIDEO:BOOL=ON
-        -DPLUS_USE_STEALTHLINK:BOOL=OFF
         -DPLUS_USE_OPTICAL_MARKER_TRACKER:BOOL=ON
         -DPLUSBUILD_USE_OpenCV:BOOL=ON
         -DPLUS_USE_OpenCV_VIDEO:BOOL=ON
@@ -172,7 +158,6 @@ jobs:
       pluslib-tag: ${{ github.sha }}
       vtk-cache-key: ${{ needs.update_vtk_Win32.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_Win32.outputs.cache-key }}
-      plus-cache-key: plus-latest-Win32
       archive-name: PlusApp-Win32
       plus-config: >-
         -DVTK_DIR=${{ needs.update_vtk_Win32.outputs.install-path }}
@@ -181,14 +166,11 @@ jobs:
         -DPLUSBUILD_BUILDNAME_POSTFIX=gh-ci-Win32
         -DPLUSBUILD_DOCUMENTATION:BOOL=OFF
         -DPLUS_USE_3dConnexion_TRACKER:BOOL=ON
-        -DPLUS_USE_BKPROFOCUS_VIDEO:BOOL=OFF
         -DPLUS_USE_EPIPHAN:BOOL=ON
         -DPLUS_USE_ICCAPTURING_VIDEO:BOOL=ON
         -DPLUS_USE_PHIDGET_SPATIAL_TRACKER:BOOL=ON
         -DPLUS_USE_NDI:BOOL=ON
         -DPLUS_USE_VFW_VIDEO:BOOL=ON
-        -DPLUS_USE_OPTITRACK:BOOL=ON
-        -DPLUS_USE_INTELREALSENSE:BOOL=ON
         -DPLUS_USE_TextRecognizer:BOOL=ON
         -DPLUS_USE_WITMOTIONTRACKER:BOOL=ON
         -DPLUS_USE_MKV_IO:BOOL=ON
@@ -196,9 +178,6 @@ jobs:
         -DPLUS_USE_VP9:BOOL=ON
         -DPLUS_USE_Ascension3DG:BOOL=ON
         -DPLUS_USE_BRACHY_TRACKER:BOOL=ON
-        -DPLUS_USE_NDI_CERTUS:BOOL=ON
-        -DPLUS_USE_MICRONTRACKER:BOOL=ON
-        -DPLUSBUILD_PREFER_MicronTracker_36:BOOL=OFF
         -DPLUS_USE_MMF_VIDEO:BOOL=ON
         -DPLUS_USE_OPTICAL_MARKER_TRACKER:BOOL=ON
         -DPLUSBUILD_USE_OpenCV:BOOL=ON
@@ -222,7 +201,6 @@ jobs:
       pluslib-tag: ${{ github.sha }}
       vtk-cache-key: ${{ needs.update_vtk_static_x64.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_static_x64.outputs.cache-key }}
-      plus-cache-key: plus-static-x64
       archive-name: PlusApp-Static-Win64
       plus-config: >-
         -DVTK_DIR=${{ needs.update_vtk_static_x64.outputs.install-path }}
@@ -230,30 +208,11 @@ jobs:
         -DPLUSBUILD_BUILDNAME_POSTFIX=gh-static-x64
         -DPLUSBUILD_BUILD_SHARED_LIBS:BOOL=OFF
         -DPLUS_USE_3dConnexion_TRACKER:BOOL=ON
-        -DPLUS_USE_Ascension3DGm:BOOL=OFF
-        -DPLUS_USE_BKPROFOCUS_VIDEO:BOOL=OFF
         -DPLUS_USE_EPIPHAN:BOOL=ON
-        -DPLUS_USE_ICCAPTURING_VIDEO:BOOL=OFF
         -DPLUS_USE_PHIDGET_SPATIAL_TRACKER:BOOL=ON
         -DPLUS_USE_NDI:BOOL=ON
         -DPLUS_USE_VFW_VIDEO:BOOL=ON
-        -DPLUS_USE_OPTITRACK:BOOL=OFF
-        -DPLUS_USE_INTELREALSENSE:BOOL=OFF
-        -DPLUSBUILD_PREFER_MicronTracker_36:BOOL=OFF
-        -DPLUS_USE_TextRecognizer:BOOL=OFF
         -DPLUS_USE_WITMOTIONTRACKER:BOOL=ON
-        -DPLUS_USE_MKV_IO:BOOL=OFF
         -DPLUS_ENABLE_VIDEOSTREAMING:BOOL=ON
         -DPLUS_USE_VP9:BOOL=ON
-        -DPLUS_USE_Ascension3DG:BOOL=OFF
-        -DPLUS_USE_BRACHY_TRACKER:BOOL=OFF
-        -DPLUS_USE_NDI_CERTUS:BOOL=OFF
-        -DPLUS_USE_ULTRASONIX_VIDEO:BOOL=OFF
-        -DPLUS_USE_INTERSON_VIDEO:BOOL=OFF
-        -DPLUS_USE_MICRONTRACKER:BOOL=OFF
         -DPLUS_USE_MMF_VIDEO:BOOL=ON
-        -DPLUS_USE_STEALTHLINK:BOOL=OFF
-        -DPLUS_USE_OPTICAL_MARKER_TRACKER:BOOL=OFF
-        -DPLUSBUILD_USE_OpenCV:BOOL=OFF
-        -DPLUS_USE_OpenCV_VIDEO:BOOL=OFF
-        -DPLUSBUILD_USE_aruco:BOOL=OFF

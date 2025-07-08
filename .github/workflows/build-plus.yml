@@ -52,6 +52,11 @@ on:
         required: false
         type: string
         default: install_branch_temp
+      
+      use-pltools:
+        required: false
+        type: boolean
+        default: false
 
     secrets:
       pltools-access-token:
@@ -97,6 +102,7 @@ jobs:
         path: PlusBuild
 
     - name: Clone PLTools
+      if: ${{ inputs.use-pltools }}
       uses: actions/checkout@v4
       with:
         repository: PerkLab/PLTools
