@@ -15,10 +15,7 @@ vtkStandardNewMacro(vtkPlusUsImagingParameters);
 
 //----------------------------------------------------------------------------
 
-const char* vtkPlusUsImagingParameters::XML_ELEMENT_TAG   = "UsImagingParameters";
-const char* vtkPlusUsImagingParameters::US_PARAMETER_TAG  = "UsParameter";
-const char* vtkPlusUsImagingParameters::NAME_TAG          = "name";
-const char* vtkPlusUsImagingParameters::VALUE_TAG         = "value";
+const char* vtkPlusUsImagingParameters::US_XML_ELEMENT_TAG   = "UsImagingParameters";
 const char* vtkPlusUsImagingParameters::KEY_CONTRAST      = "Contrast";
 const char* vtkPlusUsImagingParameters::KEY_DEPTH         = "DepthMm";
 const char* vtkPlusUsImagingParameters::KEY_FOCUS_DEPTH   = "FocusDepthPercent";
@@ -36,7 +33,7 @@ const char* vtkPlusUsImagingParameters::KEY_IMAGESIZE     = "ImageSize";
 
 //----------------------------------------------------------------------------
 vtkPlusUsImagingParameters::vtkPlusUsImagingParameters()
-  : vtkObject()
+  : vtkPlusParameters()
 {
   this->Parameters[KEY_FREQUENCY] = ParameterInfo("-1");
   this->Parameters[KEY_DEPTH] = ParameterInfo("-1");
@@ -332,19 +329,6 @@ float vtkPlusUsImagingParameters::GetSoundVelocity() const
   return aValue;
 }
 
-// Check
-//----------------------------------------------------------------------------
-vtkPlusUsImagingParameters::ParameterMapConstIterator vtkPlusUsImagingParameters::begin() const
-{
-  return this->Parameters.begin();
-}
-
-//----------------------------------------------------------------------------
-vtkPlusUsImagingParameters::ParameterMapConstIterator vtkPlusUsImagingParameters::end() const
-{
-  return this->Parameters.end();
-}
-
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusUsImagingParameters::SetProbeVoltage(float aVoltage)
 {
@@ -429,163 +413,4 @@ FrameSizeType vtkPlusUsImagingParameters::GetImageSize() const
   FrameSizeType imageSize;
   this->GetImageSize(imageSize);
   return imageSize;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusUsImagingParameters::PrintSelf(ostream& os, vtkIndent indent)
-{
-  Superclass::PrintSelf(os, indent);
-
-  for (ParameterMap::iterator it = this->Parameters.begin(); it != this->Parameters.end(); ++it)
-  {
-    if (it->second.Set == true)
-    {
-      os << indent << it->first << ": " << it->second.Value
-         << (it->second.Pending ? " (pending)" : "") << std::endl;
-    }
-  }
-}
-
-//-----------------------------------------------------------------------------
-PlusStatus vtkPlusUsImagingParameters::ReadConfiguration(vtkXMLDataElement* deviceConfig)
-{
-  vtkXMLDataElement* parameterList(NULL);
-  for (int i = 0; i < deviceConfig->GetNumberOfNestedElements(); ++i)
-  {
-    vtkXMLDataElement* element = deviceConfig->GetNestedElement(i);
-    if (STRCASECMP(element->GetName(), XML_ELEMENT_TAG) == 0)
-    {
-      parameterList = element;
-      break;
-    }
-  }
-
-  if (parameterList == NULL)
-  {
-    LOG_ERROR("Unable to locate UsImagingParameters tag in device config. Unable to read imaging parameters. Device defaults will probably be used.");
-    return PLUS_FAIL;
-  }
-
-  for (int i = 0; i < parameterList->GetNumberOfNestedElements(); ++i)
-  {
-    vtkXMLDataElement* element = parameterList->GetNestedElement(i);
-    std::string name = element->GetAttribute(NAME_TAG) ? element->GetAttribute(NAME_TAG) : "";
-    std::string value = element->GetAttribute(VALUE_TAG) ? element->GetAttribute(VALUE_TAG) : "";
-    if (name.empty())
-    {
-      continue;
-    }
-
-    if (this->Parameters[name].Value != value)
-    {
-      // If the value changed, then mark it pending
-      this->Parameters[name].Pending = true;
-    }
-    this->Parameters[name].Value = value;
-    this->Parameters[name].Set = true;
-  }
-
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-PlusStatus vtkPlusUsImagingParameters::WriteConfiguration(vtkXMLDataElement* deviceConfig)
-{
-  /* Create a sub node, populate it with entries of the form
-  <device ...>
-    <UsImagingParameters>
-      <UsParameter name="DepthMm" value="55"/>
-      <UsParameter name="FrequencyMhz" value="12.5"/>
-    </UsImagingParameters>
-    ...
-  </device>
-  */
-
-  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(parameterList, deviceConfig, XML_ELEMENT_TAG);
-
-  // Clear the list before writing new elements
-  parameterList->RemoveAllNestedElements();
-
-  for (ParameterMap::iterator it = this->Parameters.begin(); it != this->Parameters.end(); ++it)
-  {
-    if (it->second.Set == false)
-    {
-      // Don't write out parameters that are defaults
-      continue;
-    }
-
-    vtkSmartPointer<vtkXMLDataElement> parameter = vtkSmartPointer<vtkXMLDataElement>::New();
-    parameter->SetName(US_PARAMETER_TAG);
-    parameter->SetAttribute(NAME_TAG, it->first.c_str());
-    parameter->SetAttribute(VALUE_TAG, it->second.Value.c_str());
-
-    parameterList->AddNestedElement(parameter);
-  }
-
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-bool vtkPlusUsImagingParameters::IsSet(const std::string& paramName) const
-{
-  ParameterMapConstIterator keyIt = this->Parameters.find(paramName);
-  if (keyIt != this->Parameters.end())
-  {
-    return keyIt->second.Set;
-  }
-
-  LOG_ERROR("Invalid key request sent to vtkPlusUsImagingParameters::IsSet -- " << paramName);
-  return false;
-}
-
-//-----------------------------------------------------------------------------
-bool vtkPlusUsImagingParameters::IsPending(const std::string& paramName) const
-{
-  ParameterMapConstIterator keyIt = this->Parameters.find(paramName);
-  if (keyIt != this->Parameters.end())
-  {
-    return keyIt->second.Pending;
-  }
-
-  LOG_ERROR("Invalid key request sent to vtkPlusUsImagingParameters::IsPending -- " << paramName);
-  return false;
-}
-
-//-----------------------------------------------------------------------------
-PlusStatus vtkPlusUsImagingParameters::SetPending(const std::string& paramName, bool pending)
-{
-  ParameterMapIterator keyIt = this->Parameters.find(paramName);
-  if (keyIt != this->Parameters.end())
-  {
-    if (keyIt->second.Set)
-    {
-      keyIt->second.Pending = pending;
-      return PLUS_SUCCESS;
-    }
-    else
-    {
-      LOG_ERROR("Pending status cannot be set for unset parameter -- " << paramName);
-      return PLUS_FAIL;
-    }
-  }
-
-  LOG_ERROR("Invalid key request sent to vtkPlusUsImagingParameters::SetPending -- " << paramName);
-  return PLUS_FAIL;
-}
-
-//-----------------------------------------------------------------------------
-PlusStatus vtkPlusUsImagingParameters::DeepCopy(const vtkPlusUsImagingParameters& otherParameters)
-{
-  for (ParameterMapConstIterator it = otherParameters.Parameters.begin(); it != otherParameters.Parameters.end(); ++it)
-  {
-    if (this->Parameters[it->first].Value != it->second.Value)
-    {
-      // If the value changed, then mark it pending
-      this->Parameters[it->first].Pending = true;
-    }
-    this->Parameters[it->first].Value = it->second.Value;
-    this->Parameters[it->first].Set = it->second.Set;
-  }
-
-  return PLUS_SUCCESS;
 }

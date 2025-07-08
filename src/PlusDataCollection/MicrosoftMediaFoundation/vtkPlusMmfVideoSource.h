@@ -25,6 +25,7 @@ Authors include: Danielle Pace
 #include <vtkSmartPointer.h>
 
 class MmfVideoSourceReader;
+class vtkPlusCameraControlParameters;
 
 /*!
   \class vtkPlusMmfVideoSource
@@ -96,12 +97,17 @@ protected:
 
   std::wstring GetCaptureDeviceName(unsigned int deviceId);
 
+  /*! Set changed camera control parameter to device */
+  virtual PlusStatus InternalApplyCameraControlParameterChange();
+
   int FrameIndex;
 
   vtkSmartPointer<vtkIGSIORecursiveCriticalSection> Mutex;
   igsioVideoFrame UncompressedVideoFrame;
   VideoFormat RequestedVideoFormat;
   VideoFormat ActiveVideoFormat;
+
+  vtkSmartPointer<vtkPlusCameraControlParameters> CameraControlParameters;
 
   MmfVideoSourceReader* MmfSourceReader;
 private:
