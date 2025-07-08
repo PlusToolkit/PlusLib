@@ -81,6 +81,7 @@ jobs:
       arch: ${{ matrix.arch }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
+      use-pltools: true
       vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
       plus-cache-key: plus-latest-x64
@@ -133,6 +134,7 @@ jobs:
       arch: ${{ matrix.arch }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
+      use-pltools: true
       vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
       plus-cache-key: plus-latest-x64
@@ -157,6 +159,7 @@ jobs:
       arch: ${{ matrix.arch }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
+      use-pltools: true
       vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
       plus-cache-key: plus-latest-x64
@@ -181,6 +184,7 @@ jobs:
       arch: ${{ matrix.arch }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
+      use-pltools: true
       vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
       plus-cache-key: plus-latest-x64
@@ -205,6 +209,7 @@ jobs:
       arch: ${{ matrix.arch }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
+      use-pltools: true
       vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
       plus-cache-key: plus-latest-x64
@@ -231,6 +236,7 @@ jobs:
       arch: ${{ matrix.arch }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
+      use-pltools: true
       vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
       plus-cache-key: plus-latest-x64
@@ -256,6 +262,7 @@ jobs:
       arch: ${{ matrix.arch }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
+      use-pltools: true
       vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
       plus-cache-key: plus-latest-x64
@@ -280,6 +287,7 @@ jobs:
       arch: ${{ matrix.arch }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
+      use-pltools: true
       vtk-cache-key: ${{ needs.update_vtk_Win32.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_Win32.outputs.cache-key }}
       plus-cache-key: plus-latest-Win32
@@ -330,6 +338,7 @@ jobs:
       arch: ${{ matrix.arch }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
+      use-pltools: true
       vtk-cache-key: ${{ needs.update_vtk_Win32.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_Win32.outputs.cache-key }}
       plus-cache-key: plus-latest-Win32
@@ -354,6 +363,7 @@ jobs:
       arch: ${{ matrix.arch }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
+      use-pltools: true
       vtk-cache-key: ${{ needs.update_vtk_Win32.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_Win32.outputs.cache-key }}
       plus-cache-key: plus-latest-Win32
@@ -378,6 +388,7 @@ jobs:
       arch: ${{ matrix.arch }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
+      use-pltools: true
       vtk-cache-key: ${{ needs.update_vtk_Win32.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_Win32.outputs.cache-key }}
       plus-cache-key: plus-latest-Win32
