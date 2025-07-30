@@ -34,6 +34,9 @@ See License.txt for details.
 #ifdef PLUS_USE_USDIGITALENCODERS_TRACKER
   #include "vtkPlusUSDigitalEncoderCommand.h"
 #endif
+#ifdef PLUS_USE_MMF_VIDEO
+  #include "vtkPlusSetCameraControlParameterCommand.h"
+#endif
 
 
 #include "vtkPlusAddRecordingDeviceCommand.h"
@@ -105,6 +108,9 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
 #endif
 #ifdef PLUS_USE_USDIGITALENCODERS_TRACKER
   RegisterPlusCommand(vtkSmartPointer<vtkPlusUSDigitalEncoderCommand>::New());
+#endif
+#ifdef PLUS_USE_MMF_VIDEO
+  RegisterPlusCommand(vtkSmartPointer<vtkPlusSetCameraControlParameterCommand>::New());
 #endif
 }
 

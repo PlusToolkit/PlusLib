@@ -747,6 +747,17 @@ std::wstring vtkPlusMmfVideoSource::GetCaptureDeviceName(unsigned int deviceId)
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusMmfVideoSource::SetNewCameraControlParameters(const vtkPlusCameraControlParameters& newCameraControlParameters)
+{
+  this->CameraControlParameters->DeepCopy(newCameraControlParameters);
+  if (this->IsConnected() && this->IsRecording())
+  {
+    // If we are connected and recording, apply the new camera control parameters immediately
+    return this->InternalApplyCameraControlParameterChange();
+  }
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusMmfVideoSource::InternalApplyCameraControlParameterChange()
 {
   if (this->MmfSourceReader->CaptureSource == NULL)

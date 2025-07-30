@@ -89,6 +89,17 @@ IF(PLUS_USE_USDIGITALENCODERS_TRACKER)
   LIST(APPEND ${PROJECT_NAME}_HDRS Commands/vtkPlusUSDigitalEncoderCommand.h)
 ENDIF()
 
+IF (PLUS_USE_MMF_VIDEO)
+  LIST(APPEND ${PROJECT_NAME}_SRCS 
+    Commands/vtkPlusSetCameraControlParameterCommand.cxx
+    #Commands/vtkPlusGetCameraControlParameterCommand.cxx
+    )
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    Commands/vtkPlusSetCameraControlParameterCommand.h
+    #Commands/vtkPlusGetCameraControlParameterCommand.h
+    )
+ENDIF()
+
 SET(${PROJECT_NAME}_INCLUDE_DIRS 
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${CMAKE_CURRENT_BINARY_DIR} 
