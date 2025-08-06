@@ -121,7 +121,7 @@ private: // Functions
   std::vector<std::string> DisabledToolIds;
 
   class vtkInternal;
-  vtkInternal* Internal;
+  vtkInternal* InternalObj;
 };
 
 #endif
