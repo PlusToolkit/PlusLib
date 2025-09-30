@@ -103,6 +103,8 @@ jobs:
       arch: ${{ matrix.arch }}
       build-type: ${{ matrix.build_type }}
 
+  ########
+  # BUILD PLUS
   build_plus_x64:
     needs: [update_vtk_x64, update_itk_x64]
     uses: ./.github/workflows/build-plus.yml
@@ -116,6 +118,7 @@ jobs:
       pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
     with:
       arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
       pluslib-repository: https://github.com/${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}.git
       pluslib-tag: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
@@ -153,7 +156,8 @@ jobs:
     secrets:
       pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
     with:
-      arch: Win32
+      arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
       pluslib-repository: https://github.com/${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}.git
       pluslib-tag: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       vtk-cache-key: ${{ needs.update_vtk_Win32.outputs.cache-key }}
@@ -196,6 +200,7 @@ jobs:
       pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
     with:
       arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
       pluslib-repository: https://github.com/${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}.git
       pluslib-tag: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       vtk-cache-key: ${{ needs.update_vtk_static_x64.outputs.cache-key }}

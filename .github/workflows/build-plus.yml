@@ -7,6 +7,9 @@ on:
         required: true
         type: string
         default: x64
+      os:
+        required: true
+        type: string
       # Dependency versions
       qt-version:
         required: false
@@ -64,7 +67,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ${{ inputs.os }}
 
     steps:
     - name: Restore VTK Cache

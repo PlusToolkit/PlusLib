@@ -79,6 +79,7 @@ jobs:
       pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
     with:
       arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
       use-pltools: true
@@ -132,6 +133,7 @@ jobs:
       pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
     with:
       arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
       use-pltools: true
@@ -157,6 +159,7 @@ jobs:
       pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
     with:
       arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
       use-pltools: true
@@ -182,6 +185,7 @@ jobs:
       pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
     with:
       arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
       use-pltools: true
@@ -207,6 +211,7 @@ jobs:
       pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
     with:
       arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
       use-pltools: true
@@ -234,6 +239,7 @@ jobs:
       pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
     with:
       arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
       use-pltools: true
@@ -260,6 +266,7 @@ jobs:
       pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
     with:
       arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
       use-pltools: true
@@ -285,6 +292,7 @@ jobs:
       pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
     with:
       arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
       use-pltools: true
@@ -336,6 +344,7 @@ jobs:
       pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
     with:
       arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
       use-pltools: true
@@ -361,6 +370,7 @@ jobs:
       pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
     with:
       arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
       use-pltools: true
@@ -386,6 +396,7 @@ jobs:
       pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
     with:
       arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
       pluslib-repository: https://github.com/${{ github.repository }}.git
       pluslib-tag: ${{ github.sha }}
       use-pltools: true
