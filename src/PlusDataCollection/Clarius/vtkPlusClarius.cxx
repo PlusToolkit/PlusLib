@@ -736,7 +736,7 @@ PlusStatus vtkPlusClarius::vtkInternal::ReceiveRawData(int dataSize)
 
   CusReturnFn returnFunction = (CusReturnFn)(&vtkInternal::RawDataWriteFn);
   this->AllocateRawData(dataSize);
-  cusCastReadRawData(&this->RawDataPointer, returnFunction);
+  castReadRawData(&this->RawDataPointer, returnFunction);
   return PLUS_SUCCESS;
 }
 
@@ -857,12 +857,12 @@ vtkPlusClarius::~vtkPlusClarius()
 
   if (this->Connected)
   {
-    cusCastDisconnect(BLOCKINGCALL);
+    castDisconnect(BLOCKINGCALL);
   }
 
   if (this->Internal->Initialized)
   {
-    int destroyed = cusCastDestroy();
+    int destroyed = castDestroy();
     if (destroyed != 0)
     {
       LOG_ERROR("Error destoying the listener");
@@ -1187,7 +1187,7 @@ PlusStatus vtkPlusClarius::InternalConnect()
       initParams.errorFn = errorCallBackFnPtr;
       initParams.width = this->FrameWidth;
       initParams.height = this->FrameHeight;
-      if (cusCastInit(&initParams) < 0)
+      if (castInit(&initParams) < 0)
       {
         return PLUS_FAIL;
       }
@@ -1214,7 +1214,7 @@ PlusStatus vtkPlusClarius::InternalConnect()
     try
     {
       CusConnectFn returnFunction = (CusConnectFn)(&vtkInternal::ConnectReturnFn);
-      cusCastConnect(ip, this->TcpPort, "research", returnFunction);
+      castConnect(ip, this->TcpPort, "research", returnFunction);
 
       // Wait for the udp port to be determined.
       int maxConnectionAttempts = 20;
@@ -1249,7 +1249,7 @@ PlusStatus vtkPlusClarius::InternalConnect()
 
     if (this->Internal->UdpPort != -1)
     {
-      if (cusCastSetOutputSize(this->FrameWidth, this->FrameHeight) < 0)
+      if (castSetOutputSize(this->FrameWidth, this->FrameHeight) < 0)
       {
         LOG_DEBUG("Clarius Output size can not be set, falling back to default 640*480");
         this->FrameWidth = DEFAULT_FRAME_WIDTH;
@@ -1287,7 +1287,7 @@ PlusStatus vtkPlusClarius::InternalDisconnect()
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
   if (device->GetConnected())
   {
-    if (cusCastDisconnect(nullptr) < 0)
+    if (castDisconnect(nullptr) < 0)
     {
       LOG_ERROR("could not disconnect from scanner");
       return PLUS_FAIL;
@@ -1347,6 +1347,6 @@ PlusStatus vtkPlusClarius::RequestRawData(long long int startTimestamp, long lon
   this->Internal->IsReceivingRawData = true;
 
   CusRawRequestFn returnFunction = (CusRawRequestFn)(&vtkInternal::RawDataRequestFn);
-  cusCastRequestRawData(startTimestamp, endTimestamp, 0, returnFunction);
+  castRequestRawData(startTimestamp, endTimestamp, 0, returnFunction);
   return PLUS_SUCCESS;
 }
