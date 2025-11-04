@@ -84,10 +84,12 @@ public:
   int MaxMissingFiducials = 0; // maximum number of missing fiducials
 
   // matches plus tool id to .ini geometry file names/paths
-  std::map<std::string, std::string> PlusIdMappedToGeometryFilename;
+  std::map<std::string, std::string> ToolIdMappedToGeometryFilename;
 
-  // matches fusionTrack internal tool geometry ID to Plus tool ID for updating tools
-  std::map<int, std::string> FtkGeometryIdMappedToToolId;
+  // matches Atracsys internal tool geometry ID to Plus tool ID for updating tools
+  std::map<int, std::string> AtracGeomIdMappedToToolId;
+  // reverse lookup, Plus tool ID to Atracsys internal tool geometry ID
+  std::map<std::string, int> ToolIdMappedToAtracGeomId;
 
   // Atracsys API wrapper class handle
   Atracsys::Tracker Tracker;
@@ -128,6 +130,14 @@ std::string vtkPlusAtracsysTracker::GetSdkVersion()
   std::string v;
   this->InternalObj->Tracker.GetSDKversion(v);
   return v;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusAtracsysTracker::GetFirmwareSoftwareVersion()
+{
+    std::string d;
+    this->InternalObj->Tracker.GetFirmwareSoftwareVersion(d);
+    return d;
 }
 
 //----------------------------------------------------------------------------
@@ -188,6 +198,32 @@ PlusStatus vtkPlusAtracsysTracker::GetLoadedGeometries(std::map<int, std::vector
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusAtracsysTracker::GetMarkerGeometry(std::string toolId, std::string& relPath,
+  int& geomId, std::vector<std::array<float, 3>>& fidCoords)
+{
+  if (this->InternalObj->ToolIdMappedToGeometryFilename.find(toolId) == this->InternalObj->ToolIdMappedToGeometryFilename.cend())
+  {
+    LOG_ERROR("Could not get geometry filename for tool " << toolId);
+    return PLUS_FAIL;
+  }
+  relPath = this->InternalObj->ToolIdMappedToGeometryFilename.at(toolId);
+
+  if (this->InternalObj->ToolIdMappedToAtracGeomId.find(toolId) == this->InternalObj->ToolIdMappedToAtracGeomId.cend())
+  {
+    LOG_ERROR("Could not get marker geometry for tool " << toolId);
+    return PLUS_FAIL;
+  }
+  geomId = this->InternalObj->ToolIdMappedToAtracGeomId.at(toolId);
+
+  if (this->InternalObj->Tracker.GetFiducialCoordinates(geomId, fidCoords) != ATR_SUCCESS)
+  {
+    LOG_ERROR("Could not get fiducial coordinates for geometry id " << geomId);
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 bool vtkPlusAtracsysTracker::IsVirtual() const
 {
   return this->InternalObj->Tracker.IsVirtual();
@@ -238,13 +274,13 @@ PlusStatus vtkPlusAtracsysTracker::ReadConfiguration(vtkXMLDataElement* rootConf
     XML_READ_ENUM2_ATTRIBUTE_NONMEMBER_OPTIONAL(TrackingType, toolTrackingType, toolDataElement, "ACTIVE", ACTIVE, "PASSIVE", PASSIVE);
     if (toolTrackingType == ACTIVE)
     {
-      // active tool, can be loaded directly into FtkGeometryIdMappedToToolId
+      // active tool, can be loaded directly into AtracGeomIdMappedToToolId
       int ftkGeometryId = -1;
       XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, GeometryId, ftkGeometryId, toolDataElement);
       if (ftkGeometryId != -1)
       {
-        std::pair<int, std::string> thisTool(ftkGeometryId, toolId);
-        this->InternalObj->FtkGeometryIdMappedToToolId.insert(thisTool);
+        this->InternalObj->AtracGeomIdMappedToToolId.insert(std::make_pair(ftkGeometryId, toolId));
+        this->InternalObj->ToolIdMappedToAtracGeomId.insert(std::make_pair(toolId, ftkGeometryId));
       }
       else
       {
@@ -254,12 +290,11 @@ PlusStatus vtkPlusAtracsysTracker::ReadConfiguration(vtkXMLDataElement* rootConf
     }
     else if (toolTrackingType == PASSIVE)
     {
-      // passive tool, load into PlusIdMappedToGeometryFilename to have geometry loaded in InternalConnect
+      // passive tool, load into ToolIdMappedToGeometryFilename to have geometry loaded in InternalConnect
       const char* geometryFile;
       if ((geometryFile = toolDataElement->GetAttribute("GeometryFile")) != NULL)
       {
-        std::pair<std::string, std::string> thisTool(toolId, geometryFile);
-        this->InternalObj->PlusIdMappedToGeometryFilename.insert(thisTool);
+        this->InternalObj->ToolIdMappedToGeometryFilename.insert(std::make_pair(toolId, geometryFile));
       }
       else
       {
@@ -326,8 +361,17 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
 {
   LOG_TRACE("vtkPlusAtracsysTracker::InternalConnect");
 
+  // Check if network configuration file is provided
+  std::string networkConfigPath;
+  if (this->InternalObj->DeviceOptions.find("NetworkConfigFile") != this->InternalObj->DeviceOptions.end())
+  {
+    networkConfigPath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(
+        this->InternalObj->DeviceOptions["NetworkConfigFile"]);
+  }
+
   // Connect to device
-  ATR_RESULT result = this->InternalObj->Tracker.Connect();
+  ATR_RESULT result = this->InternalObj->Tracker.Connect(networkConfigPath.empty() ? "" : networkConfigPath.c_str());
+
   if (result != ATR_SUCCESS && result != ATR_RESULT::WARNING_CONNECTED_IN_USB2)
   {
     LOG_ERROR(this->InternalObj->Tracker.ResultToString(result));
@@ -540,7 +584,8 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
       }
     }
     else if (itr->first != "AcquisitionRate" && itr->first != "Id" && itr->first != "Type"
-      && itr->first != "ToolReferenceFrame" && itr->first != "Enable_embedded_processing")
+      && itr->first != "ToolReferenceFrame" && itr->first != "Enable_embedded_processing"
+      && itr->first != "NetworkConfigFile")
     {
       LOG_WARNING("Unknown option \"" << itr->first << "\".");
       itr = this->InternalObj->DeviceOptions.erase(itr);
@@ -564,7 +609,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
 
   // load passive geometries onto Atracsys
   std::map<std::string, std::string>::iterator it;
-  for (it = begin(this->InternalObj->PlusIdMappedToGeometryFilename); it != end(this->InternalObj->PlusIdMappedToGeometryFilename); it++)
+  for (it = begin(this->InternalObj->ToolIdMappedToGeometryFilename); it != end(this->InternalObj->ToolIdMappedToGeometryFilename); it++)
   {
     // load user defined geometry file
     // TODO: add check for conflicting marker IDs
@@ -575,8 +620,8 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
       LOG_ERROR(this->InternalObj->Tracker.ResultToString(result) << " This error occurred when trying to load geometry file at path: " << geomFilePath);
       return PLUS_FAIL;
     }
-    std::pair<int, std::string> newTool(geometryId, it->first);
-    this->InternalObj->FtkGeometryIdMappedToToolId.insert(newTool);
+    this->InternalObj->AtracGeomIdMappedToToolId.insert(std::make_pair(geometryId, it->first));
+    this->InternalObj->ToolIdMappedToAtracGeomId.insert(std::make_pair(it->first, geometryId));
   }
 
   // if active marker pairing is desired, then its time > 0 second
@@ -702,7 +747,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
   }
 
   std::map<int, std::string>::iterator it;
-  for (it = this->InternalObj->FtkGeometryIdMappedToToolId.begin(); it != this->InternalObj->FtkGeometryIdMappedToToolId.end(); it++)
+  for (it = this->InternalObj->AtracGeomIdMappedToToolId.begin(); it != this->InternalObj->AtracGeomIdMappedToToolId.end(); it++)
   {
     if (std::find(this->DisabledToolIds.begin(), this->DisabledToolIds.end(), it->second) != this->DisabledToolIds.end())
     {
@@ -834,7 +879,7 @@ PlusStatus vtkPlusAtracsysTracker::SetToolEnabled(std::string toolId, bool enabl
   // tool should be disabled, if it exists add to disabled list
   bool toolExists = false;
   std::map<int, std::string>::iterator it;
-  for (it = this->InternalObj->FtkGeometryIdMappedToToolId.begin(); it != this->InternalObj->FtkGeometryIdMappedToToolId.end(); it++)
+  for (it = this->InternalObj->AtracGeomIdMappedToToolId.begin(); it != this->InternalObj->AtracGeomIdMappedToToolId.end(); it++)
   {
     if (igsioCommon::IsEqualInsensitive(it->second, toolId))
     {
@@ -859,7 +904,7 @@ PlusStatus vtkPlusAtracsysTracker::AddToolGeometry(std::string toolId, std::stri
   // make sure geometry with toolId doesn't already exist
   bool toolExists = false;
   std::map<int, std::string>::iterator it;
-  for (it = this->InternalObj->FtkGeometryIdMappedToToolId.begin(); it != this->InternalObj->FtkGeometryIdMappedToToolId.end(); it++)
+  for (it = this->InternalObj->AtracGeomIdMappedToToolId.begin(); it != this->InternalObj->AtracGeomIdMappedToToolId.end(); it++)
   {
     if (igsioCommon::IsEqualInsensitive(it->second, toolId))
     {
@@ -889,7 +934,7 @@ PlusStatus vtkPlusAtracsysTracker::AddToolGeometry(std::string toolId, std::stri
   aToolSource->SetId(toolId);
   this->AddTool(aToolSource);
 
-  // TO DO: add fiducial data as separate sources ?
+  // TODO: add fiducial data as separate sources ?
   //vtkSmartPointer<vtkPlusDataSource> aFids3dSource = vtkSmartPointer<vtkPlusDataSource>::New();
   //aFids3dSource->SetReferenceCoordinateFrameName(this->ToolReferenceFrameName);
   //aFids3dSource->SetType(DATA_SOURCE_TYPE_FIELDDATA);
@@ -925,7 +970,7 @@ PlusStatus vtkPlusAtracsysTracker::AddToolGeometry(std::string toolId, std::stri
 
   // register this tool internally
   std::pair<int, std::string> newTool(geometryId, toolId);
-  this->InternalObj->FtkGeometryIdMappedToToolId.insert(newTool);
+  this->InternalObj->AtracGeomIdMappedToToolId.insert(newTool);
 
   return PLUS_SUCCESS;
 }

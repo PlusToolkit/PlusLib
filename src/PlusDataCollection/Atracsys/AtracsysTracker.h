@@ -125,7 +125,8 @@ namespace Atracsys
       ERROR_CANNOT_GET_MARKER_INFO,
       ERROR_FAILED_TO_SET_STK_PROCESSING_TYPE,
       ERROR_OPTION_NOT_FOUND,
-      ERROR_SET_OPTION
+      ERROR_SET_OPTION,
+      ERROR_REQUESTED_GEOMETRY_NOT_FOUND
     };
 
     enum DEVICE_TYPE
@@ -153,13 +154,16 @@ namespace Atracsys
     void Pause(bool tof);
 
     /*! Connect to Atracsys tracker, must be called before any other function in this wrapper API. */
-    RESULT Connect();
+    RESULT Connect(const std::string& networkConfigFile = "");
 
     /*! Closes connections to Atracsys tracker, must be called at end of application. */
     RESULT Disconnect();
 
     /*! */
     RESULT GetSDKversion(std::string& version);
+
+    /*! */
+    RESULT GetFirmwareSoftwareVersion(std::string& version);
 
     /*! */
     RESULT GetCalibrationDate(std::string& date);
@@ -190,6 +194,9 @@ namespace Atracsys
 
     /*! */
     RESULT GetLoadedGeometries(std::map<int, std::vector<std::array<float,3>>>& geometries);
+
+    /*! */
+    RESULT GetFiducialCoordinates(int geomId, std::vector<std::array<float, 3>>& fidCoords);
 
     /*! */
     std::string ResultToString(RESULT result);

@@ -479,12 +479,13 @@ void TransformMarkerCoordinateSystem(Fiducials& fids)
   // Look for the largest *unique* distance from the centroid, the corresponding fiducial will
   // define the x-axis.
   vec3 x;
+  int xfidId{ -1 };
   for (auto prev = dists.begin(), curr = ++dists.begin(); curr != dists.end(); ++prev, ++curr)
   {
     if (std::abs(prev->first - curr->first) > 0.1)
     {
-      auto fidId = (prev == dists.begin()) ? prev->second : curr->second;
-      x = vec3(fids[fidId]);
+      xfidId = (prev == dists.begin()) ? prev->second : curr->second;
+      x = vec3(fids[xfidId]);
       break;
     }
   }
@@ -497,12 +498,13 @@ void TransformMarkerCoordinateSystem(Fiducials& fids)
   }
   // Look for the largest *unique* distance from x-axis, it will define the plane of the y-axis.
   vec3 p;
+  int yfidId{ -1 };
   for (auto prev = dists2.begin(), curr = ++dists2.begin(); curr != dists2.end(); ++prev, ++curr)
   {
     if (std::abs(prev->first - curr->first) > 0.1)
     {
-      auto fidId = (prev == dists2.begin()) ? prev->second : curr->second;
-      p = vec3(fids[fidId]);
+      yfidId = (prev == dists2.begin()) ? prev->second : curr->second;
+      p = vec3(fids[yfidId]);
       break;
     }
   }
@@ -511,6 +513,24 @@ void TransformMarkerCoordinateSystem(Fiducials& fids)
   vec3 vz = (vx.cross(p - c)).normalize();
   vec3 vy = vz.cross(vx);
 
+  // Create new fiducial order:
+  // {fiducial defining x-axis, fiducial defining y-axis, remaining fiducials in descending order
+  // of distance to x-axis}
+  std::vector<int> newFidOrder{ xfidId, yfidId };
+  for (auto d = dists2.begin(); d != dists2.end(); ++d)
+  {
+      if (d->second != xfidId && d->second != yfidId)
+          newFidOrder.push_back(d->second);
+  }
+  // Apply new order to fiducials
+  for (int i = 0; i < newFidOrder.size(); ++i) {
+      size_t j = newFidOrder[i];
+      while (j != i) {
+          std::swap(fids[i], fids[j]);
+          std::swap(newFidOrder[i], newFidOrder[j]);
+          j = newFidOrder[i];
+      }
+  }
   // Store the coordinates of each fiducial in the new coordinate system.
   for (auto& fid : fids)
   {
