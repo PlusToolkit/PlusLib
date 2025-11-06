@@ -192,9 +192,9 @@ IF(PLUS_USE_INTERSONSDKCXX_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkIntersonSDKCxxVideoSourceTest vtkintersonSDKCxxVideoSourceTest.cxx)
   SET_TARGET_PROPERTIES(vtkIntersonSDKCxxVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkIntersonSDKCxxVideoSourceTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
-  ADD_TEST(NAME vtkIntersonSDKCxxVideoSourceTest 
+  ADD_TEST(NAME vtkIntersonSDKCxxVideoSourceTest
     COMMAND $<TARGET_FILE:vtkIntersonSDKCxxVideoSourceTest>
-    --rendering-off 
+    --rendering-off
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonSDKCxxVideoSourceTest.xml
     )
   ADD_TEST(NAME vtkIntersonSDKCxxVideoSourceScanConvertTest
@@ -295,7 +295,7 @@ IF(PLUS_USE_ICCAPTURING_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkICCapturingSourceTest1 vtkICCapturingSourceTest1.cxx )
   SET_TARGET_PROPERTIES(vtkICCapturingSourceTest1 PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkICCapturingSourceTest1 vtkPlusDataCollection ${PLUSLIB_VTK_PREFIX}InteractionImage)
-  # ADD_TEST(vtkICCapturingSourceTest1 
+  # ADD_TEST(vtkICCapturingSourceTest1
   #   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkICCapturingSourceTest1
   #   --rendering-off
   #   )
@@ -334,8 +334,8 @@ ENDIF()
 IF(PLUS_USE_CAPISTRANO_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkCapistranoVideoSourceTest vtkCapistranoVideoSourceTest.cxx )
   SET_TARGET_PROPERTIES(vtkCapistranoVideoSourceTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkCapistranoVideoSourceTest vtkPlusDataCollection ${PLUSLIB_VTK_PREFIX}InteractionImage) 
-  ADD_TEST(NAME vtkCapistranoVideoSourceTest 
+  TARGET_LINK_LIBRARIES(vtkCapistranoVideoSourceTest vtkPlusDataCollection ${PLUSLIB_VTK_PREFIX}InteractionImage)
+  ADD_TEST(NAME vtkCapistranoVideoSourceTest
     COMMAND $<TARGET_FILE:vtkCapistranoVideoSourceTest>
     --rendering-off
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_CapistranoVideoSourceTest.xml
@@ -346,8 +346,8 @@ ENDIF()
 IF(PLUS_USE_WINPROBE_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkWinProbeVideoSourceTest vtkWinProbeVideoSourceTest.cxx )
   SET_TARGET_PROPERTIES(vtkWinProbeVideoSourceTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkWinProbeVideoSourceTest vtkPlusDataCollection ${PLUSLIB_VTK_PREFIX}InteractionImage) 
-  ADD_TEST(NAME vtkWinProbeVideoSourceTest 
+  TARGET_LINK_LIBRARIES(vtkWinProbeVideoSourceTest vtkPlusDataCollection ${PLUSLIB_VTK_PREFIX}InteractionImage)
+  ADD_TEST(NAME vtkWinProbeVideoSourceTest
     COMMAND $<TARGET_FILE:vtkWinProbeVideoSourceTest>
     --rendering-off
     --output-seq-file=${TEST_OUTPUT_PATH}/WinProbeTest.igs.nrrd
@@ -361,7 +361,7 @@ ENDIF()
 IF(PLUS_USE_INTERSON_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkIntersonVideoSourceTest vtkIntersonVideoSourceTest.cxx )
   SET_TARGET_PROPERTIES(vtkIntersonVideoSourceTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkIntersonVideoSourceTest vtkPlusDataCollection ${PLUSLIB_VTK_PREFIX}InteractionImage) 
+  TARGET_LINK_LIBRARIES(vtkIntersonVideoSourceTest vtkPlusDataCollection ${PLUSLIB_VTK_PREFIX}InteractionImage)
 ENDIF()
 
 #*************************** vtkTelemedVideoSourceTest.cxx ***************************
@@ -396,7 +396,7 @@ IF(PLUS_USE_ULTRASONIX_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkSonixPortaVideoSourceTest vtkSonixPortaVideoSourceTest.cxx )
   SET_TARGET_PROPERTIES(vtkSonixPortaVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkSonixPortaVideoSourceTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
-  # ADD_TEST(vtkSonixPortaVideoSourceTest 
+  # ADD_TEST(vtkSonixPortaVideoSourceTest
   # ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkSonixPortaVideoSourceTest
   # To be added if the 3D probe is attached to the machine
   # --setting-path=${ULTRASONIX_SDK_DIR}/porta/dat/
@@ -416,13 +416,6 @@ IF(PLUS_USE_ULTRASONIX_VIDEO AND PLUS_RENDERING_ENABLED)
 ENDIF()
 #Test is to be added.
 
-#*************************** vtkWin32VideoSourceTest.cxx ***************************
-IF(PLUS_USE_VFW_VIDEO AND PLUS_RENDERING_ENABLED)
-  ADD_EXECUTABLE(vtkWin32VideoSourceTest vtkWin32VideoSourceTest.cxx)
-  SET_TARGET_PROPERTIES(vtkWin32VideoSourceTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkWin32VideoSourceTest vtkPlusDataCollection ${PLUSLIB_VTK_PREFIX}InteractionImage)
-ENDIF()
-
 #*************************** vtkMmfVideoSourceTest.cxx ***************************
 IF(PLUS_USE_MMF_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkMmfVideoSourceTest vtkMmfVideoSourceTest.cxx )
@@ -430,7 +423,7 @@ IF(PLUS_USE_MMF_VIDEO AND PLUS_RENDERING_ENABLED)
   TARGET_LINK_LIBRARIES(vtkMmfVideoSourceTest vtkPlusDataCollection ${PLUSLIB_VTK_PREFIX}InteractionImage)
 
   IF(PLUS_TEST_MMF_VIDEO)
-    ADD_TEST(MmfVideoSourceTest 
+    ADD_TEST(MmfVideoSourceTest
       ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkMmfVideoSourceTest
       --rendering-off
       --frame-size 640 480
@@ -449,8 +442,8 @@ ENDIF()
 IF(PLUS_USE_MICRONTRACKER AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkMicronTrackerTest vtkMicronTrackerTest.cxx)
   SET_TARGET_PROPERTIES(vtkMicronTrackerTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkMicronTrackerTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)    
-ENDIF() 
+  TARGET_LINK_LIBRARIES(vtkMicronTrackerTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
+ENDIF()
 
 #*************************** IntelRealSenseTrackerTest ***************************
 IF(PLUS_USE_INTELREALSENSE AND PLUS_RENDERING_ENABLED)
@@ -603,10 +596,10 @@ ENDIF()
 IF(PLUS_USE_ANDOR_CAMERA)
   ADD_EXECUTABLE(vtkAndorVideoSourceTest vtkAndorVideoSourceTest.cxx )
   SET_TARGET_PROPERTIES(vtkAndorVideoSourceTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkAndorVideoSourceTest vtkPlusDataCollection vtkInteractionImage) 
-  ADD_TEST(NAME vtkAndorVideoSourceTest 
+  TARGET_LINK_LIBRARIES(vtkAndorVideoSourceTest vtkPlusDataCollection vtkInteractionImage)
+  ADD_TEST(NAME vtkAndorVideoSourceTest
     COMMAND $<TARGET_FILE:vtkAndorVideoSourceTest>
-    --rendering-off 
+    --rendering-off
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_AndorVideoSourceTest.xml
     --flat-correction-image=${TestDataDir}/AndorTestFlat.png
     --bias-correction-image=${TestDataDir}/AndorTestBias.png
@@ -634,7 +627,7 @@ IF(PLUS_USE_GENERIC_SENSOR_TRACKER)
     SET_TARGET_PROPERTIES(GenericSensorTrackerTest1 PROPERTIES FOLDER Tests)
     TARGET_LINK_LIBRARIES(GenericSensorTrackerTest1 vtkPlusDataCollection)
 
-    ADD_TEST(GenericSensorTrackerTest1 
+    ADD_TEST(GenericSensorTrackerTest1
       ${PLUS_EXECUTABLE_OUTPUT_PATH}/GenericSensorTrackerTest1
       --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_GenericSensor.xml
       )
@@ -648,10 +641,10 @@ IF(PLUS_USE_AZUREKINECT)
   SET_TARGET_PROPERTIES(AzureKinectTest1 PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(AzureKinectTest1 vtkPlusDataCollection) # add any other dependencies to the test executable
 
-  ADD_TEST(AzureKinectTest1 
+  ADD_TEST(AzureKinectTest1
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/AzureKinectTest1
     --rendering-off
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_AzureKinect.xml 
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_AzureKinect.xml
     )
   SET_TESTS_PROPERTIES(AzureKinectTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 ENDIF()
