@@ -136,6 +136,13 @@ jobs:
       run: |
         ctest -C Release -D Experimental -V
 
+    # Run PlusApp-bin/CreateUserManual.bat
+    - uses: ilammy/msvc-dev-cmd@v1
+    - name: Create user manual
+      working-directory: ${{github.workspace}}/build/PlusApp-bin
+      run: |
+        ./CreateUserManual.bat
+
     - name: Debug Plus documentation output
       if: contains(runner.os, 'Windows')
       shell: pwsh
