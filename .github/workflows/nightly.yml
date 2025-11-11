@@ -91,6 +91,8 @@ jobs:
         -DVTK_DIR=${{ needs.update_vtk_x64.outputs.install-path }}
         -DITK_DIR=${{ needs.update_itk_x64.outputs.install-path }}
         -DPLUSBUILD_BUILDNAME_POSTFIX=gh-package-x64
+        -DPLUSBUILD_DOCUMENTATION:BOOL=ON
+        -DPLUSBUILD_DOCUMENTATION_SEARCH_SERVER_INDEXED:BOOL=ON
         -DPLUS_USE_3dConnexion_TRACKER:BOOL=ON
         -DPLUS_USE_Ascension3DGm:BOOL=OFF
         -DPLUS_USE_BKPROFOCUS_VIDEO:BOOL=OFF
@@ -305,7 +307,8 @@ jobs:
         -DITK_DIR=${{ needs.update_itk_Win32.outputs.install-path }}
         -DPLUSAPP_PACKAGE_EDITION:STRING=""
         -DPLUSBUILD_BUILDNAME_POSTFIX=gh-package-Win32
-        -DPLUSBUILD_DOCUMENTATION:BOOL=OFF
+        -DPLUSBUILD_DOCUMENTATION:BOOL=ON
+        -DPLUSBUILD_DOCUMENTATION_SEARCH_SERVER_INDEXED:BOOL=ON
         -DPLUS_USE_3dConnexion_TRACKER:BOOL=ON
         -DPLUS_USE_BKPROFOCUS_VIDEO:BOOL=OFF
         -DPLUS_USE_EPIPHAN:BOOL=ON
