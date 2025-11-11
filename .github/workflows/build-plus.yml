@@ -136,6 +136,77 @@ jobs:
       run: |
         ctest -C Release -D Experimental -V
 
+    - name: Debug Plus documentation output
+      if: contains(runner.os, 'Windows')
+      shell: pwsh
+      working-directory: ${{ github.workspace }}
+      run: |
+        Write-Host "=== Doc Debug: Paths ==="
+        $ws      = $Env:GITHUB_WORKSPACE
+        $build   = Join-Path $ws 'build'
+        $docDir  = Join-Path $build 'bin\Doc'
+        $chmPath = Join-Path $docDir 'PlusApp-UserManual.chm'
+
+        Write-Host "GITHUB_WORKSPACE : $ws"
+        Write-Host "Build directory  : $build"
+        Write-Host "Doc directory    : $docDir"
+        Write-Host "Expected CHM     : $chmPath"
+        Write-Host ""
+
+        Write-Host "=== Doc directory listing (top-level) ==="
+        if (Test-Path $docDir) {
+          Get-ChildItem $docDir | Format-Table -AutoSize
+        } else {
+          Write-Warning "Doc directory does NOT exist at $docDir"
+        }
+        Write-Host ""
+
+        Write-Host "=== Doc directory listing (recursive) ==="
+        if (Test-Path $docDir) {
+          Get-ChildItem $docDir -Recurse | Select-Object FullName, Length, LastWriteTime | Format-Table -AutoSize
+        } else {
+          Write-Host "(Skipping recursive listing, doc dir missing.)"
+        }
+        Write-Host ""
+
+        Write-Host "=== Check expected CHM ==="
+        if (Test-Path $chmPath) {
+          $f = Get-Item $chmPath
+          Write-Host "CHM found at expected path:"
+          Write-Host "  Path      : $($f.FullName)"
+          Write-Host "  Size      : $($f.Length) bytes"
+          Write-Host "  Modified  : $($f.LastWriteTime)"
+        } else {
+          Write-Warning "Expected CHM file NOT found at $chmPath"
+          Write-Host "Searching entire build tree for any .chm:"
+          if (Test-Path $build) {
+            Get-ChildItem $build -Filter *.chm -Recurse -ErrorAction SilentlyContinue |
+              Select-Object FullName, Length, LastWriteTime | Format-Table -AutoSize
+          } else {
+            Write-Warning "Build directory $build does not exist; nothing to search."
+          }
+        }
+        Write-Host ""
+
+        Write-Host "=== Tooling info (doxygen / HTML Help) ==="
+        Write-Host "doxygen:"
+        Get-Command doxygen -ErrorAction SilentlyContinue | Format-Table -AutoSize
+        try {
+          doxygen --version
+        } catch {
+          Write-Warning "Failed to run 'doxygen --version'"
+        }
+        Write-Host ""
+
+        Write-Host "hhc / HTML Help Workshop:"
+        Get-Command hhc.exe -ErrorAction SilentlyContinue | Format-Table -AutoSize
+        if (Test-Path 'C:\Program Files (x86)\HTML Help Workshop\hhc.exe') {
+          Write-Host "Found HTML Help Workshop at C:\Program Files (x86)\HTML Help Workshop\hhc.exe"
+        } else {
+          Write-Warning "HTML Help Workshop not found in default path."
+        }
+        Write-Host "=== End Doc Debug ==="
+
     - uses: ilammy/msvc-dev-cmd@v1
     - name: Package
       if: contains(runner.os, 'windows')
