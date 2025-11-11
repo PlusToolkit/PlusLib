@@ -97,6 +97,9 @@ jobs:
         version: ${{ inputs.qt-version }}
         arch: ${{ inputs.arch == 'x64' && 'win64_msvc2019_64' || 'win32_msvc2019' }}
 
+    - name: Install Doxygen
+      uses: ssciwr/doxygen-install@v1
+
     - name: Clone PlusBuild
       uses: actions/checkout@v4
       with:
