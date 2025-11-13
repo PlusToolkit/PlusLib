@@ -1,0 +1,47 @@
+# Version information (PlusVersion)
+
+Prints the version of all hardware SDKs that were used for building Plus.
+
+## Example output
+
+~~~
+Software version: Plus-2.9.0.eb3c31c0 - Win64
+Supported devices:
+  - 3dConnexion (ver: Plus-2.9.0)
+  - AuroraTracker (ver: NDICAPI-1.7)
+  - BkProFocusOem (ver: Plus-2.9.0)
+  - ChRobotics (ver: Plus-2.9.0)
+  - Epiphan (ver: Plus-2.9.0)
+  - FakeTracker (ver: Plus-2.9.0)
+  - GenericSerialDevice (ver: Plus-2.9.0)
+  - ICCapturing (ver: The Imaging Source UDSHL-3.4)
+  - ImageProcessor (ver: Plus-2.9.0)
+  - IntelRealSense (ver: Plus-2.9.0)
+  - Microchip (ver: Plus-2.9.0)
+  - MmfVideo (ver: Plus-2.9.0)
+  - NDITracker (ver: NDICAPI-1.7)
+  - NoiseVideo (ver: Plus-2.9.0)
+  - OpenCVVideo (ver: Plus-2.9.0)
+  - OpenIGTLinkTracker (ver: OpenIGTLink v3.1.0)
+  - OpenIGTLinkVideo (ver: OpenIGTLink v3.1.0)
+  - OptiTrack (ver: Plus-2.9.0)
+  - OpticalMarkerTracker (ver: Plus-2.9.0)
+  - PhidgetSpatial (ver: Plus-2.9.0)
+  - PolarisTracker (ver: NDICAPI-1.7)
+  - SavedDataSource (ver: Plus-2.9.0)
+  - UsSimulator (ver: Plus-2.9.0)
+  - VFWVideo (ver: Plus-2.9.0)
+  - VirtualBufferedCapture (ver: Plus-2.9.0)
+  - VirtualCapture (ver: Plus-2.9.0)
+  - VirtualDeinterlacer (ver: Plus-2.9.0)
+  - VirtualDiscCapture (ver: Plus-2.9.0)
+  - VirtualMixer (ver: Plus-2.9.0)
+  - VirtualSwitcher (ver: Plus-2.9.0)
+  - VirtualTextRecognizer (ver: Plus-2.9.0)
+  - VirtualVolumeReconstructor (ver: Plus-2.9.0)
+  - WitMotionTracker (ver: Plus-2.9.0)
+~~~
+
+## Command-line parameters reference
+
+\verbinclude "PlusVersionHelp.txt"
