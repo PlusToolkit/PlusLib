@@ -1,0 +1,20 @@
+# Volume reconstructor application (VolumeReconstructor)
+
+This is a command-line tool for ultrasound volume reconstruction.
+
+See description of volume reconstruction parameters on the `AlgorithmVolumeReconstruction` page.
+
+## Examples
+ 
+    VolumeReconstructor.exe --config-file=PlusConfiguration_SpinePhantomFreehandReconstructionOnly.xml --source-seq-file=SpinePhantomFreehand.mha --output-volume-file=vtkPlusVolumeReconstructorWithHoleFillingTest1Output.mha --image-to-reference-transform=ImageToReference
+
+Files:
+- Device set config file: https://github.com/PlusToolkit/PlusLibData/blob/master/ConfigFiles/Testing/PlusDeviceSet_SpinePhantomFreehandReconstructionOnly.xml
+- Input frames: https://github.com/PlusToolkit/PlusLibData/blob/master/TestImages/SpinePhantomFreehand.mha
+- Sample reconstructed volume: https://github.com/PlusToolkit/PlusLibData/blob/master/TestImages/SpinePhantomFreehandReconstructed.mha
+
+See more examples on the [dashboard](http://perkdata.cs.queensu.ca/CDash/index.php?project=PlusLib) (all the test cases starting with "vtkPlusVolumeReconstructor" perform volume reconstruction or verify volume reconstruction results).
+
+## Command-line parameters reference
+
+\verbinclude "VolumeReconstructorHelp.txt"
