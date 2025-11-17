@@ -55,7 +55,7 @@
   - **DeviceAcquisitionRate**: (`AcquisitionRate`) (Optional, default: 125)
   - **LocalTimeOffsetSec**: (Optional, default: 0)
 
-  - **IniFileName**: INI file name of the BK ini file that stores connection and acquisition settings. If a relative path is specified then it is relative to the device set configuration directory. See an example `inifile` "INI file" below.
+  - **IniFileName**: INI file name of the BK ini file that stores connection and acquisition settings. If a relative path is specified then it is relative to the device set configuration directory. See an example [`INI file`](#example-ini-file) below.
   - **ImagingMode**: Set what kind of images are sent to the video source. The default is RF mode, when the raw RF data is recorded. Applications (  - `BMode`
   - `RfMode` Acquire RF mode data. For previewing B-mode images during acquisition, add an `AlgorithmRfProcessing` (`RfProcessing`) child element to the `OutputChannel.`
 
@@ -67,7 +67,6 @@
       - **BufferSize**: (Optional, default: 150)
       - **AveragedItemsForFiltering**: (Optional, default: 20)
 
-\anchor inifile
 ## Example INI file
 
 ```xml

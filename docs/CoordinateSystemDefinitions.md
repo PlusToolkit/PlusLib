@@ -59,10 +59,10 @@ transformations are saved into file or transmitted to another system.
 
 ## Configuration settings
 
-  - **\anchor CoordinateDefinitions **CoordinateDefinitions**
+- **CoordinateDefinitions**
     - **Transform**
-      - **From 'From' coordinate frame of the transform
-      - **To 'To' coordinate frame of the transform
-      - **Matrix
-      - **Date
-      - **Error
+        - **From**: 'From' coordinate frame of the transform
+        - **To**: 'To' coordinate frame of the transform
+        - **Matrix**
+        - **Date**
+        - **Error**
