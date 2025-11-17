@@ -13,7 +13,9 @@ PlusLib is a comprehensive software library designed for navigated image-guided 
 PlusLib is organized into several modules:
 
 ### PlusCommon
+
 Core utilities and base classes:
+
 - Logging framework (`vtkPlusLogger`)
 - Configuration management (`vtkPlusConfig`)
 - XML utilities (`PlusXmlUtils`)
@@ -21,7 +23,9 @@ Core utilities and base classes:
 - Sequence I/O operations
 
 ### PlusDataCollection
+
 Device interfaces and data acquisition:
+
 - Base classes for devices and data sources
 - Support for 50+ tracking and imaging devices
 - Data buffering and synchronization
@@ -29,7 +33,9 @@ Device interfaces and data acquisition:
 - Video frame management
 
 ### PlusCalibration
+
 Calibration algorithms:
+
 - **Probe Calibration**: `vtkPlusProbeCalibrationAlgo`
 - **Phantom Registration**: `vtkPlusPhantomLandmarkRegistrationAlgo`, `vtkPlusPhantomLinearObjectRegistrationAlgo`
 - **Temporal Calibration**: `vtkPlusTemporalCalibrationAlgo`
@@ -37,28 +43,36 @@ Calibration algorithms:
 - **Spacing Calibration**: `vtkPlusSpacingCalibAlgo`
 
 ### PlusImageProcessing
+
 Image processing algorithms:
+
 - Bone surface detection
 - Transducer modeling
 - Scan conversion
 - Drawing utilities
 
 ### PlusOpenIGTLink
+
 OpenIGTLink communication:
+
 - Real-time data streaming
 - Command execution
 - Network protocol implementation
 
 ### PlusVolumeReconstruction
+
 Volume reconstruction from tracked ultrasound:
+
 - Paste slice algorithm
 - Hole filling
 - Kernel-based reconstruction
 
 ### PlusRendering
+
 Visualization components for real-time display.
 
 ### PlusWidgets
+
 Qt-based UI components for applications.
 
 ## Supported Platforms
@@ -75,7 +89,7 @@ PlusLib builds upon well-established open-source libraries:
 - **ITK** (Insight Toolkit) - Image processing
 - **OpenIGTLink**: - Real-time communication protocol
 - **Qt5/Qt6** - GUI framework (optional)
-- **IGSTK**: - Image-guided surgery toolkit (
+- **IGSTK**: - Image-guided surgery toolkit
 ## Design Principles
 
 1. **Modularity**: Each component can be used independently
