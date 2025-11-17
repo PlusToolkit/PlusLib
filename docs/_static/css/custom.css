@@ -1,0 +1,155 @@
+/* Custom CSS for PlusLib Sphinx Documentation */
+
+/* Use Read the Docs theme colors but customize primary color to match PlusLib branding */
+
+/* Override RTD theme primary colors to match PlusLib dark red (#900000) */
+.wy-side-nav-search {
+    background-color: #900000 !important;
+}
+
+.wy-side-nav-search input[type=text] {
+    border-color: #800000;
+}
+
+.wy-side-nav-search input[type=text]:focus {
+    border-color: #a00000;
+}
+
+.wy-menu-vertical a {
+    color: #404040;
+}
+
+.wy-menu-vertical a:hover {
+    background-color: #f5f5f5;
+    color: #900000;
+}
+
+.wy-menu-vertical li.current a {
+    color: #900000;
+    border-right: 2px solid #900000;
+}
+
+.wy-menu-vertical li.current > a {
+    background-color: #f5f5f5;
+}
+
+/* Links */
+a {
+    color: #900000;
+}
+
+a:hover {
+    color: #a00000;
+}
+
+a:visited {
+    color: #800000;
+}
+
+/* Buttons */
+.btn-neutral {
+    background-color: #f5f5f5 !important;
+    color: #404040 !important;
+}
+
+.btn-neutral:hover {
+    background-color: #900000 !important;
+    color: #ffffff !important;
+}
+
+.btn-neutral:visited {
+    color: #404040 !important;
+}
+
+/* Code blocks */
+.highlight {
+    background: #f8f8f8;
+}
+
+/* Admonitions */
+.admonition {
+    margin: 1em 0;
+    padding: 0.5em 1em;
+}
+
+.admonition.tip {
+    border-left: 4px solid #00a000;
+    background-color: #f0f8f0;
+}
+
+.admonition.note,
+.admonition.info {
+    border-left: 4px solid #0080c0;
+    background-color: #e8f4f8;
+}
+
+.admonition.warning,
+.admonition.attention {
+    border-left: 4px solid #f0ad4e;
+    background-color: #fcf8e3;
+}
+
+.admonition.danger,
+.admonition.error {
+    border-left: 4px solid #d9534f;
+    background-color: #f9e8e8;
+}
+
+/* Tables */
+.wy-table-bordered-all td,
+.wy-table-bordered-all th {
+    border-color: #e1e4e5;
+}
+
+.wy-table-odd td,
+.wy-table-striped tr:nth-child(2n-1) td {
+    background-color: #f9f9f9;
+}
+
+/* Navigation breadcrumbs */
+.wy-breadcrumbs li a {
+    color: #900000;
+}
+
+.wy-breadcrumbs li a:hover {
+    color: #a00000;
+}
+
+/* Footer links */
+.rst-footer-buttons a {
+    color: #ffffff;
+    background-color: #900000;
+}
+
+.rst-footer-buttons a:hover {
+    background-color: #a00000;
+}
+
+/* Version selector */
+.rst-versions {
+    border-top: 2px solid #900000;
+}
+
+.rst-versions .rst-current-version {
+    background-color: #800000;
+}
+
+/* Ensure good contrast for code */
+code,
+.code,
+pre {
+    color: #333333;
+}
+
+/* Inline code */
+.rst-content code.literal,
+.rst-content tt.literal {
+    color: #900000;
+    background-color: #f5f5f5;
+}
+
+/* Search results highlighting */
+.rst-content .highlighted {
+    background-color: rgba(144, 0, 0, 0.1);
+    padding: 0 2px;
+}

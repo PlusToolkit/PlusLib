@@ -1,4 +1,4 @@
-# Read the Docs configuration file
+# Read the Docs configuration file for Sphinx
 # See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
 
 # Required
@@ -10,15 +10,23 @@ build:
   tools:
     python: "3.11"
   jobs:
-    post_create_environment:
-      - pip install --upgrade pip setuptools wheel
-    post_install:
-      - pip install -r docs/requirements.txt
+    post_checkout:
+      # Cancel building pull requests when a new commit is pushed
+      - |
+        if [ "$READTHEDOCS_VERSION_TYPE" = "external" ] && git show-ref --verify --quiet "refs/remotes/origin/$READTHEDOCS_VERSION"; then
+          echo "Canceling build as a newer commit is available"
+          exit 183
+        fi
 
-# Build documentation with MkDocs
-mkdocs:
-  configuration: mkdocs.yml
+# Build documentation with Sphinx
+sphinx:
+  configuration: docs/conf.py
   fail_on_warning: false
+
+# Optionally build your docs in additional formats such as PDF and ePub
+formats:
+  - pdf
+  - epub
 
 # Python dependencies
 python:
