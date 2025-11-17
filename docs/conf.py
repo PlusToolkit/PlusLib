@@ -78,6 +78,10 @@ html_css_files = [
     'css/custom.css',
 ]
 
+html_js_files = [
+    'js/theme-toggle.js',
+]
+
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
 # html_logo = None

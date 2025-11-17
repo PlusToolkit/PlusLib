@@ -77,8 +77,19 @@ All MkDocs features have Sphinx equivalents:
 | mkdocstrings | autodoc/napoleon | Python API documentation |
 | search | Built-in | Full-text search included |
 | Code highlighting | Pygments | Syntax highlighting for all languages |
-| Dark mode | Theme option | Available in RTD theme |
+| Dark mode | Custom theme toggle | Light/Dark mode with localStorage persistence |
 | Copy buttons | sphinx-copybutton | Copy code blocks |
+
+## New Features
+
+### Light/Dark Mode Toggle
+
+A theme toggle button is now available in the top-right corner of every page:
+- 🌙 Dark Mode / ☀️ Light Mode button
+- Automatically detects system theme preference
+- Saves user preference in localStorage
+- Smooth transitions between themes
+- Optimized contrast for readability in both modes
 
 ## MyST Markdown Extensions
 
