@@ -14,7 +14,7 @@ In contrast, the original Clarius support uses the Clarius Cast API. Using this 
 
 ## Supported platforms
 
-- [***Windows 64 bits***](/SupportedPlatforms/#windows-64-bits)
+- [***Windows 64 bits***](../SupportedPlatforms.md#windows-64-bits)
 
 ## Updating Clarius probe
 

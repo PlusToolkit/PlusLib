@@ -7,8 +7,8 @@ This device allow you to process two kind of images. The first image is in RGB a
 
 ## Supported platforms
 
-- [***Windows 32 bits***](/SupportedPlatforms/#windows-32-bits)
-- [***Windows 64 bits***](/SupportedPlatforms/#windows-64-bits)
+- [***Windows 32 bits***](../SupportedPlatforms.md#windows-32-bits)
+- [***Windows 64 bits***](../SupportedPlatforms.md#windows-64-bits)
 
 Requires recent Intel processor.
 

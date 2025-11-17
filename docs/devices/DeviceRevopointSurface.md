@@ -12,8 +12,8 @@ can be retrieved:
 
 ## Supported platforms
 
-- [***Windows 64 bits***](/SupportedPlatforms/#windows-64-bits)
-- [***Linux***](/SupportedPlatforms/#linux) (Ubuntu >= 18.04)
+- [***Windows 64 bits***](../SupportedPlatforms.md#windows-64-bits)
+- [***Linux***](../SupportedPlatforms.md#linux) (Ubuntu >= 18.04)
 
 ## SDK Tested Versions
 

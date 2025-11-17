@@ -7,8 +7,8 @@
 
 ## Supported platforms
 
-- [***Windows 64 bits***](/SupportedPlatforms/#windows-64-bits)
-- [***Linux***](/SupportedPlatforms/#linux)
+- [***Windows 64 bits***](../SupportedPlatforms.md#windows-64-bits)
+- [***Linux***](../SupportedPlatforms.md#linux)
 
 ## Atracsys SDK Versions
 Please build PLUS Atracsys support against the following Atracsys SDK versions. Other versions may work, but are not regularly tested by the PLUS developer team.

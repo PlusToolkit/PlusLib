@@ -4,10 +4,10 @@
 
 ## Supported platforms
 
-- [***Windows 32 bits***](/SupportedPlatforms/#windows-32-bits)
-- [***Windows 64 bits***](/SupportedPlatforms/#windows-64-bits)
-- [***Mac OS X***](/SupportedPlatforms/#macos)
-- [***Linux***](/SupportedPlatforms/#linux)
+- [***Windows 32 bits***](../SupportedPlatforms.md#windows-32-bits)
+- [***Windows 64 bits***](../SupportedPlatforms.md#windows-64-bits)
+- [***Mac OS X***](../SupportedPlatforms.md#macos)
+- [***Linux***](../SupportedPlatforms.md#linux)
 
 ## BlackMagic DeckLink SDK Versions
 Please build PLUS BlackMagic support against the following DeckLink SDK versions. Other versions may work, but are not regularly tested by the PLUS developer team.

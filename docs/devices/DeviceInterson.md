@@ -7,7 +7,7 @@
 
 ## Supported platforms
 
-- [***Windows 32 bits***](/SupportedPlatforms/#windows-32-bits)
+- [***Windows 32 bits***](../SupportedPlatforms.md#windows-32-bits)
 
 ## Installation
 

@@ -16,7 +16,7 @@ In contrast, the (relatively newer) Clarius support uses the Clarius OEM API whi
 
 ## Supported platforms
 
-- [***Windows 64 bits***](/SupportedPlatforms/#windows-64-bits)
+- [***Windows 64 bits***](../SupportedPlatforms.md#windows-64-bits)
 
 ## Connection
 - Requires a connection to the same network as the Clarius

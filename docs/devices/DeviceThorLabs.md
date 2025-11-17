@@ -8,8 +8,8 @@ Manufacturer's website: http://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id
 
 ## Supported platforms
 
-- [***Windows 32 bits***](/SupportedPlatforms/#windows-32-bits)
-- [***Windows 64 bits***](/SupportedPlatforms/#windows-64-bits)
+- [***Windows 32 bits***](../SupportedPlatforms.md#windows-32-bits)
+- [***Windows 64 bits***](../SupportedPlatforms.md#windows-64-bits)
 
 ## Installation
 

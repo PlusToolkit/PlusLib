@@ -8,8 +8,8 @@
 
 ## Supported platforms
 
-- [***Windows 32 bits***](/SupportedPlatforms/#windows-32-bits)
-- [***Windows 64 bits***](/SupportedPlatforms/#windows-64-bits)
+- [***Windows 32 bits***](../SupportedPlatforms.md#windows-32-bits)
+- [***Windows 64 bits***](../SupportedPlatforms.md#windows-64-bits)
 
 - This device is not included in any of the standard packages, as it requires license from BK.
 - If the license is obtained from BK then Plus have to be built with PLUS_USE_BKPROFOCUS_VIDEO and optionally with PLUS_USE_BKPROFOCUS_CAMERALINK configuration options enabled as described at <https://github.com/PlusToolkit/PlusBuild/blob/master/Docs/BuildInstructionsWindows.md>.

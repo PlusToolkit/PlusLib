@@ -6,8 +6,8 @@
 
 ## Supported platforms
 
-- [***Windows 32 bits***](/SupportedPlatforms/#windows-32-bits)
-- [***Windows XP embedded 32 bits***](/SupportedPlatforms/#windows-xp-embedded-32-bits)
+- [***Windows 32 bits***](../SupportedPlatforms.md#windows-32-bits)
+- [***Windows XP embedded 32 bits***](../SupportedPlatforms.md#windows-xp-embedded-32-bits)
 
 ## Installation
 

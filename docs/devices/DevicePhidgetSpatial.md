@@ -7,9 +7,9 @@
 - Link to manufacturer's website: http://www.phidgets.com/products.php?product_id=1044_0
 
 ## Supported platforms
-- [***Windows 32 bits***](/SupportedPlatforms/#windows-32-bits)
-- [***Windows 64 bits***](/SupportedPlatforms/#windows-64-bits)
-- [***Windows XP embedded 32 bits***](/SupportedPlatforms/#windows-xp-embedded-32-bits)
+- [***Windows 32 bits***](../SupportedPlatforms.md#windows-32-bits)
+- [***Windows 64 bits***](../SupportedPlatforms.md#windows-64-bits)
+- [***Windows XP embedded 32 bits***](../SupportedPlatforms.md#windows-xp-embedded-32-bits)
 
 The device manufacturer supports additional platforms. On request, Plus toolkit will be extended to support this device on other platforms, too.
 

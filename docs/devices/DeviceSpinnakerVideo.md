@@ -5,8 +5,8 @@
 - Other FLIR Spinnaker compatible cameras should be supported. If you discover issue with your hardware please provide a bug report on the [PlusLib GitHub issue tracker](https://github.com/PlusToolkit/PlusLib/issues). If you have feedback or would like a feature added, please create a discussion on the [PlusLib GitHub discussion forum](https://github.com/PlusToolkit/PlusLib/discussions).
 
 ## Supported platforms
-- [***Windows 64 bits***](/SupportedPlatforms/#windows-64-bits)
-- [***Linux***](/SupportedPlatforms/#linux) (Ubuntu 16.04 / 18.04)
+- [***Windows 64 bits***](../SupportedPlatforms.md#windows-64-bits)
+- [***Linux***](../SupportedPlatforms.md#linux) (Ubuntu 16.04 / 18.04)
 
 ## Spinnaker SDK Tested Versions
 Please build PLUS Point Grey Spinnaker support against the following Spinnaker SDK versions. Other versions may work, but are not regularly tested by the PLUS developer team.

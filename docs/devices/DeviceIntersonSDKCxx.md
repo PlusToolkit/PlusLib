@@ -6,7 +6,7 @@
 
 ## Supported platforms
 
-- [***Windows 32 bits***](/SupportedPlatforms/#windows-32-bits)
+- [***Windows 32 bits***](../SupportedPlatforms.md#windows-32-bits)
 
 ## Installation
 - Requires SDK provided by Interson for compilation and USB drivers provided by Interson for running (otherwise Plus application will not start due to missing Interson.dll).
@@ -30,7 +30,7 @@
         - **ClipRectangleSize**: (Optional, default: `0 0 0`)
   - **OutputChannels**:
     - **OutputChannel**:
-      - [**RfProcessing**](/algorithms/AlgorithmRfProcessing): Required if scan-converted B-mode image output is needed.
+      - [**RfProcessing**](../algorithms/AlgorithmRfProcessing.md): Required if scan-converted B-mode image output is needed.
 
 ## Example configuration file for B-mode image acquisition PlusDeviceSet_Server_IntersonSDKCxx_GP3.5.xml
 

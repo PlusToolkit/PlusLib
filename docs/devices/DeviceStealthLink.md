@@ -15,8 +15,8 @@ Nomenclature:
 
 ## Supported platforms
 
-- [***Windows 32 bits***](/SupportedPlatforms/#windows-32-bits)
-- [***Linux***](/SupportedPlatforms/#linux)
+- [***Windows 32 bits***](../SupportedPlatforms.md#windows-32-bits)
+- [***Linux***](../SupportedPlatforms.md#linux)
 
 This device is not included in any of the standard packages, as it requires StealthLink library from Medtronic.
 If the StealthLink library is obtained from Medtronic then Plus have to be built with the StealthLink option enabled as described at <https://github.com/PlusToolkit/PlusBuild/blob/master/Docs/BuildInstructionsWindows.md>.

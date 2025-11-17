@@ -6,7 +6,7 @@
 
 ## Supported platforms
 
-- [***Windows 32 bits***](/SupportedPlatforms/#windows-32-bits)
+- [***Windows 32 bits***](../SupportedPlatforms.md#windows-32-bits)
 
 The device manufacturer supports additional platforms. On request, Plus toolkit will be extended to support this device on other platforms, too.
 

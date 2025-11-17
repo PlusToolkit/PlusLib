@@ -6,9 +6,9 @@ Supported model: DFG/USB2pro analog frame grabbers with USB interface
 - Link to manufacturer's website: <http://www.theimagingsource.com/en_US/products/converters/>
 
 ## Supported platforms
-- [***Windows 32 bits***](/SupportedPlatforms/#windows-32-bits)
-- [***Windows 64 bits***](/SupportedPlatforms/#windows-64-bits)
-- [***Windows XP embedded 32 bits***](/SupportedPlatforms/#windows-xp-embedded-32-bits)
+- [***Windows 32 bits***](../SupportedPlatforms.md#windows-32-bits)
+- [***Windows 64 bits***](../SupportedPlatforms.md#windows-64-bits)
+- [***Windows XP embedded 32 bits***](../SupportedPlatforms.md#windows-xp-embedded-32-bits)
 
 ## Installation
 
