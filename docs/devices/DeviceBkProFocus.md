@@ -67,9 +67,6 @@
       - **BufferSize**: (Optional, default: 150)
       - **AveragedItemsForFiltering**: (Optional, default: 20)
 
-## Example INI file
-
-```xml
 ## Example BK ini file IniFile.ini
 
 ```ini
@@ -106,6 +103,8 @@ useToolbox=0
 useConsole=1
 useConsoleLastOkUseCase=0
 autoUpdate=0
+```
+
 ## Example configuration file PlusDeviceSet_fCal_BkProFocus_OpenIGTLinkTracker.xml
 
 ```xml
