@@ -51,6 +51,26 @@
     background-color: var(--pluslib-primary) !important;
 }
 
+/* Fix logo/title contrast against dark red background */
+.wy-side-nav-search > a,
+.wy-side-nav-search .wy-dropdown > a {
+    color: #ffffff !important;
+    font-weight: bold;
+}
+
+.wy-side-nav-search > a:hover,
+.wy-side-nav-search .wy-dropdown > a:hover {
+    color: #f0f0f0 !important;
+    background-color: transparent !important;
+}
+
+/* Ensure icon is visible */
+.wy-side-nav-search > a img,
+.icon {
+    opacity: 1;
+    filter: brightness(0) invert(1); /* Make icon white */
+}
+
 .wy-side-nav-search input[type=text] {
     border-color: var(--pluslib-primary-dark);
     background-color: rgba(255, 255, 255, 0.9);
