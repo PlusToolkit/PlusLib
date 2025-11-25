@@ -2187,7 +2187,7 @@ PlusStatus vtkPlusClariusOEM::GetDynRangePercent(double& aDynRangePercent)
     return this->ImagingParameters->GetDynRangeDb(aDynRangePercent);
   }
 
-  double oemVal = solumGetParam(CusParam::DynamicRange);
+  double oemVal = solumGetParam(CusParam::Contrast);
   if (oemVal < 0)
   {
     aDynRangePercent = -1;
@@ -2216,7 +2216,7 @@ PlusStatus vtkPlusClariusOEM::SetDynRangePercent(double aDynRangePercent)
   }
 
   // attempt to set parameter value
-  if (solumSetParam(CusParam::DynamicRange, aDynRangePercent) < 0)
+  if (solumSetParam(CusParam::Contrast, aDynRangePercent) < 0)
   {
     LOG_ERROR("Failed to set DynRange parameter");
     return PLUS_FAIL;
