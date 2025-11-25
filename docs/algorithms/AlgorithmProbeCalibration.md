@@ -49,7 +49,7 @@ This algorithm determines the transformation between the ultrasound image and a 
 
 ## Phantom definition
 
-We recommend using 3 N-wires as we have found this to be more robust and accurate than using just 2 N-wires but still can be robustly detected and kept in the field of view. Specification of the wire pattern is available at https://github.com/PlusToolkit/PlusDoc/raw/master/tutorials/PlusTutorialBuildingfCalPrintedPhantom.pptx. XML description can be found in the example device set configuration files. 
+We recommend using 3 N-wires as we have found this to be more robust and accurate than using just 2 N-wires but still can be robustly detected and kept in the field of view. Specification of the wire pattern is available at <https://github.com/PlusToolkit/PlusDoc/raw/master/tutorials/PlusTutorialBuildingfCalPrintedPhantom.pptx>. XML description can be found in the example device set configuration files. 
 
 You can add any number of N-wires with any angles between the side and middle wires (angle can be different for each N-wire) with the following conditions:
 - all N-wires shall be completely visible at the same time in the ultrasound image
@@ -60,7 +60,7 @@ N-wires should cover about the same area of the ultrasound image (same size and 
 a 40mm diameter object 50mm from the transducer then during calibration the N-wires should cover about 40mm range, about 50mm from the transducer).
 
 You can find the CAD models and snapshots of fCal calibration phantoms in the Plus 3D model catalog:
-http://perk-software.cs.queensu.ca/plus/doc/nightly/modelcatalog/
+<https://pluslib.readthedocs.io/projects/PlusModelCatalog/en/latest/index.html>
 
 fCal-2.x is recommended for smaller field of view (up to about 10cm imaging depth). The hole positions are the same for fCal-1.x and fCal-2.x (only some text labels and marker mounting holes are added) but fCal_2.x has extra holes that allow using 3 N-wires, which greatly increases the accuracy and robustness (compared to using just 2 N-wires), therefore using fCal-1.x is not recommended.
 
