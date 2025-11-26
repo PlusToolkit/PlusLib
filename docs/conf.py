@@ -45,7 +45,6 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'README.md']
 
 # The suffix(es) of source filenames.
 source_suffix = {
-    '.rst': 'restructuredtext',
     '.md': 'markdown',
 }
 
@@ -139,6 +138,7 @@ myst_dmath_double_inline = True
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
+    'plusmodelcatalog': ('https://plusmodelcatalog.readthedocs.io/en/latest/', None),
 }
 
 # -- Options for todo extension ----------------------------------------------
