@@ -254,10 +254,10 @@ about/citation
 :maxdepth: 2
 :caption: 3D Model Catalog
 
-plusmodelcatalog:index
-plusmodelcatalog:catalog/tools
-plusmodelcatalog:catalog/tracking-fixtures
-plusmodelcatalog:catalog/fcal-phantoms
-plusmodelcatalog:catalog/anatomy
-plusmodelcatalog:catalog/needletutor
+PlusModelCatalog Home <https://pluslib.readthedocs.io/projects/PlusModelCatalog/en/latest/>
+Tools <https://pluslib.readthedocs.io/projects/PlusModelCatalog/en/latest/catalog/tools.html>
+Tracking Fixtures <https://pluslib.readthedocs.io/projects/PlusModelCatalog/en/latest/catalog/tracking-fixtures.html>
+fCal Phantoms <https://pluslib.readthedocs.io/projects/PlusModelCatalog/en/latest/catalog/fcal-phantoms.html>
+Anatomy Models <https://pluslib.readthedocs.io/projects/PlusModelCatalog/en/latest/catalog/anatomy.html>
+Needle Tutor <https://pluslib.readthedocs.io/projects/PlusModelCatalog/en/latest/catalog/needletutor.html>
 ```
