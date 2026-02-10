@@ -1,3 +1,5 @@
+[![Nightly](https://github.com/PlusToolkit/PlusLib/actions/workflows/nightly.yml/badge.svg)](https://github.com/PlusToolkit/PlusLib/actions/workflows/nightly.yml)
+
 # PlusLib
 Software library for data acquisition, pre-processing, and calibration for navigated image-guided interventions. See more information at [PlusToolkit.org](http://www.plustoolkit.org).
 
