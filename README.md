@@ -16,8 +16,9 @@ Please start a discussion at https://github.com/PlusToolkit/PlusLib/discussions.
 
 ## Testing dashboards
 
-- [PlusLib dashboard](http://perkdata.cs.queensu.ca/CDash/index.php?project=PlusLib): results of automatic tests of the Plus library
-- [PlusApp dashboard](http://perkdata.cs.queensu.ca/CDash/index.php?project=PlusApp): results of automatic tests of the Plus applications
+- [PlusBuild dashboard](https://open.cdash.org/index.php?project=PlusBuild): results of nightly package builds
+- [PlusLib dashboard](https://open.cdash.org/index.php?project=PlusLib): results of automatic tests of the Plus library
+- [PlusApp dashboard](https://open.cdash.org/index.php?project=PlusApp): results of automatic tests of the Plus applications
 
 
 ## Build instructions
