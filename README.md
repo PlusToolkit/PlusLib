@@ -10,7 +10,7 @@ Please file an issue report over at https://github.com/PlusToolkit/PlusLib/issue
 Please start a discussion at https://github.com/PlusToolkit/PlusLib/discussions.
 
 ## Documentation
-- [PlusLib API documentation](http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/): generated nightly from the latest code version.
+- [PlusLib API documentation](https://pluslib.readthedocs.io/en/latest): generated nightly from the latest code version.
 - [Plus devices](https://plustoolkit.github.io/devicecode): description of the steps requires to implement a new device interface.
 - Notepad++ log file syntax highlighting is available via [this user-defined language](https://plustoolkit.github.io/files/PlusLog_NotepadPP_Language.xml).
 

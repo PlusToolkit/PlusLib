@@ -406,7 +406,7 @@ void vtkPlusClarius::vtkInternal::NewProcessedImageFn(const void* newImage, cons
   customField["micronsPerPixel"] = std::make_pair(igsioFrameFieldFlags::FRAMEFIELD_FORCE_SERVER_SEND, std::to_string(nfo->micronsPerPixel));
   bModeSource->AddItem(
     outputImage->GetScalarPointer(),
-    bModeSource->GetInputImageOrientation(), // refer to this url: http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/UltrasoundImageOrientation.html for reference;
+    bModeSource->GetInputImageOrientation(), // refer to this url: https://pluslib.readthedocs.io/en/latest/UltrasoundImageOrientation.html for reference;
     // Set to UN to keep the orientation of the image the same as on tablet
     bModeSource->GetInputFrameSize(),
     bModeSource->GetPixelType(),
@@ -519,7 +519,7 @@ void vtkPlusClarius::vtkInternal::NewRawImageFn(const void* newImage, const CusR
   double convertedTimestamp = self->SystemStartTimestampSeconds + (self->ClariusLastTimestamp - self->ClariusStartTimestampSeconds);
   rfModeSource->AddItem(
     (void*)newImage, // pointer to char array
-    rfModeSource->GetInputImageOrientation(), // refer to this url: http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/UltrasoundImageOrientation.html for reference;
+    rfModeSource->GetInputImageOrientation(), // refer to this url: https://pluslib.readthedocs.io/en/latest/UltrasoundImageOrientation.html for reference;
     // Set to UN to keep the orientation of the image the same as on tablet
     rfModeSource->GetInputFrameSize(),
     pixelType,
