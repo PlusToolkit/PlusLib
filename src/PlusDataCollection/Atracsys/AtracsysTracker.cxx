@@ -374,6 +374,9 @@ public:
   // library version 
   std::string LibVersion;
 
+  // firmware soft version
+  std::string FirmwareSoftwareVersion;
+
   // calibration date
   std::string CalibrationDate;
 
@@ -682,7 +685,7 @@ bool Tracker::IsVirtual()
 }
 
 //----------------------------------------------------------------------------
-Tracker::RESULT Tracker::Connect()
+Tracker::RESULT Tracker::Connect(const std::string& networkConfigFile)
 {
   if (this->InternalObj->FtkLib != nullptr && this->InternalObj->TrackerSN != 0)
   {
@@ -691,11 +694,24 @@ Tracker::RESULT Tracker::Connect()
   }
 
   // initialize SDK
-  this->InternalObj->FtkLib = ftkInit();
-
-  if (this->InternalObj->FtkLib == NULL)
+  if (networkConfigFile.empty())
   {
-    return ERROR_UNABLE_TO_GET_FTK_HANDLE;
+    this->InternalObj->FtkLib = ftkInit();
+    if (this->InternalObj->FtkLib == NULL)
+    {
+      return ERROR_UNABLE_TO_GET_FTK_HANDLE;
+    }
+  }
+  else
+  {
+    ftkBuffer buffer;
+    this->InternalObj->FtkLib = ftkInitExt(networkConfigFile.c_str(), &buffer);
+    if (this->InternalObj->FtkLib == NULL)
+    {
+      LOG_ERROR(buffer.data);
+      LOG_ERROR("Cannot initialize library with the provided network configuration.");
+      return ERROR_UNABLE_TO_GET_FTK_HANDLE;
+    }
   }
 
   DeviceData device;
@@ -779,6 +795,14 @@ Tracker::RESULT Tracker::Connect()
   ftkGetData(this->InternalObj->FtkLib, this->InternalObj->TrackerSN, info->id, &buff);
   this->InternalObj->CalibrationDate = std::string(buff.data);
 
+  if (!this->GetOptionInfo("Device software version", info))
+  {
+    LOG_ERROR("Option unknown: \"Device software version\"");
+    return ERROR_OPTION_NOT_FOUND;
+  }
+  ftkGetData(this->InternalObj->FtkLib, this->InternalObj->TrackerSN, info->id, &buff);
+  this->InternalObj->FirmwareSoftwareVersion = std::string(buff.data);
+
   // Check whether onboard processing is off or on (spryTrack only)
   if (this->DeviceType == SPRYTRACK_180 || this->DeviceType == SPRYTRACK_300)
   {
@@ -828,6 +852,13 @@ Tracker::RESULT Tracker::Disconnect()
 Tracker::RESULT Tracker::GetSDKversion(std::string& version)
 {
   version = this->InternalObj->LibVersion;
+  return SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+Tracker::RESULT Tracker::GetFirmwareSoftwareVersion(std::string& version)
+{
+  version = this->InternalObj->FirmwareSoftwareVersion;
   return SUCCESS;
 }
 
@@ -951,6 +982,16 @@ Tracker::RESULT Tracker::GetMarkerInfo(std::string& markerInfo)
 Tracker::RESULT Tracker::GetLoadedGeometries(std::map<int, std::vector<std::array<float, 3>>>& geometries)
 {
   geometries = this->InternalObj->Geometries;
+  return SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+Tracker::RESULT Tracker::GetFiducialCoordinates(int geomId, std::vector<std::array<float, 3>>& fidCoords)
+{
+  if (this->InternalObj->Geometries.find(geomId) == this->InternalObj->Geometries.cend())
+    return ERROR_REQUESTED_GEOMETRY_NOT_FOUND;
+
+  fidCoords = this->InternalObj->Geometries.at(geomId);
   return SUCCESS;
 }
 

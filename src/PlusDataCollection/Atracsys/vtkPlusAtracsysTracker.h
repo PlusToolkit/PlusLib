@@ -29,6 +29,9 @@ public:
   /* Get SDK version */
   std::string GetSdkVersion();
 
+  /* Get Firmware Software Version */
+  std::string GetFirmwareSoftwareVersion();
+
   /*! Retrieves the device calibration date in ISO format: YYYY-MM-DDTHH:MM:SSZ+XX
   Example: "2020-04-08T21:24:15Z+00" is April 8th, 2020 at 9:24:15pm UTC (+00)
   */
@@ -52,6 +55,12 @@ public:
   * that composes the marker
   */
   PlusStatus GetLoadedGeometries(std::map<int, std::vector<std::array<float, 3>>>& geometries);
+
+  /*! Get marker geometry details from tool id :
+  * Based on tool id, retrieves the provided relative file path, the associated Atracsys geometry id
+  * and the vector of x,y,z coordinates of each fiducial that composes the marker
+  */
+  PlusStatus GetMarkerGeometry(std::string toolId, std::string &relPath, int &geomId, std::vector<std::array<float, 3>>& fidCoords);
 
   /* Device is a hardware tracker. */
   virtual bool IsTracker() const { return true; }
