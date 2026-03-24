@@ -1,0 +1,137 @@
+name: Create Plus Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Target platform'
+        required: true
+        type: choice
+        options:
+          - x64
+          - Win32
+      archive-name:
+        description: 'Output archive name'
+        required: true
+        default: 'PlusApp-Custom'
+      package-edition:
+        description: 'PLUSAPP_PACKAGE_EDITION'
+        required: false
+        default: ''
+      buildname-postfix:
+        description: 'PLUSBUILD_BUILDNAME_POSTFIX'
+        required: false
+        default: 'gh-package'
+      extra-config:
+        description: 'Additional CMake -DFLAG=VALUE arguments'
+        required: false
+        default: ''
+      pluslib-repository:
+        description: 'Git repository URL for PlusLib'
+        required: false
+        default: 'https://github.com/PlusToolkit/PlusLib.git'
+      pluslib-tag:
+        description: 'Git tag or commit SHA for PlusLib'
+        required: false
+        default: 'master'
+      use-pltools:
+        description: 'Clone PLTools (requires PLTOOLS_ACCESS_TOKEN secret)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+
+  ########
+  # BUILD AND CACHE VTK
+  update_vtk_x64:
+    if: ${{ inputs.platform == 'x64' }}
+    uses: ./.github/workflows/build-vtk.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022]
+        build_type: [Release]
+        arch: [x64]
+    with:
+      vtk-hash: 6b6b89ee577e6c6a5ee6f5220b9c6a12513c30b4 # v9.4.1
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
+      build-type: ${{ matrix.build_type }}
+
+  update_vtk_Win32:
+    if: ${{ inputs.platform == 'Win32' }}
+    uses: ./.github/workflows/build-vtk.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022]
+        build_type: [Release]
+        arch: [Win32]
+    with:
+      vtk-hash: 6b6b89ee577e6c6a5ee6f5220b9c6a12513c30b4 # v9.4.1
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
+      build-type: ${{ matrix.build_type }}
+
+  ########
+  # BUILD AND CACHE ITK
+  update_itk_x64:
+    if: ${{ inputs.platform == 'x64' }}
+    uses: ./.github/workflows/build-itk.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022]
+        build_type: [Release]
+        arch: [x64]
+    with:
+      itk-hash: f98d5fac5e1d5ef694f3010f12bbbc2c792994c6 # v5.4.4
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
+      build-type: ${{ matrix.build_type }}
+
+  update_itk_Win32:
+    if: ${{ inputs.platform == 'Win32' }}
+    uses: ./.github/workflows/build-itk.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022]
+        build_type: [Release]
+        arch: [Win32]
+    with:
+      itk-hash: f98d5fac5e1d5ef694f3010f12bbbc2c792994c6 # v5.4.4
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
+      build-type: ${{ matrix.build_type }}
+
+  ########
+  # BUILD PLUS PACKAGE
+  build_plus_package:
+    needs: [update_vtk_x64, update_vtk_Win32, update_itk_x64, update_itk_Win32]
+    # always() lets this job run even though the skipped jobs are in needs
+    if: always() && !failure() && !cancelled()
+    uses: ./.github/workflows/build-plus.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022]
+        build_type: [Release]
+    secrets:
+      pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}
+    with:
+      arch: ${{ inputs.platform }}
+      os: ${{ matrix.os }}
+      pluslib-repository: ${{ inputs.pluslib-repository }}
+      pluslib-tag: ${{ inputs.pluslib-tag }}
+      use-pltools: ${{ inputs.use-pltools }}
+      vtk-cache-key: ${{ inputs.platform == 'x64' && needs.update_vtk_x64.outputs.cache-key || needs.update_vtk_Win32.outputs.cache-key }}
+      itk-cache-key: ${{ inputs.platform == 'x64' && needs.update_itk_x64.outputs.cache-key || needs.update_itk_Win32.outputs.cache-key }}
+      archive-name: ${{ inputs.archive-name }}
+      plus-config: >-
+        -DVTK_DIR=${{ inputs.platform == 'x64' && needs.update_vtk_x64.outputs.install-path || needs.update_vtk_Win32.outputs.install-path }}
+        -DITK_DIR=${{ inputs.platform == 'x64' && needs.update_itk_x64.outputs.install-path || needs.update_itk_Win32.outputs.install-path }}
+        -DPLUSBUILD_BUILDNAME_POSTFIX=${{ inputs.buildname-postfix }}
+        ${{ inputs.package-edition != '' && format('-DPLUSAPP_PACKAGE_EDITION:STRING="{0}"', inputs.package-edition) || '' }}
+        ${{ inputs.extra-config }}
