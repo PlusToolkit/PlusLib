@@ -50,12 +50,12 @@ on:
       plusapp-repository:
         required: false
         type: string
-        default: https://github.com/Sunderlandkyl/PlusApp.git
+        default: https://github.com/PlusToolkit/PlusApp.git
       plusapp-tag:
         required: false
         type: string
-        default: install_branch_temp
-      
+        default: master
+
       use-pltools:
         required: false
         type: boolean

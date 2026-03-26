@@ -34,6 +34,14 @@ on:
         description: 'Git tag or commit SHA for PlusLib'
         required: false
         default: 'master'
+      plusapp-repository:
+        description: 'Git repository URL for PlusApp'
+        required: false
+        default: 'https://github.com/PlusToolkit/PlusApp.git'
+      plusapp-tag:
+        description: 'Git tag or commit SHA for PlusApp'
+        required: false
+        default: 'master'
       use-pltools:
         description: 'Clone PLTools (requires PLTOOLS_ACCESS_TOKEN secret)'
         required: false
@@ -125,6 +133,8 @@ jobs:
       os: ${{ matrix.os }}
       pluslib-repository: ${{ inputs.pluslib-repository }}
       pluslib-tag: ${{ inputs.pluslib-tag }}
+      plusapp-repository: ${{ inputs.plusapp-repository }}
+      plusapp-tag: ${{ inputs.plusapp-tag }}
       use-pltools: ${{ inputs.use-pltools }}
       vtk-cache-key: ${{ inputs.platform == 'x64' && needs.update_vtk_x64.outputs.cache-key || needs.update_vtk_Win32.outputs.cache-key }}
       itk-cache-key: ${{ inputs.platform == 'x64' && needs.update_itk_x64.outputs.cache-key || needs.update_itk_Win32.outputs.cache-key }}
