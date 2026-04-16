@@ -63,6 +63,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     ${PLUSLIB_VTK_PREFIX}FiltersSources 
     ${PLUSLIB_VTK_PREFIX}FiltersGeneral
     ${PLUSLIB_VTK_PREFIX}IOLegacy
+    ${PLUSLIB_VTK_PREFIX}IOGeometry
     )
   GENERATE_HELP_DOC(CreateSliceModels)
 
