@@ -307,7 +307,7 @@ ENDIF()
 IF(PLUS_USE_CLARIUS)
   ADD_EXECUTABLE(vtkPlusClariusTest1 vtkClariusTest.cxx)
   SET_TARGET_PROPERTIES(vtkPlusClariusTest1 PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkPlusClariusTest1 vtkPlusDataCollection) # add any other dependencies to the test executable
+  TARGET_LINK_LIBRARIES(vtkPlusClariusTest1 VTK::InteractionImage vtkPlusDataCollection) # add any other dependencies to the test executable
 
   ADD_TEST(vtkPlusClariusTest1
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkPlusClariusTest1
