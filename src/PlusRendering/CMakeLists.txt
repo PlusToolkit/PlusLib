@@ -20,7 +20,7 @@ SET(${PROJECT_NAME}_INCLUDE_DIRS
 
 # --------------------------------------------------------------------------
 # Build the library
-SET(${PROJECT_NAME}_LIBS 
+SET(${PROJECT_NAME}_LIBS
   vtkPlusCommon
   ${PLUSLIB_VTK_PREFIX}CommonCore
   ${PLUSLIB_VTK_PREFIX}FiltersSources
@@ -33,6 +33,18 @@ SET(${PROJECT_NAME}_LIBS
   ${PLUSLIB_VTK_PREFIX}Rendering${VTK_RENDERING_BACKEND}
   ${PLUSLIB_VTK_PREFIX}RenderingContext2D
   )
+
+IF(NOT VTK_VERSION VERSION_LESS 9.0.0)
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    VTK::FiltersParallel
+    VTK::RenderingContextOpenGL2
+    )
+ENDIF()
+IF(NOT VTK_VERSION VERSION_LESS 9.2.0)
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    VTK::RenderingCellGrid
+    )
+ENDIF()
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtk${PROJECT_NAME})
 ADD_LIBRARY(vtk${PROJECT_NAME} ${${PROJECT_NAME}_SRCS} ${${PROJECT_NAME}_HDRS})
