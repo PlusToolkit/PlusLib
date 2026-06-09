@@ -216,8 +216,6 @@ protected:
   virtual ~vtkPlusUsImagingParameters();
 
   const char* GetXMLElementName() override { return vtkPlusUsImagingParameters::US_XML_ELEMENT_TAG; }
-
-  ParameterMap Parameters;
 };
 
 #endif
