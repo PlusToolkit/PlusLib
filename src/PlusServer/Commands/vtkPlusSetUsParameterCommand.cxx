@@ -225,6 +225,11 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
       }
       imagingParameters->SetValue<double>(parameterName, parameterValue);
     }
+    else if (usDevice->IsKnownKey(parameterName))
+    {
+      // Device-specific parameter; stored as string, parsed and applied by the device
+      imagingParameters->SetValue<std::string>(parameterName, value);
+    }
     else
     {
       error += "Invalid parameter " + parameterName + ". ";

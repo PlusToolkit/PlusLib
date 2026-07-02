@@ -241,6 +241,24 @@ PlusStatus vtkPlusGetUsParameterCommand::Execute()
         status = PLUS_FAIL;
       }
     }
+    else if (usDevice->IsKnownKey(parameterName))
+    {
+      // Device-specific parameter; stored as string by the device
+      std::string value;
+      if (imagingParameters->IsSet(parameterName)
+          && imagingParameters->GetValue<std::string>(parameterName, value) == PLUS_SUCCESS)
+      {
+        resultString += " Success=\"true\"";
+        resultString += " Value=\"" + value + "\"";
+        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, value);
+      }
+      else
+      {
+        resultString += " Success=\"false\"";
+        error += parameterName + " is not set. ";
+        status = PLUS_FAIL;
+      }
+    }
     else
     {
       error += "Invalid parameter " + parameterName + ". ";

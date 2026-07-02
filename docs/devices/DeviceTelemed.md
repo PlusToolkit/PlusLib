@@ -27,6 +27,19 @@
 - **DynRangeDb**: Dynamic Range [dB] of B-mode ultrasound. If not specified (or value is <0) then the current value is kept.
 - **GainPercent**: Is the gain percentage of B-mode ultrasound. If not specified (or value is <0) then the current value is kept. Valid range: 0-100.
 - **PowerPercent**: Power to be used for imaging, as a percentage of maximum available power. If not specified (or value is <0) then the current value is kept. Valid range is 0-100.
+- **SpeckleReductionEnabled**: Enable (`TRUE`) or disable (`FALSE`) speckle reduction (ClearView) filtering of B-mode ultrasound. If not specified then the current value is kept.
+- **SpeckleReductionMethod**: Speckle reduction filter method, specified as either a value of the Telemed `CLEAR_VIEW` enumeration (for example `306`) or a human-readable enum token (for example `SRF_NVC6`). The value encodes the filter family (hundreds digit) and the filtration level (1-16 within each family, higher = stronger filtering). If not specified (or value is <0) then the current value is kept.
+
+    | Values | Filter family | Notes |
+    |---|---|---|
+    | 1-16 | ClearView (`SRF_CV1..16`) | Requires purchased license and inserted USB dongle key |
+    | 101-116 | PureView (`SRF_PV1..16`) | Generally available |
+    | 201-216 | NeatView GPU (`SRF_NV1..16`) | Availability depends on graphics adapter and drivers |
+    | 301-316 | NeatView CPU (`SRF_NVC1..16`) | Generally available |
+    | 401-416 | QuickView (`SRF_QV1..16`) | Reserved for future use by Telemed |
+    | 501-516 | `SRF_NVO1..16` | Present in SDK 4.1.0 headers, undocumented |
+
+    Per the Telemed SDK programmer's guide, in most cases only PureView and CPU-based NeatView are available; Telemed's own default scanning parameter files use `306` (NeatView CPU, level 6, equivalent to `SRF_NVC6`). Note that speckle reduction filters may reduce the frame rate. Both speckle reduction parameters can also be changed at runtime with the `SET_US_PARAMETER` OpenIGTLink command (parameter names `SpeckleReductionEnabled` and `SpeckleReductionMethod`).
 - **DataSources**: Exactly one `DataSource` child element is required (Required)
     - **DataSource**: (Required)
         - **PortUsImageOrientation**: (Required)

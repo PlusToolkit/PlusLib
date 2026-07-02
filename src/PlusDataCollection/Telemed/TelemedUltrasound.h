@@ -50,6 +50,14 @@ public:
   PlusStatus SetDynRangeDb(double dynRangeDb);
   PlusStatus GetDynRangeDb(double& dynRangeDb);
 
+  /*! Enable/disable speckle reduction (ClearView) filtering */
+  PlusStatus SetSpeckleReductionEnabled(bool enabled);
+  PlusStatus GetSpeckleReductionEnabled(bool& enabled);
+
+  /*! Speckle reduction (ClearView) filter method, a value of the CLEAR_VIEW enumeration (SRF_...) */
+  PlusStatus SetSpeckleReductionMethod(int method);
+  PlusStatus GetSpeckleReductionMethod(int& method);
+
 protected:
   std::vector<unsigned char> m_FrameBuffer;
   FrameSizeType m_FrameSize;
@@ -66,6 +74,7 @@ private:
   IUsgDynamicRange* m_b_dynrange_ctrl;
   IUsgProbeFrequency3* m_b_frequency_ctrl;
   IUsgFocus* m_b_focus_ctrl;
+  IUsgClearView* m_b_clearview_ctrl;
 
   IConnectionPoint* m_usg_device_change_cpnt; // connection point for device change events
   DWORD m_usg_device_change_cpnt_cookie;

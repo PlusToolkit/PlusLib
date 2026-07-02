@@ -38,6 +38,7 @@ TelemedUltrasound::TelemedUltrasound()
   m_b_dynrange_ctrl = NULL;
   m_b_frequency_ctrl = NULL;
   m_b_focus_ctrl = NULL;
+  m_b_clearview_ctrl = NULL;
   m_usg_control_change_cpnt = NULL;
   m_usg_control_change_cpnt_cookie = 0;
   m_usg_device_change_cpnt = NULL;
@@ -557,6 +558,18 @@ void TelemedUltrasound::CreateUsgControls(int probeId /* = 0 */)
       m_b_focus_ctrl = NULL;
     }
 
+    // create B mode speckle reduction (ClearView) control
+    tmp_obj = NULL;
+    CreateUsgControl(m_data_view, IID_IUsgClearView, SCAN_MODE_B, 0, (void**)&tmp_obj);
+    if (tmp_obj != NULL)
+    {
+      m_b_clearview_ctrl = (IUsgClearView*)tmp_obj;
+    }
+    else
+    {
+      m_b_clearview_ctrl = NULL;
+    }
+
     // attach to control value change connection point in order to be informed about changed values
 
     // get container of connection points
@@ -932,6 +945,7 @@ void TelemedUltrasound::ReleaseUsgControls(bool release_usgfw2)
   SAFE_RELEASE(m_b_dynrange_ctrl);
   SAFE_RELEASE(m_b_frequency_ctrl);
   SAFE_RELEASE(m_b_focus_ctrl);
+  SAFE_RELEASE(m_b_clearview_ctrl);
   SAFE_RELEASE(m_mixer_control);
   SAFE_RELEASE(m_data_view);
   SAFE_RELEASE(m_probe);
@@ -1249,6 +1263,80 @@ PlusStatus TelemedUltrasound::GetDynRangeDb(double& dynRangeDb)
     return PLUS_FAIL;
   }
   dynRangeDb = currentDynRangeDb;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::SetSpeckleReductionEnabled(bool enabled)
+{
+  if (m_b_clearview_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::SetSpeckleReductionEnabled failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  if (m_b_clearview_ctrl->put_Enabled(enabled ? TRUE : FALSE) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::SetSpeckleReductionEnabled failed: failed to set value on device");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::GetSpeckleReductionEnabled(bool& enabled)
+{
+  if (m_b_clearview_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::GetSpeckleReductionEnabled failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  LONG currentEnabled = 0;
+  if (m_b_clearview_ctrl->get_Enabled(&currentEnabled) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::GetSpeckleReductionEnabled failed: failed to get value from device");
+    return PLUS_FAIL;
+  }
+  enabled = (currentEnabled != 0);
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::SetSpeckleReductionMethod(int method)
+{
+  if (m_b_clearview_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::SetSpeckleReductionMethod failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  LONG currentMethod = 0;
+  m_b_clearview_ctrl->get_Current(&currentMethod);
+  if (currentMethod == method)
+  {
+    return PLUS_SUCCESS;
+  }
+  if (m_b_clearview_ctrl->put_Current(method) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::SetSpeckleReductionMethod failed: method " << method << " may not be supported by the connected probe");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::GetSpeckleReductionMethod(int& method)
+{
+  if (m_b_clearview_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::GetSpeckleReductionMethod failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  LONG currentMethod = 0;
+  if (m_b_clearview_ctrl->get_Current(&currentMethod) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::GetSpeckleReductionMethod failed: failed to get value from device");
+    return PLUS_FAIL;
+  }
+  method = currentMethod;
   return PLUS_SUCCESS;
 }
 

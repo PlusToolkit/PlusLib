@@ -80,8 +80,8 @@ public:
   virtual std::string GetParameter(const std::string& key) const;
   virtual PlusStatus GetParameter(const std::string& key, std::string& outValue) const;
 
-  /*! Is the queried key a known us device key? */
-  bool IsKnownKey(const std::string& queryKey) const;
+  /*! Is the queried key a known us device key? Devices can override this to declare device-specific imaging parameter keys. */
+  virtual bool IsKnownKey(const std::string& queryKey) const;
 
   // Virtual functions for creating the OpenIGTLinkIO ultrasound parameters.
   // Implement these in all US devices that should support ultrasound sector information

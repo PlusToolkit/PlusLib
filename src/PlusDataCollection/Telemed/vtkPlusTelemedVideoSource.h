@@ -28,6 +28,10 @@ class vtkPlusUsImagingParameters;
 class vtkPlusDataCollectionExport vtkPlusTelemedVideoSource : public vtkPlusUsDevice
 {
 public:
+  /*! Imaging parameter keys specific to the Telemed device */
+  static const char* KEY_SPECKLE_REDUCTION_ENABLED;
+  static const char* KEY_SPECKLE_REDUCTION_METHOD;
+
   static vtkPlusTelemedVideoSource* New();
   vtkTypeMacro(vtkPlusTelemedVideoSource, vtkPlusUsDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
@@ -80,6 +84,19 @@ public:
   /*! Get the focus depth of B-mode ultrasound normalized to [0,100] (percnet) */
   PlusStatus GetFocusDepthPercent(double& aFocusDepthPercent);
 
+  /*! Enable/disable speckle reduction (ClearView) filtering of B-mode ultrasound */
+  PlusStatus SetSpeckleReductionEnabled(bool aEnabled);
+  /*! Get the enabled state of speckle reduction (ClearView) filtering of B-mode ultrasound */
+  PlusStatus GetSpeckleReductionEnabled(bool& aEnabled);
+
+  /*! Set the speckle reduction (ClearView) filter method, a value of the Telemed CLEAR_VIEW enumeration (e.g. 1-16 for SRF_CV1..SRF_CV16) */
+  PlusStatus SetSpeckleReductionMethod(int aMethod);
+  /*! Get the speckle reduction (ClearView) filter method */
+  PlusStatus GetSpeckleReductionMethod(int& aMethod);
+
+  /*! Accept the device-specific speckle reduction keys in addition to the standard US parameter keys */
+  virtual bool IsKnownKey(const std::string& queryKey) const;
+
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
 
@@ -118,6 +135,8 @@ protected:
   double DynRangeDb;
   double PowerDb;
   double FocusDepthPercent;
+  bool SpeckleReductionEnabled;
+  int SpeckleReductionMethod;
 
 private:
   vtkImageImport* importer;
