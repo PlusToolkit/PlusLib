@@ -26,10 +26,39 @@ vtkStandardNewMacro(vtkPlusTelemedVideoSource); // Corresponds to the implementa
 
 const char* vtkPlusTelemedVideoSource::KEY_SPECKLE_REDUCTION_ENABLED = "SpeckleReductionEnabled";
 const char* vtkPlusTelemedVideoSource::KEY_SPECKLE_REDUCTION_METHOD = "SpeckleReductionMethod";
+const char* vtkPlusTelemedVideoSource::KEY_DYNAMIC_FOCUS_ENABLED = "DynamicFocusEnabled";
+const char* vtkPlusTelemedVideoSource::KEY_FOCUSES_NUMBER = "FocusesNumber";
+const char* vtkPlusTelemedVideoSource::KEY_FOCUS_SET = "FocusSet";
+const char* vtkPlusTelemedVideoSource::KEY_FRAME_AVERAGING = "FrameAveraging";
+const char* vtkPlusTelemedVideoSource::KEY_VIEW_AREA_PERCENT = "ViewAreaPercent";
+const char* vtkPlusTelemedVideoSource::KEY_LINE_DENSITY = "LineDensity";
+const char* vtkPlusTelemedVideoSource::KEY_IMAGE_ENHANCEMENT_ENABLED = "ImageEnhancementEnabled";
+const char* vtkPlusTelemedVideoSource::KEY_IMAGE_ENHANCEMENT_METHOD = "ImageEnhancementMethod";
+const char* vtkPlusTelemedVideoSource::KEY_REJECTION = "Rejection";
+const char* vtkPlusTelemedVideoSource::KEY_NEGATIVE = "Negative";
+const char* vtkPlusTelemedVideoSource::KEY_CHANGE_SCAN_DIRECTION = "ChangeScanDirection";
+const char* vtkPlusTelemedVideoSource::KEY_ROTATE_IMAGE = "RotateImage";
 
 namespace
 {
 bool SpeckleReductionMethodFromXmlString(const std::string& text, int& outMethod);
+bool ImageEnhancementMethodFromXmlString(const std::string& text, int& outMethod);
+
+//----------------------------------------------------------------------------
+bool TryParseBool(const std::string& text, bool& value)
+{
+  if (igsioCommon::IsEqualInsensitive(text, "TRUE") || text == "1")
+  {
+    value = true;
+    return true;
+  }
+  if (igsioCommon::IsEqualInsensitive(text, "FALSE") || text == "0")
+  {
+    value = false;
+    return true;
+  }
+  return false;
+}
 
 //----------------------------------------------------------------------------
 bool TryParseInteger(const std::string& text, int& value)
@@ -102,6 +131,66 @@ bool SpeckleReductionMethodFromString(const std::string& text, int& outMethod)
 }
 
 //----------------------------------------------------------------------------
+bool ImageEnhancementMethodToEnumString(int method, std::string& outEnumName)
+{
+  switch (method)
+  {
+    case IMAGE_ENHANC_SHARPEN:
+      outEnumName = "IMAGE_ENHANC_SHARPEN";
+      return true;
+    case IMAGE_ENHANC_SHARPENMORE:
+      outEnumName = "IMAGE_ENHANC_SHARPENMORE";
+      return true;
+    case IMAGE_ENHANC_SMOOTH:
+      outEnumName = "IMAGE_ENHANC_SMOOTH";
+      return true;
+    case IMAGE_ENHANC_SMOOTHMORE:
+      outEnumName = "IMAGE_ENHANC_SMOOTHMORE";
+      return true;
+    default:
+      return false;
+  }
+}
+
+//----------------------------------------------------------------------------
+bool ImageEnhancementMethodFromString(const std::string& text, int& outMethod)
+{
+  if (TryParseInteger(text, outMethod))
+  {
+    return true;
+  }
+
+  return ImageEnhancementMethodFromXmlString(text, outMethod);
+}
+
+//----------------------------------------------------------------------------
+bool ImageEnhancementMethodFromXmlString(const std::string& text, int& outMethod)
+{
+  std::string enumName = igsioCommon::ToUpper(text);
+  if (enumName == "IMAGE_ENHANC_SHARPEN")
+  {
+    outMethod = IMAGE_ENHANC_SHARPEN;
+    return true;
+  }
+  if (enumName == "IMAGE_ENHANC_SHARPENMORE")
+  {
+    outMethod = IMAGE_ENHANC_SHARPENMORE;
+    return true;
+  }
+  if (enumName == "IMAGE_ENHANC_SMOOTH")
+  {
+    outMethod = IMAGE_ENHANC_SMOOTH;
+    return true;
+  }
+  if (enumName == "IMAGE_ENHANC_SMOOTHMORE")
+  {
+    outMethod = IMAGE_ENHANC_SMOOTHMORE;
+    return true;
+  }
+  return false;
+}
+
+//----------------------------------------------------------------------------
 bool SpeckleReductionMethodFromXmlString(const std::string& text, int& outMethod)
 {
   std::string enumName = igsioCommon::ToUpper(text);
@@ -158,6 +247,18 @@ vtkPlusTelemedVideoSource::vtkPlusTelemedVideoSource()
   , FocusDepthPercent(-1)
   , SpeckleReductionEnabled(false)
   , SpeckleReductionMethod(-1)
+  , DynamicFocusEnabled(-1)
+  , FocusesNumber(-1)
+  , FocusSet(-1)
+  , FrameAveraging(-1)
+  , ViewAreaPercent(-1)
+  , LineDensity(-1)
+  , ImageEnhancementEnabled(-1)
+  , ImageEnhancementMethod(-1)
+  , Rejection(-1)
+  , Negative(-1)
+  , ChangeScanDirection(-1)
+  , RotateImage(-1)
   , ConnectedToDevice(false)
 {
   this->FrameSize[0] = 512;
@@ -213,6 +314,155 @@ PlusStatus vtkPlusTelemedVideoSource::ReadConfiguration(vtkXMLDataElement* rootC
     }
   }
 
+  std::string intAttr;
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(DynamicFocusEnabled, intAttr, deviceConfig);
+  if (!intAttr.empty())
+  {
+    bool parsed = false;
+    bool boolValue = false;
+    if (TryParseBool(intAttr, boolValue))
+    {
+      this->DynamicFocusEnabled = boolValue ? 1 : 0;
+      parsed = true;
+    }
+    if (!parsed)
+    {
+      int value = -1;
+      if (TryParseInteger(intAttr, value))
+      {
+        this->DynamicFocusEnabled = (value != 0) ? 1 : 0;
+        parsed = true;
+      }
+    }
+    if (!parsed)
+    {
+      LOG_ERROR("Unable to parse DynamicFocusEnabled='" << intAttr << "'. Use TRUE/FALSE or 0/1.");
+    }
+  }
+
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(FocusesNumber, intAttr, deviceConfig);
+  if (!intAttr.empty() && !TryParseInteger(intAttr, this->FocusesNumber))
+  {
+    LOG_ERROR("Unable to parse FocusesNumber='" << intAttr << "'. Use an integer value.");
+  }
+
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(FocusSet, intAttr, deviceConfig);
+  if (!intAttr.empty() && !TryParseInteger(intAttr, this->FocusSet))
+  {
+    LOG_ERROR("Unable to parse FocusSet='" << intAttr << "'. Use an integer value.");
+  }
+
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(FrameAveraging, intAttr, deviceConfig);
+  if (!intAttr.empty() && !TryParseInteger(intAttr, this->FrameAveraging))
+  {
+    LOG_ERROR("Unable to parse FrameAveraging='" << intAttr << "'. Use an integer value.");
+  }
+
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(ViewAreaPercent, intAttr, deviceConfig);
+  if (!intAttr.empty() && !TryParseInteger(intAttr, this->ViewAreaPercent))
+  {
+    LOG_ERROR("Unable to parse ViewAreaPercent='" << intAttr << "'. Use an integer value.");
+  }
+
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(LineDensity, intAttr, deviceConfig);
+  if (!intAttr.empty() && !TryParseInteger(intAttr, this->LineDensity))
+  {
+    LOG_ERROR("Unable to parse LineDensity='" << intAttr << "'. Use an integer value.");
+  }
+
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(ImageEnhancementEnabled, intAttr, deviceConfig);
+  if (!intAttr.empty())
+  {
+    bool parsed = false;
+    bool boolValue = false;
+    if (TryParseBool(intAttr, boolValue))
+    {
+      this->ImageEnhancementEnabled = boolValue ? 1 : 0;
+      parsed = true;
+    }
+    if (!parsed)
+    {
+      int value = -1;
+      if (TryParseInteger(intAttr, value))
+      {
+        this->ImageEnhancementEnabled = (value != 0) ? 1 : 0;
+        parsed = true;
+      }
+    }
+    if (!parsed)
+    {
+      LOG_ERROR("Unable to parse ImageEnhancementEnabled='" << intAttr << "'. Use TRUE/FALSE or 0/1.");
+    }
+  }
+
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(ImageEnhancementMethod, intAttr, deviceConfig);
+  if (!intAttr.empty() && !ImageEnhancementMethodFromString(intAttr, this->ImageEnhancementMethod))
+  {
+    LOG_ERROR("Unable to parse ImageEnhancementMethod='" << intAttr << "'. Use IMAGE_ENHANC_SHARPEN, IMAGE_ENHANC_SHARPENMORE, IMAGE_ENHANC_SMOOTH, IMAGE_ENHANC_SMOOTHMORE, or an integer value.");
+  }
+
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(Rejection, intAttr, deviceConfig);
+  if (!intAttr.empty() && !TryParseInteger(intAttr, this->Rejection))
+  {
+    LOG_ERROR("Unable to parse Rejection='" << intAttr << "'. Use an integer value.");
+  }
+
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(Negative, intAttr, deviceConfig);
+  if (!intAttr.empty())
+  {
+    bool parsed = false;
+    bool boolValue = false;
+    if (TryParseBool(intAttr, boolValue))
+    {
+      this->Negative = boolValue ? 1 : 0;
+      parsed = true;
+    }
+    if (!parsed)
+    {
+      int value = -1;
+      if (TryParseInteger(intAttr, value))
+      {
+        this->Negative = (value != 0) ? 1 : 0;
+        parsed = true;
+      }
+    }
+    if (!parsed)
+    {
+      LOG_ERROR("Unable to parse Negative='" << intAttr << "'. Use TRUE/FALSE or 0/1.");
+    }
+  }
+
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(ChangeScanDirection, intAttr, deviceConfig);
+  if (!intAttr.empty())
+  {
+    bool parsed = false;
+    bool boolValue = false;
+    if (TryParseBool(intAttr, boolValue))
+    {
+      this->ChangeScanDirection = boolValue ? 1 : 0;
+      parsed = true;
+    }
+    if (!parsed)
+    {
+      int value = -1;
+      if (TryParseInteger(intAttr, value))
+      {
+        this->ChangeScanDirection = (value != 0) ? 1 : 0;
+        parsed = true;
+      }
+    }
+    if (!parsed)
+    {
+      LOG_ERROR("Unable to parse ChangeScanDirection='" << intAttr << "'. Use TRUE/FALSE or 0/1.");
+    }
+  }
+
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(RotateImage, intAttr, deviceConfig);
+  if (!intAttr.empty() && !TryParseInteger(intAttr, this->RotateImage))
+  {
+    LOG_ERROR("Unable to parse RotateImage='" << intAttr << "'. Use 0/90/180/270 (or enum 0..3).");
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -241,6 +491,26 @@ PlusStatus vtkPlusTelemedVideoSource::WriteConfiguration(vtkXMLDataElement* root
   {
     deviceConfig->SetIntAttribute("SpeckleReductionMethod", this->SpeckleReductionMethod);
   }
+  deviceConfig->SetIntAttribute("DynamicFocusEnabled", this->DynamicFocusEnabled);
+  deviceConfig->SetIntAttribute("FocusesNumber", this->FocusesNumber);
+  deviceConfig->SetIntAttribute("FocusSet", this->FocusSet);
+  deviceConfig->SetIntAttribute("FrameAveraging", this->FrameAveraging);
+  deviceConfig->SetIntAttribute("ViewAreaPercent", this->ViewAreaPercent);
+  deviceConfig->SetIntAttribute("LineDensity", this->LineDensity);
+  deviceConfig->SetIntAttribute("ImageEnhancementEnabled", this->ImageEnhancementEnabled);
+  std::string imageEnhancementMethodAsEnum;
+  if (ImageEnhancementMethodToEnumString(this->ImageEnhancementMethod, imageEnhancementMethodAsEnum))
+  {
+    deviceConfig->SetAttribute("ImageEnhancementMethod", imageEnhancementMethodAsEnum.c_str());
+  }
+  else
+  {
+    deviceConfig->SetIntAttribute("ImageEnhancementMethod", this->ImageEnhancementMethod);
+  }
+  deviceConfig->SetIntAttribute("Rejection", this->Rejection);
+  deviceConfig->SetIntAttribute("Negative", this->Negative);
+  deviceConfig->SetIntAttribute("ChangeScanDirection", this->ChangeScanDirection);
+  deviceConfig->SetIntAttribute("RotateImage", this->RotateImage);
   return PLUS_SUCCESS;
 }
 
@@ -293,6 +563,54 @@ PlusStatus vtkPlusTelemedVideoSource::InternalConnect()
   if (this->FocusDepthPercent >= 0 && this->FocusDepthPercent <= 1)
   {
     this->ImagingParameters->SetFocusDepthPercent(this->FocusDepthPercent);
+  }
+  if (this->DynamicFocusEnabled >= 0)
+  {
+    this->ImagingParameters->SetValue<bool>(KEY_DYNAMIC_FOCUS_ENABLED, this->DynamicFocusEnabled != 0);
+  }
+  if (this->FocusesNumber >= 0)
+  {
+    this->ImagingParameters->SetValue<int>(KEY_FOCUSES_NUMBER, this->FocusesNumber);
+  }
+  if (this->FocusSet >= 0)
+  {
+    this->ImagingParameters->SetValue<int>(KEY_FOCUS_SET, this->FocusSet);
+  }
+  if (this->FrameAveraging >= 0)
+  {
+    this->ImagingParameters->SetValue<int>(KEY_FRAME_AVERAGING, this->FrameAveraging);
+  }
+  if (this->ViewAreaPercent >= 0)
+  {
+    this->ImagingParameters->SetValue<int>(KEY_VIEW_AREA_PERCENT, this->ViewAreaPercent);
+  }
+  if (this->LineDensity >= 0)
+  {
+    this->ImagingParameters->SetValue<int>(KEY_LINE_DENSITY, this->LineDensity);
+  }
+  if (this->ImageEnhancementEnabled >= 0)
+  {
+    this->ImagingParameters->SetValue<bool>(KEY_IMAGE_ENHANCEMENT_ENABLED, this->ImageEnhancementEnabled != 0);
+  }
+  if (this->ImageEnhancementMethod >= 0)
+  {
+    this->ImagingParameters->SetValue<int>(KEY_IMAGE_ENHANCEMENT_METHOD, this->ImageEnhancementMethod);
+  }
+  if (this->Rejection >= 0)
+  {
+    this->ImagingParameters->SetValue<int>(KEY_REJECTION, this->Rejection);
+  }
+  if (this->Negative >= 0)
+  {
+    this->ImagingParameters->SetValue<bool>(KEY_NEGATIVE, this->Negative != 0);
+  }
+  if (this->ChangeScanDirection >= 0)
+  {
+    this->ImagingParameters->SetValue<bool>(KEY_CHANGE_SCAN_DIRECTION, this->ChangeScanDirection != 0);
+  }
+  if (this->RotateImage >= 0)
+  {
+    this->ImagingParameters->SetValue<int>(KEY_ROTATE_IMAGE, this->RotateImage);
   }
 
   // For the parameters not set from the config file or in the imaging parameters, we should try to read them from the current device settings
@@ -354,6 +672,110 @@ PlusStatus vtkPlusTelemedVideoSource::InternalConnect()
       {
         this->ImagingParameters->SetValue<int>(KEY_SPECKLE_REDUCTION_METHOD, deviceSpeckleReductionMethod);
       }
+    }
+  }
+  if (!this->ImagingParameters->IsSet(KEY_DYNAMIC_FOCUS_ENABLED))
+  {
+    bool value = false;
+    if (this->GetDynamicFocusEnabled(value) == PLUS_SUCCESS)
+    {
+      this->ImagingParameters->SetValue<bool>(KEY_DYNAMIC_FOCUS_ENABLED, value);
+    }
+  }
+  if (!this->ImagingParameters->IsSet(KEY_FOCUSES_NUMBER))
+  {
+    int value = 0;
+    if (this->GetFocusesNumber(value) == PLUS_SUCCESS)
+    {
+      this->ImagingParameters->SetValue<int>(KEY_FOCUSES_NUMBER, value);
+    }
+  }
+  if (!this->ImagingParameters->IsSet(KEY_FOCUS_SET))
+  {
+    int value = 0;
+    if (this->GetFocusSet(value) == PLUS_SUCCESS)
+    {
+      this->ImagingParameters->SetValue<int>(KEY_FOCUS_SET, value);
+    }
+  }
+  if (!this->ImagingParameters->IsSet(KEY_FRAME_AVERAGING))
+  {
+    int value = 0;
+    if (this->GetFrameAveraging(value) == PLUS_SUCCESS)
+    {
+      this->ImagingParameters->SetValue<int>(KEY_FRAME_AVERAGING, value);
+    }
+  }
+  if (!this->ImagingParameters->IsSet(KEY_VIEW_AREA_PERCENT))
+  {
+    int value = 0;
+    if (this->GetViewAreaPercent(value) == PLUS_SUCCESS)
+    {
+      this->ImagingParameters->SetValue<int>(KEY_VIEW_AREA_PERCENT, value);
+    }
+  }
+  if (!this->ImagingParameters->IsSet(KEY_LINE_DENSITY))
+  {
+    int value = 0;
+    if (this->GetLineDensity(value) == PLUS_SUCCESS)
+    {
+      this->ImagingParameters->SetValue<int>(KEY_LINE_DENSITY, value);
+    }
+  }
+  if (!this->ImagingParameters->IsSet(KEY_IMAGE_ENHANCEMENT_ENABLED))
+  {
+    bool value = false;
+    if (this->GetImageEnhancementEnabled(value) == PLUS_SUCCESS)
+    {
+      this->ImagingParameters->SetValue<bool>(KEY_IMAGE_ENHANCEMENT_ENABLED, value);
+    }
+  }
+  if (!this->ImagingParameters->IsSet(KEY_IMAGE_ENHANCEMENT_METHOD))
+  {
+    int value = 0;
+    if (this->GetImageEnhancementMethod(value) == PLUS_SUCCESS)
+    {
+      std::string imageEnhancementMethodAsEnum;
+      if (ImageEnhancementMethodToEnumString(value, imageEnhancementMethodAsEnum))
+      {
+        this->ImagingParameters->SetValue<std::string>(KEY_IMAGE_ENHANCEMENT_METHOD, imageEnhancementMethodAsEnum);
+      }
+      else
+      {
+        this->ImagingParameters->SetValue<int>(KEY_IMAGE_ENHANCEMENT_METHOD, value);
+      }
+    }
+  }
+  if (!this->ImagingParameters->IsSet(KEY_REJECTION))
+  {
+    int value = 0;
+    if (this->GetRejection(value) == PLUS_SUCCESS)
+    {
+      this->ImagingParameters->SetValue<int>(KEY_REJECTION, value);
+    }
+  }
+  if (!this->ImagingParameters->IsSet(KEY_NEGATIVE))
+  {
+    bool value = false;
+    if (this->GetNegative(value) == PLUS_SUCCESS)
+    {
+      this->ImagingParameters->SetValue<bool>(KEY_NEGATIVE, value);
+    }
+  }
+  if (!this->ImagingParameters->IsSet(KEY_CHANGE_SCAN_DIRECTION))
+  {
+    bool value = false;
+    if (this->GetChangeScanDirection(value) == PLUS_SUCCESS)
+    {
+      this->ImagingParameters->SetValue<bool>(KEY_CHANGE_SCAN_DIRECTION, value);
+    }
+  }
+  if (!this->ImagingParameters->IsSet(KEY_ROTATE_IMAGE))
+  {
+    int value = 0;
+    if (this->GetRotateImage(value) == PLUS_SUCCESS)
+    {
+      this->ImagingParameters->SetValue<int>(KEY_ROTATE_IMAGE, value);
     }
   }
 
@@ -617,11 +1039,161 @@ PlusStatus vtkPlusTelemedVideoSource::GetSpeckleReductionMethod(int& aMethod)
   return PLUS_SUCCESS;
 }
 
+#define IMAGING_PARAMETER_SET_INT(parameterName) \
+PlusStatus vtkPlusTelemedVideoSource::Set##parameterName(int a##parameterName) \
+{ \
+  LOG_INFO("Setting US parameter " << #parameterName << "=" << a##parameterName); \
+  if (this->Device == NULL) \
+  { \
+    this->parameterName = a##parameterName; \
+    return PLUS_SUCCESS; \
+  } \
+  int oldParamValue = this->parameterName; \
+  this->parameterName = a##parameterName; \
+  if (this->Device->Set##parameterName(this->parameterName) != PLUS_SUCCESS) \
+  { \
+    LOG_ERROR("vtkPlusTelemedVideoSource parameter setting failed: " << #parameterName << "=" << a##parameterName); \
+    this->parameterName = oldParamValue; \
+    return PLUS_FAIL; \
+  } \
+  return PLUS_SUCCESS; \
+}
+
+#define IMAGING_PARAMETER_GET_INT(parameterName) \
+PlusStatus vtkPlusTelemedVideoSource::Get##parameterName(int& a##parameterName) \
+{ \
+  if (this->Device == NULL) \
+  { \
+    a##parameterName = this->parameterName; \
+    return PLUS_SUCCESS; \
+  } \
+  if (this->Device->Get##parameterName(this->parameterName) != PLUS_SUCCESS) \
+  { \
+    LOG_ERROR("vtkPlusTelemedVideoSource parameter retrieval failed: " << #parameterName); \
+    return PLUS_FAIL; \
+  } \
+  a##parameterName = this->parameterName; \
+  return PLUS_SUCCESS; \
+}
+
+#define IMAGING_PARAMETER_SET_BOOL(parameterName) \
+PlusStatus vtkPlusTelemedVideoSource::Set##parameterName(bool a##parameterName) \
+{ \
+  LOG_INFO("Setting US parameter " << #parameterName << "=" << (a##parameterName ? "TRUE" : "FALSE")); \
+  if (this->Device == NULL) \
+  { \
+    this->parameterName = a##parameterName ? 1 : 0; \
+    return PLUS_SUCCESS; \
+  } \
+  int oldParamValue = this->parameterName; \
+  this->parameterName = a##parameterName ? 1 : 0; \
+  if (this->Device->Set##parameterName(a##parameterName) != PLUS_SUCCESS) \
+  { \
+    LOG_ERROR("vtkPlusTelemedVideoSource parameter setting failed: " << #parameterName << "=" << (a##parameterName ? "TRUE" : "FALSE")); \
+    this->parameterName = oldParamValue; \
+    return PLUS_FAIL; \
+  } \
+  return PLUS_SUCCESS; \
+}
+
+#define IMAGING_PARAMETER_GET_BOOL(parameterName) \
+PlusStatus vtkPlusTelemedVideoSource::Get##parameterName(bool& a##parameterName) \
+{ \
+  if (this->Device == NULL) \
+  { \
+    a##parameterName = (this->parameterName != 0); \
+    return PLUS_SUCCESS; \
+  } \
+  bool paramValue = false; \
+  if (this->Device->Get##parameterName(paramValue) != PLUS_SUCCESS) \
+  { \
+    LOG_ERROR("vtkPlusTelemedVideoSource parameter retrieval failed: " << #parameterName); \
+    return PLUS_FAIL; \
+  } \
+  this->parameterName = paramValue ? 1 : 0; \
+  a##parameterName = paramValue; \
+  return PLUS_SUCCESS; \
+}
+
+IMAGING_PARAMETER_SET_BOOL(DynamicFocusEnabled);
+IMAGING_PARAMETER_GET_BOOL(DynamicFocusEnabled);
+IMAGING_PARAMETER_SET_INT(FocusesNumber);
+IMAGING_PARAMETER_GET_INT(FocusesNumber);
+IMAGING_PARAMETER_SET_INT(FocusSet);
+IMAGING_PARAMETER_GET_INT(FocusSet);
+IMAGING_PARAMETER_SET_INT(FrameAveraging);
+IMAGING_PARAMETER_GET_INT(FrameAveraging);
+IMAGING_PARAMETER_SET_INT(ViewAreaPercent);
+IMAGING_PARAMETER_GET_INT(ViewAreaPercent);
+IMAGING_PARAMETER_SET_INT(LineDensity);
+IMAGING_PARAMETER_GET_INT(LineDensity);
+IMAGING_PARAMETER_SET_BOOL(ImageEnhancementEnabled);
+IMAGING_PARAMETER_GET_BOOL(ImageEnhancementEnabled);
+IMAGING_PARAMETER_SET_INT(ImageEnhancementMethod);
+IMAGING_PARAMETER_GET_INT(ImageEnhancementMethod);
+IMAGING_PARAMETER_SET_INT(Rejection);
+IMAGING_PARAMETER_GET_INT(Rejection);
+IMAGING_PARAMETER_SET_BOOL(Negative);
+IMAGING_PARAMETER_GET_BOOL(Negative);
+IMAGING_PARAMETER_SET_INT(RotateImage);
+IMAGING_PARAMETER_GET_INT(RotateImage);
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusTelemedVideoSource::SetChangeScanDirection(bool aEnabled)
+{
+  LOG_INFO("Setting US parameter ChangeScanDirection=" << (aEnabled ? "TRUE" : "FALSE"));
+  if (this->Device == NULL)
+  {
+    this->ChangeScanDirection = aEnabled ? 1 : 0;
+    return PLUS_SUCCESS;
+  }
+  int oldValue = this->ChangeScanDirection;
+  this->ChangeScanDirection = aEnabled ? 1 : 0;
+  if (this->Device->SetScanDirection(aEnabled) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("vtkPlusTelemedVideoSource parameter setting failed: ChangeScanDirection=" << (aEnabled ? "TRUE" : "FALSE"));
+    this->ChangeScanDirection = oldValue;
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusTelemedVideoSource::GetChangeScanDirection(bool& aEnabled)
+{
+  if (this->Device == NULL)
+  {
+    aEnabled = (this->ChangeScanDirection != 0);
+    return PLUS_SUCCESS;
+  }
+  bool current = false;
+  if (this->Device->GetScanDirection(current) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("vtkPlusTelemedVideoSource parameter retrieval failed: ChangeScanDirection");
+    return PLUS_FAIL;
+  }
+  this->ChangeScanDirection = current ? 1 : 0;
+  aEnabled = current;
+  return PLUS_SUCCESS;
+}
+
 //----------------------------------------------------------------------------
 bool vtkPlusTelemedVideoSource::IsKnownKey(const std::string& queryKey) const
 {
   if (igsioCommon::IsEqualInsensitive(queryKey, KEY_SPECKLE_REDUCTION_ENABLED) ||
-      igsioCommon::IsEqualInsensitive(queryKey, KEY_SPECKLE_REDUCTION_METHOD))
+      igsioCommon::IsEqualInsensitive(queryKey, KEY_SPECKLE_REDUCTION_METHOD) ||
+      igsioCommon::IsEqualInsensitive(queryKey, KEY_DYNAMIC_FOCUS_ENABLED) ||
+      igsioCommon::IsEqualInsensitive(queryKey, KEY_FOCUSES_NUMBER) ||
+      igsioCommon::IsEqualInsensitive(queryKey, KEY_FOCUS_SET) ||
+      igsioCommon::IsEqualInsensitive(queryKey, KEY_FRAME_AVERAGING) ||
+      igsioCommon::IsEqualInsensitive(queryKey, KEY_VIEW_AREA_PERCENT) ||
+      igsioCommon::IsEqualInsensitive(queryKey, KEY_LINE_DENSITY) ||
+      igsioCommon::IsEqualInsensitive(queryKey, KEY_IMAGE_ENHANCEMENT_ENABLED) ||
+      igsioCommon::IsEqualInsensitive(queryKey, KEY_IMAGE_ENHANCEMENT_METHOD) ||
+      igsioCommon::IsEqualInsensitive(queryKey, KEY_REJECTION) ||
+      igsioCommon::IsEqualInsensitive(queryKey, KEY_NEGATIVE) ||
+      igsioCommon::IsEqualInsensitive(queryKey, KEY_CHANGE_SCAN_DIRECTION) ||
+      igsioCommon::IsEqualInsensitive(queryKey, KEY_ROTATE_IMAGE))
   {
     return true;
   }
@@ -778,6 +1350,354 @@ PlusStatus vtkPlusTelemedVideoSource::InternalApplyImagingParameterChange()
     {
       LOG_ERROR("Failed to set speckle reduction enabled imaging parameter");
       status = PLUS_FAIL;
+    }
+  }
+
+  if (this->ImagingParameters->IsSet(KEY_DYNAMIC_FOCUS_ENABLED)
+    && this->ImagingParameters->IsPending(KEY_DYNAMIC_FOCUS_ENABLED))
+  {
+    std::string valueStr;
+    if (this->ImagingParameters->GetValue<std::string>(KEY_DYNAMIC_FOCUS_ENABLED, valueStr) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to read dynamic focus enabled imaging parameter value");
+      status = PLUS_FAIL;
+    }
+    else
+    {
+      bool value = false;
+      if (!TryParseBool(valueStr, value))
+      {
+        LOG_ERROR("Failed to parse DynamicFocusEnabled='" << valueStr << "'. Use TRUE/FALSE or 0/1.");
+        status = PLUS_FAIL;
+      }
+      else if (this->SetDynamicFocusEnabled(value) == PLUS_SUCCESS)
+      {
+        this->ImagingParameters->SetPending(KEY_DYNAMIC_FOCUS_ENABLED, false);
+      }
+      else
+      {
+        LOG_ERROR("Failed to set dynamic focus enabled imaging parameter");
+        status = PLUS_FAIL;
+      }
+    }
+  }
+
+  if (this->ImagingParameters->IsSet(KEY_FOCUSES_NUMBER)
+    && this->ImagingParameters->IsPending(KEY_FOCUSES_NUMBER))
+  {
+    std::string valueStr;
+    if (this->ImagingParameters->GetValue<std::string>(KEY_FOCUSES_NUMBER, valueStr) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to read focuses number imaging parameter value");
+      status = PLUS_FAIL;
+    }
+    else
+    {
+      int value = 0;
+      if (!TryParseInteger(valueStr, value))
+      {
+        LOG_ERROR("Failed to parse FocusesNumber='" << valueStr << "'. Use an integer value.");
+        status = PLUS_FAIL;
+      }
+      else if (this->SetFocusesNumber(value) == PLUS_SUCCESS)
+      {
+        this->ImagingParameters->SetPending(KEY_FOCUSES_NUMBER, false);
+      }
+      else
+      {
+        LOG_ERROR("Failed to set focuses number imaging parameter");
+        status = PLUS_FAIL;
+      }
+    }
+  }
+
+  if (this->ImagingParameters->IsSet(KEY_FOCUS_SET)
+    && this->ImagingParameters->IsPending(KEY_FOCUS_SET))
+  {
+    std::string valueStr;
+    if (this->ImagingParameters->GetValue<std::string>(KEY_FOCUS_SET, valueStr) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to read focus set imaging parameter value");
+      status = PLUS_FAIL;
+    }
+    else
+    {
+      int value = 0;
+      if (!TryParseInteger(valueStr, value))
+      {
+        LOG_ERROR("Failed to parse FocusSet='" << valueStr << "'. Use an integer value.");
+        status = PLUS_FAIL;
+      }
+      else if (this->SetFocusSet(value) == PLUS_SUCCESS)
+      {
+        this->ImagingParameters->SetPending(KEY_FOCUS_SET, false);
+      }
+      else
+      {
+        LOG_ERROR("Failed to set focus set imaging parameter");
+        status = PLUS_FAIL;
+      }
+    }
+  }
+
+  if (this->ImagingParameters->IsSet(KEY_FRAME_AVERAGING)
+    && this->ImagingParameters->IsPending(KEY_FRAME_AVERAGING))
+  {
+    std::string valueStr;
+    if (this->ImagingParameters->GetValue<std::string>(KEY_FRAME_AVERAGING, valueStr) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to read frame averaging imaging parameter value");
+      status = PLUS_FAIL;
+    }
+    else
+    {
+      int value = 0;
+      if (!TryParseInteger(valueStr, value))
+      {
+        LOG_ERROR("Failed to parse FrameAveraging='" << valueStr << "'. Use an integer value.");
+        status = PLUS_FAIL;
+      }
+      else if (this->SetFrameAveraging(value) == PLUS_SUCCESS)
+      {
+        this->ImagingParameters->SetPending(KEY_FRAME_AVERAGING, false);
+      }
+      else
+      {
+        LOG_ERROR("Failed to set frame averaging imaging parameter");
+        status = PLUS_FAIL;
+      }
+    }
+  }
+
+  if (this->ImagingParameters->IsSet(KEY_VIEW_AREA_PERCENT)
+    && this->ImagingParameters->IsPending(KEY_VIEW_AREA_PERCENT))
+  {
+    std::string valueStr;
+    if (this->ImagingParameters->GetValue<std::string>(KEY_VIEW_AREA_PERCENT, valueStr) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to read view area imaging parameter value");
+      status = PLUS_FAIL;
+    }
+    else
+    {
+      int value = 0;
+      if (!TryParseInteger(valueStr, value))
+      {
+        LOG_ERROR("Failed to parse ViewAreaPercent='" << valueStr << "'. Use an integer value.");
+        status = PLUS_FAIL;
+      }
+      else if (this->SetViewAreaPercent(value) == PLUS_SUCCESS)
+      {
+        this->ImagingParameters->SetPending(KEY_VIEW_AREA_PERCENT, false);
+      }
+      else
+      {
+        LOG_ERROR("Failed to set view area imaging parameter");
+        status = PLUS_FAIL;
+      }
+    }
+  }
+
+  if (this->ImagingParameters->IsSet(KEY_LINE_DENSITY)
+    && this->ImagingParameters->IsPending(KEY_LINE_DENSITY))
+  {
+    std::string valueStr;
+    if (this->ImagingParameters->GetValue<std::string>(KEY_LINE_DENSITY, valueStr) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to read line density imaging parameter value");
+      status = PLUS_FAIL;
+    }
+    else
+    {
+      int value = 0;
+      if (!TryParseInteger(valueStr, value))
+      {
+        LOG_ERROR("Failed to parse LineDensity='" << valueStr << "'. Use an integer value.");
+        status = PLUS_FAIL;
+      }
+      else if (this->SetLineDensity(value) == PLUS_SUCCESS)
+      {
+        this->ImagingParameters->SetPending(KEY_LINE_DENSITY, false);
+      }
+      else
+      {
+        LOG_ERROR("Failed to set line density imaging parameter");
+        status = PLUS_FAIL;
+      }
+    }
+  }
+
+  if (this->ImagingParameters->IsSet(KEY_IMAGE_ENHANCEMENT_ENABLED)
+    && this->ImagingParameters->IsPending(KEY_IMAGE_ENHANCEMENT_ENABLED))
+  {
+    std::string valueStr;
+    if (this->ImagingParameters->GetValue<std::string>(KEY_IMAGE_ENHANCEMENT_ENABLED, valueStr) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to read image enhancement enabled imaging parameter value");
+      status = PLUS_FAIL;
+    }
+    else
+    {
+      bool value = false;
+      if (!TryParseBool(valueStr, value))
+      {
+        LOG_ERROR("Failed to parse ImageEnhancementEnabled='" << valueStr << "'. Use TRUE/FALSE or 0/1.");
+        status = PLUS_FAIL;
+      }
+      else if (this->SetImageEnhancementEnabled(value) == PLUS_SUCCESS)
+      {
+        this->ImagingParameters->SetPending(KEY_IMAGE_ENHANCEMENT_ENABLED, false);
+      }
+      else
+      {
+        LOG_ERROR("Failed to set image enhancement enabled imaging parameter");
+        status = PLUS_FAIL;
+      }
+    }
+  }
+
+  if (this->ImagingParameters->IsSet(KEY_IMAGE_ENHANCEMENT_METHOD)
+    && this->ImagingParameters->IsPending(KEY_IMAGE_ENHANCEMENT_METHOD))
+  {
+    std::string valueStr;
+    if (this->ImagingParameters->GetValue<std::string>(KEY_IMAGE_ENHANCEMENT_METHOD, valueStr) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to read image enhancement method imaging parameter value");
+      status = PLUS_FAIL;
+    }
+    else
+    {
+      int value = 0;
+      if (!ImageEnhancementMethodFromString(valueStr, value))
+      {
+        LOG_ERROR("Failed to parse ImageEnhancementMethod='" << valueStr << "'. Use IMAGE_ENHANC_SHARPEN, IMAGE_ENHANC_SHARPENMORE, IMAGE_ENHANC_SMOOTH, IMAGE_ENHANC_SMOOTHMORE, or an integer value.");
+        status = PLUS_FAIL;
+      }
+      else if (this->SetImageEnhancementMethod(value) == PLUS_SUCCESS)
+      {
+        this->ImagingParameters->SetPending(KEY_IMAGE_ENHANCEMENT_METHOD, false);
+      }
+      else
+      {
+        LOG_ERROR("Failed to set image enhancement method imaging parameter");
+        status = PLUS_FAIL;
+      }
+    }
+  }
+
+  if (this->ImagingParameters->IsSet(KEY_REJECTION)
+    && this->ImagingParameters->IsPending(KEY_REJECTION))
+  {
+    std::string valueStr;
+    if (this->ImagingParameters->GetValue<std::string>(KEY_REJECTION, valueStr) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to read rejection imaging parameter value");
+      status = PLUS_FAIL;
+    }
+    else
+    {
+      int value = 0;
+      if (!TryParseInteger(valueStr, value))
+      {
+        LOG_ERROR("Failed to parse Rejection='" << valueStr << "'. Use an integer value.");
+        status = PLUS_FAIL;
+      }
+      else if (this->SetRejection(value) == PLUS_SUCCESS)
+      {
+        this->ImagingParameters->SetPending(KEY_REJECTION, false);
+      }
+      else
+      {
+        LOG_ERROR("Failed to set rejection imaging parameter");
+        status = PLUS_FAIL;
+      }
+    }
+  }
+
+  if (this->ImagingParameters->IsSet(KEY_NEGATIVE)
+    && this->ImagingParameters->IsPending(KEY_NEGATIVE))
+  {
+    std::string valueStr;
+    if (this->ImagingParameters->GetValue<std::string>(KEY_NEGATIVE, valueStr) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to read negative imaging parameter value");
+      status = PLUS_FAIL;
+    }
+    else
+    {
+      bool value = false;
+      if (!TryParseBool(valueStr, value))
+      {
+        LOG_ERROR("Failed to parse Negative='" << valueStr << "'. Use TRUE/FALSE or 0/1.");
+        status = PLUS_FAIL;
+      }
+      else if (this->SetNegative(value) == PLUS_SUCCESS)
+      {
+        this->ImagingParameters->SetPending(KEY_NEGATIVE, false);
+      }
+      else
+      {
+        LOG_ERROR("Failed to set negative imaging parameter");
+        status = PLUS_FAIL;
+      }
+    }
+  }
+
+  if (this->ImagingParameters->IsSet(KEY_CHANGE_SCAN_DIRECTION)
+    && this->ImagingParameters->IsPending(KEY_CHANGE_SCAN_DIRECTION))
+  {
+    std::string valueStr;
+    if (this->ImagingParameters->GetValue<std::string>(KEY_CHANGE_SCAN_DIRECTION, valueStr) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to read change scan direction imaging parameter value");
+      status = PLUS_FAIL;
+    }
+    else
+    {
+      bool value = false;
+      if (!TryParseBool(valueStr, value))
+      {
+        LOG_ERROR("Failed to parse ChangeScanDirection='" << valueStr << "'. Use TRUE/FALSE or 0/1.");
+        status = PLUS_FAIL;
+      }
+      else if (this->SetChangeScanDirection(value) == PLUS_SUCCESS)
+      {
+        this->ImagingParameters->SetPending(KEY_CHANGE_SCAN_DIRECTION, false);
+      }
+      else
+      {
+        LOG_ERROR("Failed to set change scan direction imaging parameter");
+        status = PLUS_FAIL;
+      }
+    }
+  }
+
+  if (this->ImagingParameters->IsSet(KEY_ROTATE_IMAGE)
+    && this->ImagingParameters->IsPending(KEY_ROTATE_IMAGE))
+  {
+    std::string valueStr;
+    if (this->ImagingParameters->GetValue<std::string>(KEY_ROTATE_IMAGE, valueStr) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to read rotate image imaging parameter value");
+      status = PLUS_FAIL;
+    }
+    else
+    {
+      int value = 0;
+      if (!TryParseInteger(valueStr, value))
+      {
+        LOG_ERROR("Failed to parse RotateImage='" << valueStr << "'. Use 0/90/180/270 (or enum 0..3).");
+        status = PLUS_FAIL;
+      }
+      else if (this->SetRotateImage(value) == PLUS_SUCCESS)
+      {
+        this->ImagingParameters->SetPending(KEY_ROTATE_IMAGE, false);
+      }
+      else
+      {
+        LOG_ERROR("Failed to set rotate image imaging parameter");
+        status = PLUS_FAIL;
+      }
     }
   }
 

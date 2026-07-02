@@ -26,7 +26,7 @@
 - **FrequencyMhz**: Ultrasound transmitter frequency. If not specified (or value is <0) then the current value is kept. [MHz].
 - **DynRangeDb**: Dynamic Range [dB] of B-mode ultrasound. If not specified (or value is <0) then the current value is kept.
 - **GainPercent**: Is the gain percentage of B-mode ultrasound. If not specified (or value is <0) then the current value is kept. Valid range: 0-100.
-- **PowerPercent**: Power to be used for imaging, as a percentage of maximum available power. If not specified (or value is <0) then the current value is kept. Valid range is 0-100.
+- **PowerDb**: Power to be used for imaging, as a number of dB below maximum. If not specified (or value is >0) then the current value is kept. Valid range is -20 to 0.
 - **SpeckleReductionEnabled**: Enable (`TRUE`) or disable (`FALSE`) speckle reduction (ClearView) filtering of B-mode ultrasound. If not specified then the current value is kept.
 - **SpeckleReductionMethod**: Speckle reduction filter method, specified as either a value of the Telemed `CLEAR_VIEW` enumeration (for example `306`) or a human-readable enum token (for example `SRF_NVC6`). The value encodes the filter family (hundreds digit) and the filtration level (1-16 within each family, higher = stronger filtering). If not specified (or value is <0) then the current value is kept.
 
@@ -39,7 +39,28 @@
     | 401-416 | QuickView (`SRF_QV1..16`) | Reserved for future use by Telemed |
     | 501-516 | `SRF_NVO1..16` | Present in SDK 4.1.0 headers, undocumented |
 
-    Per the Telemed SDK programmer's guide, in most cases only PureView and CPU-based NeatView are available; Telemed's own default scanning parameter files use `306` (NeatView CPU, level 6, equivalent to `SRF_NVC6`). Note that speckle reduction filters may reduce the frame rate. Both speckle reduction parameters can also be changed at runtime with the `SET_US_PARAMETER` OpenIGTLink command (parameter names `SpeckleReductionEnabled` and `SpeckleReductionMethod`).
+    Per the Telemed SDK programmer's guide, in most cases only PureView and CPU-based NeatView are available; Telemed's own default scanning parameter files use `306` (NeatView CPU, level 6, equivalent to `SRF_NVC6`). Note that speckle reduction filters may reduce the frame rate. Both speckle reduction parameters can also be changed at runtime with the `SetUsParameter` OpenIGTLink command (parameter names `SpeckleReductionEnabled` and `SpeckleReductionMethod`).
+- **DynamicFocusEnabled**: Enable (`TRUE`/`FALSE` or `1`/`0`) dynamic focus mode. If not specified then the current value is kept.
+- **FocusesNumber**: Number of active focal zones (integer). If not specified (or value is <0) then the current value is kept.
+- **FocusSet**: Focus set index (integer). If not specified (or value is <0) then the current value is kept.
+- **FrameAveraging**: Temporal frame averaging level (integer). If not specified (or value is <0) then the current value is kept.
+- **ViewAreaPercent**: View area percentage (integer). If not specified (or value is <0) then the current value is kept.
+- **LineDensity**: Line density value from Telemed `LINE_DENSITY` enum (integer; examples: `8`, `14`, `16`, `22`, `24`, `32`). If not specified (or value is <0) then the current value is kept.
+- **ImageEnhancementEnabled**: Enable (`TRUE`/`FALSE` or `1`/`0`) image enhancement. If not specified then the current value is kept.
+- **ImageEnhancementMethod**: Image enhancement method, specified as either a Telemed `IMAGE_ENHANCEMENT` enum token or its numeric value. If not specified (or value is <0) then the current value is kept.
+
+  | Enum token | Numeric value | Meaning |
+  |---|---:|---|
+  | `IMAGE_ENHANC_SHARPEN` | 1 | Sharpen |
+  | `IMAGE_ENHANC_SHARPENMORE` | 2 | Sharpen more |
+  | `IMAGE_ENHANC_SMOOTH` | 3 | Smooth |
+  | `IMAGE_ENHANC_SMOOTHMORE` | 4 | Smooth more |
+- **Rejection**: Rejection filter level (integer). If not specified (or value is <0) then the current value is kept.
+- **Negative**: Enable (`TRUE`/`FALSE` or `1`/`0`) negative palette display. If not specified then the current value is kept.
+- **ChangeScanDirection**: Enable (`TRUE`/`FALSE` or `1`/`0`) scan-direction change (mirror). If not specified then the current value is kept.
+- **RotateImage**: Image rotation (`0`, `90`, `180`, `270`; enum values `0..3` are also accepted). If not specified (or value is <0) then the current value is kept.
+
+All Telemed-specific parameters above can also be changed/retrieved at runtime by `SetUsParameter` and `GetUsParameter` OpenIGTLink commands using the same parameter names.
 - **DataSources**: Exactly one `DataSource` child element is required (Required)
     - **DataSource**: (Required)
         - **PortUsImageOrientation**: (Required)

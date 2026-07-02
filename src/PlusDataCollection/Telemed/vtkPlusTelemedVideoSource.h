@@ -31,6 +31,18 @@ public:
   /*! Imaging parameter keys specific to the Telemed device */
   static const char* KEY_SPECKLE_REDUCTION_ENABLED;
   static const char* KEY_SPECKLE_REDUCTION_METHOD;
+  static const char* KEY_DYNAMIC_FOCUS_ENABLED;
+  static const char* KEY_FOCUSES_NUMBER;
+  static const char* KEY_FOCUS_SET;
+  static const char* KEY_FRAME_AVERAGING;
+  static const char* KEY_VIEW_AREA_PERCENT;
+  static const char* KEY_LINE_DENSITY;
+  static const char* KEY_IMAGE_ENHANCEMENT_ENABLED;
+  static const char* KEY_IMAGE_ENHANCEMENT_METHOD;
+  static const char* KEY_REJECTION;
+  static const char* KEY_NEGATIVE;
+  static const char* KEY_CHANGE_SCAN_DIRECTION;
+  static const char* KEY_ROTATE_IMAGE;
 
   static vtkPlusTelemedVideoSource* New();
   vtkTypeMacro(vtkPlusTelemedVideoSource, vtkPlusUsDevice);
@@ -94,6 +106,42 @@ public:
   /*! Get the speckle reduction (ClearView) filter method */
   PlusStatus GetSpeckleReductionMethod(int& aMethod);
 
+  PlusStatus SetDynamicFocusEnabled(bool aEnabled);
+  PlusStatus GetDynamicFocusEnabled(bool& aEnabled);
+
+  PlusStatus SetFocusesNumber(int aFocusesNumber);
+  PlusStatus GetFocusesNumber(int& aFocusesNumber);
+
+  PlusStatus SetFocusSet(int aFocusSet);
+  PlusStatus GetFocusSet(int& aFocusSet);
+
+  PlusStatus SetFrameAveraging(int aFrameAveraging);
+  PlusStatus GetFrameAveraging(int& aFrameAveraging);
+
+  PlusStatus SetViewAreaPercent(int aViewAreaPercent);
+  PlusStatus GetViewAreaPercent(int& aViewAreaPercent);
+
+  PlusStatus SetLineDensity(int aLineDensity);
+  PlusStatus GetLineDensity(int& aLineDensity);
+
+  PlusStatus SetImageEnhancementEnabled(bool aEnabled);
+  PlusStatus GetImageEnhancementEnabled(bool& aEnabled);
+
+  PlusStatus SetImageEnhancementMethod(int aMethod);
+  PlusStatus GetImageEnhancementMethod(int& aMethod);
+
+  PlusStatus SetRejection(int aRejection);
+  PlusStatus GetRejection(int& aRejection);
+
+  PlusStatus SetNegative(bool aEnabled);
+  PlusStatus GetNegative(bool& aEnabled);
+
+  PlusStatus SetChangeScanDirection(bool aEnabled);
+  PlusStatus GetChangeScanDirection(bool& aEnabled);
+
+  PlusStatus SetRotateImage(int aDegrees);
+  PlusStatus GetRotateImage(int& aDegrees);
+
   /*! Accept the device-specific speckle reduction keys in addition to the standard US parameter keys */
   virtual bool IsKnownKey(const std::string& queryKey) const;
 
@@ -137,6 +185,18 @@ protected:
   double FocusDepthPercent;
   bool SpeckleReductionEnabled;
   int SpeckleReductionMethod;
+  int DynamicFocusEnabled;
+  int FocusesNumber;
+  int FocusSet;
+  int FrameAveraging;
+  int ViewAreaPercent;
+  int LineDensity;
+  int ImageEnhancementEnabled;
+  int ImageEnhancementMethod;
+  int Rejection;
+  int Negative;
+  int ChangeScanDirection;
+  int RotateImage;
 
 private:
   vtkImageImport* importer;

@@ -58,6 +58,42 @@ public:
   PlusStatus SetSpeckleReductionMethod(int method);
   PlusStatus GetSpeckleReductionMethod(int& method);
 
+  PlusStatus SetDynamicFocusEnabled(bool enabled);
+  PlusStatus GetDynamicFocusEnabled(bool& enabled);
+
+  PlusStatus SetFocusesNumber(int focusesNumber);
+  PlusStatus GetFocusesNumber(int& focusesNumber);
+
+  PlusStatus SetFocusSet(int focusSet);
+  PlusStatus GetFocusSet(int& focusSet);
+
+  PlusStatus SetFrameAveraging(int frameAveraging);
+  PlusStatus GetFrameAveraging(int& frameAveraging);
+
+  PlusStatus SetViewAreaPercent(int viewAreaPercent);
+  PlusStatus GetViewAreaPercent(int& viewAreaPercent);
+
+  PlusStatus SetLineDensity(int lineDensity);
+  PlusStatus GetLineDensity(int& lineDensity);
+
+  PlusStatus SetImageEnhancementEnabled(bool enabled);
+  PlusStatus GetImageEnhancementEnabled(bool& enabled);
+
+  PlusStatus SetImageEnhancementMethod(int method);
+  PlusStatus GetImageEnhancementMethod(int& method);
+
+  PlusStatus SetRejection(int rejection);
+  PlusStatus GetRejection(int& rejection);
+
+  PlusStatus SetNegative(bool enabled);
+  PlusStatus GetNegative(bool& enabled);
+
+  PlusStatus SetScanDirection(bool changed);
+  PlusStatus GetScanDirection(bool& changed);
+
+  PlusStatus SetRotateImage(int degrees);
+  PlusStatus GetRotateImage(int& degrees);
+
 protected:
   std::vector<unsigned char> m_FrameBuffer;
   FrameSizeType m_FrameSize;
@@ -75,6 +111,13 @@ private:
   IUsgProbeFrequency3* m_b_frequency_ctrl;
   IUsgFocus* m_b_focus_ctrl;
   IUsgClearView* m_b_clearview_ctrl;
+  IUsgFrameAvg* m_b_frame_avg_ctrl;
+  IUsgViewArea* m_b_view_area_ctrl;
+  IUsgLineDensity* m_b_line_density_ctrl;
+  IUsgImageEnhancement* m_b_image_enhancement_ctrl;
+  IUsgRejection2* m_b_rejection_ctrl;
+  IUsgImageOrientation* m_b_image_orientation_ctrl;
+  IUsgPaletteCalculator* m_b_palette_calculator_ctrl;
 
   IConnectionPoint* m_usg_device_change_cpnt; // connection point for device change events
   DWORD m_usg_device_change_cpnt_cookie;

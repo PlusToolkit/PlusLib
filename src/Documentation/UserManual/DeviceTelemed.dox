@@ -40,6 +40,24 @@
   - \c 501-516 SRF_NVO1..16, present in SDK 4.1.0 headers, undocumented
   .
   Per the Telemed SDK programmer's guide, in most cases only PureView and CPU-based NeatView are available; Telemed's own default scanning parameter files use \c 306 (NeatView CPU, level 6, equivalent to \c SRF_NVC6). Note that speckle reduction filters may reduce the frame rate. Both speckle reduction parameters can also be changed at runtime with the \c SET_US_PARAMETER OpenIGTLink command (parameter names \c SpeckleReductionEnabled and \c SpeckleReductionMethod).
+- \xmlAtt \b DynamicFocusEnabled Enable (\c TRUE/\c FALSE or \c 1/\c 0) dynamic focus mode. If not specified then the current value is kept. \OptionalAtt{ }
+- \xmlAtt \b FocusesNumber Number of active focal zones (integer). If not specified (or value is <0) then the current value is kept. \OptionalAtt{ }
+- \xmlAtt \b FocusSet Focus set index (integer). If not specified (or value is <0) then the current value is kept. \OptionalAtt{ }
+- \xmlAtt \b FrameAveraging Temporal frame averaging level (integer). If not specified (or value is <0) then the current value is kept. \OptionalAtt{ }
+- \xmlAtt \b ViewAreaPercent View area percentage (integer). If not specified (or value is <0) then the current value is kept. \OptionalAtt{ }
+- \xmlAtt \b LineDensity Line density value from Telemed \c LINE_DENSITY enum (integer; examples: \c 8, \c 14, \c 16, \c 22, \c 24, \c 32). If not specified (or value is <0) then the current value is kept. \OptionalAtt{ }
+- \xmlAtt \b ImageEnhancementEnabled Enable (\c TRUE/\c FALSE or \c 1/\c 0) image enhancement. If not specified then the current value is kept. \OptionalAtt{ }
+- \xmlAtt \b ImageEnhancementMethod Image enhancement method, specified as either a Telemed \c IMAGE_ENHANCEMENT enum token or its numeric value. If not specified (or value is <0) then the current value is kept. \OptionalAtt{ }
+  - \c IMAGE_ENHANC_SHARPEN = 1 (Sharpen)
+  - \c IMAGE_ENHANC_SHARPENMORE = 2 (Sharpen more)
+  - \c IMAGE_ENHANC_SMOOTH = 3 (Smooth)
+  - \c IMAGE_ENHANC_SMOOTHMORE = 4 (Smooth more)
+- \xmlAtt \b Rejection Rejection filter level (integer). If not specified (or value is <0) then the current value is kept. \OptionalAtt{ }
+- \xmlAtt \b Negative Enable (\c TRUE/\c FALSE or \c 1/\c 0) negative palette display. If not specified then the current value is kept. \OptionalAtt{ }
+- \xmlAtt \b ChangeScanDirection Enable (\c TRUE/\c FALSE or \c 1/\c 0) scan-direction change (mirror). If not specified then the current value is kept. \OptionalAtt{ }
+- \xmlAtt \b RotateImage Image rotation (\c 0, \c 90, \c 180, \c 270; enum values \c 0..3 are also accepted). If not specified (or value is <0) then the current value is kept. \OptionalAtt{ }
+
+All Telemed-specific parameters above can also be changed/retrieved at runtime by \c SetUsParameter and \c GetUsParameter OpenIGTLink commands using the same parameter names.
 
 - \xmlElem \ref DataSources Exactly one \c DataSource child element is required \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt

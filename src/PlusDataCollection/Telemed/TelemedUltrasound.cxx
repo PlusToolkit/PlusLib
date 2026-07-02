@@ -9,6 +9,7 @@
 
 #include "TelemedUltrasound.h"
 
+#include <algorithm>
 #include <math.h>
 #include <string>
 
@@ -39,6 +40,13 @@ TelemedUltrasound::TelemedUltrasound()
   m_b_frequency_ctrl = NULL;
   m_b_focus_ctrl = NULL;
   m_b_clearview_ctrl = NULL;
+  m_b_frame_avg_ctrl = NULL;
+  m_b_view_area_ctrl = NULL;
+  m_b_line_density_ctrl = NULL;
+  m_b_image_enhancement_ctrl = NULL;
+  m_b_rejection_ctrl = NULL;
+  m_b_image_orientation_ctrl = NULL;
+  m_b_palette_calculator_ctrl = NULL;
   m_usg_control_change_cpnt = NULL;
   m_usg_control_change_cpnt_cookie = 0;
   m_usg_device_change_cpnt = NULL;
@@ -570,6 +578,90 @@ void TelemedUltrasound::CreateUsgControls(int probeId /* = 0 */)
       m_b_clearview_ctrl = NULL;
     }
 
+    // create B mode frame averaging control
+    tmp_obj = NULL;
+    CreateUsgControl(m_data_view, IID_IUsgFrameAvg, SCAN_MODE_B, 0, (void**)&tmp_obj);
+    if (tmp_obj != NULL)
+    {
+      m_b_frame_avg_ctrl = (IUsgFrameAvg*)tmp_obj;
+    }
+    else
+    {
+      m_b_frame_avg_ctrl = NULL;
+    }
+
+    // create B mode view area control
+    tmp_obj = NULL;
+    CreateUsgControl(m_data_view, IID_IUsgViewArea, SCAN_MODE_B, 0, (void**)&tmp_obj);
+    if (tmp_obj != NULL)
+    {
+      m_b_view_area_ctrl = (IUsgViewArea*)tmp_obj;
+    }
+    else
+    {
+      m_b_view_area_ctrl = NULL;
+    }
+
+    // create B mode line density control
+    tmp_obj = NULL;
+    CreateUsgControl(m_data_view, IID_IUsgLineDensity, SCAN_MODE_B, 0, (void**)&tmp_obj);
+    if (tmp_obj != NULL)
+    {
+      m_b_line_density_ctrl = (IUsgLineDensity*)tmp_obj;
+    }
+    else
+    {
+      m_b_line_density_ctrl = NULL;
+    }
+
+    // create B mode image enhancement control
+    tmp_obj = NULL;
+    CreateUsgControl(m_data_view, IID_IUsgImageEnhancement, SCAN_MODE_B, 0, (void**)&tmp_obj);
+    if (tmp_obj != NULL)
+    {
+      m_b_image_enhancement_ctrl = (IUsgImageEnhancement*)tmp_obj;
+    }
+    else
+    {
+      m_b_image_enhancement_ctrl = NULL;
+    }
+
+    // create B mode rejection control
+    tmp_obj = NULL;
+    CreateUsgControl(m_data_view, IID_IUsgRejection2, SCAN_MODE_B, 0, (void**)&tmp_obj);
+    if (tmp_obj != NULL)
+    {
+      m_b_rejection_ctrl = (IUsgRejection2*)tmp_obj;
+    }
+    else
+    {
+      m_b_rejection_ctrl = NULL;
+    }
+
+    // create B mode image orientation control
+    tmp_obj = NULL;
+    CreateUsgControl(m_data_view, IID_IUsgImageOrientation, SCAN_MODE_B, 0, (void**)&tmp_obj);
+    if (tmp_obj != NULL)
+    {
+      m_b_image_orientation_ctrl = (IUsgImageOrientation*)tmp_obj;
+    }
+    else
+    {
+      m_b_image_orientation_ctrl = NULL;
+    }
+
+    // create B mode palette calculator control (for negative rendering)
+    tmp_obj = NULL;
+    CreateUsgControl(m_data_view, IID_IUsgPaletteCalculator, SCAN_MODE_B, 0, (void**)&tmp_obj);
+    if (tmp_obj != NULL)
+    {
+      m_b_palette_calculator_ctrl = (IUsgPaletteCalculator*)tmp_obj;
+    }
+    else
+    {
+      m_b_palette_calculator_ctrl = NULL;
+    }
+
     // attach to control value change connection point in order to be informed about changed values
 
     // get container of connection points
@@ -946,6 +1038,13 @@ void TelemedUltrasound::ReleaseUsgControls(bool release_usgfw2)
   SAFE_RELEASE(m_b_frequency_ctrl);
   SAFE_RELEASE(m_b_focus_ctrl);
   SAFE_RELEASE(m_b_clearview_ctrl);
+  SAFE_RELEASE(m_b_frame_avg_ctrl);
+  SAFE_RELEASE(m_b_view_area_ctrl);
+  SAFE_RELEASE(m_b_line_density_ctrl);
+  SAFE_RELEASE(m_b_image_enhancement_ctrl);
+  SAFE_RELEASE(m_b_rejection_ctrl);
+  SAFE_RELEASE(m_b_image_orientation_ctrl);
+  SAFE_RELEASE(m_b_palette_calculator_ctrl);
   SAFE_RELEASE(m_mixer_control);
   SAFE_RELEASE(m_data_view);
   SAFE_RELEASE(m_probe);
@@ -1337,6 +1436,551 @@ PlusStatus TelemedUltrasound::GetSpeckleReductionMethod(int& method)
     return PLUS_FAIL;
   }
   method = currentMethod;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::SetDynamicFocusEnabled(bool enabled)
+{
+  if (m_b_focus_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::SetDynamicFocusEnabled failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  LONG newMode = enabled ? FOCUS_MODE_DYNAMIC : FOCUS_MODE_MULTI;
+  if (m_b_focus_ctrl->put_CurrentMode(newMode) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::SetDynamicFocusEnabled failed: failed to set value on device");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::GetDynamicFocusEnabled(bool& enabled)
+{
+  if (m_b_focus_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::GetDynamicFocusEnabled failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  LONG currentMode = FOCUS_MODE_MULTI;
+  if (m_b_focus_ctrl->get_CurrentMode(&currentMode) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::GetDynamicFocusEnabled failed: failed to get value from device");
+    return PLUS_FAIL;
+  }
+  enabled = (currentMode == FOCUS_MODE_DYNAMIC);
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::SetFocusesNumber(int focusesNumber)
+{
+  if (m_b_focus_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::SetFocusesNumber failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+
+  LONG focusMode = FOCUS_MODE_MULTI;
+  LONG focusSet = 0;
+  LONG focalZonesCount = 0;
+  m_b_focus_ctrl->get_CurrentMode(&focusMode);
+  m_b_focus_ctrl->get_FocusSet(focusMode, &focusSet);
+  if (m_b_focus_ctrl->GetFocalZonesCount(focusMode, focusSet, &focalZonesCount) != S_OK || focalZonesCount <= 0)
+  {
+    LOG_ERROR("TelemedUltrasound::SetFocusesNumber failed: unable to query focal zones");
+    return PLUS_FAIL;
+  }
+
+  int clampedFocuses = focusesNumber;
+  if (clampedFocuses < 1)
+  {
+    clampedFocuses = 1;
+  }
+  if (clampedFocuses > focalZonesCount)
+  {
+    clampedFocuses = focalZonesCount;
+  }
+
+  std::vector<LONG> focusStates(focalZonesCount, 0);
+  if (m_b_focus_ctrl->GetFocusState(focusMode, focusSet, focalZonesCount, focusStates.data()) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::SetFocusesNumber failed: unable to query focus state");
+    return PLUS_FAIL;
+  }
+
+  LONG centerZone = focalZonesCount / 2;
+  for (LONG zone = 0; zone < focalZonesCount; ++zone)
+  {
+    if (focusStates[zone] != 0)
+    {
+      centerZone = zone;
+      break;
+    }
+  }
+
+  std::fill(focusStates.begin(), focusStates.end(), 0);
+  LONG startZone = centerZone - clampedFocuses / 2;
+  if (startZone < 0)
+  {
+    startZone = 0;
+  }
+  if (startZone + clampedFocuses > focalZonesCount)
+  {
+    startZone = focalZonesCount - clampedFocuses;
+  }
+  for (LONG zone = startZone; zone < startZone + clampedFocuses; ++zone)
+  {
+    focusStates[zone] = 1;
+  }
+
+  if (m_b_focus_ctrl->SetFocusState(focusMode, focusSet, focalZonesCount, focusStates.data()) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::SetFocusesNumber failed: unable to update focus state");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::GetFocusesNumber(int& focusesNumber)
+{
+  if (m_b_focus_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::GetFocusesNumber failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+
+  LONG focusMode = FOCUS_MODE_MULTI;
+  LONG focusSet = 0;
+  LONG focalZonesCount = 0;
+  m_b_focus_ctrl->get_CurrentMode(&focusMode);
+  m_b_focus_ctrl->get_FocusSet(focusMode, &focusSet);
+  if (m_b_focus_ctrl->GetFocalZonesCount(focusMode, focusSet, &focalZonesCount) != S_OK || focalZonesCount <= 0)
+  {
+    LOG_ERROR("TelemedUltrasound::GetFocusesNumber failed: unable to query focal zones");
+    return PLUS_FAIL;
+  }
+
+  std::vector<LONG> focusStates(focalZonesCount, 0);
+  if (m_b_focus_ctrl->GetFocusState(focusMode, focusSet, focalZonesCount, focusStates.data()) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::GetFocusesNumber failed: unable to query focus state");
+    return PLUS_FAIL;
+  }
+
+  int enabledCount = 0;
+  for (LONG zone = 0; zone < focalZonesCount; ++zone)
+  {
+    if (focusStates[zone] != 0)
+    {
+      ++enabledCount;
+    }
+  }
+  focusesNumber = enabledCount;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::SetFocusSet(int focusSet)
+{
+  if (m_b_focus_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::SetFocusSet failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+
+  LONG focusMode = FOCUS_MODE_MULTI;
+  m_b_focus_ctrl->get_CurrentMode(&focusMode);
+
+  LONG focusSetCount = 0;
+  if (m_b_focus_ctrl->get_FocusSetCount(focusMode, &focusSetCount) != S_OK || focusSetCount <= 0)
+  {
+    LOG_ERROR("TelemedUltrasound::SetFocusSet failed: unable to query focus set count");
+    return PLUS_FAIL;
+  }
+
+  LONG clampedFocusSet = focusSet;
+  if (clampedFocusSet < 0)
+  {
+    clampedFocusSet = 0;
+  }
+  if (clampedFocusSet >= focusSetCount)
+  {
+    clampedFocusSet = focusSetCount - 1;
+  }
+
+  if (m_b_focus_ctrl->put_FocusSet(focusMode, clampedFocusSet) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::SetFocusSet failed: unable to set value on device");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::GetFocusSet(int& focusSet)
+{
+  if (m_b_focus_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::GetFocusSet failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+
+  LONG focusMode = FOCUS_MODE_MULTI;
+  m_b_focus_ctrl->get_CurrentMode(&focusMode);
+  LONG currentFocusSet = 0;
+  if (m_b_focus_ctrl->get_FocusSet(focusMode, &currentFocusSet) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::GetFocusSet failed: unable to query value from device");
+    return PLUS_FAIL;
+  }
+  focusSet = currentFocusSet;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::SetFrameAveraging(int frameAveraging)
+{
+  if (m_b_frame_avg_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::SetFrameAveraging failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  if (m_b_frame_avg_ctrl->put_Current(frameAveraging) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::SetFrameAveraging failed: unable to set value on device");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::GetFrameAveraging(int& frameAveraging)
+{
+  if (m_b_frame_avg_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::GetFrameAveraging failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  LONG currentFrameAveraging = 0;
+  if (m_b_frame_avg_ctrl->get_Current(&currentFrameAveraging) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::GetFrameAveraging failed: unable to query value from device");
+    return PLUS_FAIL;
+  }
+  frameAveraging = currentFrameAveraging;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::SetViewAreaPercent(int viewAreaPercent)
+{
+  if (m_b_view_area_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::SetViewAreaPercent failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  if (m_b_view_area_ctrl->put_Current(viewAreaPercent) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::SetViewAreaPercent failed: unable to set value on device");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::GetViewAreaPercent(int& viewAreaPercent)
+{
+  if (m_b_view_area_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::GetViewAreaPercent failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  LONG currentViewAreaPercent = 0;
+  if (m_b_view_area_ctrl->get_Current(&currentViewAreaPercent) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::GetViewAreaPercent failed: unable to query value from device");
+    return PLUS_FAIL;
+  }
+  viewAreaPercent = currentViewAreaPercent;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::SetLineDensity(int lineDensity)
+{
+  if (m_b_line_density_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::SetLineDensity failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  if (m_b_line_density_ctrl->put_Current(lineDensity) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::SetLineDensity failed: unable to set value on device");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::GetLineDensity(int& lineDensity)
+{
+  if (m_b_line_density_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::GetLineDensity failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  LONG currentLineDensity = 0;
+  if (m_b_line_density_ctrl->get_Current(&currentLineDensity) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::GetLineDensity failed: unable to query value from device");
+    return PLUS_FAIL;
+  }
+  lineDensity = currentLineDensity;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::SetImageEnhancementEnabled(bool enabled)
+{
+  if (m_b_image_enhancement_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::SetImageEnhancementEnabled failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  if (m_b_image_enhancement_ctrl->put_Enabled(enabled ? TRUE : FALSE) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::SetImageEnhancementEnabled failed: unable to set value on device");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::GetImageEnhancementEnabled(bool& enabled)
+{
+  if (m_b_image_enhancement_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::GetImageEnhancementEnabled failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  LONG currentEnabled = 0;
+  if (m_b_image_enhancement_ctrl->get_Enabled(&currentEnabled) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::GetImageEnhancementEnabled failed: unable to query value from device");
+    return PLUS_FAIL;
+  }
+  enabled = (currentEnabled != 0);
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::SetImageEnhancementMethod(int method)
+{
+  if (m_b_image_enhancement_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::SetImageEnhancementMethod failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  if (m_b_image_enhancement_ctrl->put_Current(method) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::SetImageEnhancementMethod failed: unable to set value on device");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::GetImageEnhancementMethod(int& method)
+{
+  if (m_b_image_enhancement_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::GetImageEnhancementMethod failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  LONG currentMethod = 0;
+  if (m_b_image_enhancement_ctrl->get_Current(&currentMethod) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::GetImageEnhancementMethod failed: unable to query value from device");
+    return PLUS_FAIL;
+  }
+  method = currentMethod;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::SetRejection(int rejection)
+{
+  if (m_b_rejection_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::SetRejection failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  if (m_b_rejection_ctrl->put_Current(rejection) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::SetRejection failed: unable to set value on device");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::GetRejection(int& rejection)
+{
+  if (m_b_rejection_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::GetRejection failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  LONG currentRejection = 0;
+  if (m_b_rejection_ctrl->get_Current(&currentRejection) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::GetRejection failed: unable to query value from device");
+    return PLUS_FAIL;
+  }
+  rejection = currentRejection;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::SetNegative(bool enabled)
+{
+  if (m_b_palette_calculator_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::SetNegative failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  if (m_b_palette_calculator_ctrl->put_Negative(enabled ? TRUE : FALSE) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::SetNegative failed: unable to set value on device");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::GetNegative(bool& enabled)
+{
+  if (m_b_palette_calculator_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::GetNegative failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  BOOL currentNegative = FALSE;
+  if (m_b_palette_calculator_ctrl->get_Negative(&currentNegative) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::GetNegative failed: unable to query value from device");
+    return PLUS_FAIL;
+  }
+  enabled = (currentNegative != FALSE);
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::SetScanDirection(bool changed)
+{
+  if (m_b_image_orientation_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::SetScanDirection failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  if (m_b_image_orientation_ctrl->put_Mirror(changed ? TRUE : FALSE) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::SetScanDirection failed: unable to set value on device");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::GetScanDirection(bool& changed)
+{
+  if (m_b_image_orientation_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::GetScanDirection failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  LONG currentMirror = 0;
+  if (m_b_image_orientation_ctrl->get_Mirror(&currentMirror) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::GetScanDirection failed: unable to query value from device");
+    return PLUS_FAIL;
+  }
+  changed = (currentMirror != 0);
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::SetRotateImage(int degrees)
+{
+  if (m_b_image_orientation_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::SetRotateImage failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+
+  IMAGE_ROTATE rotateValue = IMAGE_ROTATE_NONE;
+  if (degrees == 90 || degrees == IMAGE_ROTATE_90CCW)
+  {
+    rotateValue = IMAGE_ROTATE_90CCW;
+  }
+  else if (degrees == 180 || degrees == IMAGE_ROTATE_180CCW)
+  {
+    rotateValue = IMAGE_ROTATE_180CCW;
+  }
+  else if (degrees == 270 || degrees == IMAGE_ROTATE_270CCW)
+  {
+    rotateValue = IMAGE_ROTATE_270CCW;
+  }
+  else if (degrees != 0)
+  {
+    LOG_ERROR("TelemedUltrasound::SetRotateImage failed: unsupported rotation value " << degrees << " (supported: 0/90/180/270 or enum 0..3)");
+    return PLUS_FAIL;
+  }
+
+  if (m_b_image_orientation_ctrl->put_Rotate(rotateValue) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::SetRotateImage failed: unable to set value on device");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::GetRotateImage(int& degrees)
+{
+  if (m_b_image_orientation_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::GetRotateImage failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+
+  IMAGE_ROTATE rotateValue = IMAGE_ROTATE_NONE;
+  if (m_b_image_orientation_ctrl->get_Rotate(&rotateValue) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::GetRotateImage failed: unable to query value from device");
+    return PLUS_FAIL;
+  }
+
+  if (rotateValue == IMAGE_ROTATE_90CCW)
+  {
+    degrees = 90;
+  }
+  else if (rotateValue == IMAGE_ROTATE_180CCW)
+  {
+    degrees = 180;
+  }
+  else if (rotateValue == IMAGE_ROTATE_270CCW)
+  {
+    degrees = 270;
+  }
+  else
+  {
+    degrees = 0;
+  }
   return PLUS_SUCCESS;
 }
 

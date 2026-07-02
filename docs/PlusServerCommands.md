@@ -190,6 +190,8 @@ PlusServer can change and retrieve ultrasound imaging parameters over OpenIGTLin
     - **Parameter**
       - **Name**: name of the parameter to be retrieved
 
+Standard ultrasound keys (for example `DepthMm`, `FrequencyMhz`, `GainPercent`) are available on all ultrasound devices. Device-specific keys are also supported when the selected device reports the key as known (for example Telemed-specific keys such as `SpeckleReductionMethod`, `FrameAveraging`, `LineDensity`, `RotateImage`).
+
 #### Command replies
 
 - **SetUsParameter**
