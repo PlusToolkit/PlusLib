@@ -939,7 +939,7 @@ PlusStatus vtkPlusTelemedVideoSource::Set##parameterName(double a##parameterName
     this->parameterName=a##parameterName; \
     return PLUS_SUCCESS; \
   } \
-  int oldParamValue = this->parameterName; \
+  double oldParamValue = this->parameterName; \
   this->parameterName=a##parameterName; \
   if (this->Device->Set##parameterName(this->parameterName)!=PLUS_SUCCESS) \
   { \
