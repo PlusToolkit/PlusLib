@@ -47,6 +47,7 @@ TelemedUltrasound::TelemedUltrasound()
   m_b_rejection_ctrl = NULL;
   m_b_image_orientation_ctrl = NULL;
   m_b_palette_calculator_ctrl = NULL;
+  m_b_tgc_ctrl = NULL;
   m_usg_control_change_cpnt = NULL;
   m_usg_control_change_cpnt_cookie = 0;
   m_usg_device_change_cpnt = NULL;
@@ -662,6 +663,18 @@ void TelemedUltrasound::CreateUsgControls(int probeId /* = 0 */)
       m_b_palette_calculator_ctrl = NULL;
     }
 
+    // create B mode TGC (time-gain-compensation) control
+    tmp_obj = NULL;
+    CreateUsgControl(m_data_view, IID_IUsgTgc, SCAN_MODE_B, 0, (void**)&tmp_obj);
+    if (tmp_obj != NULL)
+    {
+      m_b_tgc_ctrl = (IUsgTgc*)tmp_obj;
+    }
+    else
+    {
+      m_b_tgc_ctrl = NULL;
+    }
+
     // attach to control value change connection point in order to be informed about changed values
 
     // get container of connection points
@@ -1045,6 +1058,7 @@ void TelemedUltrasound::ReleaseUsgControls(bool release_usgfw2)
   SAFE_RELEASE(m_b_rejection_ctrl);
   SAFE_RELEASE(m_b_image_orientation_ctrl);
   SAFE_RELEASE(m_b_palette_calculator_ctrl);
+  SAFE_RELEASE(m_b_tgc_ctrl);
   SAFE_RELEASE(m_mixer_control);
   SAFE_RELEASE(m_data_view);
   SAFE_RELEASE(m_probe);
@@ -1362,6 +1376,88 @@ PlusStatus TelemedUltrasound::GetDynRangeDb(double& dynRangeDb)
     return PLUS_FAIL;
   }
   dynRangeDb = currentDynRangeDb;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::SetTimeGainCompensation(const std::vector<double>& tgc)
+{
+  if (m_b_tgc_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::SetTimeGainCompensation failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  if (tgc.size() < 2)
+  {
+    LOG_ERROR("TelemedUltrasound::SetTimeGainCompensation failed: at least 2 values are required to define a TGC curve");
+    return PLUS_FAIL;
+  }
+
+  LONG ctlPointsCount = 0;
+  if (m_b_tgc_ctrl->get_CtlPointsCount(&ctlPointsCount) != S_OK || ctlPointsCount < 2)
+  {
+    LOG_ERROR("TelemedUltrasound::SetTimeGainCompensation failed: unable to query TGC control points");
+    return PLUS_FAIL;
+  }
+
+  // Telemed exposes TGC as a curve with CtlPointsCount control points (device-dependent, e.g. 8).
+  // If the caller's curve already has the same number of points, apply it directly; otherwise
+  // resample it (piecewise-linearly, assuming evenly spaced points) onto the device's control points.
+  size_t inputPointCount = tgc.size();
+  for (LONG ctlPoint = 0; ctlPoint < ctlPointsCount; ++ctlPoint)
+  {
+    double value;
+    if ((LONG)inputPointCount == ctlPointsCount)
+    {
+      value = tgc[ctlPoint];
+    }
+    else
+    {
+      double srcPos = (double)ctlPoint / (ctlPointsCount - 1) * (inputPointCount - 1);
+      size_t idx0 = (size_t)srcPos;
+      size_t idx1 = std::min(idx0 + 1, inputPointCount - 1);
+      double t = srcPos - idx0;
+      value = tgc[idx0] + (tgc[idx1] - tgc[idx0]) * t;
+    }
+    if (m_b_tgc_ctrl->put_Current(ctlPoint, (LONG)(value + 0.5)) != S_OK)
+    {
+      LOG_ERROR("TelemedUltrasound::SetTimeGainCompensation failed: unable to set control point " << ctlPoint);
+      return PLUS_FAIL;
+    }
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::GetTimeGainCompensation(std::vector<double>& tgc)
+{
+  if (m_b_tgc_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::GetTimeGainCompensation failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+
+  LONG ctlPointsCount = 0;
+  if (m_b_tgc_ctrl->get_CtlPointsCount(&ctlPointsCount) != S_OK || ctlPointsCount < 2)
+  {
+    LOG_ERROR("TelemedUltrasound::GetTimeGainCompensation failed: unable to query TGC control points");
+    return PLUS_FAIL;
+  }
+
+  // Return the full-resolution curve as reported by the device (one value per control point).
+  std::vector<double> values(ctlPointsCount);
+  for (LONG ctlPoint = 0; ctlPoint < ctlPointsCount; ++ctlPoint)
+  {
+    LONG val = 0;
+    if (m_b_tgc_ctrl->get_Current(ctlPoint, &val) != S_OK)
+    {
+      LOG_ERROR("TelemedUltrasound::GetTimeGainCompensation failed: unable to query control point " << ctlPoint);
+      return PLUS_FAIL;
+    }
+    values[ctlPoint] = val;
+  }
+
+  tgc = values;
   return PLUS_SUCCESS;
 }
 

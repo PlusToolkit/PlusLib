@@ -11,6 +11,8 @@
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusUsDevice.h"
 
+#include <vector>
+
 class vtkImageImport;
 class vtkPlusUsImagingParameters;
 
@@ -85,6 +87,11 @@ public:
   PlusStatus SetDynRangeDb(double aDynamicRange);
   /*! Get the dynamic range of B-mode ultrasound (dB)*/
   PlusStatus GetDynRangeDb(double& aDynamicRange);
+
+  /*! Set the time gain compensation [initial, mid, far gain] of B-mode ultrasound (valid range: 0-100) */
+  PlusStatus SetTimeGainCompensation(const std::vector<double>& aTimeGainCompensation);
+  /*! Get the time gain compensation [initial, mid, far gain] of B-mode ultrasound (valid range: 0-100) */
+  PlusStatus GetTimeGainCompensation(std::vector<double>& aTimeGainCompensation);
 
   /*! Set the imaging power of B-mode ultrasound as Db below max (valid range: -20 to0) */
   PlusStatus SetPowerDb(double aPowerDb);
@@ -183,6 +190,7 @@ protected:
   double DynRangeDb;
   double PowerDb;
   double FocusDepthPercent;
+  std::vector<double> TimeGainCompensation;
   bool SpeckleReductionEnabled;
   int SpeckleReductionMethod;
   int DynamicFocusEnabled;

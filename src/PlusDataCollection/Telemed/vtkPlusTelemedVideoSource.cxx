@@ -18,7 +18,10 @@ See License.txt for details.
 #include <vtkObjectFactory.h>
 
 // STL includes
+#include <algorithm>
 #include <cstdlib>
+#include <iterator>
+#include <sstream>
 
 //----------------------------------------------------------------------------
 
@@ -166,23 +169,22 @@ bool ImageEnhancementMethodFromString(const std::string& text, int& outMethod)
 //----------------------------------------------------------------------------
 bool ImageEnhancementMethodFromXmlString(const std::string& text, int& outMethod)
 {
-  std::string enumName = igsioCommon::ToUpper(text);
-  if (enumName == "IMAGE_ENHANC_SHARPEN")
+  if (igsioCommon::IsEqualInsensitive(text, "IMAGE_ENHANC_SHARPEN"))
   {
     outMethod = IMAGE_ENHANC_SHARPEN;
     return true;
   }
-  if (enumName == "IMAGE_ENHANC_SHARPENMORE")
+  if (igsioCommon::IsEqualInsensitive(text, "IMAGE_ENHANC_SHARPENMORE"))
   {
     outMethod = IMAGE_ENHANC_SHARPENMORE;
     return true;
   }
-  if (enumName == "IMAGE_ENHANC_SMOOTH")
+  if (igsioCommon::IsEqualInsensitive(text, "IMAGE_ENHANC_SMOOTH"))
   {
     outMethod = IMAGE_ENHANC_SMOOTH;
     return true;
   }
-  if (enumName == "IMAGE_ENHANC_SMOOTHMORE")
+  if (igsioCommon::IsEqualInsensitive(text, "IMAGE_ENHANC_SMOOTHMORE"))
   {
     outMethod = IMAGE_ENHANC_SMOOTHMORE;
     return true;
@@ -193,7 +195,8 @@ bool ImageEnhancementMethodFromXmlString(const std::string& text, int& outMethod
 //----------------------------------------------------------------------------
 bool SpeckleReductionMethodFromXmlString(const std::string& text, int& outMethod)
 {
-  std::string enumName = igsioCommon::ToUpper(text);
+  std::string enumName = text;
+  std::transform(enumName.begin(), enumName.end(), enumName.begin(), ::toupper);
   struct FamilyInfo
   {
     const char* Prefix;
@@ -245,6 +248,7 @@ vtkPlusTelemedVideoSource::vtkPlusTelemedVideoSource()
   , DynRangeDb(-1)
   , PowerDb(-1)
   , FocusDepthPercent(-1)
+  , TimeGainCompensation(3, -1.0)
   , SpeckleReductionEnabled(false)
   , SpeckleReductionMethod(-1)
   , DynamicFocusEnabled(-1)
@@ -297,6 +301,22 @@ PlusStatus vtkPlusTelemedVideoSource::ReadConfiguration(vtkXMLDataElement* rootC
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, GainPercent, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, PowerDb, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FocusDepthPercent, deviceConfig);
+
+  const char* tgcAttr = deviceConfig->GetAttribute("TimeGainCompensation");
+  if (tgcAttr != NULL)
+  {
+    std::stringstream ss(tgcAttr);
+    std::vector<double> parsedTgc((std::istream_iterator<double>(ss)), std::istream_iterator<double>());
+    if (parsedTgc.size() >= 2)
+    {
+      this->TimeGainCompensation = parsedTgc;
+    }
+    else
+    {
+      LOG_ERROR("Unable to parse TimeGainCompensation='" << tgcAttr << "'. Provide at least 2 space-separated gain values.");
+    }
+  }
+
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(SpeckleReductionEnabled, deviceConfig);
 
   std::string speckleReductionMethodStr;
@@ -481,6 +501,9 @@ PlusStatus vtkPlusTelemedVideoSource::WriteConfiguration(vtkXMLDataElement* root
   deviceConfig->SetDoubleAttribute("GainPercent", this->GainPercent);
   deviceConfig->SetDoubleAttribute("PowerDb", this->PowerDb);
   deviceConfig->SetDoubleAttribute("FocusDepthPercent", this->FocusDepthPercent);
+  std::stringstream tgcStream;
+  std::copy(this->TimeGainCompensation.begin(), this->TimeGainCompensation.end(), std::ostream_iterator<double>(tgcStream, " "));
+  deviceConfig->SetAttribute("TimeGainCompensation", tgcStream.str().c_str());
   deviceConfig->SetAttribute("SpeckleReductionEnabled", this->SpeckleReductionEnabled ? "TRUE" : "FALSE");
   std::string speckleReductionMethodAsEnum;
   if (SpeckleReductionMethodToEnumString(this->SpeckleReductionMethod, speckleReductionMethodAsEnum))
@@ -563,6 +586,11 @@ PlusStatus vtkPlusTelemedVideoSource::InternalConnect()
   if (this->FocusDepthPercent >= 0 && this->FocusDepthPercent <= 1)
   {
     this->ImagingParameters->SetFocusDepthPercent(this->FocusDepthPercent);
+  }
+  if (this->TimeGainCompensation.size() >= 2 &&
+      std::all_of(this->TimeGainCompensation.begin(), this->TimeGainCompensation.end(), [](double v) { return v >= 0; }))
+  {
+    this->ImagingParameters->SetTimeGainCompensation(this->TimeGainCompensation);
   }
   if (this->DynamicFocusEnabled >= 0)
   {
@@ -649,6 +677,14 @@ PlusStatus vtkPlusTelemedVideoSource::InternalConnect()
     double deviceFocusDepthPercent;
     this->GetFocusDepthPercent(deviceFocusDepthPercent);
     this->ImagingParameters->SetFocusDepthPercent(deviceFocusDepthPercent);
+  }
+  if (!this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_TGC))
+  {
+    std::vector<double> deviceTimeGainCompensation;
+    if (this->GetTimeGainCompensation(deviceTimeGainCompensation) == PLUS_SUCCESS)
+    {
+      this->ImagingParameters->SetTimeGainCompensation(deviceTimeGainCompensation);
+    }
   }
   if (!this->ImagingParameters->IsSet(KEY_SPECKLE_REDUCTION_ENABLED))
   {
@@ -945,6 +981,45 @@ IMAGING_PARAMETER_SET(GainPercent);
 IMAGING_PARAMETER_SET(DynRangeDb);
 IMAGING_PARAMETER_SET(PowerDb);
 IMAGING_PARAMETER_SET(FocusDepthPercent);
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusTelemedVideoSource::SetTimeGainCompensation(const std::vector<double>& aTimeGainCompensation)
+{
+  LOG_INFO("Setting US parameter TimeGainCompensation");
+  if (this->Device == NULL)
+  {
+    // Connection has not been established yet. Parameter value will be set upon connection.
+    this->TimeGainCompensation = aTimeGainCompensation;
+    return PLUS_SUCCESS;
+  }
+  std::vector<double> oldTimeGainCompensation = this->TimeGainCompensation;
+  this->TimeGainCompensation = aTimeGainCompensation;
+  if (this->Device->SetTimeGainCompensation(this->TimeGainCompensation) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("vtkPlusTelemedVideoSource parameter setting failed: TimeGainCompensation");
+    this->TimeGainCompensation = oldTimeGainCompensation;
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusTelemedVideoSource::GetTimeGainCompensation(std::vector<double>& aTimeGainCompensation)
+{
+  if (this->Device == NULL)
+  {
+    // Connection has not been established yet. Return cached parameter value.
+    aTimeGainCompensation = this->TimeGainCompensation;
+    return PLUS_SUCCESS;
+  }
+  if (this->Device->GetTimeGainCompensation(this->TimeGainCompensation) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("vtkPlusTelemedVideoSource parameter getting failed: TimeGainCompensation");
+    return PLUS_FAIL;
+  }
+  aTimeGainCompensation = this->TimeGainCompensation;
+  return PLUS_SUCCESS;
+}
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusTelemedVideoSource::SetSpeckleReductionEnabled(bool aEnabled)
@@ -1300,6 +1375,17 @@ PlusStatus vtkPlusTelemedVideoSource::InternalApplyImagingParameterChange()
     if (this->SetFocusDepthPercent(this->ImagingParameters->GetFocusDepthPercent()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to set focus depth percent imaging parameter");
+      status = PLUS_FAIL;
+    }
+  }
+
+  // TIME GAIN COMPENSATION
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_TGC)
+    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_TGC))
+  {
+    if (this->SetTimeGainCompensation(this->ImagingParameters->GetTimeGainCompensation()) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to set time gain compensation imaging parameter");
       status = PLUS_FAIL;
     }
   }

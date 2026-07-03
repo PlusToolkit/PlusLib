@@ -50,6 +50,11 @@ public:
   PlusStatus SetDynRangeDb(double dynRangeDb);
   PlusStatus GetDynRangeDb(double& dynRangeDb);
 
+  /*! Set the time gain compensation [initial, mid, far gain] of B-mode ultrasound (valid range: 0-100) */
+  PlusStatus SetTimeGainCompensation(const std::vector<double>& tgc);
+  /*! Get the time gain compensation [initial, mid, far gain] of B-mode ultrasound (valid range: 0-100) */
+  PlusStatus GetTimeGainCompensation(std::vector<double>& tgc);
+
   /*! Enable/disable speckle reduction (ClearView) filtering */
   PlusStatus SetSpeckleReductionEnabled(bool enabled);
   PlusStatus GetSpeckleReductionEnabled(bool& enabled);
@@ -118,6 +123,7 @@ private:
   IUsgRejection2* m_b_rejection_ctrl;
   IUsgImageOrientation* m_b_image_orientation_ctrl;
   IUsgPaletteCalculator* m_b_palette_calculator_ctrl;
+  IUsgTgc* m_b_tgc_ctrl;
 
   IConnectionPoint* m_usg_device_change_cpnt; // connection point for device change events
   DWORD m_usg_device_change_cpnt_cookie;
