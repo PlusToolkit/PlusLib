@@ -11,6 +11,8 @@ See License.txt for details.
 #include "vtkPlusPolydataForce.h"
 #include "vtkMatrix4x4.h"
 
+using namespace std;
+
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro( vtkPlusPolydataForce )
