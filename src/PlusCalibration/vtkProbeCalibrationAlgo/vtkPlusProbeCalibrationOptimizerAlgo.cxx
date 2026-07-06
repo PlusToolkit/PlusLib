@@ -62,7 +62,7 @@ public:
 
     auto rigidTransform=RigidTransformType::New();
     rigidTransform->SetParameters(imageToProbeTransformParameters);
-    imageToProbeTransform_vnl.update(rigidTransform->GetMatrix().GetVnlMatrix());
+    imageToProbeTransform_vnl.update(rigidTransform->GetMatrix().GetVnlMatrix().as_matrix());
     imageToProbeTransform_vnl.put(0,3,rigidTransform->GetOffset()[0]);
     imageToProbeTransform_vnl.put(1,3,rigidTransform->GetOffset()[1]);
     imageToProbeTransform_vnl.put(2,3,rigidTransform->GetOffset()[2]);
@@ -95,7 +95,7 @@ public:
 
     // Decompose the initial calibration matrix to an orthogonal transformation matrix, scaling vector, and translation vector
     vnl_matrix_fixed<double,3,3> rotationMatrix= imageToProbeTransform_vnl.extract(3,3);
-    vnl_svd<double> svd(rotationMatrix);
+    vnl_svd<double> svd(rotationMatrix.as_matrix());
     itk::Matrix<double,3,3> orthogonalizedRotationMatrix;
     orthogonalizedRotationMatrix = svd.U() * svd.V().transpose();
     double scale[3] = { svd.W(0), svd.W(1), svd.W(2) };
@@ -202,15 +202,15 @@ PlusStatus vtkPlusProbeCalibrationOptimizerAlgo::ShowTransformation(const vnl_ma
   LOG_INFO("Translation = [" << imageToProbeTransformationMatrix.get(0,3) << " " << imageToProbeTransformationMatrix.get(1,3) << " " << imageToProbeTransformationMatrix.get(2,3) << " ]");
 
   vnl_matrix_fixed<double,3,3> rotationMatrix=imageToProbeTransformationMatrix.extract(3,3);
-  vnl_svd<double> svd(rotationMatrix);
+  vnl_svd<double> svd(rotationMatrix.as_matrix());
   vnl_matrix<double> orthogonalizedRotationMatrix;
   orthogonalizedRotationMatrix = svd.U() * svd.V().transpose();
   double scale[3] = { svd.W(0), svd.W(1), svd.W(2) };
   LOG_INFO("Scale = [" << scale[0] << " " << scale[1] << " " << scale[2] << " ]");
 
-  vnl_vector<double> xAxis=imageToProbeTransformationMatrix.get_column(0);
+  vnl_vector<double> xAxis=imageToProbeTransformationMatrix.get_column(0).as_vector();
   xAxis.normalize();
-  vnl_vector<double> yAxis=imageToProbeTransformationMatrix.get_column(1);
+  vnl_vector<double> yAxis=imageToProbeTransformationMatrix.get_column(1).as_vector();
   yAxis.normalize();
   double xyAxesAngleDeg=vtkMath::DegreesFromRadians(acos(dot_product(xAxis,yAxis)));
   LOG_INFO("XY axes angle = " << xyAxesAngleDeg << " deg");
