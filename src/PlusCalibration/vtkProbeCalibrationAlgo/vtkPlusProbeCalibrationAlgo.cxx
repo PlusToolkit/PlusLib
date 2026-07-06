@@ -495,7 +495,7 @@ PlusStatus vtkPlusProbeCalibrationAlgo::AddPositionsPerImage(igsioTrackedFrame* 
 
     {
       // Compute middle point position in probe frame
-      vnl_vector<double> middleWireIntersectionPointPos_Probe =  phantomToProbeTransformMatrix * middleWireIntersectionPointPos_Phantom;
+      vnl_vector<double> middleWireIntersectionPointPos_Probe =  (phantomToProbeTransformMatrix * middleWireIntersectionPointPos_Phantom).as_vector();
 
       LOG_DEBUG("  Middle wire position in probe frame = " << middleWireIntersectionPointPos_Probe);
 
