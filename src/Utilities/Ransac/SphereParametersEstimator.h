@@ -27,9 +27,9 @@ public:
   typedef SmartPointer<Self>                                       Pointer;
   typedef SmartPointer<const Self>                                 ConstPointer;
  
-  itkTypeMacro( SphereParametersEstimator, ParametersEstimator );
+  itkOverrideGetNameOfClassMacro(SphereParametersEstimator);
      /** New method for creating an object using a factory. */
-  itkNewMacro( Self )
+  itkNewMacro( Self );
   
   enum LeastSquaresType {ALGEBRAIC = 0, GEOMETRIC};
 

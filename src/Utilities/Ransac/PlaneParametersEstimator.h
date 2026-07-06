@@ -30,9 +30,9 @@ public:
   typedef SmartPointer<Self>                                       Pointer;
   typedef SmartPointer<const Self>                                 ConstPointer;
  
-  itkTypeMacro( PlaneParametersEstimator, ParametersEstimator );
+  itkOverrideGetNameOfClassMacro(PlaneParametersEstimator);
      /** New method for creating an object using a factory. */
-  itkNewMacro( Self )
+  itkNewMacro( Self );
 
   /**
    * Compute the (hyper)plane defined by the given data points.
