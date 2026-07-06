@@ -69,9 +69,9 @@ namespace itk
     typedef SmartPointer<Self>         Pointer;
     typedef SmartPointer<const Self>   ConstPointer;
 
-    itkTypeMacro(RANSAC, Object);
+    itkOverrideGetNameOfClassMacro(RANSAC);
     /** New method for creating an object using a factory. */
-    itkNewMacro(Self)
+    itkNewMacro(Self);
 
     /**
      * Set/Get the number of threads used by the RANSAC implementation.
