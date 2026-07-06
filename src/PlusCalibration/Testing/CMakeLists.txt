@@ -333,3 +333,15 @@ TARGET_LINK_LIBRARIES( vtkSegmentedWiresPositionsTest
   ITKCommon
   vtkPlusDataCollection
   )
+# The ITK ImageIO factory-register manager references every enabled ITK IO
+# module (incl. the FDF remote module); ensure these test targets link it.
+foreach(_plus_fdf_target
+    vtkCenterOfRotationCalibAlgoTest vtkFreehandCalibrationStatisticalEvaluation
+    vtkSpacingCalibAlgoTest PatternLocTest vtkLineSegmentationAlgoTest
+    vtkSegmentedWiresPositionsTest)
+  if(TARGET ${_plus_fdf_target})
+    if(TARGET ITK::IOFDF)
+      target_link_libraries(${_plus_fdf_target} ITK::IOFDF)
+    endif()
+  endif()
+endforeach()
