@@ -43,7 +43,7 @@ jobs:
 
       - name: Cache ITK Build
         id: cache-itk
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: itk-install
           key: ${{ env.CACHE_KEY }}
