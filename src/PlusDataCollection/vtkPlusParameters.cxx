@@ -8,6 +8,7 @@ See License.txt for details.
 #include "vtkPlusParameters.h"
 
 #include <iterator>
+#include <utility>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkPlusParameters);
@@ -162,6 +163,12 @@ bool vtkPlusParameters::IsPending(const std::string& paramName) const
 
   LOG_ERROR("Invalid key request sent to vtkPlusParameters::IsPending -- " << paramName);
   return false;
+}
+
+//-----------------------------------------------------------------------------
+void vtkPlusParameters::DeclareParameter(const std::string& paramName)
+{
+  this->Parameters.insert(std::make_pair(paramName, ParameterInfo()));
 }
 
 //-----------------------------------------------------------------------------

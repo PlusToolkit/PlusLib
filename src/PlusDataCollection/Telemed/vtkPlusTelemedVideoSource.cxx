@@ -203,14 +203,16 @@ bool SpeckleReductionMethodFromXmlString(const std::string& text, int& outMethod
     int BaseValue;
   };
 
+  // Longer, more specific prefixes (SRF_NVC, SRF_NVO) must be checked before the
+  // shorter SRF_NV prefix they would otherwise be mistakenly matched against.
   static const FamilyInfo families[] =
   {
     { "SRF_CV", 0 },
     { "SRF_PV", 100 },
-    { "SRF_NV", 200 },
     { "SRF_NVC", 300 },
     { "SRF_QV", 400 },
-    { "SRF_NVO", 500 }
+    { "SRF_NVO", 500 },
+    { "SRF_NV", 200 }
   };
 
   for (const FamilyInfo& family : families)
@@ -249,7 +251,7 @@ vtkPlusTelemedVideoSource::vtkPlusTelemedVideoSource()
   , PowerDb(-1)
   , FocusDepthPercent(-1)
   , TimeGainCompensation(3, -1.0)
-  , SpeckleReductionEnabled(false)
+  , SpeckleReductionEnabled(-1)
   , SpeckleReductionMethod(-1)
   , DynamicFocusEnabled(-1)
   , FocusesNumber(-1)
@@ -272,6 +274,25 @@ vtkPlusTelemedVideoSource::vtkPlusTelemedVideoSource()
   this->Device = NULL;
   this->RequireImageOrientationInConfiguration = true;
   this->StartThreadForInternalUpdates = true;
+
+  // Register the device-specific keys up front so that IsSet/IsPending can be safely queried on
+  // them (e.g. by InternalApplyImagingParameterChange, which the base class may call before this
+  // device has had a chance to populate any of its custom parameters) without logging spurious
+  // "Invalid key request" errors for keys that simply haven't been set yet.
+  this->ImagingParameters->DeclareParameter(KEY_SPECKLE_REDUCTION_ENABLED);
+  this->ImagingParameters->DeclareParameter(KEY_SPECKLE_REDUCTION_METHOD);
+  this->ImagingParameters->DeclareParameter(KEY_DYNAMIC_FOCUS_ENABLED);
+  this->ImagingParameters->DeclareParameter(KEY_FOCUSES_NUMBER);
+  this->ImagingParameters->DeclareParameter(KEY_FOCUS_SET);
+  this->ImagingParameters->DeclareParameter(KEY_FRAME_AVERAGING);
+  this->ImagingParameters->DeclareParameter(KEY_VIEW_AREA_PERCENT);
+  this->ImagingParameters->DeclareParameter(KEY_LINE_DENSITY);
+  this->ImagingParameters->DeclareParameter(KEY_IMAGE_ENHANCEMENT_ENABLED);
+  this->ImagingParameters->DeclareParameter(KEY_IMAGE_ENHANCEMENT_METHOD);
+  this->ImagingParameters->DeclareParameter(KEY_REJECTION);
+  this->ImagingParameters->DeclareParameter(KEY_NEGATIVE);
+  this->ImagingParameters->DeclareParameter(KEY_CHANGE_SCAN_DIRECTION);
+  this->ImagingParameters->DeclareParameter(KEY_ROTATE_IMAGE);
 }
 
 //----------------------------------------------------------------------------
@@ -504,7 +525,10 @@ PlusStatus vtkPlusTelemedVideoSource::WriteConfiguration(vtkXMLDataElement* root
   std::stringstream tgcStream;
   std::copy(this->TimeGainCompensation.begin(), this->TimeGainCompensation.end(), std::ostream_iterator<double>(tgcStream, " "));
   deviceConfig->SetAttribute("TimeGainCompensation", tgcStream.str().c_str());
-  deviceConfig->SetAttribute("SpeckleReductionEnabled", this->SpeckleReductionEnabled ? "TRUE" : "FALSE");
+  if (this->SpeckleReductionEnabled >= 0)
+  {
+    deviceConfig->SetAttribute("SpeckleReductionEnabled", this->SpeckleReductionEnabled != 0 ? "TRUE" : "FALSE");
+  }
   std::string speckleReductionMethodAsEnum;
   if (SpeckleReductionMethodToEnumString(this->SpeckleReductionMethod, speckleReductionMethodAsEnum))
   {
@@ -591,6 +615,22 @@ PlusStatus vtkPlusTelemedVideoSource::InternalConnect()
       std::all_of(this->TimeGainCompensation.begin(), this->TimeGainCompensation.end(), [](double v) { return v >= 0; }))
   {
     this->ImagingParameters->SetTimeGainCompensation(this->TimeGainCompensation);
+  }
+  if (this->SpeckleReductionEnabled >= 0)
+  {
+    this->ImagingParameters->SetValue<bool>(KEY_SPECKLE_REDUCTION_ENABLED, this->SpeckleReductionEnabled != 0);
+  }
+  if (this->SpeckleReductionMethod >= 0)
+  {
+    std::string speckleReductionMethodAsEnum;
+    if (SpeckleReductionMethodToEnumString(this->SpeckleReductionMethod, speckleReductionMethodAsEnum))
+    {
+      this->ImagingParameters->SetValue<std::string>(KEY_SPECKLE_REDUCTION_METHOD, speckleReductionMethodAsEnum);
+    }
+    else
+    {
+      this->ImagingParameters->SetValue<int>(KEY_SPECKLE_REDUCTION_METHOD, this->SpeckleReductionMethod);
+    }
   }
   if (this->DynamicFocusEnabled >= 0)
   {
@@ -1029,11 +1069,11 @@ PlusStatus vtkPlusTelemedVideoSource::SetSpeckleReductionEnabled(bool aEnabled)
   if (this->Device == NULL)
   {
     // Connection has not been established yet. Parameter value will be set upon connection.
-    this->SpeckleReductionEnabled = aEnabled;
+    this->SpeckleReductionEnabled = aEnabled ? 1 : 0;
     return PLUS_SUCCESS;
   }
-  bool oldEnabled = this->SpeckleReductionEnabled;
-  this->SpeckleReductionEnabled = aEnabled;
+  int oldEnabled = this->SpeckleReductionEnabled;
+  this->SpeckleReductionEnabled = aEnabled ? 1 : 0;
   if (this->Device->SetSpeckleReductionEnabled(aEnabled) != PLUS_SUCCESS)
   {
     LOG_ERROR("vtkPlusTelemedVideoSource parameter setting failed: SpeckleReductionEnabled=" << (aEnabled ? "TRUE" : "FALSE"));
@@ -1049,15 +1089,17 @@ PlusStatus vtkPlusTelemedVideoSource::GetSpeckleReductionEnabled(bool& aEnabled)
   if (this->Device == NULL)
   {
     // Connection has not been established yet. Return cached parameter value.
-    aEnabled = this->SpeckleReductionEnabled;
+    aEnabled = (this->SpeckleReductionEnabled != 0);
     return PLUS_SUCCESS;
   }
-  if (this->Device->GetSpeckleReductionEnabled(this->SpeckleReductionEnabled) != PLUS_SUCCESS)
+  bool deviceEnabled = false;
+  if (this->Device->GetSpeckleReductionEnabled(deviceEnabled) != PLUS_SUCCESS)
   {
     LOG_ERROR("vtkPlusTelemedVideoSource parameter retrieval failed: SpeckleReductionEnabled");
     return PLUS_FAIL;
   }
-  aEnabled = this->SpeckleReductionEnabled;
+  this->SpeckleReductionEnabled = deviceEnabled ? 1 : 0;
+  aEnabled = deviceEnabled;
   return PLUS_SUCCESS;
 }
 

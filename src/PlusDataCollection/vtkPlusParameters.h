@@ -133,6 +133,14 @@ public:
   */
   PlusStatus SetPending(const std::string& paramName, bool pending);
 
+  /*!
+  Register a parameter key with an unset default value, so that IsSet/IsPending can be queried on
+  it (safely returning false) before any value has actually been assigned. Has no effect if the key
+  is already registered (whether set or not), so it is safe to call unconditionally, e.g. from a
+  device's constructor for its device-specific parameter keys.
+  */
+  void DeclareParameter(const std::string& paramName);
+
   /*! Print the list of supported parameters. For diagnostic purposes only. */
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
