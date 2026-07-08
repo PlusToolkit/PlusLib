@@ -136,16 +136,25 @@ jobs:
           ${{ inputs.plus-config }}
 
     - name: Build
-      working-directory: ${{github.workspace}}/build
+      shell: pwsh
+      working-directory: ${{ github.workspace }}/build
       run: |
+        cmake --build . --config Release
+        if ($LASTEXITCODE -ne 0) {
+          throw "CMake build failed with exit code $LASTEXITCODE"
+        }
         ctest -C Release -D Experimental -V
+        if ($LASTEXITCODE -ne 0) {
+          throw "CTest failed with exit code $LASTEXITCODE"
+        }
 
     - uses: ilammy/msvc-dev-cmd@v1
     - name: Package
-      if: contains(runner.os, 'windows')
-      working-directory: ${{github.workspace}}/build/PlusApp-bin
+      if: ${{ contains(runner.os, 'windows') && hashFiles('build/PlusApp-bin/CreatePackage.bat') != '' }}
+      working-directory: ${{ github.workspace }}/build/PlusApp-bin
+      shell: pwsh
       run: |
-        ./CreatePackage.bat
+        .\CreatePackage.bat
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
