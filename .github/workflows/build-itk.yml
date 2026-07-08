@@ -65,6 +65,11 @@ jobs:
           git fetch --depth 1 origin ${{ inputs.itk-hash }}
           git checkout FETCH_HEAD
 
+      - name: Install CMake
+        uses: lukka/get-cmake@f5b8fbb4d77cec1acc5a5f9f0df4beffaf5d98d9 # v4.3.4
+        with:
+          cmakeVersion: 4.3.4
+
       - name: Configure ITK
         if: steps.cache-itk.outputs.cache-hit != 'true'
         shell: bash
