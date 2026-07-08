@@ -69,7 +69,7 @@ jobs:
         if: steps.cache-itk.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          cmake -S itk -B itk-build -G "Visual Studio 17 2022" -A ${{ inputs.arch }} \
+          cmake -S itk -B itk-build -G "Visual Studio 18 2026" -A ${{ inputs.arch }} \
             -DCMAKE_INSTALL_PREFIX=itk-install \
             -DCMAKE_BUILD_TYPE=${{ inputs.build-type }} \
             -DBUILD_SHARED_LIBS=ON \
