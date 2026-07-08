@@ -90,6 +90,11 @@ jobs:
         path: build
         key: ${{ inputs.plus-cache-key }}
 
+    - name: Install CMake
+      uses: lukka/get-cmake@f5b8fbb4d77cec1acc5a5f9f0df4beffaf5d98d9 # v4.3.4
+      with:
+        cmakeVersion: 4.3.4
+
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
       with:
