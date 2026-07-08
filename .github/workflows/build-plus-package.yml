@@ -58,7 +58,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2022]
+        os: [windows-latest]
         build_type: [Release]
         arch: [x64]
     with:
@@ -73,7 +73,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2022]
+        os: [windows-latest]
         build_type: [Release]
         arch: [Win32]
     with:
@@ -90,7 +90,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2022]
+        os: [windows-latest]
         build_type: [Release]
         arch: [x64]
     with:
@@ -105,7 +105,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2022]
+        os: [windows-latest]
         build_type: [Release]
         arch: [Win32]
     with:
@@ -124,7 +124,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2022]
+        os: [windows-latest]
         build_type: [Release]
     secrets:
       pltools-access-token: ${{ secrets.PLTOOLS_ACCESS_TOKEN }}

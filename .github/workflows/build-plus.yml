@@ -97,6 +97,11 @@ jobs:
         version: ${{ inputs.qt-version }}
         arch: ${{ inputs.arch == 'x64' && 'win64_msvc2019_64' || 'win32_msvc2019' }}
 
+    - name: Install NSIS
+      uses: repolevedavaj/install-nsis@v1.2.1
+      with:
+        nsis-version: '3.12'
+
     - name: Clone PlusBuild
       uses: actions/checkout@v4
       with:
@@ -116,7 +121,7 @@ jobs:
     - name: Configure PlusBuild
       run: |
         cmake -S PlusBuild -B build `
-          -G "Visual Studio 17 2022" -A ${{ inputs.arch }} `
+          -G "Visual Studio 18 2026" -A ${{ inputs.arch }} `
           -DCMAKE_BUILD_TYPE=Release `
           -DPLUSLIB_GIT_REPOSITORY=${{ inputs.pluslib-repository }} `
           -DPLUSLIB_GIT_REVISION=${{ inputs.pluslib-tag }} `
