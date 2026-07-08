@@ -62,7 +62,7 @@ jobs:
         build_type: [Release]
         arch: [x64]
     with:
-      vtk-hash: 6b6b89ee577e6c6a5ee6f5220b9c6a12513c30b4 # v9.4.1
+      vtk-hash: f49a1dbafa60b58ef22f6292ec58370453162192 # v9.6.2
       os: ${{ matrix.os }}
       arch: ${{ matrix.arch }}
       build-type: ${{ matrix.build_type }}
@@ -77,7 +77,7 @@ jobs:
         build_type: [Release]
         arch: [Win32]
     with:
-      vtk-hash: 6b6b89ee577e6c6a5ee6f5220b9c6a12513c30b4 # v9.4.1
+      vtk-hash: f49a1dbafa60b58ef22f6292ec58370453162192 # v9.6.2
       os: ${{ matrix.os }}
       arch: ${{ matrix.arch }}
       build-type: ${{ matrix.build_type }}
