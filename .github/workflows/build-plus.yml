@@ -108,7 +108,7 @@ jobs:
         nsis-version: '3.12'
 
     - name: Clone PlusBuild
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: PlusToolkit/PlusBuild
         ref: master
@@ -116,7 +116,7 @@ jobs:
 
     - name: Clone PLTools
       if: ${{ inputs.use-pltools }}
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: PerkLab/PLTools
         ref: master
@@ -148,7 +148,7 @@ jobs:
           throw "CTest failed with exit code $LASTEXITCODE"
         }
 
-    - uses: ilammy/msvc-dev-cmd@v1
+    - uses: step-security/msvc-dev-cmd@22c98154b708dbd743e6f27a933cf6ceba3305c4 # v1.13.1
     - name: Package
       if: ${{ contains(runner.os, 'windows') && hashFiles('build/PlusApp-bin/CreatePackage.bat') != '' }}
       working-directory: ${{ github.workspace }}/build/PlusApp-bin
@@ -157,7 +157,7 @@ jobs:
         .\CreatePackage.bat
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ inputs.archive-name }}
         path: ${{github.workspace}}/build/PlusApp-bin/*.exe
