@@ -61,7 +61,7 @@ int vtkPlusPolydataForce::GenerateForce( vtkMatrix4x4* transformMatrix, double f
     force[1] = ( 0 );
     force[2] = ( 0 );
   }
-  cout <<  " FORCE: " << force[0] << ",  " << force[1] << ",  " << force[2] << endl;
+  std::cout <<  " FORCE: " << force[0] << ",  " << force[1] << ",  " << force[2] << std::endl;
   return 1;
 }
 
@@ -99,9 +99,9 @@ void vtkPlusPolydataForce::CalculateForce( double x, double y, double z, double 
   vector[1] = fabs( y - this->lastPos[1] );
   vector[2] = fabs( z - this->lastPos[2] );
 
-  cout << "vector[0]: " << vector[0] << endl;
-  cout << "vector[1]: " << vector[1] << endl;
-  cout << "vector[2]: " << vector[2] << endl;
+  std::cout << "vector[0]: " << vector[0] << std::endl;
+  std::cout << "vector[1]: " << vector[1] << std::endl;
+  std::cout << "vector[2]: " << vector[2] << std::endl;
 
   for ( int i = 0; i < 3; i++ )
   {
@@ -110,9 +110,9 @@ void vtkPlusPolydataForce::CalculateForce( double x, double y, double z, double 
       force[i] = ( 0.1 / ( vector[i] * vector[i] ) ) * .6;
     }
   }
-  cout << "X: " << force[0] << endl;
-  cout << "Y: " << force[1] << endl;
-  cout << "Z: " << force[2] << endl;
+  std::cout << "X: " << force[0] << std::endl;
+  std::cout << "Y: " << force[1] << std::endl;
+  std::cout << "Z: " << force[2] << std::endl;
 
   if ( force[0] > 1 )
   {
