@@ -81,7 +81,7 @@ namespace
     if (status)
     {
       Acqrs_errorMessage(VI_NULL, status, ErrMsg, 256);
-      cout << functionName << ": " << ErrMsg << endl;
+      std::cout << functionName << ": " << ErrMsg << std::endl;
       return true;
     }
 

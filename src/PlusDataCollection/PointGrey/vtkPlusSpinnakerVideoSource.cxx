@@ -336,7 +336,7 @@ PlusStatus vtkPlusSpinnakerVideoSource::ReadConfiguration(vtkXMLDataElement* roo
   std::ostringstream str;
   this->PrintConfiguration(str, vtkIndent(0));
   LOG_INFO(std::endl << "SpinnakerVideoSource configuration:" << std::endl << str.str());
-  
+
   return this->CheckCameraParameterValidity();
 }
 
@@ -354,7 +354,7 @@ PlusStatus vtkPlusSpinnakerVideoSource::WriteConfiguration(vtkXMLDataElement* ro
 PlusStatus vtkPlusSpinnakerVideoSource::InternalConnect()
 {
   LOG_TRACE("vtkPlusSpinnakerVideoSource::InternalConnect()");
-  
+
   // initialize system pointer
   this->Internal->SystemPtr = Spinnaker::System::GetInstance();
 
@@ -427,7 +427,7 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalConnect()
       return PLUS_FAIL;
     }
 
-    // set frame width 
+    // set frame width
     Spinnaker::GenApi::CIntegerPtr WidthPtr = nodeMap.GetNode("Width");
     if (Spinnaker::GenApi::IsAvailable(WidthPtr) && Spinnaker::GenApi::IsWritable(WidthPtr))
     {
@@ -591,7 +591,7 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalDisconnect()
     LOG_ERROR("SpinnakerVideoSource: Failed to release system pointer. Exception text: " << e.what());
     return PLUS_FAIL;
   }
-   
+
   return PLUS_SUCCESS;
 }
 
@@ -696,7 +696,7 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalUpdate()
     Spinnaker::ImagePtr pResultImage = this->Internal->CameraPtr->GetNextImage();
     if (pResultImage->IsIncomplete())
     {
-      cout << "Image incomplete with image status " << pResultImage->GetImageStatus() << "..." << endl << endl;
+      std::cout << "Image incomplete with image status " << pResultImage->GetImageStatus() << "..." << std::endl << std::endl;
     }
 
     // Convert image from PointGrey to correct image type
@@ -743,12 +743,12 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalUpdate()
         videoSource->SetInputFrameSize(this->FrameSize);
       }
     }
-    
+
     // add frame to PLUS buffer
     if (this->PixelEncoding == RGB24)
     {
       retVal = videoSource->AddItem(
-        convertedImage->GetData(), 
+        convertedImage->GetData(),
         US_IMG_ORIENT_MN,
         this->FrameSize,
         VTK_UNSIGNED_CHAR,
@@ -778,6 +778,6 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalUpdate()
     LOG_ERROR("SpinnakerVideoSource: Failed in InternalUpdate(). Exception text: " << e.what());
     return PLUS_FAIL;
   }
-  this->FrameNumber++; 
+  this->FrameNumber++;
   return retVal;
 }
