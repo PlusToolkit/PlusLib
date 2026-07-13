@@ -755,6 +755,7 @@ PlusStatus vtkPlusMmfVideoSource::SetNewCameraControlParameters(const vtkPlusCam
     // If we are connected and recording, apply the new camera control parameters immediately
     return this->InternalApplyCameraControlParameterChange();
   }
+  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
