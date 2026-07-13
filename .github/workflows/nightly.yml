@@ -2,10 +2,35 @@ name: Nightly
 
 on:
   workflow_dispatch:
+    inputs:
+      clear-plus-cache:
+        description: 'Clear the cached Plus build directory before building'
+        required: false
+        type: boolean
+        default: false
   schedule:
     - cron: "43 5 * * *" # Run nightly at 5:43 UTC. Picked a time when the load may be lower. https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#schedule
 
 jobs:
+  ########
+  # CLEAR STALE PLUS BUILD CACHE
+  # The Plus build cache is stored under a fixed key (not tied to the commit
+  # being built), so actions/cache never overwrites it once created. Clear it
+  # every night (and on-demand via the clear-plus-cache input) so nightly
+  # builds don't keep reusing an arbitrarily stale build directory.
+  clear_plus_cache:
+    if: ${{ github.event_name == 'schedule' || inputs.clear-plus-cache == true }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Delete cached Plus build directories
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh cache delete plus-latest-x64 --repo ${{ github.repository }} || true
+          gh cache delete plus-latest-Win32 --repo ${{ github.repository }} || true
+
   ########
   # BUILD AND CACHE VTK
   update_vtk_x64:
@@ -67,7 +92,8 @@ jobs:
       build-type: ${{ matrix.build_type }}
 
   build_plus_x64:
-    needs: [update_vtk_x64, update_itk_x64]
+    needs: [update_vtk_x64, update_itk_x64, clear_plus_cache]
+    if: always() && !failure() && !cancelled()
     uses: ./.github/workflows/build-plus.yml
     strategy:
       fail-fast: false
@@ -283,7 +309,8 @@ jobs:
         -DPLUS_USE_MICRONTRACKER:BOOL=ON
 
   build_plus_Win32:
-    needs: [update_vtk_Win32, update_itk_Win32]
+    needs: [update_vtk_Win32, update_itk_Win32, clear_plus_cache]
+    if: always() && !failure() && !cancelled()
     uses: ./.github/workflows/build-plus.yml
     strategy:
       fail-fast: false
