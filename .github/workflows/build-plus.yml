@@ -26,6 +26,10 @@ on:
       plus-cache-key:
         required: false
         type: string
+      clear-plus-cache:
+        required: false
+        type: boolean
+        default: false
 
       # Plus build options
       plus-config:
@@ -68,6 +72,8 @@ on:
 jobs:
   build:
     runs-on: ${{ inputs.os }}
+    permissions:
+      actions: write
 
     steps:
     - name: Restore VTK Cache
@@ -81,6 +87,15 @@ jobs:
       with:
         path: itk-install
         key: ${{ inputs.itk-cache-key }}
+
+    # actions/cache never overwrites an existing key, so a fixed plus-cache-key
+    # (e.g. plus-latest-x64) would otherwise never refresh once created.
+    - name: Clear Plus Cache
+      if: ${{ inputs.clear-plus-cache && inputs.plus-cache-key != '' }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh cache delete "${{ inputs.plus-cache-key }}" --repo ${{ github.repository }} || true
 
     - name: Plus Cache
       if: ${{ inputs.plus-cache-key != '' }}
