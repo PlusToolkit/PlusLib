@@ -181,11 +181,6 @@ jobs:
         -DPLUSAPP_PACKAGE_EDITION:STRING="ClariusOEM"
         -DPLUSBUILD_BUILDNAME_POSTFIX=ClariusOEM-gh-package-x64
         -DPLUS_USE_CLARIUS_OEM:BOOL=ON
-        -DPLUSBUILD_USE_Tesseract:BOOL=OFF
-        -DPLUS_USE_TextRecognizer:BOOL=OFF
-        -DPLUS_USE_OpenCV_VIDEO:BOOL=OFF
-        -DPLUSBUILD_USE_OpenCV:BOOL=OFF
-        -DPLUS_USE_OPTICAL_MARKER_TRACKER:BOOL=OFF
 
   build_plus_x64_telemed:
     needs: [update_vtk_x64, update_itk_x64, build_plus_x64] # Build off of the base x64 package

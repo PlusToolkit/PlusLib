@@ -962,6 +962,14 @@ IF(PLUS_USE_CLARIUS_OEM)
     ${CLARIUS_OEM_SRCS}
     )
 
+  IF(MSVC)
+    # WinRT headers pull in <experimental/coroutine>, which newer MSVC STL
+    # versions turn into a hard compile error unless explicitly silenced.
+    SET_SOURCE_FILES_PROPERTIES(Clarius/ClariusBLE.cxx PROPERTIES
+      COMPILE_DEFINITIONS "_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS"
+      )
+  ENDIF()
+
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/Clarius
     )
