@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <math.h>
+#include <sstream>
 #include <string>
 
 #define SAFE_RELEASE(x) { if (x) x->Release(); x = NULL; }
@@ -1229,6 +1230,108 @@ PlusStatus TelemedUltrasound::SetFrequencyMhz(double freqMhz)
   else
   {
     LOG_ERROR("TelemedUltrasound::SetFrequencyMHz failed: failed to find a suitable frequency setting");
+    status = PLUS_FAIL;
+  }
+
+  SAFE_RELEASE(usg_values);
+  return status;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::GetThiMode(int& thiMode)
+{
+  if (m_b_frequency_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::GetThiMode failed: not connected to device");
+    return PLUS_FAIL;
+  }
+  FREQUENCY3 val;
+  if (m_b_frequency_ctrl->get_Current(&val) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::GetThiMode failed: failed to retrieve parameter value");
+    return PLUS_FAIL;
+  }
+  thiMode = (int)(val.nThiMode);
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::SetThiMode(int thiMode)
+{
+  if (m_b_frequency_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::SetThiMode failed: not connected to device");
+    return PLUS_FAIL;
+  }
+
+  FREQUENCY3 val_cur;
+  m_b_frequency_ctrl->get_Current(&val_cur);
+
+  if (val_cur.nThiMode == thiMode)
+  {
+    return PLUS_SUCCESS;
+  }
+
+  IUsgValues* usg_values = NULL;
+  m_b_frequency_ctrl->get_Values(&usg_values);
+  if (usg_values == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::SetThiMode failed: failed to retrieve valid parameter values");
+    return PLUS_FAIL;
+  }
+
+  // Find the value with the requested THI mode and the frequency closest to the current one
+  LONG val_closest_index = -1;
+  LONG val_closest_nFrequency = 0;
+  LONG val_count = 0;
+  usg_values->get_Count(&val_count);
+  for (LONG i1 = 0; i1 < val_count; i1++)
+  {
+    VARIANT item;
+    usg_values->Item(i1, &item);
+    if (item.vt == VT_RECORD)
+    {
+      FREQUENCY3 val;
+      val = *((FREQUENCY3*)item.pvRecord);
+      if ((val.nThiMode == thiMode) &&
+          (val_closest_index < 0 || abs(val.nFrequency - val_cur.nFrequency) < abs(val_closest_nFrequency - val_cur.nFrequency)))
+      {
+        // found a value that is more similar to the requested one
+        val_closest_index = i1;
+        val_closest_nFrequency = val.nFrequency;
+      }
+    }
+    VariantClear(&item);
+  }
+
+  // Set the closest item
+  PlusStatus status = PLUS_SUCCESS;
+  if (val_closest_index >= 0)
+  {
+    VARIANT item;
+    usg_values->Item(val_closest_index, &item);
+    if (item.vt == VT_RECORD)
+    {
+      val_cur = *((FREQUENCY3*)item.pvRecord);
+    }
+    m_b_frequency_ctrl->put_Current(val_cur);
+    VariantClear(&item);
+  }
+  else
+  {
+    std::ostringstream available;
+    for (LONG i2 = 0; i2 < val_count; i2++)
+    {
+      VARIANT item2;
+      usg_values->Item(i2, &item2);
+      if (item2.vt == VT_RECORD)
+      {
+        FREQUENCY3 val2 = *((FREQUENCY3*)item2.pvRecord);
+        available << "(nFrequency=" << val2.nFrequency << ", nThiMode=" << val2.nThiMode << ") ";
+      }
+      VariantClear(&item2);
+    }
+    LOG_ERROR("TelemedUltrasound::SetThiMode failed: failed to find a suitable THI mode setting. Requested nThiMode=" << thiMode << ". Available values: " << available.str());
     status = PLUS_FAIL;
   }
 

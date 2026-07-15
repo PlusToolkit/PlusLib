@@ -41,11 +41,13 @@ const char* vtkPlusTelemedVideoSource::KEY_REJECTION = "Rejection";
 const char* vtkPlusTelemedVideoSource::KEY_NEGATIVE = "Negative";
 const char* vtkPlusTelemedVideoSource::KEY_CHANGE_SCAN_DIRECTION = "ChangeScanDirection";
 const char* vtkPlusTelemedVideoSource::KEY_ROTATE_IMAGE = "RotateImage";
+const char* vtkPlusTelemedVideoSource::KEY_THI_MODE = "ThiMode";
 
 namespace
 {
 bool SpeckleReductionMethodFromXmlString(const std::string& text, int& outMethod);
 bool ImageEnhancementMethodFromXmlString(const std::string& text, int& outMethod);
+bool ThiModeFromXmlString(const std::string& text, int& outMode);
 
 //----------------------------------------------------------------------------
 bool TryParseBool(const std::string& text, bool& value)
@@ -193,6 +195,59 @@ bool ImageEnhancementMethodFromXmlString(const std::string& text, int& outMethod
 }
 
 //----------------------------------------------------------------------------
+bool ThiModeToEnumString(int mode, std::string& outEnumName)
+{
+  switch (mode)
+  {
+    case THI_MODE1:
+      outEnumName = "THI_MODE1";
+      return true;
+    case THI_MODE2:
+      outEnumName = "THI_MODE2";
+      return true;
+    case THI_MODE2_ITHI:
+      outEnumName = "THI_MODE2_ITHI";
+      return true;
+    default:
+      return false;
+  }
+}
+
+//----------------------------------------------------------------------------
+bool ThiModeFromString(const std::string& text, int& outMode)
+{
+  if (TryParseInteger(text, outMode))
+  {
+    return true;
+  }
+
+  return ThiModeFromXmlString(text, outMode);
+}
+
+//----------------------------------------------------------------------------
+bool ThiModeFromXmlString(const std::string& text, int& outMode)
+{
+  // Per the Telemed SDK programmer's guide, THI_MODE1 is the conventional (non-harmonic) frequency
+  // mode -- transmitting and receiving frequency are the same -- despite its THI-prefixed name.
+  if (igsioCommon::IsEqualInsensitive(text, "THI_MODE1"))
+  {
+    outMode = THI_MODE1;
+    return true;
+  }
+  if (igsioCommon::IsEqualInsensitive(text, "THI_MODE2_ITHI"))
+  {
+    outMode = THI_MODE2_ITHI;
+    return true;
+  }
+  if (igsioCommon::IsEqualInsensitive(text, "THI_MODE2"))
+  {
+    outMode = THI_MODE2;
+    return true;
+  }
+  return false;
+}
+
+//----------------------------------------------------------------------------
 bool SpeckleReductionMethodFromXmlString(const std::string& text, int& outMethod)
 {
   std::string enumName = text;
@@ -245,6 +300,7 @@ bool SpeckleReductionMethodFromXmlString(const std::string& text, int& outMethod
 vtkPlusTelemedVideoSource::vtkPlusTelemedVideoSource()
   : ProbeId(0)
   , FrequencyMhz(-1)
+  , ThiMode(-1)
   , DepthMm(-1)
   , GainPercent(-1)
   , DynRangeDb(-1)
@@ -293,6 +349,7 @@ vtkPlusTelemedVideoSource::vtkPlusTelemedVideoSource()
   this->ImagingParameters->DeclareParameter(KEY_NEGATIVE);
   this->ImagingParameters->DeclareParameter(KEY_CHANGE_SCAN_DIRECTION);
   this->ImagingParameters->DeclareParameter(KEY_ROTATE_IMAGE);
+  this->ImagingParameters->DeclareParameter(KEY_THI_MODE);
 }
 
 //----------------------------------------------------------------------------
@@ -504,6 +561,12 @@ PlusStatus vtkPlusTelemedVideoSource::ReadConfiguration(vtkXMLDataElement* rootC
     LOG_ERROR("Unable to parse RotateImage='" << intAttr << "'. Use 0/90/180/270 (or enum 0..3).");
   }
 
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(ThiMode, intAttr, deviceConfig);
+  if (!intAttr.empty() && !ThiModeFromString(intAttr, this->ThiMode))
+  {
+    LOG_ERROR("Unable to parse ThiMode='" << intAttr << "'. Use THI_MODE1, THI_MODE2, THI_MODE2_ITHI, FUNDAMENTAL, or an integer value.");
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -558,6 +621,15 @@ PlusStatus vtkPlusTelemedVideoSource::WriteConfiguration(vtkXMLDataElement* root
   deviceConfig->SetIntAttribute("Negative", this->Negative);
   deviceConfig->SetIntAttribute("ChangeScanDirection", this->ChangeScanDirection);
   deviceConfig->SetIntAttribute("RotateImage", this->RotateImage);
+  std::string thiModeAsEnum;
+  if (ThiModeToEnumString(this->ThiMode, thiModeAsEnum))
+  {
+    deviceConfig->SetAttribute("ThiMode", thiModeAsEnum.c_str());
+  }
+  else
+  {
+    deviceConfig->SetIntAttribute("ThiMode", this->ThiMode);
+  }
   return PLUS_SUCCESS;
 }
 
@@ -679,6 +751,18 @@ PlusStatus vtkPlusTelemedVideoSource::InternalConnect()
   if (this->RotateImage >= 0)
   {
     this->ImagingParameters->SetValue<int>(KEY_ROTATE_IMAGE, this->RotateImage);
+  }
+  if (this->ThiMode >= 0)
+  {
+    std::string thiModeAsEnum;
+    if (ThiModeToEnumString(this->ThiMode, thiModeAsEnum))
+    {
+      this->ImagingParameters->SetValue<std::string>(KEY_THI_MODE, thiModeAsEnum);
+    }
+    else
+    {
+      this->ImagingParameters->SetValue<int>(KEY_THI_MODE, this->ThiMode);
+    }
   }
 
   // For the parameters not set from the config file or in the imaging parameters, we should try to read them from the current device settings
@@ -852,6 +936,22 @@ PlusStatus vtkPlusTelemedVideoSource::InternalConnect()
     if (this->GetRotateImage(value) == PLUS_SUCCESS)
     {
       this->ImagingParameters->SetValue<int>(KEY_ROTATE_IMAGE, value);
+    }
+  }
+  if (!this->ImagingParameters->IsSet(KEY_THI_MODE))
+  {
+    int value = 0;
+    if (this->GetThiMode(value) == PLUS_SUCCESS)
+    {
+      std::string thiModeAsEnum;
+      if (ThiModeToEnumString(value, thiModeAsEnum))
+      {
+        this->ImagingParameters->SetValue<std::string>(KEY_THI_MODE, thiModeAsEnum);
+      }
+      else
+      {
+        this->ImagingParameters->SetValue<int>(KEY_THI_MODE, value);
+      }
     }
   }
 
@@ -1254,6 +1354,8 @@ IMAGING_PARAMETER_SET_BOOL(Negative);
 IMAGING_PARAMETER_GET_BOOL(Negative);
 IMAGING_PARAMETER_SET_INT(RotateImage);
 IMAGING_PARAMETER_GET_INT(RotateImage);
+IMAGING_PARAMETER_SET_INT(ThiMode);
+IMAGING_PARAMETER_GET_INT(ThiMode);
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusTelemedVideoSource::SetChangeScanDirection(bool aEnabled)
@@ -1310,7 +1412,8 @@ bool vtkPlusTelemedVideoSource::IsKnownKey(const std::string& queryKey) const
       igsioCommon::IsEqualInsensitive(queryKey, KEY_REJECTION) ||
       igsioCommon::IsEqualInsensitive(queryKey, KEY_NEGATIVE) ||
       igsioCommon::IsEqualInsensitive(queryKey, KEY_CHANGE_SCAN_DIRECTION) ||
-      igsioCommon::IsEqualInsensitive(queryKey, KEY_ROTATE_IMAGE))
+      igsioCommon::IsEqualInsensitive(queryKey, KEY_ROTATE_IMAGE) ||
+      igsioCommon::IsEqualInsensitive(queryKey, KEY_THI_MODE))
   {
     return true;
   }
@@ -1824,6 +1927,36 @@ PlusStatus vtkPlusTelemedVideoSource::InternalApplyImagingParameterChange()
       else
       {
         LOG_ERROR("Failed to set rotate image imaging parameter");
+        status = PLUS_FAIL;
+      }
+    }
+  }
+
+  // TISSUE HARMONIC IMAGING MODE
+  if (this->ImagingParameters->IsSet(KEY_THI_MODE)
+    && this->ImagingParameters->IsPending(KEY_THI_MODE))
+  {
+    std::string valueStr;
+    if (this->ImagingParameters->GetValue<std::string>(KEY_THI_MODE, valueStr) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to read THI mode imaging parameter value");
+      status = PLUS_FAIL;
+    }
+    else
+    {
+      int value = 0;
+      if (!ThiModeFromString(valueStr, value))
+      {
+        LOG_ERROR("Failed to parse ThiMode='" << valueStr << "'. Use THI_MODE1, THI_MODE2, THI_MODE2_ITHI, FUNDAMENTAL, or an integer value.");
+        status = PLUS_FAIL;
+      }
+      else if (this->SetThiMode(value) == PLUS_SUCCESS)
+      {
+        this->ImagingParameters->SetPending(KEY_THI_MODE, false);
+      }
+      else
+      {
+        LOG_ERROR("Failed to set THI mode imaging parameter");
         status = PLUS_FAIL;
       }
     }

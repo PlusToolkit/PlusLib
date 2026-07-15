@@ -24,6 +24,17 @@
 - **FrameSize**: Maximum size of an image frame in pixels. The image is scaled so that image vertically fills the specified rectangle size, therefore if the frame size is too narrow (first component is too small) then the two sides of the image may be clipped; if the frame is too wide then there will be solid filled stripes on the left and right sides. If larger values are specified then a higher-resolution image is created. (Optional, default: `512 512`)
 - **DepthMm**: Set the depth [mm] of B-mode ultrasound. If not specified (or value is <0) then the current value is kept.
 - **FrequencyMhz**: Ultrasound transmitter frequency. If not specified (or value is <0) then the current value is kept. [MHz].
+- **ThiMode**: Tissue harmonic imaging (THI) mode, specified as either a value of the Telemed `THI_MODE` enumeration or a human-readable enum token. If not specified (or value is <0) then the current value is kept. Changing this parameter keeps the transmitter frequency as close as possible to its current value while switching between THI modes. THI exploits the nonlinear propagation of ultrasound through tissue: as sound travels, harmonic frequencies of the original transmit frequency build up, and imaging that harmonic echo instead of the fundamental echo reduces near-field clutter/reverberation and improves contrast resolution.
+
+    | Enum token | Numeric value | Meaning |
+    |---|---:|---|
+    | `THI_MODE1` | 1 | Conventional (non-harmonic) imaging: transmitting and receiving frequency are the same. Despite the "THI" prefix, per the Telemed SDK programmer's guide this is the traditional/fundamental frequency mode, i.e. the "off" state for harmonic imaging. |
+    | `THI_MODE2` | 2 | Tissue harmonic imaging: receiving frequency is 2x the transmitting frequency. Availability depends on the beamformer/probe combination in use. |
+    | `THI_MODE2_ITHI` | 258 | Pulse inversion THI: two opposite-polarity pulses are transmitted per scan line and the received echoes are summed, cancelling the fundamental component while reinforcing the (nonlinear) harmonic component. Gives better fundamental/harmonic separation than `THI_MODE2` at the cost of frame rate. |
+
+    Not every mode/frequency combination is available on every probe; the device only reports success if an exact THI mode match exists somewhere in its enumerated frequency table (the closest available frequency for that mode is then selected). For example, testing on one ArtUS probe found only `THI_MODE1` (at 2/3.5/5 MHz) and `THI_MODE2_ITHI` (at 2.01 MHz) in the table -- no `THI_MODE2` entry existed at all for that probe. If the requested mode isn't available, the operation fails and the log lists the `(frequency, THI mode)` pairs the probe actually supports.
+
+    This parameter can also be changed/retrieved at runtime with the `SetUsParameter`/`GetUsParameter` OpenIGTLink commands using the parameter name `ThiMode`.
 - **DynRangeDb**: Dynamic Range [dB] of B-mode ultrasound. If not specified (or value is <0) then the current value is kept.
 - **GainPercent**: Is the gain percentage of B-mode ultrasound. If not specified (or value is <0) then the current value is kept. Valid range: 0-100.
 - **PowerDb**: Power to be used for imaging, as a number of dB below maximum. If not specified (or value is >0) then the current value is kept. Valid range is -20 to 0.

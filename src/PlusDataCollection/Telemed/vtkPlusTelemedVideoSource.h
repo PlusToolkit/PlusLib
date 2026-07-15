@@ -45,6 +45,7 @@ public:
   static const char* KEY_NEGATIVE;
   static const char* KEY_CHANGE_SCAN_DIRECTION;
   static const char* KEY_ROTATE_IMAGE;
+  static const char* KEY_THI_MODE;
 
   static vtkPlusTelemedVideoSource* New();
   vtkTypeMacro(vtkPlusTelemedVideoSource, vtkPlusUsDevice);
@@ -72,6 +73,11 @@ public:
   PlusStatus SetFrequencyMhz(double aFrequencyMhz);
   /*! Get ultrasound transmitter frequency (MHz) */
   PlusStatus GetFrequencyMhz(double& aFrequencyMhz);
+
+  /*! Set tissue harmonic imaging mode, a value of the Telemed THI_MODE enumeration: THI_MODE1 (conventional, non-harmonic imaging), THI_MODE2 (harmonic imaging), or THI_MODE2_ITHI (pulse inversion harmonic imaging) */
+  PlusStatus SetThiMode(int aThiMode);
+  /*! Get tissue harmonic imaging mode */
+  PlusStatus GetThiMode(int& aThiMode);
 
   /*! Set the imaging depth of B-mode ultrasound (mm) */
   PlusStatus SetDepthMm(double aDepthMm);
@@ -185,6 +191,7 @@ protected:
 
   int ProbeId;
   double FrequencyMhz;
+  int ThiMode;
   double DepthMm;
   double GainPercent;
   double DynRangeDb;

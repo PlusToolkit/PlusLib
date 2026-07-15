@@ -35,6 +35,10 @@ public:
   PlusStatus GetFrequencyMhz(double& freqMHz);
   PlusStatus SetFrequencyMhz(double freqMHz);
 
+  /*! Tissue harmonic imaging mode, a value of the Telemed THI_MODE enumeration: THI_MODE1 (conventional, non-harmonic imaging), THI_MODE2 (harmonic imaging), or THI_MODE2_ITHI (pulse inversion harmonic imaging) */
+  PlusStatus GetThiMode(int& thiMode);
+  PlusStatus SetThiMode(int thiMode);
+
   PlusStatus SetDepthMm(double depthMm);
   PlusStatus GetDepthMm(double& depthMm);
 
