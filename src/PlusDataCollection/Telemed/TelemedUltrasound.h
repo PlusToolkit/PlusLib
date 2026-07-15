@@ -122,8 +122,14 @@ private:
   IUsgImageEnhancement* m_b_image_enhancement_ctrl;
   IUsgRejection2* m_b_rejection_ctrl;
   IUsgImageOrientation* m_b_image_orientation_ctrl;
-  IUsgPaletteCalculator* m_b_palette_calculator_ctrl;
+  IUsgPalette* m_b_palette_ctrl;
   IUsgTgc* m_b_tgc_ctrl;
+
+  // Palette calculator is a standalone helper COM object (not bound to the data view/scan mode,
+  // unlike the controls above) used to compute grayscale palette values (gamma/brightness/contrast/
+  // negative), which must then be pushed to m_b_palette_ctrl to actually affect the live image.
+  IUsgPaletteCalculator* m_palette_calculator;
+  bool m_negative;
 
   IConnectionPoint* m_usg_device_change_cpnt; // connection point for device change events
   DWORD m_usg_device_change_cpnt_cookie;

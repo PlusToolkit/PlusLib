@@ -46,8 +46,10 @@ TelemedUltrasound::TelemedUltrasound()
   m_b_image_enhancement_ctrl = NULL;
   m_b_rejection_ctrl = NULL;
   m_b_image_orientation_ctrl = NULL;
-  m_b_palette_calculator_ctrl = NULL;
+  m_b_palette_ctrl = NULL;
   m_b_tgc_ctrl = NULL;
+  m_palette_calculator = NULL;
+  m_negative = false;
   m_usg_control_change_cpnt = NULL;
   m_usg_control_change_cpnt_cookie = 0;
   m_usg_device_change_cpnt = NULL;
@@ -651,16 +653,40 @@ void TelemedUltrasound::CreateUsgControls(int probeId /* = 0 */)
       m_b_image_orientation_ctrl = NULL;
     }
 
-    // create B mode palette calculator control (for negative rendering)
+    // create B mode palette control (for applying negative/palette values to the live image)
     tmp_obj = NULL;
-    CreateUsgControl(m_data_view, IID_IUsgPaletteCalculator, SCAN_MODE_B, 0, (void**)&tmp_obj);
+    CreateUsgControl(m_data_view, IID_IUsgPalette, SCAN_MODE_B, 0, (void**)&tmp_obj);
     if (tmp_obj != NULL)
     {
-      m_b_palette_calculator_ctrl = (IUsgPaletteCalculator*)tmp_obj;
+      m_b_palette_ctrl = (IUsgPalette*)tmp_obj;
     }
     else
     {
-      m_b_palette_calculator_ctrl = NULL;
+      m_b_palette_ctrl = NULL;
+    }
+
+    // create palette calculator helper object. Unlike the controls above, this is a standalone COM
+    // object (not obtained via m_data_view->GetControlObj) used to compute grayscale palette values
+    // (gamma/brightness/contrast/negative); the computed values are then pushed to m_b_palette_ctrl.
+    hr = CoCreateInstance(CLSID_UsgPaletteCalculator, NULL, CLSCTX_INPROC_SERVER, IID_IUsgPaletteCalculator, (LPVOID*)&m_palette_calculator);
+    if (hr != S_OK)
+    {
+      m_palette_calculator = NULL;
+    }
+    else
+    {
+      // Initialize with an identity reference palette (linear grayscale ramp) and neutral gamma/brightness/contrast
+      const LONG paletteSize = 256;
+      std::vector<LONG> referenceData(paletteSize);
+      for (LONG i = 0; i < paletteSize; ++i)
+      {
+        referenceData[i] = i;
+      }
+      m_palette_calculator->SetReferenceData(paletteSize - 1, paletteSize, referenceData.data());
+      m_palette_calculator->put_Gamma(100);
+      m_palette_calculator->put_Brightness(0);
+      m_palette_calculator->put_Contrast(0);
+      m_palette_calculator->put_Negative(m_negative ? TRUE : FALSE);
     }
 
     // create B mode TGC (time-gain-compensation) control
@@ -1057,7 +1083,8 @@ void TelemedUltrasound::ReleaseUsgControls(bool release_usgfw2)
   SAFE_RELEASE(m_b_image_enhancement_ctrl);
   SAFE_RELEASE(m_b_rejection_ctrl);
   SAFE_RELEASE(m_b_image_orientation_ctrl);
-  SAFE_RELEASE(m_b_palette_calculator_ctrl);
+  SAFE_RELEASE(m_b_palette_ctrl);
+  SAFE_RELEASE(m_palette_calculator);
   SAFE_RELEASE(m_b_tgc_ctrl);
   SAFE_RELEASE(m_mixer_control);
   SAFE_RELEASE(m_data_view);
@@ -1944,34 +1971,57 @@ PlusStatus TelemedUltrasound::GetRejection(int& rejection)
 //----------------------------------------------------------------------------
 PlusStatus TelemedUltrasound::SetNegative(bool enabled)
 {
-  if (m_b_palette_calculator_ctrl == NULL)
+  if (m_palette_calculator == NULL || m_b_palette_ctrl == NULL)
   {
-    LOG_ERROR("TelemedUltrasound::SetNegative failed: not connected to hardware interface");
+    LOG_ERROR("TelemedUltrasound::SetNegative failed: palette control not available");
     return PLUS_FAIL;
   }
-  if (m_b_palette_calculator_ctrl->put_Negative(enabled ? TRUE : FALSE) != S_OK)
+
+  if (m_palette_calculator->put_Negative(enabled ? TRUE : FALSE) != S_OK)
   {
-    LOG_ERROR("TelemedUltrasound::SetNegative failed: unable to set value on device");
+    LOG_ERROR("TelemedUltrasound::SetNegative failed: unable to set negative flag on palette calculator");
     return PLUS_FAIL;
   }
+
+  const LONG paletteSize = 256;
+  std::vector<LONG> calculated(paletteSize);
+  if (m_palette_calculator->Calculate(0, paletteSize, calculated.data()) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::SetNegative failed: unable to calculate palette values");
+    return PLUS_FAIL;
+  }
+
+  std::vector<PALETTEENTRY> paletteEntries(paletteSize);
+  for (LONG i = 0; i < paletteSize; ++i)
+  {
+    BYTE value = (BYTE)calculated[i];
+    paletteEntries[i].peRed = value;
+    paletteEntries[i].peGreen = value;
+    paletteEntries[i].peBlue = value;
+    paletteEntries[i].peFlags = 0;
+  }
+
+  if (m_b_palette_ctrl->SetPaletteEntries(0, paletteSize, paletteEntries.data()) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::SetNegative failed: unable to apply palette to B mode image");
+    return PLUS_FAIL;
+  }
+
+  m_negative = enabled;
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus TelemedUltrasound::GetNegative(bool& enabled)
 {
-  if (m_b_palette_calculator_ctrl == NULL)
+  if (m_palette_calculator == NULL || m_b_palette_ctrl == NULL)
   {
-    LOG_ERROR("TelemedUltrasound::GetNegative failed: not connected to hardware interface");
+    LOG_ERROR("TelemedUltrasound::GetNegative failed: palette control not available");
     return PLUS_FAIL;
   }
-  BOOL currentNegative = FALSE;
-  if (m_b_palette_calculator_ctrl->get_Negative(&currentNegative) != S_OK)
-  {
-    LOG_ERROR("TelemedUltrasound::GetNegative failed: unable to query value from device");
-    return PLUS_FAIL;
-  }
-  enabled = (currentNegative != FALSE);
+  // The applied negative state is not independently queryable from the device; it is tracked
+  // locally since it is entirely driven by what this class last computed and pushed via SetNegative.
+  enabled = m_negative;
   return PLUS_SUCCESS;
 }
 

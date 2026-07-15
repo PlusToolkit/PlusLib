@@ -191,7 +191,7 @@ protected:
   double PowerDb;
   double FocusDepthPercent;
   std::vector<double> TimeGainCompensation;
-  bool SpeckleReductionEnabled;
+  int SpeckleReductionEnabled;
   int SpeckleReductionMethod;
   int DynamicFocusEnabled;
   int FocusesNumber;
