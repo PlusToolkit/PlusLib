@@ -55,7 +55,7 @@ jobs:
           sudo apt update && sudo apt install -y cmake g++ libgl1-mesa-dev libxt-dev libxrender-dev libxext-dev libglu1-mesa-dev make
 
       - name: Install CMake
-        uses: lukka/get-cmake@f5b8fbb4d77cec1acc5a5f9f0df4beffaf5d98d9 # v4.3.4
+        uses: lukka/get-cmake@e6906078ebd1ccb8ce51ab4626ac46a1b5a517e3 # v4.4.0
         with:
           cmakeVersion: 4.3.4
 
