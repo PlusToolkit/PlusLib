@@ -66,7 +66,7 @@ jobs:
           git checkout FETCH_HEAD
 
       - name: Install CMake
-        uses: lukka/get-cmake@e6906078ebd1ccb8ce51ab4626ac46a1b5a517e3 # v4.4.0
+        uses: lukka/get-cmake@fffaaafeea488556c2c12dad60690008bc1caacb # v4.4.2
         with:
           cmakeVersion: 4.3.4
 
