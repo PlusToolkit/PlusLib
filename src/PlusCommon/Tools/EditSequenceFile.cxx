@@ -373,39 +373,53 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
+  std::string fileExtension = vtksys::SystemTools::GetFilenameLastExtension(inputFileName);
+  bool headerOnlyUpdatePossible = (inputFileName == outputFileName) // file overwrite requested
+      && (igsioCommon::IsEqualInsensitive(fileExtension, ".mhd") || igsioCommon::IsEqualInsensitive(fileExtension, ".nhdr"))
+      && !useCompression; // hard to carry over compressed data size
+  bool headerOnlyOperation = false; // false by default
+
   // Set operation
   if (strOperation.empty())
   {
     operation = NO_OPERATION;
     LOG_INFO("No modification operation has been specified (specify --operation parameter to change the input sequence).");
+    headerOnlyOperation = true;
   }
   else if (igsioCommon::IsEqualInsensitive(strOperation, "UPDATE_FRAME_FIELD_NAME"))
   {
     operation = UPDATE_FRAME_FIELD_NAME;
+    headerOnlyOperation = true;
   }
   else if (igsioCommon::IsEqualInsensitive(strOperation, "UPDATE_FRAME_FIELD_VALUE"))
   {
     operation = UPDATE_FRAME_FIELD_VALUE;
+    headerOnlyOperation = true;
   }
   else if (igsioCommon::IsEqualInsensitive(strOperation, "DELETE_FRAME_FIELD"))
   {
     operation = DELETE_FRAME_FIELD;
+    headerOnlyOperation = true;
   }
   else if (igsioCommon::IsEqualInsensitive(strOperation, "UPDATE_FIELD_NAME"))
   {
     operation = UPDATE_FIELD_NAME;
+    headerOnlyOperation = true;
   }
   else if (igsioCommon::IsEqualInsensitive(strOperation, "UPDATE_FIELD_VALUE"))
   {
     operation = UPDATE_FIELD_VALUE;
+    headerOnlyOperation = true;
   }
   else if (igsioCommon::IsEqualInsensitive(strOperation, "DELETE_FIELD"))
   {
     operation = DELETE_FIELD;
+    headerOnlyOperation = true;
   }
   else if (igsioCommon::IsEqualInsensitive(strOperation, "ADD_TRANSFORM"))
   {
     operation = ADD_TRANSFORM;
+    headerOnlyOperation = true;
   }
   else if (igsioCommon::IsEqualInsensitive(strOperation, "TRIM"))
   {
@@ -780,7 +794,8 @@ int main(int argc, char** argv)
   // Save output file to file
 
   LOG_INFO("Save output sequence file to: " << outputFileName);
-  if (vtkPlusSequenceIO::Write(outputFileName, trackedFrameList, trackedFrameList->GetImageOrientation(), useCompression, operation != REMOVE_IMAGE_DATA) != PLUS_SUCCESS)
+  if (vtkPlusSequenceIO::Write(outputFileName, trackedFrameList, trackedFrameList->GetImageOrientation(),
+      useCompression, operation == REMOVE_IMAGE_DATA, headerOnlyUpdatePossible && headerOnlyOperation) != PLUS_SUCCESS)
   {
     LOG_ERROR("Couldn't write sequence file: " << outputFileName);
     return EXIT_FAILURE;

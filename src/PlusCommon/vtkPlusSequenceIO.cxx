@@ -13,25 +13,25 @@
 #include <vtkNew.h>
 
 //----------------------------------------------------------------------------
-igsioStatus vtkPlusSequenceIO::Write(const std::string& filename, vtkIGSIOTrackedFrameList* frameList, US_IMAGE_ORIENTATION orientationInFile/*=US_IMG_ORIENT_MF*/, bool useCompression/*=true*/, bool enableImageDataWrite/*=true*/)
+igsioStatus vtkPlusSequenceIO::Write(const std::string& filename, vtkIGSIOTrackedFrameList* frameList, US_IMAGE_ORIENTATION orientationInFile/*=US_IMG_ORIENT_MF*/, bool useCompression/*=true*/, bool reduceImageDataToOnePixel/*=false*/, bool writeHeaderOnly/*=false*/)
 {
   std::string outputDirectory = "";
   if (!vtksys::SystemTools::FileIsFullPath(filename))
   {
     outputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory();
   }
-  return vtkIGSIOSequenceIO::Write(filename, outputDirectory, frameList, orientationInFile, useCompression, enableImageDataWrite);
+  return vtkIGSIOSequenceIO::Write(filename, outputDirectory, frameList, orientationInFile, useCompression, reduceImageDataToOnePixel, writeHeaderOnly);
 }
 
 //----------------------------------------------------------------------------
-igsioStatus vtkPlusSequenceIO::Write(const std::string& filename, igsioTrackedFrame* frame, US_IMAGE_ORIENTATION orientationInFile /*= US_IMG_ORIENT_MF*/, bool useCompression /*= true*/, bool enableImageDataWrite /*=true*/)
+igsioStatus vtkPlusSequenceIO::Write(const std::string& filename, igsioTrackedFrame* frame, US_IMAGE_ORIENTATION orientationInFile /*= US_IMG_ORIENT_MF*/, bool useCompression /*= true*/, bool reduceImageDataToOnePixel/*=false*/, bool writeHeaderOnly/*=false*/)
 {
   std::string outputDirectory = "";
   if (!vtksys::SystemTools::FileIsFullPath(filename))
   {
     outputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory();
   }
-  return vtkIGSIOSequenceIO::Write(filename, outputDirectory, frame, orientationInFile, useCompression, enableImageDataWrite);
+  return vtkIGSIOSequenceIO::Write(filename, outputDirectory, frame, orientationInFile, useCompression, reduceImageDataToOnePixel, writeHeaderOnly);
 }
 
 //----------------------------------------------------------------------------
