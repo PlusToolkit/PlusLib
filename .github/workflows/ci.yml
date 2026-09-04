@@ -123,6 +123,7 @@ jobs:
       pluslib-tag: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
+      run-tests: true
       archive-name: PlusApp-Win64
       plus-config: >-
         -DVTK_DIR=${{ needs.update_vtk_x64.outputs.install-path }}
@@ -162,6 +163,12 @@ jobs:
       pluslib-tag: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       vtk-cache-key: ${{ needs.update_vtk_Win32.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_Win32.outputs.cache-key }}
+      run-tests: true
+      # The six calibration algorithm tests generate report plots through VTK's
+      # OpenGL charts. The 32-bit Mesa software renderer on the GitHub runners
+      # corrupts the heap during that rendering (same tests pass on x64 with
+      # Mesa, and on 32-bit with a real GPU driver), so they are skipped here.
+      ctest-extra-args: -E CenterOfRotationCalibration|SpacingCalibAlgoTest
       archive-name: PlusApp-Win32
       plus-config: >-
         -DVTK_DIR=${{ needs.update_vtk_Win32.outputs.install-path }}
@@ -205,6 +212,7 @@ jobs:
       pluslib-tag: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       vtk-cache-key: ${{ needs.update_vtk_static_x64.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_static_x64.outputs.cache-key }}
+      run-tests: true
       archive-name: PlusApp-Static-Win64
       plus-config: >-
         -DVTK_DIR=${{ needs.update_vtk_static_x64.outputs.install-path }}

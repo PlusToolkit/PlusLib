@@ -108,7 +108,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --source-seq-file=${TestDataDir}/UltrasonixLinearScanConvertedData.igs.mha
     --output-seq-file=UltrasonixLinearScanConvertedDataWithScanlines.igs.mha
     )
-  SET_TESTS_PROPERTIES( vtkPlusUsScanConvertLinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  SET_TESTS_PROPERTIES( DrawScanLinesLinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
   #---------------------------------------------------------------------------
   ADD_TEST(ExtractScanLinesCurvilinearRunTest

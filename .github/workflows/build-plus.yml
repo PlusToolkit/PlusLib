@@ -65,6 +65,27 @@ on:
         type: boolean
         default: false
 
+      # Run the PlusLib test suite (in build/PlusLib-bin) after the build.
+      run-tests:
+        required: false
+        type: boolean
+        default: false
+      # CDash model for the PlusLib test submission: Experimental or Nightly.
+      test-model:
+        required: false
+        type: string
+        default: Experimental
+      # Optional CDash track for the PlusLib test submission.
+      test-track:
+        required: false
+        type: string
+        default: ''
+      # Extra ctest arguments for the PlusLib test run (e.g. -E <regex>).
+      ctest-extra-args:
+        required: false
+        type: string
+        default: ''
+
     secrets:
       pltools-access-token:
         required: false
@@ -162,6 +183,82 @@ jobs:
         if ($LASTEXITCODE -ne 0) {
           throw "CTest failed with exit code $LASTEXITCODE"
         }
+
+    # The runners have no GPU, so VTK cannot create a render window. Tests that
+    # generate report plots (the calibration algorithm tests) crash without a
+    # software OpenGL implementation. This installs Mesa system-wide.
+    - name: Setup headless display
+      if: ${{ inputs.run-tests }}
+      uses: pyvista/setup-headless-display-action@b0bf9f57d62d2b3fee9f1c0e0c7e390f05e97a4e # v5.0.0
+      with:
+        pyvista: false
+
+    # PlusBuild itself declares no tests; the PlusLib test suite lives in the
+    # inner PlusLib-bin build tree and has to be run there.
+    # -M/-T rather than -D so that no Update step runs (it would move the
+    # checkout off the requested PlusLib revision) and the tree is not rebuilt.
+    - name: Test PlusLib
+      id: plus-tests
+      if: ${{ inputs.run-tests }}
+      shell: pwsh
+      working-directory: ${{ github.workspace }}/build/PlusLib-bin
+      run: |
+        $ctestArgs = @()
+        if ('${{ inputs.test-track }}' -ne '') {
+          $ctestArgs += @('--track', '${{ inputs.test-track }}')
+        }
+        if ('${{ inputs.ctest-extra-args }}' -ne '') {
+          $ctestArgs += '${{ inputs.ctest-extra-args }}'.Split(' ')
+        }
+        ctest -C Release -M ${{ inputs.test-model }} -T Start -T Test `
+          --output-on-failure --no-compress-output --timeout 600 @ctestArgs
+        if ($LASTEXITCODE -ne 0) {
+          throw "PlusLib tests failed with exit code $LASTEXITCODE"
+        }
+
+    # PlusApp has its own test suite and CDash project, in build/PlusApp-bin.
+    - name: Test PlusApp
+      id: plusapp-tests
+      if: ${{ inputs.run-tests && hashFiles('build/PlusApp-bin/CTestTestfile.cmake') != '' }}
+      shell: pwsh
+      working-directory: ${{ github.workspace }}/build/PlusApp-bin
+      run: |
+        $ctestArgs = @()
+        if ('${{ inputs.test-track }}' -ne '') {
+          $ctestArgs += @('--track', '${{ inputs.test-track }}')
+        }
+        ctest -C Release -M ${{ inputs.test-model }} -T Start -T Test `
+          --output-on-failure --no-compress-output --timeout 600 @ctestArgs
+        if ($LASTEXITCODE -ne 0) {
+          throw "PlusApp tests failed with exit code $LASTEXITCODE"
+        }
+
+    # Separate from the test step so that a CDash outage cannot fail the job.
+    - name: Submit test results to CDash
+      if: ${{ always() && steps.plus-tests.outcome != 'skipped' }}
+      continue-on-error: true
+      shell: pwsh
+      working-directory: ${{ github.workspace }}/build/PlusLib-bin
+      run: |
+        ctest -M ${{ inputs.test-model }} -T Submit
+        if ('${{ steps.plusapp-tests.outcome }}' -ne 'skipped') {
+          Set-Location "${{ github.workspace }}/build/PlusApp-bin"
+          ctest -M ${{ inputs.test-model }} -T Submit
+        }
+
+    - name: Upload test logs
+      if: ${{ always() && steps.plus-tests.outcome != 'skipped' }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.archive-name }}-TestLogs
+        if-no-files-found: warn
+        path: |
+          build/PlusLib-bin/Testing/Temporary/LastTest*.log
+          build/PlusLib-bin/Testing/Temporary/LastTestsFailed*.log
+          build/PlusLib-bin/Testing/**/Test.xml
+          build/PlusApp-bin/Testing/Temporary/LastTest*.log
+          build/PlusApp-bin/Testing/Temporary/LastTestsFailed*.log
+          build/PlusApp-bin/Testing/**/Test.xml
 
     - uses: step-security/msvc-dev-cmd@22c98154b708dbd743e6f27a933cf6ceba3305c4 # v1.13.1
     - name: Package

@@ -129,13 +129,22 @@ PlusStatus PlusPlotter::WriteChartToFile(vtkContextView& view,
     int imageSize[2],
     const std::string& outputImageFilename)
 {
-  vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-  renderWindow->AddRenderer(view.GetRenderer());
+  // Render through the window that the view already owns. Adding the view's
+  // renderer to a second render window leaves the renderer attached to two
+  // windows, so its OpenGL resources are created in one context and released
+  // against the other when the view is destroyed.
+  vtkRenderWindow* renderWindow = view.GetRenderWindow();
   renderWindow->SetSize(imageSize);
   renderWindow->OffScreenRenderingOn();
 
+  // Render explicitly: vtkWindowToImageFilter renders through the window's
+  // interactor when there is one, and the view's interactor is never enabled,
+  // so that render would be a no-op and the window would be read back empty.
+  renderWindow->Render();
+
   vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
   windowToImageFilter->SetInput(renderWindow);
+  windowToImageFilter->ShouldRerenderOff();
   windowToImageFilter->Update();
 
   vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();

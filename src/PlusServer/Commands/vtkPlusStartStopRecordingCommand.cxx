@@ -31,6 +31,7 @@ namespace
 //----------------------------------------------------------------------------
 vtkPlusStartStopRecordingCommand::vtkPlusStartStopRecordingCommand()
   : EnableCompression(false)
+  , PauseOnStart(false)
   , CodecFourCC("")
 {
 }

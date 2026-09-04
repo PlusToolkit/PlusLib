@@ -101,7 +101,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --validation-seq-file=${TestDataDir}/fCal_Test_Validation_3NWires_fCal2.0.igs.mha 
     --baseline-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0.results.xml
     )
-  SET_TESTS_PROPERTIES(vtkFreehandCalibration3NWiresTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  SET_TESTS_PROPERTIES(vtkFreehandCalibration3NWiresfCal20Test PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
   ADD_TEST(vtkFreehandCalibrationIPEIOptimizationMethodTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
@@ -231,6 +231,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --output-xml-file=${CMAKE_CURRENT_BINARY_DIR}/UsTestSeqIla5ManualFidSeg2.xml
     )
   SET_TESTS_PROPERTIES(ConvertXmlToFcsv PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  SET_TESTS_PROPERTIES(ConvertXmlToFcsv PROPERTIES DEPENDS ConvertFcsvToXml)
 
   ADD_TEST(TemporalPlusCalibrationTest1 
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/TemporalCalibration

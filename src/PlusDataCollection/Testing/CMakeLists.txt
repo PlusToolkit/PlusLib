@@ -192,38 +192,40 @@ IF(PLUS_USE_INTERSONSDKCXX_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkIntersonSDKCxxVideoSourceTest vtkintersonSDKCxxVideoSourceTest.cxx)
   SET_TARGET_PROPERTIES(vtkIntersonSDKCxxVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkIntersonSDKCxxVideoSourceTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
-  ADD_TEST(NAME vtkIntersonSDKCxxVideoSourceTest
-    COMMAND $<TARGET_FILE:vtkIntersonSDKCxxVideoSourceTest>
-    --rendering-off
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonSDKCxxVideoSourceTest.xml
-    )
-  ADD_TEST(NAME vtkIntersonSDKCxxVideoSourceScanConvertTest
-    COMMAND $<TARGET_FILE:vtkIntersonSDKCxxVideoSourceTest>
-    --rendering-off
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonSDKCxxVideoSourceScanConvertTest.xml
-    )
-  ADD_TEST(NAME vtkIntersonSDKCxxVideoSourceRfTest
-    COMMAND $<TARGET_FILE:vtkIntersonSDKCxxVideoSourceTest>
-    --rendering-off
-    --acq-mode=RF
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonSDKCxxVideoSourceRfTest.xml
-    )
-  ADD_TEST(NAME vtkIntersonSDKCxxVideoSourceRfBmodeTest
-    COMMAND $<TARGET_FILE:vtkIntersonSDKCxxVideoSourceTest>
-    --rendering-off
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonSDKCxxVideoSourceRfBmodeTest.xml
-    )
-  ADD_TEST(NAME vtkIntersonSDKCxxVideoSourceRfDecimationBmodeTest
-    COMMAND $<TARGET_FILE:vtkIntersonSDKCxxVideoSourceTest>
-    --rendering-off
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonSDKCxxVideoSourceRfDecimationBmodeTest.xml
-    )
-  SET_TESTS_PROPERTIES(vtkIntersonSDKCxxVideoSourceTest
-    vtkIntersonSDKCxxVideoSourceScanConvertTest
-    vtkIntersonSDKCxxVideoSourceRfTest
-    vtkIntersonSDKCxxVideoSourceRfBmodeTest
-    vtkIntersonSDKCxxVideoSourceRfDecimationBmodeTest
-  PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  IF(PLUS_TEST_INTERSONSDKCXX_VIDEO)
+    ADD_TEST(NAME vtkIntersonSDKCxxVideoSourceTest
+      COMMAND $<TARGET_FILE:vtkIntersonSDKCxxVideoSourceTest>
+      --rendering-off
+      --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonSDKCxxVideoSourceTest.xml
+      )
+    ADD_TEST(NAME vtkIntersonSDKCxxVideoSourceScanConvertTest
+      COMMAND $<TARGET_FILE:vtkIntersonSDKCxxVideoSourceTest>
+      --rendering-off
+      --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonSDKCxxVideoSourceScanConvertTest.xml
+      )
+    ADD_TEST(NAME vtkIntersonSDKCxxVideoSourceRfTest
+      COMMAND $<TARGET_FILE:vtkIntersonSDKCxxVideoSourceTest>
+      --rendering-off
+      --acq-mode=RF
+      --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonSDKCxxVideoSourceRfTest.xml
+      )
+    ADD_TEST(NAME vtkIntersonSDKCxxVideoSourceRfBmodeTest
+      COMMAND $<TARGET_FILE:vtkIntersonSDKCxxVideoSourceTest>
+      --rendering-off
+      --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonSDKCxxVideoSourceRfBmodeTest.xml
+      )
+    ADD_TEST(NAME vtkIntersonSDKCxxVideoSourceRfDecimationBmodeTest
+      COMMAND $<TARGET_FILE:vtkIntersonSDKCxxVideoSourceTest>
+      --rendering-off
+      --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonSDKCxxVideoSourceRfDecimationBmodeTest.xml
+      )
+    SET_TESTS_PROPERTIES(vtkIntersonSDKCxxVideoSourceTest
+      vtkIntersonSDKCxxVideoSourceScanConvertTest
+      vtkIntersonSDKCxxVideoSourceRfTest
+      vtkIntersonSDKCxxVideoSourceRfBmodeTest
+      vtkIntersonSDKCxxVideoSourceRfDecimationBmodeTest
+    PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  ENDIF()
 ENDIF()
 
 #*************************** vtkIntersonArraySDKCxxVideoSourceTest.cxx ***************************
@@ -231,32 +233,34 @@ IF(PLUS_USE_INTERSONARRAYSDKCXX_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkIntersonArraySDKCxxVideoSourceTest vtkintersonArraySDKCxxVideoSourceTest.cxx)
   SET_TARGET_PROPERTIES(vtkIntersonArraySDKCxxVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkIntersonArraySDKCxxVideoSourceTest vtkPlusDataCollection vtkPlusCommon ${PLUSLIB_VTK_PREFIX}InteractionImage)
-  ADD_TEST(NAME vtkIntersonArraySDKCxxVideoSourceTest
-    COMMAND $<TARGET_FILE:vtkIntersonArraySDKCxxVideoSourceTest>
-    --rendering-off
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonArraySDKCxxVideoSourceTest.xml
-    )
-  ADD_TEST(NAME vtkIntersonArraySDKCxxVideoSourceScanConvertTest
-    COMMAND $<TARGET_FILE:vtkIntersonArraySDKCxxVideoSourceTest>
-    --rendering-off
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonArraySDKCxxVideoSourceScanConvertTest.xml
-    )
-  ADD_TEST(NAME vtkIntersonArraySDKCxxVideoSourceRfTest
-    COMMAND $<TARGET_FILE:vtkIntersonArraySDKCxxVideoSourceTest>
-    --rendering-off
-    --acq-mode=RF
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonArraySDKCxxVideoSourceRfTest.xml
-    )
-  ADD_TEST(NAME vtkIntersonArraySDKCxxVideoSourceRfBmodeTest
-    COMMAND $<TARGET_FILE:vtkIntersonArraySDKCxxVideoSourceTest>
-    --rendering-off
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonArraySDKCxxVideoSourceRfBmodeTest.xml
-    )
-  SET_TESTS_PROPERTIES(vtkIntersonArraySDKCxxVideoSourceTest
-    vtkIntersonArraySDKCxxVideoSourceScanConvertTest
-    vtkIntersonArraySDKCxxVideoSourceRfTest
-    vtkIntersonArraySDKCxxVideoSourceRfBmodeTest
-  PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  IF(PLUS_TEST_INTERSONARRAYSDKCXX_VIDEO)
+    ADD_TEST(NAME vtkIntersonArraySDKCxxVideoSourceTest
+      COMMAND $<TARGET_FILE:vtkIntersonArraySDKCxxVideoSourceTest>
+      --rendering-off
+      --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonArraySDKCxxVideoSourceTest.xml
+      )
+    ADD_TEST(NAME vtkIntersonArraySDKCxxVideoSourceScanConvertTest
+      COMMAND $<TARGET_FILE:vtkIntersonArraySDKCxxVideoSourceTest>
+      --rendering-off
+      --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonArraySDKCxxVideoSourceScanConvertTest.xml
+      )
+    ADD_TEST(NAME vtkIntersonArraySDKCxxVideoSourceRfTest
+      COMMAND $<TARGET_FILE:vtkIntersonArraySDKCxxVideoSourceTest>
+      --rendering-off
+      --acq-mode=RF
+      --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonArraySDKCxxVideoSourceRfTest.xml
+      )
+    ADD_TEST(NAME vtkIntersonArraySDKCxxVideoSourceRfBmodeTest
+      COMMAND $<TARGET_FILE:vtkIntersonArraySDKCxxVideoSourceTest>
+      --rendering-off
+      --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonArraySDKCxxVideoSourceRfBmodeTest.xml
+      )
+    SET_TESTS_PROPERTIES(vtkIntersonArraySDKCxxVideoSourceTest
+      vtkIntersonArraySDKCxxVideoSourceScanConvertTest
+      vtkIntersonArraySDKCxxVideoSourceRfTest
+      vtkIntersonArraySDKCxxVideoSourceRfBmodeTest
+    PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  ENDIF()
 ENDIF()
 
 
@@ -309,11 +313,13 @@ IF(PLUS_USE_CLARIUS)
   SET_TARGET_PROPERTIES(vtkPlusClariusTest1 PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkPlusClariusTest1 VTK::InteractionImage vtkPlusDataCollection) # add any other dependencies to the test executable
 
-  ADD_TEST(vtkPlusClariusTest1
-    ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkPlusClariusTest1
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_Clarius.xml
-    )
-  SET_TESTS_PROPERTIES(vtkPlusClariusTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  IF(PLUS_TEST_CLARIUS)
+    ADD_TEST(vtkPlusClariusTest1
+      ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkPlusClariusTest1
+      --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_Clarius.xml
+      )
+    SET_TESTS_PROPERTIES(vtkPlusClariusTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  ENDIF()
 ENDIF()
 
 #*************************** vtkSonixVolumeReaderTest1.cxx ***************************
@@ -335,11 +341,13 @@ IF(PLUS_USE_CAPISTRANO_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkCapistranoVideoSourceTest vtkCapistranoVideoSourceTest.cxx )
   SET_TARGET_PROPERTIES(vtkCapistranoVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkCapistranoVideoSourceTest vtkPlusDataCollection ${PLUSLIB_VTK_PREFIX}InteractionImage)
-  ADD_TEST(NAME vtkCapistranoVideoSourceTest
-    COMMAND $<TARGET_FILE:vtkCapistranoVideoSourceTest>
-    --rendering-off
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_CapistranoVideoSourceTest.xml
-    )
+  IF(PLUS_TEST_CAPISTRANO_VIDEO)
+    ADD_TEST(NAME vtkCapistranoVideoSourceTest
+      COMMAND $<TARGET_FILE:vtkCapistranoVideoSourceTest>
+      --rendering-off
+      --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_CapistranoVideoSourceTest.xml
+      )
+  ENDIF()
 ENDIF()
 
 #*************************** vtkWinProbeVideoSourceTest.cxx ***************************
@@ -347,14 +355,16 @@ IF(PLUS_USE_WINPROBE_VIDEO AND PLUS_RENDERING_ENABLED)
   ADD_EXECUTABLE(vtkWinProbeVideoSourceTest vtkWinProbeVideoSourceTest.cxx )
   SET_TARGET_PROPERTIES(vtkWinProbeVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkWinProbeVideoSourceTest vtkPlusDataCollection ${PLUSLIB_VTK_PREFIX}InteractionImage)
-  ADD_TEST(NAME vtkWinProbeVideoSourceTest
-    COMMAND $<TARGET_FILE:vtkWinProbeVideoSourceTest>
-    --rendering-off
-    --output-seq-file=${TEST_OUTPUT_PATH}/WinProbeTest.igs.nrrd
-    --config-file=${ConfigFilesDir}/PlusDeviceSet_Server_WinProbe.xml
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    )
-  SET_TESTS_PROPERTIES(vtkWinProbeVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  IF(PLUS_TEST_WINPROBE_VIDEO)
+    ADD_TEST(NAME vtkWinProbeVideoSourceTest
+      COMMAND $<TARGET_FILE:vtkWinProbeVideoSourceTest>
+      --rendering-off
+      --output-seq-file=${TEST_OUTPUT_PATH}/WinProbeTest.igs.nrrd
+      --config-file=${ConfigFilesDir}/PlusDeviceSet_Server_WinProbe.xml
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+      )
+    SET_TESTS_PROPERTIES(vtkWinProbeVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  ENDIF()
 ENDIF()
 
 #*************************** vtkIntersonVideoSourceTest.cxx ***************************
@@ -384,11 +394,13 @@ IF(PLUS_USE_THORLABS_VIDEO)
   ADD_EXECUTABLE(vtkThorLabsVideoSourceTest vtkThorLabsVideoSourceTest.cxx )
   SET_TARGET_PROPERTIES(vtkThorLabsVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkThorLabsVideoSourceTest vtkPlusDataCollection )
-  ADD_TEST(vtkThorLabsVideoSourceTest
-    ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkThorLabsVideoSourceTest
-    --rendering-off
-    )
-  SET_TESTS_PROPERTIES(vtkThorLabsVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  IF(PLUS_TEST_THORLABS_VIDEO)
+    ADD_TEST(vtkThorLabsVideoSourceTest
+      ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkThorLabsVideoSourceTest
+      --rendering-off
+      )
+    SET_TESTS_PROPERTIES(vtkThorLabsVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  ENDIF()
 ENDIF()
 
 #************************ vtkSonixPortaVideoSourceTest.cxx ************************
@@ -597,14 +609,16 @@ IF(PLUS_USE_ANDOR_CAMERA)
   ADD_EXECUTABLE(vtkAndorVideoSourceTest vtkAndorVideoSourceTest.cxx )
   SET_TARGET_PROPERTIES(vtkAndorVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkAndorVideoSourceTest vtkPlusDataCollection vtkInteractionImage)
-  ADD_TEST(NAME vtkAndorVideoSourceTest
-    COMMAND $<TARGET_FILE:vtkAndorVideoSourceTest>
-    --rendering-off
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_AndorVideoSourceTest.xml
-    --flat-correction-image=${TestDataDir}/AndorTestFlat.png
-    --bias-correction-image=${TestDataDir}/AndorTestBias.png
-    )
-  SET_TESTS_PROPERTIES(vtkAndorVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  IF(PLUS_TEST_ANDOR_CAMERA)
+    ADD_TEST(NAME vtkAndorVideoSourceTest
+      COMMAND $<TARGET_FILE:vtkAndorVideoSourceTest>
+      --rendering-off
+      --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_AndorVideoSourceTest.xml
+      --flat-correction-image=${TestDataDir}/AndorTestFlat.png
+      --bias-correction-image=${TestDataDir}/AndorTestBias.png
+      )
+    SET_TESTS_PROPERTIES(vtkAndorVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  ENDIF()
 ENDIF()
 
 #*************************** LeapMotionTest1 ***************************
@@ -627,11 +641,13 @@ IF(PLUS_USE_GENERIC_SENSOR_TRACKER)
     SET_TARGET_PROPERTIES(GenericSensorTrackerTest1 PROPERTIES FOLDER Tests)
     TARGET_LINK_LIBRARIES(GenericSensorTrackerTest1 vtkPlusDataCollection)
 
-    ADD_TEST(GenericSensorTrackerTest1
-      ${PLUS_EXECUTABLE_OUTPUT_PATH}/GenericSensorTrackerTest1
-      --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_GenericSensor.xml
-      )
-    SET_TESTS_PROPERTIES(GenericSensorTrackerTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
+    IF(PLUS_TEST_GENERIC_SENSOR_TRACKER)
+      ADD_TEST(GenericSensorTrackerTest1
+        ${PLUS_EXECUTABLE_OUTPUT_PATH}/GenericSensorTrackerTest1
+        --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_GenericSensor.xml
+        )
+      SET_TESTS_PROPERTIES(GenericSensorTrackerTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
+    ENDIF()
   ENDIF()
 ENDIF()
 
@@ -641,12 +657,14 @@ IF(PLUS_USE_AZUREKINECT)
   SET_TARGET_PROPERTIES(AzureKinectTest1 PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(AzureKinectTest1 vtkPlusDataCollection) # add any other dependencies to the test executable
 
-  ADD_TEST(AzureKinectTest1
-    ${PLUS_EXECUTABLE_OUTPUT_PATH}/AzureKinectTest1
-    --rendering-off
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_AzureKinect.xml
-    )
-  SET_TESTS_PROPERTIES(AzureKinectTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
+  IF(PLUS_TEST_AZUREKINECT)
+    ADD_TEST(AzureKinectTest1
+      ${PLUS_EXECUTABLE_OUTPUT_PATH}/AzureKinectTest1
+      --rendering-off
+      --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_AzureKinect.xml
+      )
+    SET_TESTS_PROPERTIES(AzureKinectTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
+  ENDIF()
 ENDIF()
 
 #*************************** Revopoint 3D Cameras ***************************
@@ -655,12 +673,14 @@ IF(PLUS_USE_REVOPOINT3DCAMERA)
   SET_TARGET_PROPERTIES(Revopoint3DCameraTest1 PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(Revopoint3DCameraTest1 vtkPlusDataCollection)
 
-  ADD_TEST(Revopoint3DCameraTest1
-    ${PLUS_EXECUTABLE_OUTPUT_PATH}/Revopoint3DCameraTest1
-    --rendering-off
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_Revopoint3DCamera.xml
-    )
-  SET_TESTS_PROPERTIES(Revopoint3DCameraTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
+  IF(PLUS_TEST_REVOPOINT3DCAMERA)
+    ADD_TEST(Revopoint3DCameraTest1
+      ${PLUS_EXECUTABLE_OUTPUT_PATH}/Revopoint3DCameraTest1
+      --rendering-off
+      --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_Revopoint3DCamera.xml
+      )
+    SET_TESTS_PROPERTIES(Revopoint3DCameraTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
+  ENDIF()
 ENDIF()
 
 # --------------------------------------------------------------------------
