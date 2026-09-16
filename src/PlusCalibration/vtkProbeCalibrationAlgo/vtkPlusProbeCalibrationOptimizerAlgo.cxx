@@ -18,6 +18,8 @@ See License.txt for details.
 
 #include "vtksys/SystemTools.hxx"
 
+#include <vnl/algo/vnl_svd.h>
+
 #include "itkPowellOptimizer.h"
 #include "itkScaleVersor3DTransform.h"
 #include "itkSimilarity3DTransform.h"

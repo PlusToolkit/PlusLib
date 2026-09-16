@@ -51,7 +51,7 @@ class vtkXMLDataElement;
 
 namespace PlusCommon
 {
-  typedef itk::ImageIOBase::IOComponentType ITKScalarPixelType;
+  typedef itk::IOComponentEnum ITKScalarPixelType;
   typedef int VTKScalarPixelType;
   typedef int IGTLScalarPixelType;
 
