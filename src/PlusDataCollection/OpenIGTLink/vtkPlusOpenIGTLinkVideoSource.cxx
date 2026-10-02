@@ -74,9 +74,17 @@ PlusStatus vtkPlusOpenIGTLinkVideoSource::InternalUpdate()
   igsioTrackedFrame trackedFrame;
   igtl::MessageBase::Pointer bodyMsg = this->MessageFactory->CreateReceiveMessage(headerMsg);
 
+  igsioTransformName embeddedTransformName = this->ImageMessageEmbeddedTransformName;
+  if (this->ImageMessageEmbeddedTransformName.From() == this->ImageMessageEmbeddedTransformName.To())
+  {
+    // If the From and To coordinate frames are the same, then don't unpack the transform.
+    // Unpacking the transform would cause errors such as "Setting a transform to itself is not allowed" in vtkIGSIOTransformRepository.
+    embeddedTransformName = igsioTransformName();
+  }
+
   if (typeid(*bodyMsg) == typeid(igtl::ImageMessage))
   {
-    if (vtkPlusIgtlMessageCommon::UnpackImageMessage(bodyMsg, this->ClientSocket, trackedFrame, this->ImageMessageEmbeddedTransformName, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS)
+    if (vtkPlusIgtlMessageCommon::UnpackImageMessage(bodyMsg, this->ClientSocket, trackedFrame, embeddedTransformName, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS)
     {
       LOG_ERROR("Couldn't get image from OpenIGTLink server!");
       return PLUS_FAIL;
@@ -84,7 +92,7 @@ PlusStatus vtkPlusOpenIGTLinkVideoSource::InternalUpdate()
   }
   else if (typeid(*bodyMsg) == typeid(igtl::PlusTrackedFrameMessage))
   {
-    if (vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage(bodyMsg, this->ClientSocket, trackedFrame, this->ImageMessageEmbeddedTransformName, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS)
+    if (vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage(bodyMsg, this->ClientSocket, trackedFrame, embeddedTransformName, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS)
     {
       LOG_ERROR("Couldn't get tracked frame from OpenIGTLink server!");
       return PLUS_FAIL;
@@ -140,6 +148,18 @@ PlusStatus vtkPlusOpenIGTLinkVideoSource::InternalUpdate()
     aSource->SetImageType(videoFrame->GetImageType());
     aSource->SetInputFrameSize(trackedFrame.GetFrameSize());
   }
+
+  if (embeddedTransformName.IsValid())
+  {
+    std::string transformStatusField = embeddedTransformName.GetTransformName() + igsioTrackedFrame::TransformStatusPostfix;
+    std::string strStatus = trackedFrame.GetFrameField(transformStatusField);
+    if (strStatus.empty())
+    {
+      // Transform status has not been set on the frame, and is assumed to be OK.
+      trackedFrame.SetFrameTransformStatus(embeddedTransformName, TOOL_OK);
+    }
+  } 
+
   igsioFieldMapType customFields = trackedFrame.GetCustomFields();
   PlusStatus status = aSource->AddItem(trackedFrame.GetImageData(), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &customFields);
   this->Modified();
