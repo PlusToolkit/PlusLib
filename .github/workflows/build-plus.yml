@@ -65,16 +65,18 @@ on:
         type: boolean
         default: false
 
+      # CDash group that the build and the test results are reported under:
+      # Experimental or Nightly.
+      dashboard-model:
+        required: false
+        type: string
+        default: Experimental
+
       # Run the PlusLib test suite (in build/PlusLib-bin) after the build.
       run-tests:
         required: false
         type: boolean
         default: false
-      # CDash model for the PlusLib test submission: Experimental or Nightly.
-      test-model:
-        required: false
-        type: string
-        default: Experimental
       # Optional CDash track for the PlusLib test submission.
       test-track:
         required: false
@@ -179,7 +181,9 @@ jobs:
         if ($LASTEXITCODE -ne 0) {
           throw "CMake build failed with exit code $LASTEXITCODE"
         }
-        ctest -C Release -D Experimental -V
+        # -M/-T is used instead of -D so that the Nightly model does not run an
+        # Update step, which would move the checkout to the nightly start time.
+        ctest -C Release -M ${{ inputs.dashboard-model }} -T Start -T Configure -T Build -T Test -T Submit -V
         if ($LASTEXITCODE -ne 0) {
           throw "CTest failed with exit code $LASTEXITCODE"
         }
@@ -210,7 +214,7 @@ jobs:
         if ('${{ inputs.ctest-extra-args }}' -ne '') {
           $ctestArgs += '${{ inputs.ctest-extra-args }}'.Split(' ')
         }
-        ctest -C Release -M ${{ inputs.test-model }} -T Start -T Test `
+        ctest -C Release -M ${{ inputs.dashboard-model }} -T Start -T Test `
           --output-on-failure --no-compress-output --timeout 600 @ctestArgs
         if ($LASTEXITCODE -ne 0) {
           throw "PlusLib tests failed with exit code $LASTEXITCODE"
@@ -227,7 +231,7 @@ jobs:
         if ('${{ inputs.test-track }}' -ne '') {
           $ctestArgs += @('--track', '${{ inputs.test-track }}')
         }
-        ctest -C Release -M ${{ inputs.test-model }} -T Start -T Test `
+        ctest -C Release -M ${{ inputs.dashboard-model }} -T Start -T Test `
           --output-on-failure --no-compress-output --timeout 600 @ctestArgs
         if ($LASTEXITCODE -ne 0) {
           throw "PlusApp tests failed with exit code $LASTEXITCODE"
@@ -240,10 +244,10 @@ jobs:
       shell: pwsh
       working-directory: ${{ github.workspace }}/build/PlusLib-bin
       run: |
-        ctest -M ${{ inputs.test-model }} -T Submit
+        ctest -M ${{ inputs.dashboard-model }} -T Submit
         if ('${{ steps.plusapp-tests.outcome }}' -ne 'skipped') {
           Set-Location "${{ github.workspace }}/build/PlusApp-bin"
-          ctest -M ${{ inputs.test-model }} -T Submit
+          ctest -M ${{ inputs.dashboard-model }} -T Submit
         }
 
     - name: Upload test logs

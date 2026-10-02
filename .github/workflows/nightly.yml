@@ -96,6 +96,7 @@ jobs:
       # ourselves every night (and on-demand via the clear-plus-cache input) to
       # avoid an arbitrarily stale build directory sticking around forever.
       clear-plus-cache: ${{ github.event_name == 'schedule' || inputs.clear-plus-cache == true }}
+      dashboard-model: ${{ github.event_name == 'schedule' && 'Nightly' || 'Experimental' }}
       archive-name: PlusApp-Win64
       plus-config: >-
         -DVTK_DIR=${{ needs.update_vtk_x64.outputs.install-path }}
@@ -150,6 +151,7 @@ jobs:
       vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
       plus-cache-key: plus-latest-x64
+      dashboard-model: ${{ github.event_name == 'schedule' && 'Nightly' || 'Experimental' }}
       archive-name: PlusApp-Clarius-Win64
       plus-config: >-
         -DPLUSAPP_PACKAGE_EDITION:STRING="ClariusCast"
@@ -176,6 +178,7 @@ jobs:
       vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
       plus-cache-key: plus-latest-x64
+      dashboard-model: ${{ github.event_name == 'schedule' && 'Nightly' || 'Experimental' }}
       archive-name: PlusApp-ClariusOEM-Win64
       plus-config: >-
         -DPLUSAPP_PACKAGE_EDITION:STRING="ClariusOEM"
@@ -202,6 +205,7 @@ jobs:
       vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
       plus-cache-key: plus-latest-x64
+      dashboard-model: ${{ github.event_name == 'schedule' && 'Nightly' || 'Experimental' }}
       archive-name: PlusApp-Telemed-Win64
       plus-config: >-
         -DPLUSAPP_PACKAGE_EDITION:STRING="Telemed"
@@ -228,6 +232,7 @@ jobs:
       vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
       plus-cache-key: plus-latest-x64
+      dashboard-model: ${{ github.event_name == 'schedule' && 'Nightly' || 'Experimental' }}
       archive-name: PlusApp-spryTrack-Telemed-Win64
       plus-config: >-
         -DPLUSAPP_PACKAGE_EDITION:STRING="spryTrack-Telemed"
@@ -256,6 +261,7 @@ jobs:
       vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
       plus-cache-key: plus-latest-x64
+      dashboard-model: ${{ github.event_name == 'schedule' && 'Nightly' || 'Experimental' }}
       archive-name: PlusApp-fusionTrack-Win64
       plus-config: >-
         -DPLUSAPP_PACKAGE_EDITION:STRING="fusionTrack"
@@ -283,6 +289,7 @@ jobs:
       vtk-cache-key: ${{ needs.update_vtk_x64.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_x64.outputs.cache-key }}
       plus-cache-key: plus-latest-x64
+      dashboard-model: ${{ github.event_name == 'schedule' && 'Nightly' || 'Experimental' }}
       archive-name: PlusApp-MicronTracker-4.1-Win64
       plus-config: >-
         -DPLUSAPP_PACKAGE_EDITION:STRING="MTC-4.1"
@@ -310,6 +317,7 @@ jobs:
       itk-cache-key: ${{ needs.update_itk_Win32.outputs.cache-key }}
       plus-cache-key: plus-latest-Win32
       clear-plus-cache: ${{ github.event_name == 'schedule' || inputs.clear-plus-cache == true }}
+      dashboard-model: ${{ github.event_name == 'schedule' && 'Nightly' || 'Experimental' }}
       archive-name: PlusApp-Win32
       plus-config: >-
         -DVTK_DIR=${{ needs.update_vtk_Win32.outputs.install-path }}
@@ -362,6 +370,7 @@ jobs:
       vtk-cache-key: ${{ needs.update_vtk_Win32.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_Win32.outputs.cache-key }}
       plus-cache-key: plus-latest-Win32
+      dashboard-model: ${{ github.event_name == 'schedule' && 'Nightly' || 'Experimental' }}
       archive-name: PlusApp-Thorlabs-Win32
       plus-config: >-
         -DPLUSAPP_PACKAGE_EDITION:STRING="ThorLabs"
@@ -388,6 +397,7 @@ jobs:
       vtk-cache-key: ${{ needs.update_vtk_Win32.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_Win32.outputs.cache-key }}
       plus-cache-key: plus-latest-Win32
+      dashboard-model: ${{ github.event_name == 'schedule' && 'Nightly' || 'Experimental' }}
       archive-name: PlusApp-Interson-Win32
       plus-config: >-
         -DPLUSAPP_PACKAGE_EDITION:STRING="Interson"
@@ -414,6 +424,7 @@ jobs:
       vtk-cache-key: ${{ needs.update_vtk_Win32.outputs.cache-key }}
       itk-cache-key: ${{ needs.update_itk_Win32.outputs.cache-key }}
       plus-cache-key: plus-latest-Win32
+      dashboard-model: ${{ github.event_name == 'schedule' && 'Nightly' || 'Experimental' }}
       archive-name: PlusApp-Telemed-Win32
       plus-config: >-
         -DPLUSAPP_PACKAGE_EDITION:STRING="Telemed"
