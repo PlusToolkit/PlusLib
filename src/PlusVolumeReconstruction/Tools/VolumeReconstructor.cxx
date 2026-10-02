@@ -36,6 +36,7 @@ int main(int argc, char* argv[])
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   bool disableCompression = false;
+  bool disableAutoExtent = false;
 
   std::vector<std::string> customHeaderFieldsToSave;
   std::vector<std::string> customHeaderValuesToSave;
@@ -51,6 +52,7 @@ int main(int argc, char* argv[])
   cmdargs.AddArgument("--output-frame-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFrameFileName, "A filename that will be used for storing the tracked image frames. Each frame will be exported individually, with the proper position and orientation in the reference coordinate system");
   cmdargs.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
   cmdargs.AddArgument("--disable-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &disableCompression, "Do not compress output image files.");
+  cmdargs.AddArgument("--disable-auto-extent", vtksys::CommandLineArguments::NO_ARGUMENT, &disableAutoExtent, "Do not compute extent from the input sequence file but use OutputOrigin and OutputExtent specified in the configuration file.");
   cmdargs.AddArgument("--save-custom-headers", vtksys::CommandLineArguments::MULTI_ARGUMENT, &customHeaderFieldsToSave, "List of custom header fields to pass into the output file.");
   cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
   cmdargs.AddArgument("--importance-mask-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &importanceMaskFileName, "The file to use as the importance mask.");
@@ -176,10 +178,31 @@ int main(int argc, char* argv[])
 
   LOG_INFO("Set volume output extent...");
   std::string errorDetail;
-  if (reconstructor->SetOutputExtentFromFrameList(trackedFrameList, transformRepository, errorDetail) != PLUS_SUCCESS)
+  if (!disableAutoExtent)
   {
-    LOG_ERROR("Failed to set output extent of volume!");
-    return EXIT_FAILURE;
+    if (reconstructor->SetOutputExtentFromFrameList(trackedFrameList, transformRepository, errorDetail) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to set output extent of volume!");
+      return EXIT_FAILURE;
+    }
+  }
+  else
+  {
+    LOG_INFO("Automatic extent computation disabled. Using OutputOrigin and OutputExtent specified in the configuration file.");
+
+    // When automatic extent computation is disabled, the reconstructor does not examine the first frame, therefore
+    // the output scalar type remains the default (VTK_DOUBLE). That default
+    // may differ from the actual scalar type of the incoming images, which results in the runtime error:
+    // OptimizedInsertSlice: input ScalarType (10) must match out ScalarType (11)
+    // The following explicit update prevents the mismatch.
+    if (trackedFrameList->GetNumberOfTrackedFrames() > 0)
+    {
+      vtkImageData* firstImage = trackedFrameList->GetTrackedFrame(0)->GetImageData()->GetImage();
+      if (firstImage != nullptr)
+      {
+        reconstructor->SetOutputScalarType(firstImage->GetScalarType());
+      }
+    }
   }
 
   LOG_INFO("Reconstruct volume...");
