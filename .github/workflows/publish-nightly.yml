@@ -1,0 +1,140 @@
+name: Publish nightly release
+
+# Uploads the installers built by the calling workflow to the pre-release of
+# the current development version, replacing the previous night's installers.
+#
+# The pre-release is tagged Plus-<major>.<minor>.0 from the version in
+# CMakeLists.txt, like the stable releases, so a new one starts automatically
+# when the version is bumped after a stable release. The tag never moves; the
+# commit that the installers were built from is recorded in the release notes.
+
+on:
+  workflow_call:
+    inputs:
+      # Name pattern of the artifacts that hold the installers. Each artifact
+      # is expected to contain a single installer, which is published under
+      # its own name (e.g. PlusApp-2.9.0.20261007-Win64.exe).
+      artifact-pattern:
+        required: false
+        type: string
+        default: PlusApp-*
+      # Repository whose download-stats release holds the download statistics
+      # (see record-downloads.py).
+      ledger-repo:
+        required: false
+        type: string
+        default: ''
+    secrets:
+      # Token with write access to the contents of the repository that holds
+      # the download statistics (see record-downloads.py).
+      LEDGER_TOKEN:
+        required: true
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+    # Only CMakeLists.txt, for the version number, and the script are needed.
+    - uses: actions/checkout@v7
+      with:
+        sparse-checkout: |
+          CMakeLists.txt
+          .github/scripts/record-downloads.py
+        sparse-checkout-cone-mode: false
+
+    - name: Download installers
+      uses: actions/download-artifact@v7
+      with:
+        pattern: ${{ inputs.artifact-pattern }}
+        path: installers
+
+    - name: Publish installers
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+        LEDGER_TOKEN: ${{ secrets.LEDGER_TOKEN }}
+      run: |
+        set -euo pipefail
+
+        major=$(sed -n 's/^SET(PLUSLIB_VERSION_MAJOR "\([0-9]*\)")/\1/p' CMakeLists.txt)
+        minor=$(sed -n 's/^SET(PLUSLIB_VERSION_MINOR "\([0-9]*\)")/\1/p' CMakeLists.txt)
+        if [ -z "$major" ] || [ -z "$minor" ]; then
+          echo "Could not read PLUSLIB_VERSION_MAJOR/MINOR from CMakeLists.txt"
+          exit 1
+        fi
+        version="$major.$minor.0"
+        tag="Plus-$version"
+
+        # One installer per artifact. The artifacts of the builds that failed
+        # are missing; their installers of a previous night stay in place.
+        mkdir upload
+        for dir in installers/*/; do
+          exe=$(find "$dir" -maxdepth 1 -name '*.exe' | head -n 1)
+          if [ -z "$exe" ]; then
+            echo "Artifact $(basename "$dir") contains no installer"
+            exit 1
+          fi
+          cp "$exe" upload/
+        done
+        if ! ls upload/*.exe >/dev/null 2>&1; then
+          echo "No installers to publish"
+          exit 1
+        fi
+        ls -l upload
+
+        if ! gh release view "$tag" >/dev/null 2>&1; then
+          echo "Creating pre-release $tag"
+          gh release create "$tag" --target "$GITHUB_SHA" --prerelease             --title "$tag" --notes "Development snapshot of Plus $version."
+        fi
+
+        # The package of an installer: PlusApp-<version>.<date>-<package>.exe
+        package() {
+          local name=${1#PlusApp-}
+          name=${name%.exe}
+          echo "${name#*-}"
+        }
+        tonight=$(for exe in upload/*.exe; do package "$(basename "$exe")"; done)
+
+        # The installers that tonight's replace; the others are kept.
+        replaced=()
+        for old in $(gh release view "$tag" --json assets --jq '.assets[].name | select(endswith(".exe"))'); do
+          if grep -qx "$(package "$old")" <<< "$tonight"; then
+            replaced+=("$old")
+          fi
+        done
+
+        # The download counts of the replaced installers are lost with them,
+        # so they are added to the download statistics first.
+        python3 .github/scripts/record-downloads.py --release "$tag" --accumulate \
+          --ledger-repo '${{ inputs.ledger-repo || format('{0}/PlusLibData', github.repository_owner) }}' \
+          --installer "${replaced[@]}"
+
+        # Upload tonight's installers, then remove the ones they replace.
+        # --clobber covers a second run on the same day.
+        gh release upload "$tag" upload/*.exe --clobber
+        for old in "${replaced[@]}"; do
+          if [ ! -e "upload/$old" ]; then
+            echo "Removing $old"
+            gh release delete-asset "$tag" "$old" --yes
+          fi
+        done
+
+        repo_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
+        kept=$(gh release view "$tag" --json assets --jq '.assets[].name | select(endswith(".exe"))' | grep -vxF -f <(ls upload) || true)
+        cat > notes.md <<EOF
+        Development snapshot of Plus $version, rebuilt every night from the master branch.
+
+        - Commit: [${GITHUB_SHA:0:8}]($repo_url/commit/$GITHUB_SHA)
+        - Built: $(date -u +'%Y-%m-%d %H:%M UTC') ([workflow run]($repo_url/actions/runs/$GITHUB_RUN_ID))
+
+        The installers below replace the previous night's. An installer with an earlier date is from the last night its build succeeded. The *Source code* links refer to the start of the $version development cycle, not to this snapshot; use the commit above instead.
+        EOF
+        if [ -n "$kept" ]; then
+          printf '\nNot rebuilt tonight:\n' >> notes.md
+          printf -- '- %s\n' $kept >> notes.md
+        fi
+        gh release edit "$tag" --prerelease --notes-file notes.md

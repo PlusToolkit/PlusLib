@@ -1,0 +1,67 @@
+name: Record downloads
+
+# Records the download counts of the installers of the releases, a CSV file
+# per release kept on the download-stats release of PlusToolkit/PlusLibData
+# (see .github/scripts/record-downloads.py). The nightly workflow calls it
+# every night.
+
+on:
+  workflow_call:
+    inputs:
+      release:
+        description: 'Tag of the release whose installers are counted (default: all releases but pre-releases)'
+        required: false
+        type: string
+        default: ''
+      ledger-repo:
+        description: 'Repository of the release that holds the CSV files (default: PlusLibData of the same owner)'
+        required: false
+        type: string
+        default: ''
+      ledger-release:
+        description: 'Tag of the release that holds the CSV files'
+        required: false
+        type: string
+        default: download-stats
+    secrets:
+      LEDGER_TOKEN:
+        description: 'Token with write access to the contents of the ledger repository'
+        required: true
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Tag of the release whose installers are counted (default: all releases but pre-releases)'
+        required: false
+        type: string
+        default: ''
+      ledger-repo:
+        description: 'Repository of the release that holds the CSV files (default: PlusLibData of the same owner)'
+        required: false
+        type: string
+        default: ''
+      ledger-release:
+        description: 'Tag of the release that holds the CSV files'
+        required: false
+        type: string
+        default: download-stats
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        sparse-checkout: .github/scripts/record-downloads.py
+        sparse-checkout-cone-mode: false
+
+    - name: Record downloads
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+        LEDGER_TOKEN: ${{ secrets.LEDGER_TOKEN || secrets.PLUSLIBDATA_TOKEN }}
+      run: >
+        python3 .github/scripts/record-downloads.py
+        ${{ inputs.release && format('--release {0}', inputs.release) || '' }}
+        --ledger-repo '${{ inputs.ledger-repo || format('{0}/PlusLibData', github.repository_owner) }}'
+        --ledger-release '${{ inputs.ledger-release }}'

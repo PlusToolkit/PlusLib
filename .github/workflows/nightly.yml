@@ -8,6 +8,11 @@ on:
         required: false
         type: boolean
         default: false
+      publish-release:
+        description: 'Upload the installers to the development pre-release, as a scheduled run does'
+        required: false
+        type: boolean
+        default: false
   schedule:
     - cron: "43 5 * * *" # Run nightly at 5:43 UTC. Picked a time when the load may be lower. https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#schedule
 
@@ -430,3 +435,37 @@ jobs:
         -DPLUSAPP_PACKAGE_EDITION:STRING="Telemed"
         -DPLUSBUILD_BUILDNAME_POSTFIX=Telmed-gh-package-Win32
         -DPLUS_USE_TELEMED_VIDEO:BOOL=ON
+
+  ########
+  # PUBLISH
+  ########
+  # Replace the installers of the development pre-release with tonight's.
+  # Runs even if some builds failed; their installers of a previous night
+  # stay on the release.
+  publish_release:
+    needs:
+      - build_plus_x64
+      - build_plus_x64_clarius_cast
+      - build_plus_x64_clarius_oem
+      - build_plus_x64_telemed
+      - build_plus_x64_sprytrack_telemed
+      - build_plus_x64_fusiontrack
+      - build_plus_x64_microntracker
+      - build_plus_Win32
+      - build_plus_Win32_thorlabs
+      - build_plus_Win32_interson
+      - build_plus_Win32_telemed
+    if: ${{ !cancelled() && (github.event_name == 'schedule' || inputs.publish-release == true) }}
+    uses: ./.github/workflows/publish-nightly.yml
+    permissions:
+      contents: write
+    secrets:
+      LEDGER_TOKEN: ${{ secrets.PLUSLIBDATA_TOKEN }}
+
+  # Record the download counts of the installers of the releases. The ones of
+  # the development pre-release are recorded by the publish job instead.
+  record_downloads:
+    if: ${{ github.event_name == 'schedule' }}
+    uses: ./.github/workflows/record-downloads.yml
+    secrets:
+      LEDGER_TOKEN: ${{ secrets.PLUSLIBDATA_TOKEN }}
