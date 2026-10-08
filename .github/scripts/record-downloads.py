@@ -30,7 +30,9 @@ import subprocess
 import sys
 import tempfile
 
-INSTALLER_NAME = re.compile(r'PlusApp-([0-9.]+)\.\d{8}-(.*)\.exe')
+# PlusApp-<version>.<revision>-<package>.exe, where the revision is the build
+# date (20261005) or, on old releases, a Subversion revision (5073).
+INSTALLER_NAME = re.compile(r'PlusApp-([0-9.]+)\.\d+-(.*)\.exe')
 
 
 def gh(*args, token=None):
