@@ -133,12 +133,19 @@ jobs:
       with:
         cmakeVersion: 4.3.4
 
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v4
+    # The job never checks out PlusLib itself (the superbuild clones it), so
+    # fetch just the local actions used below.
+    - name: Checkout CI actions
+      uses: actions/checkout@v7
       with:
-        dir: ${{ github.workspace }}/Qt
+        sparse-checkout: .github/actions
+        path: pluslib-ci
+
+    - name: Install Qt
+      uses: ./pluslib-ci/.github/actions/install-qt
+      with:
+        arch: ${{ inputs.arch }}
         version: ${{ inputs.qt-version }}
-        arch: ${{ inputs.arch == 'x64' && 'win64_msvc2019_64' || 'win32_msvc2019' }}
 
     - name: Install NSIS
       uses: repolevedavaj/install-nsis@v1.3.0

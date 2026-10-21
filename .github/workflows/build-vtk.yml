@@ -59,13 +59,21 @@ jobs:
         with:
           cmakeVersion: 4.3.4
 
+      # The job never checks out PlusLib itself (the superbuild clones it), so
+      # fetch just the local actions used below.
+      - name: Checkout CI actions
+        if: steps.cache-vtk.outputs.cache-hit != 'true'
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/actions
+          path: pluslib-ci
+
       - name: Install Qt
         if: steps.cache-vtk.outputs.cache-hit != 'true'
-        uses: jurplel/install-qt-action@v4
+        uses: ./pluslib-ci/.github/actions/install-qt
         with:
-          dir: ${{github.workspace}}/Qt
+          arch: ${{ inputs.arch }}
           version: '5.15.0'
-          arch: ${{ inputs.arch == 'x64' && 'win64_msvc2019_64' || 'win32_msvc2019' }}
 
       - name: Clone VTK
         if: steps.cache-vtk.outputs.cache-hit != 'true'
