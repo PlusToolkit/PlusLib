@@ -190,9 +190,20 @@ jobs:
         }
         # -M/-T is used instead of -D so that the Nightly model does not run an
         # Update step, which would move the checkout to the nightly start time.
-        ctest -C Release -M ${{ inputs.dashboard-model }} -T Start -T Configure -T Build -T Test -T Submit -V
+        ctest -C Release -M ${{ inputs.dashboard-model }} -T Start -T Configure -T Build -T Test -V
         if ($LASTEXITCODE -ne 0) {
           throw "CTest failed with exit code $LASTEXITCODE"
+        }
+
+    # Separate from the build step so that a CDash outage cannot fail the job.
+    - name: Submit build results to CDash
+      continue-on-error: true
+      shell: pwsh
+      working-directory: ${{ github.workspace }}/build
+      run: |
+        ctest -M ${{ inputs.dashboard-model }} -T Submit
+        if ($LASTEXITCODE -ne 0) {
+          throw "CDash submission failed with exit code $LASTEXITCODE"
         }
 
     # The runners have no GPU, so VTK cannot create a render window. Tests that
