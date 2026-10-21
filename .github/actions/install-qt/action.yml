@@ -1,0 +1,61 @@
+name: Install Qt
+description: >-
+  Install the Qt 5 archives that Plus needs with jurplel/install-qt-action,
+  restored from the actions cache when an entry exists. Shared by the VTK and
+  Plus build workflows so that both use the same archive list and therefore
+  the same cache key.
+
+inputs:
+  arch:
+    description: Build architecture, x64 or Win32
+    required: true
+  version:
+    description: Qt version to install
+    required: false
+    default: '5.15.0'
+
+runs:
+  using: composite
+  steps:
+    # aqtinstall downloads each archive from a geo-selected mirror and, on a
+    # timeout, tries exactly one random fallback mirror before giving up. Give
+    # slow mirrors more time, skip the mirrors that have failed nightly builds
+    # (ftp1/ftp2.nluug.nl serve a certificate for a different hostname), and
+    # avoid the slow mirror that download.qt.io redirects the runners to.
+    - name: Configure aqtinstall
+      shell: bash
+      run: |
+        cat > "$RUNNER_TEMP/aqt.ini" <<'EOF'
+        [requests]
+        connection_timeout : 10
+        response_timeout : 120
+        max_retries_on_connection_error : 10
+        [mirrors]
+        blacklist :
+            https://mirror.ossplanet.net
+        fallbacks :
+            https://ftp.fau.de/qtproject/
+            https://mirror.netcologne.de/qtproject/
+            https://mirrors.dotsrc.org/qtproject/
+            https://master.qt.io/
+            https://qt.mirror.constant.com/
+            https://mirrors.ukfast.co.uk/sites/qt.io/
+        EOF
+        echo "AQT_CONFIG=$RUNNER_TEMP/aqt.ini" >> "$GITHUB_ENV"
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        dir: ${{ github.workspace }}/Qt
+        version: ${{ inputs.version }}
+        arch: ${{ inputs.arch == 'x64' && 'win64_msvc2019_64' || 'win32_msvc2019' }}
+        # Only the archives Plus links against (Core/Gui/Widgets/OpenGL/Sql/
+        # Concurrent/Network/Test/Xml come from qtbase; Designer from qttools;
+        # Quick/Qml from qtdeclarative for VTK's GUISupportQtQuick module, which
+        # find_package(VTK) requires even though Plus does not use it) plus what
+        # windeployqt bundles. Cuts the download from 27 archives to 9 and keeps
+        # the cache entry small.
+        archives: qtbase qttools qtxmlpatterns qtmultimedia qtdeclarative qttranslations d3dcompiler_47 opengl32sw
+        # Restore the Qt directory from the actions cache so that only the first
+        # job per architecture downloads Qt at all.
+        cache: true
