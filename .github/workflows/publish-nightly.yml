@@ -13,7 +13,8 @@ on:
     inputs:
       # Name pattern of the artifacts that hold the installers. Each artifact
       # is expected to contain a single installer, which is published under
-      # its own name (e.g. PlusApp-2.9.0.20261007-Win64.exe).
+      # its own name (e.g. PlusApp-2.9.0.20261007-Win64.exe), and may hold
+      # the SupportedDevices.txt of the installer (see supported-devices.py).
       artifact-pattern:
         required: false
         type: string
@@ -43,6 +44,7 @@ jobs:
         sparse-checkout: |
           CMakeLists.txt
           .github/scripts/record-downloads.py
+          .github/scripts/supported-devices.py
         sparse-checkout-cone-mode: false
 
     - name: Download installers
@@ -123,6 +125,11 @@ jobs:
           fi
         done
 
+        # The table of the devices each installer supports, from the device
+        # lists in the artifacts and, for the installers kept, from the
+        # supported-devices.json asset of the release.
+        python3 .github/scripts/supported-devices.py --release "$tag" --artifacts installers/*/ > devices.md
+
         repo_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
         kept=$(gh release view "$tag" --json assets --jq '.assets[].name | select(endswith(".exe"))' | grep -vxF -f <(ls upload) || true)
         cat > notes.md <<EOF
@@ -137,4 +144,6 @@ jobs:
           printf '\nNot rebuilt tonight:\n' >> notes.md
           printf -- '- %s\n' $kept >> notes.md
         fi
+        echo >> notes.md
+        cat devices.md >> notes.md
         gh release edit "$tag" --prerelease --notes-file notes.md

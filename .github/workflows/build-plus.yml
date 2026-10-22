@@ -290,16 +290,42 @@ jobs:
       run: |
         .\CreatePackage.bat
 
+    # The devices the installer supports, listed by its own PlusVersion tool.
+    # It is run from the install tree staged by CPack so that it loads the
+    # DLLs the installer ships. The list is published with the installer (see
+    # publish-nightly.yml); a package whose PlusVersion cannot start keeps
+    # the installer and goes without a list.
+    - name: List supported devices
+      if: ${{ contains(runner.os, 'windows') && hashFiles('build/PlusApp-bin/CreatePackage.bat') != '' }}
+      continue-on-error: true
+      working-directory: ${{ github.workspace }}/build/PlusApp-bin
+      shell: pwsh
+      run: |
+        $exe = Get-ChildItem -Path _CPack_Packages -Recurse -Filter PlusVersion.exe |
+          Where-Object { $_.FullName -match '[\\/]NSIS[\\/]' } | Select-Object -First 1
+        if (-not $exe) {
+          throw "PlusVersion.exe not found in the staged install tree"
+        }
+        $devices = & $exe.FullName
+        if ($LASTEXITCODE -ne 0) {
+          throw "PlusVersion.exe failed with exit code $LASTEXITCODE"
+        }
+        $devices | Out-File -Encoding utf8 SupportedDevices.txt
+        Get-Content SupportedDevices.txt
+
     - name: Upload artifact
       uses: actions/upload-artifact@v7
       with:
         name: ${{ inputs.archive-name }}
-        path: ${{github.workspace}}/build/PlusApp-bin/*.exe
+        path: |
+          ${{github.workspace}}/build/PlusApp-bin/*.exe
+          ${{github.workspace}}/build/PlusApp-bin/SupportedDevices.txt
 
     # Delete the installer so that it isn't included in the cache.
     - name: Delete installer
       shell: bash
       run: |
         rm -rfv build/PlusApp-bin/*.exe
+        rm -fv build/PlusApp-bin/SupportedDevices.txt
         rm -rfv build/PlusApp-bin/*.zip
         rm -rfv build/PlusApp-bin/_CPack_Packages
