@@ -318,20 +318,24 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalConnect()
   vtkPlusDataSource* source = NULL;
   this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, rfSources);
 
-  int width_samples;
-  if (!rfSources.empty())
+  // Only switch the SDK between RF and B-mode when the mode actually changes.
+  // Container::SetRFData subscribes the handler of the new mode to the SDK's
+  // NewImageTick event without first removing an already subscribed one, and
+  // the B-mode handler is subscribed when the container is created. Calling
+  // SetRFData(false) on a container that is already in B-mode therefore
+  // subscribes the handler twice, and every frame is delivered twice: the
+  // buffer receives duplicate frames a few milliseconds apart and the
+  // frame rate appears to double while the image stutters.
+  const bool useRfData = !rfSources.empty();
+  if (container->GetRFData() != useRfData)
   {
-    container->SetRFData(true);
-    width_samples = ContainerType::MAX_RFSAMPLES;
+    container->SetRFData(useRfData);
   }
-  else
-  {
-    container->SetRFData(false);
-    width_samples = ContainerType::MAX_SAMPLES / 2;
-  }
+  const int width_samples = useRfData ? ContainerType::MAX_RFSAMPLES : ContainerType::MAX_SAMPLES / 2;
 
   LOG_DEBUG("Interson Array SDK version " << this->Internal->GetSdkVersion() <<
-    ", USB probe FPGA version " << hwControls->ReadFPGAVersion());
+    ", USB probe FPGA version " << hwControls->ReadFPGAVersion() <<
+    ", probe frame rate reported by the SDK " << hwControls->GetProbeFrameRate() << " fps");
 
   // Even if we do not use their SDK scan converter, we have to initialize the
   // scan converter to get the probe fully initialized.
