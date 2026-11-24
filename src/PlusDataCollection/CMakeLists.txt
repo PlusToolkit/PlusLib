@@ -1516,6 +1516,10 @@ IF(PLUS_USE_STEALTHLINK)
     ${CMAKE_CURRENT_SOURCE_DIR}/StealthLink
     )
 
+  LIST(APPEND External_Libraries_Install
+    ${STEALTHLINK_STEALTHLINK_SHARED_LIBRARY}
+    )
+
   IF(WIN32)
     LIST(APPEND ${PROJECT_NAME}_LIBS
       optimized ${STEALTHLINK_STEALTHLINK_STATIC_LIBRARY}
@@ -1524,12 +1528,10 @@ IF(PLUS_USE_STEALTHLINK)
     LIST(APPEND External_Libraries_Debug
       ${STEALTHLINK_STEALTHLINKD_SHARED_LIBRARY}
       )
-    LIST(APPEND External_Libraries_Install
-      ${STEALTHLINK_STEALTHLINK_SHARED_LIBRARY}
-      )
   ELSE()
+    # Link the shared library; the static one does not carry the SDK's boost dependencies
     LIST(APPEND ${PROJECT_NAME}_LIBS
-      ${STEALTHLINK_STEALTHLINK_STATIC_LIBRARY}
+      ${STEALTHLINK_STEALTHLINK_SHARED_LIBRARY}
       )
   ENDIF()
 ENDIF()
