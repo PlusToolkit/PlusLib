@@ -18,10 +18,10 @@ class vtkPlusCommonExport vtkPlusSequenceIO : public vtkObject
 {
 public:
   /*! Write object contents into file */
-  static igsioStatus Write(const std::string& filename, igsioTrackedFrame* frame, US_IMAGE_ORIENTATION orientationInFile = US_IMG_ORIENT_MF, bool useCompression = true, bool EnableImageDataWrite = true);
+  static igsioStatus Write(const std::string& filename, igsioTrackedFrame* frame, US_IMAGE_ORIENTATION orientationInFile = US_IMG_ORIENT_MF, bool useCompression = true, bool reduceImageDataToOnePixel = false, bool writeHeaderOnly = false);
 
   /*! Write object contents into file */
-  static igsioStatus Write(const std::string& filename, vtkIGSIOTrackedFrameList* frameList, US_IMAGE_ORIENTATION orientationInFile = US_IMG_ORIENT_MF, bool useCompression = true, bool EnableImageDataWrite = true);
+  static igsioStatus Write(const std::string& filename, vtkIGSIOTrackedFrameList* frameList, US_IMAGE_ORIENTATION orientationInFile = US_IMG_ORIENT_MF, bool useCompression = true, bool reduceImageDataToOnePixel = false, bool writeHeaderOnly = false);
 
   /*! Read file contents into the object */
   static igsioStatus Read(const std::string& filename, vtkIGSIOTrackedFrameList* frameList);
